@@ -1,0 +1,10 @@
+{
+  "world": {
+    "chunk_dims": [
+      500,
+      400
+    ],
+    "name": "covfefe",
+    "seed": 0
+  }
+}

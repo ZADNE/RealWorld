@@ -1,0 +1,10 @@
+{
+  "world": {
+    "chunk_dims": [
+      400,
+      250
+    ],
+    "name": "menu",
+    "seed": 0
+  }
+}

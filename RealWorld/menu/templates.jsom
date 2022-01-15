@@ -1,0 +1,21 @@
+{
+	"FONT": {
+		"font_name": "arial",
+		"font_bounds": [32, 425],
+		"font_colour_normal": [ 32, 32, 32, 255 ],
+		"font_colour_highlighted": [ 8, 8, 8, 255 ],
+		"font_colour_used": [ 8, 8, 8, 255 ],
+		"font_colour_disabled": [56, 56, 56, 255]
+	},
+	"BIG_FONT": {
+		"templates": ["FONT"],
+		"texture_name": "menu/bigButton",
+		"font_size": 52
+	},
+	"SMALL_FONT": {
+		"templates": ["FONT"],
+		"texture_name": "menu/smallButton",
+		"font_size": 21
+	}
+
+}

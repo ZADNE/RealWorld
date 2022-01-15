@@ -1,0 +1,3 @@
+[submodule "RealEngine"]
+	path = RealEngine
+	url = https://github.com/ZADNE/RealEngine.git
