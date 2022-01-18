@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 project(RealWorld)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+message(STATUS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
 add_executable(${PROJECT_NAME})
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
@@ -18,6 +21,12 @@ FetchContent_Declare(RealEngine
 )
 FetchContent_MakeAvailable(RealEngine)
 
-add_dependencies(RealWorld RealEngine)
+add_dependencies(${PROJECT_NAME} RealEngine)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE RealEngine)
+find_package(OpenGL REQUIRED)
+
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+		RealEngine
+		OpenGL::GL
+)
