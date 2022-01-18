@@ -1,9 +1,9 @@
 #pragma once
 #include <RealEngine/Vertex.hpp>
 
-#include "DestroyTicket.hpp"
-#include "StaticLight.hpp"
-#include "DynamicLight.hpp"
+#include <RealWorld/world/DestroyTicket.hpp>
+#include <RealWorld/world/StaticLight.hpp>
+#include <RealWorld/world/DynamicLight.hpp>
 
 class WorldDrawer;
 

@@ -1,8 +1,8 @@
-#include "ItemInstructionDatabase.hpp"
+#include <RealWorld/items/ItemInstructionDatabase.hpp>
 
 #include <stdexcept>
 
-#include "ItemCombinator.hpp"
+#include <RealWorld/items/ItemCombinator.hpp>
 
 ItemInstructionDatabase::ItemInstructionDatabase():
 	m_instructions(std::make_unique<std::vector<ItemInstruction>>()),

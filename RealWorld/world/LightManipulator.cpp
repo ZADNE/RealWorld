@@ -1,6 +1,6 @@
-#include "LightManipulator.hpp"
+#include <RealWorld/world/LightManipulator.hpp>
 
-#include "WorldDrawer.hpp"
+#include <RealWorld/world/WorldDrawer.hpp>
 
 DestroyTicket<StaticLight> LightManipulator::staticLight_add(const StaticLight& staticLight){
 	return m_wd->staticLight_add(staticLight);

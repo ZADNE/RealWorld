@@ -1,9 +1,9 @@
-#include "Player.hpp"
+#include <RealWorld/world/physics/Player.hpp>
 
 #include <RealEngine/SpriteBatch.hpp>
 
-#include "../../items/ItemUser.hpp"
-#include "../../items/ItemCombinator.hpp"
+#include <RealWorld/items/ItemUser.hpp>
+#include <RealWorld/items/ItemCombinator.hpp>
 
 Player::Player() :
 	m_health(100.0f),

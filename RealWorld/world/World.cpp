@@ -1,6 +1,6 @@
-#include "World.hpp"
+#include <RealWorld/world/World.hpp>
 
-#include <glm\gtc\matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/Vertex.hpp>
 #include <RealEngine/Error.hpp>
@@ -8,10 +8,10 @@
 #include <RealEngine/Error.hpp>
 #include <RealEngine/UniformManager.hpp>
 
-#include "../shaders/shaders.hpp"
-#include "TDB.hpp"
-#include "physics/Player.hpp"
-#include "WorldDataLoader.hpp"
+#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/world/TDB.hpp>
+#include <RealWorld/world/physics/Player.hpp>
+#include <RealWorld/world/WorldDataLoader.hpp>
 
 struct VertexSetWithVarUpdate {
 	glm::vec2 position;

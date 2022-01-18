@@ -1,13 +1,13 @@
-#include "ItemOnGround.hpp"
+#include <RealWorld/items/ItemOnGround.hpp>
 
 #include <algorithm>
 
-#include <glm\geometric.hpp>
+#include <glm/geometric.hpp>
 
 #include <RealEngine/SpriteBatch.hpp>
 
-#include "Inventory.hpp"
-#include "../world/TDB.hpp"
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/world/TDB.hpp>
 
 
 ItemOnGround::ItemOnGround(const glm::ivec2& pos, World* world, const Item& item, float lifetime, std::pair<Hitbox*, Inventory*> target) :

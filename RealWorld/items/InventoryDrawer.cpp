@@ -1,19 +1,19 @@
-#include "InventoryDrawer.hpp"
+#include <RealWorld/items/InventoryDrawer.hpp>
 
 #include <string>
 
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\geometric.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/geometric.hpp>
 
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/SpriteBatch.hpp>
 #include <RealEngine/Font.hpp>
 #include <RealEngine/utility.hpp> //rmath::clamp()
 
-#include "../metadata.hpp"
-#include "../shaders/shaders.hpp"
-#include "Inventory.hpp"
-#include "ItemUser.hpp"
+#include <RealWorld//metadata.hpp>
+#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/items/ItemUser.hpp>
 
 
 

@@ -1,15 +1,15 @@
 #pragma once
-#include <glm\glm.hpp>
+#include <glm/vec2.hpp>
 
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/InputManager.hpp>
 
-#include "Health.hpp"
-#include "DynamicHitbox.hpp"
-#include "../../items/Inventory.hpp"
-#include "../../KeyBinder.hpp"
-#include "../../items/ItemInstructionDatabase.hpp"
-#include "PlayerData.hpp"
+#include <RealWorld/world/physics/Health.hpp>
+#include <RealWorld/world/physics/DynamicHitbox.hpp>
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/KeyBinder.hpp>
+#include <RealWorld/items/ItemInstructionDatabase.hpp>
+#include <RealWorld/world/physics/PlayerData.hpp>
 
 class World;
 class ItemUser;

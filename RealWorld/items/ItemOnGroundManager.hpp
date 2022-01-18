@@ -3,8 +3,8 @@
 
 #include <RealEngine/SpriteBatch.hpp>
 
-#include "ItemOnGround.hpp"
-#include "../world/World.hpp"
+#include <RealWorld/items/ItemOnGround.hpp>
+#include <RealWorld/world/World.hpp>
 
 
 class ItemOnGroundManager {

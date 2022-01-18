@@ -1,5 +1,5 @@
 #pragma once
-#include "Hitbox.hpp"
+#include <RealWorld/world/physics/Hitbox.hpp>
 
 class World;
 

@@ -3,7 +3,7 @@
 #include <vector>
 #include <cmath>
 
-#include "../metadata.hpp"
+#include <RealWorld/metadata.hpp>
 
 const std::string ITEM_ATLAS_PREFIX = "itemAtlas";
 

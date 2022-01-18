@@ -3,7 +3,7 @@
 
 #include <glm/vec2.hpp>
 
-#include "Item.hpp"
+#include <RealWorld/items/Item.hpp>
 
 struct InventoryData {
 	std::vector<std::vector<Item>> items;

@@ -1,19 +1,19 @@
 #pragma once
 #include <string>
 
-#include <GL\glew.h>
-#include <glm\vec2.hpp>
-#include <glm\mat4x4.hpp>
+#include <GL/glew.h>
+#include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 
 #include <RealEngine/SpriteBatch.hpp>
 #include <RealEngine/Surface.hpp>
 #include <RealEngine/ResourceManager.hpp>
 
-#include "WorldDrawer.hpp"
-#include "ChunkHandler.hpp"
-#include "../shaders/shaders.hpp"
-#include "WorldData.hpp"
-#include "../furniture/FurnitureRegister.hpp"
+#include <RealWorld/world/WorldDrawer.hpp>
+#include <RealWorld/world/ChunkHandler.hpp>
+#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/world/WorldData.hpp>
+#include <RealWorld/furniture/FurnitureRegister.hpp>
 
 class Player;
 class FurnitureRegister;

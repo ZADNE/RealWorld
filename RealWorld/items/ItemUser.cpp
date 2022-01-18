@@ -1,15 +1,15 @@
-#include "ItemUser.hpp"
+#include <RealWorld/items/ItemUser.hpp>
 
 #include <RealEngine/SpriteBatch.hpp>
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/utility.hpp>
 
-#include "../world/TDB.hpp"
-#include "IDB.hpp"
-#include "Inventory.hpp"
-#include "../world/World.hpp"
-#include "ItemOnGroundManager.hpp"
-#include "../world/physics/position_conversions.hpp"
+#include <RealWorld/world/TDB.hpp>
+#include <RealWorld/items/IDB.hpp>
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/world/World.hpp>
+#include <RealWorld/items/ItemOnGroundManager.hpp>
+#include <RealWorld/world/physics/position_conversions.hpp>
 
 
 ItemUser::ItemUser() {

@@ -1,9 +1,9 @@
 #pragma once
-#include <glm\vec2.hpp>
+#include <glm/vec2.hpp>
 
 #include <RealEngine/ResourceManager.hpp>
 
-#include "../metadata.hpp"
+#include <RealWorld/metadata.hpp>
 
 class World;
 class Inventory;

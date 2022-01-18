@@ -1,14 +1,14 @@
 #pragma once
-#include <glm\vec2.hpp>
+#include <glm/vec2.hpp>
 
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/Surface.hpp>
 #include <RealEngine/default_shaders.hpp>
 
-#include "../world/physics/Hitbox.hpp"
-#include "../items/Item.hpp"
-#include "ItemSprite.hpp"
-#include "../shaders/shaders.hpp"
+#include <RealWorld/world/physics/Hitbox.hpp>
+#include <RealWorld/items/Item.hpp>
+#include <RealWorld/items/ItemSprite.hpp>
+#include <RealWorld/shaders/shaders.hpp>
 
 enum Connection { PRIMARY, SECONDARY, TERTIARY, NUMBER_OF_TYPES };
 

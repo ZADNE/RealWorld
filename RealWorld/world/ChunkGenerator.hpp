@@ -5,8 +5,8 @@
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/Surface.hpp>
 
-#include "Chunk.hpp"
-#include "../shaders/shaders.hpp"
+#include <RealWorld/world/Chunk.hpp>
+#include <RealWorld/shaders/shaders.hpp>
 
 /**
  * Generates new chunks.

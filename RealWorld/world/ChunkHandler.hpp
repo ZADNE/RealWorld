@@ -6,7 +6,7 @@
 
 #include <RealEngine/Surface.hpp>
 
-#include "Chunk.hpp"
+#include <RealWorld/world/Chunk.hpp>
 
 class ChunkGenerator;
 

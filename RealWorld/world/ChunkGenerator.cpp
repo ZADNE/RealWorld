@@ -1,19 +1,19 @@
-#include "ChunkGenerator.hpp"
+#include <RealWorld/world/ChunkGenerator.hpp>
 
 #include <vector>
 
-#include <GL\glew.h>
+#include <GL/glew.h>
 
-#include <glm\mat4x4.hpp>
-#include <glm\gtc\matrix_transform.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/Vertex.hpp>
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/UniformManager.hpp>
 
-#include "../world/TDB.hpp"
-#include "../items/Item.hpp"
-#include "../div.hpp"
+#include <RealWorld/world//TDB.hpp>
+#include <RealWorld/items/Item.hpp>
+#include <RealWorld/div.hpp>
 
 const int BORDER_WIDTH = 16;
 

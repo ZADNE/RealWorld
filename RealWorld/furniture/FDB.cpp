@@ -1,11 +1,18 @@
-#include "FDB.hpp"
+#include <RealWorld/furniture/FDB.hpp>
 
 #include <fstream>
 
 #include <RealEngine/ResourceManager.hpp>
 
-#define writeBin(x) write(reinterpret_cast<const char *>(&##x##), sizeof(##x##))
-#define readBin(x) read(reinterpret_cast<char *>(&##x##), sizeof(##x##))
+template<class T> 
+void writeBinary(std::ofstream& file, const T& x){
+	file.write(reinterpret_cast<const char *>(&x), sizeof(x));
+}
+
+template<class T>
+void readBinary(std::ifstream& file, T& x){
+	file.read(reinterpret_cast<char *>(&x), sizeof(x));
+}
 
 std::vector<FDB::CommonInfo> FDB::m_commonInfo;
 
@@ -26,18 +33,18 @@ void FDB::init() {
 	FurEntry fe;
 	m_commonInfo.resize((unsigned int)fileSize / FurEntry::saveSize());
 	for (size_t i = 0u; i < (size_t)fileSize; i += FurEntry::saveSize()) {
-		file.readBin(m_commonInfo[i / FurEntry::saveSize()].type);
-		file.readBin(m_commonInfo[i / FurEntry::saveSize()].index);
-		file.readBin(fe.dimx);
-		file.readBin(fe.dimy);
-		file.readBin(fe.sprite);
-		file.readBin(m_commonInfo[i / FurEntry::saveSize()].imageSpeed);
+		readBinary(file, m_commonInfo[i / FurEntry::saveSize()].type);
+		readBinary(file, m_commonInfo[i / FurEntry::saveSize()].index);
+		readBinary(file, fe.dimx);
+		readBinary(file, fe.dimy);
+		readBinary(file, fe.sprite);
+		readBinary(file, m_commonInfo[i / FurEntry::saveSize()].imageSpeed);
 
 		m_commonInfo[i / FurEntry::saveSize()].dim = glm::ivec2((int)fe.dimx, (int)fe.dimy);
 		m_commonInfo[i / FurEntry::saveSize()].sprite = (float)fe.sprite;
 
-		file.readBin(m_commonInfo[i / FurEntry::saveSize()].itemID);
-		file.readBin(m_commonInfo[i / FurEntry::saveSize()].placement);
+		readBinary(file, m_commonInfo[i / FurEntry::saveSize()].itemID);
+		readBinary(file, m_commonInfo[i / FurEntry::saveSize()].placement);
 	}
 
 	m_textures = {
@@ -97,6 +104,3 @@ I_ID FDB::getItemID(size_t totalIndex) {
 Placement FDB::getPlacement(size_t totalIndex) {
 	return m_commonInfo[totalIndex].placement;
 }
-
-#undef writeBin
-#undef readBin

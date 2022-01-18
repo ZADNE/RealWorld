@@ -1,19 +1,19 @@
 #pragma once
 #include <map>
 
-#include <GL\glew.h>
-#include <glm\vec2.hpp>
+#include <GL/glew.h>
+#include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/Surface.hpp>
 
-#include "../shaders/shaders.hpp"
-#include "../shaders/WDS.hpp"
-#include "StaticLight.hpp"
-#include "DynamicLight.hpp"
-#include "DestroyTicket.hpp"
-#include "LightManipulator.hpp"
+#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/shaders/WDS.hpp>
+#include <RealWorld/world/StaticLight.hpp>
+#include <RealWorld/world/DynamicLight.hpp>
+#include <RealWorld/world/DestroyTicket.hpp>
+#include <RealWorld/world/LightManipulator.hpp>
 
 class ChunkHandler;
 

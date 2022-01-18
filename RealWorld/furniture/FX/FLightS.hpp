@@ -1,6 +1,6 @@
 #pragma once
-#include "FStatic.hpp"
-#include "../../world/DestroyTicket.hpp"
+#include <RealWorld/furniture/FX/FStatic.hpp>
+#include <RealWorld/world/DestroyTicket.hpp>
 
 class FLightS: public FStatic{
 public:

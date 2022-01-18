@@ -1,12 +1,12 @@
-#include "Hitbox.hpp"
+#include <RealWorld/world/physics/Hitbox.hpp>
 
 #include <algorithm>
 
 #include <RealEngine/utility.hpp>
 
-#include "../World.hpp"
-#include "../TDB.hpp"
-#include "position_conversions.hpp"
+#include <RealWorld/world/World.hpp>
+#include <RealWorld/world/TDB.hpp>
+#include <RealWorld/world/physics/position_conversions.hpp>
 
 
 Hitbox::Hitbox(const glm::ivec2& positionPx, const glm::ivec2& dimensionPx, const glm::ivec2& offsetPx/* = glm::ivec2(0, 0)*/) :

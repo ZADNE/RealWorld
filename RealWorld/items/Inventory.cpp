@@ -1,11 +1,11 @@
-#include "Inventory.hpp"
+#include <RealWorld/items/Inventory.hpp>
 
 #include <fstream>
 
 #include <RealEngine/Error.hpp>
 
-#include "InventoryDrawer.hpp"
-#include "ItemCombinator.hpp"
+#include <RealWorld/items/InventoryDrawer.hpp>
+#include <RealWorld/items/ItemCombinator.hpp>
 
 
 Inventory::Inventory(const glm::ivec2& size){

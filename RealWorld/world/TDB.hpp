@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 
-#include "../metadata.hpp"
-#include "../items/IDB.hpp"
+#include <RealWorld/metadata.hpp>
+#include <RealWorld/items/IDB.hpp>
 
 
 const ulong LAST_NONSOLIDBLOCK = 0;

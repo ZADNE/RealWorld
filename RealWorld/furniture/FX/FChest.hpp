@@ -1,5 +1,5 @@
 #pragma once
-#include "FStatic.hpp"
+#include <RealWorld/furniture/FX/FStatic.hpp>
 
 class FChest: public FStatic{
 public:

@@ -4,8 +4,8 @@
 
 #include <RealEngine/Sprite.hpp>
 
-#include "../FDB.hpp"
-#include "../../world/Lightmanipulator.hpp"
+#include <RealWorld/furniture/FDB.hpp>
+#include <RealWorld/world/LightManipulator.hpp>
 
 namespace RE {
 	class SpriteBatch;

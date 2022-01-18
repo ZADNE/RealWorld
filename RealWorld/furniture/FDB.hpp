@@ -6,8 +6,8 @@
 
 #include <RealEngine/ResourceManager.hpp>
 
-#include "../metadata.hpp"
-#include "../items/IDB.hpp"
+#include <RealWorld/metadata.hpp>
+#include <RealWorld/items/IDB.hpp>
 
 namespace RE {
 class Texture;

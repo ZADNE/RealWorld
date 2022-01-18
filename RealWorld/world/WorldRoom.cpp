@@ -1,19 +1,16 @@
-#include "WorldRoom.hpp"
+#include <RealWorld/world/WorldRoom.hpp>
 
 #include <RealEngine/UniformManager.hpp>
 
-#include "TDB.hpp"
+#include <RealWorld/world/TDB.hpp>
 
-#include "WorldDataLoader.hpp"
-#include "../items/InventoryDrawer.hpp"
-#include "../items/CraftingDrawer.hpp"
-#include "../items/ItemOnGroundManager.hpp"
-#include "../items/ItemUser.hpp"
-#include "physics/Player.hpp"
-#include "physics/position_conversions.hpp"
-
-
-#include <thread>
+#include <RealWorld/world/WorldDataLoader.hpp>
+#include <RealWorld/items/InventoryDrawer.hpp>
+#include <RealWorld/items/CraftingDrawer.hpp>
+#include <RealWorld/items/ItemOnGroundManager.hpp>
+#include <RealWorld/items/ItemUser.hpp>
+#include <RealWorld/world/physics/Player.hpp>
+#include <RealWorld/world/physics/position_conversions.hpp>
 
 WorldRoom::WorldRoom() {
 

@@ -1,10 +1,9 @@
 #pragma once
 #include <memory>
 #include <algorithm>
-//#include <array>
 
-#include "IDB.hpp"
-#include "Item.hpp"
+#include <RealWorld/items/IDB.hpp>
+#include <RealWorld/items/Item.hpp>
 
 class ItemInstruction;
 

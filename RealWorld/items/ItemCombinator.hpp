@@ -3,9 +3,9 @@
 #include <list>
 #include <vector>
 
-#include "ItemInstruction.hpp"
-#include "Item.hpp"
-#include "ItemSample.hpp"
+#include <RealWorld/items/ItemInstruction.hpp>
+#include <RealWorld/items/Item.hpp>
+#include <RealWorld/items/ItemSample.hpp>
 
 class Inventory;
 class CraftingDrawer;

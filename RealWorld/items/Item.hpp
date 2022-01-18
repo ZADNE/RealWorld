@@ -1,5 +1,5 @@
 #pragma once
-#include "ItemSample.hpp"
+#include <RealWorld/items/ItemSample.hpp>
 
 struct Item : public ItemSample {
 		//Construct empty item

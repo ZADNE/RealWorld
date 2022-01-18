@@ -8,28 +8,28 @@
 
 #include <RealEngine/tupleUp.hpp>
 
-#include "FIndex.hpp"
-#include "Quadtree.hpp"
-#include "FurnitureCollection.hpp"
+#include <RealWorld/furniture/FIndex.hpp>
+#include <RealWorld/furniture/Quadtree.hpp>
+#include <RealWorld/furniture/FurnitureCollection.hpp>
 
 
-#define callOnEachOfType(x, func, args)		auto FI##x = m_fsFI[##x##]; \
-											FI##x##.push(m_fs.fc.f##x##.size()); \
-											for (size_t i = 0u; i < m_fs.fc.f##x##.size(); ++i) { \
-												if (i != FI##x##.top()) { \
-													(m_fs.fc.f##x##[i].*##func##)(##args##); \
+#define callOnEachOfType(x, func, args)		auto FI##x = m_fsFI[x]; \
+											FI##x.push(m_fs.fc.f##x.size()); \
+											for (size_t i = 0u; i < m_fs.fc.f##x.size(); ++i) { \
+												if (i != FI##x.top()) { \
+													(m_fs.fc.f##x[i].*func)(args); \
 												} else { \
-													FI##x##.pop(); \
+													FI##x.pop(); \
 												} \
 											} \
 
-#define callWithEachOfType(x, func, args)	auto FI##x## = m_fsFI[##x##]; \
-											FI##x##.push(m_fs.fc.f##x##.size()); \
-											for (size_t i = 0u; i < m_fs.fc.f##x##.size(); ++i) { \
-												if (i != FI##x##.top()) { \
-													(this->*##func##)(&m_fs.fc.f##x##[i],##args##); \
+#define callWithEachOfType(x, func, args)	auto FI##x = m_fsFI[x]; \
+											FI##x.push(m_fs.fc.f##x.size()); \
+											for (size_t i = 0u; i < m_fs.fc.f##x.size(); ++i) { \
+												if (i != FI##x.top()) { \
+													(this->*func)(&m_fs.fc.f##x[i], args); \
 												} else { \
-													FI##x##.pop(); \
+													FI##x.pop(); \
 												} \
 											} \
 

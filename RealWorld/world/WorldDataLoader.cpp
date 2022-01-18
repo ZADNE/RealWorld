@@ -1,19 +1,26 @@
-#include "WorldDataLoader.hpp"
+#include <RealWorld/world/WorldDataLoader.hpp>
 
 #include <fstream>
 #include <filesystem>
 #include <iostream>
 
-#include <SDL/SDL_timer.h>
+#include <SDL2/SDL_timer.h>
 #include <nlohmann/json.hpp>
 
 #include <RealEngine/lodepng.hpp>
 #include <RealEngine/Error.hpp>
 
-#include "../furniture/FDB.hpp"
+#include <RealWorld/furniture/FDB.hpp>
 
-#define writeBin(x) write(reinterpret_cast<const char *>(&##x##), sizeof(##x##))
-#define readBin(x) read(reinterpret_cast<char *>(&##x##), sizeof(##x##))
+template<class T> 
+void writeBinary(std::ofstream& file, const T& x){
+	file.write(reinterpret_cast<const char *>(&x), sizeof(x));
+}
+
+template<class T>
+void readBinary(std::ifstream& file, T& x){
+	file.read(reinterpret_cast<char *>(&x), sizeof(x));
+}
 
 std::string WorldDataLoader::m_saveFolder = "saves";
 
@@ -96,7 +103,7 @@ void WorldDataLoader::loadPlayer(PlayerData& pd, const std::string& path){
 
 	if (fileSize < sizeof(pd.pos)) throw std::exception{};
 
-	stream.readBin(pd.pos);
+	readBinary(stream, pd.pos);
 
 	loadInventoryData(pd.id, path);
 }
@@ -114,7 +121,7 @@ void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& pa
 	stream.seekg(0, std::ios::beg);
 	
 	if ((size_t)fileSize < sizeof(newSize)) throw std::exception{};
-	stream.readBin(newSize);
+	readBinary(stream, newSize);
 
 	if ((size_t)fileSize < ((size_t)newSize.x * (size_t)newSize.y * sizeof(Item) + sizeof(newSize))) throw std::exception{};
 
@@ -124,7 +131,7 @@ void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& pa
 	for (int x = 0; x < id.size.x; x++) {
 		for (int y = 0; y < id.size.y; y++) {
 			Item& item = id.items[x][y];
-			stream.readBin(item);
+			readBinary(stream, item);
 		}
 	}
 }
@@ -146,8 +153,8 @@ void WorldDataLoader::loadFurniture(FurnitureCollection& fc, const std::string& 
 	glm::ivec2 pos = glm::ivec2(0, 0);
 	ulong totalIndex = 0;
 	for (ulong i = 0u; i < streamSize; i += entrySize) {
-		stream.readBin(pos);
-		stream.readBin(totalIndex);
+		readBinary(stream, pos);
+		readBinary(stream, totalIndex);
 		switch (FDB::getType(totalIndex)) {
 		case F_TYPE::STATIC:
 			fc.f0.emplace_back(pos, totalIndex); break;
@@ -183,7 +190,7 @@ void WorldDataLoader::savePlayer(const PlayerData& pd, const std::string& path){
 		perror((path + "player_state.rst").c_str());
 		throw std::exception{};
 	}
-	stream.writeBin(pd.pos);
+	writeBinary(stream, pd.pos);
 
 	saveInventoryData(pd.id, path);
 }
@@ -195,12 +202,12 @@ void WorldDataLoader::saveInventoryData(const InventoryData& id, const std::stri
 		throw std::exception{};
 	}
 
-	stream.writeBin(id.size);
+	writeBinary(stream, id.size);
 
 	for (int x = 0; x < id.size.x; x++) {
 		for (int y = 0; y < id.size.y; y++) {
 			Item item = id.items[x][y];
-			stream.writeBin(item);
+			writeBinary(stream, item);
 		}
 	}
 }
@@ -213,32 +220,32 @@ void WorldDataLoader::saveFurniture(const FurnitureCollection& fc, const std::st
 	}
 	for (auto& fur: fc.f0) {
 		glm::ivec2 pos = fur.getBotLeft();
-		stream.writeBin(pos);
+		writeBinary(stream, pos);
 		ulong totalIndex = (ulong)fur.getTotalIndex();
-		stream.writeBin(totalIndex);
+		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f1) {
 		glm::ivec2 pos = fur.getBotLeft();
-		stream.writeBin(pos);
+		writeBinary(stream, pos);
 		ulong totalIndex = (ulong)fur.getTotalIndex();
-		stream.writeBin(totalIndex);
+		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f2) {
 		glm::ivec2 pos = fur.getBotLeft();
-		stream.writeBin(pos);
+		writeBinary(stream, pos);
 		ulong totalIndex = (ulong)fur.getTotalIndex();
-		stream.writeBin(totalIndex);
+		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f3) {
 		glm::ivec2 pos = fur.getBotLeft();
-		stream.writeBin(pos);
+		writeBinary(stream, pos);
 		ulong totalIndex = (ulong)fur.getTotalIndex();
-		stream.writeBin(totalIndex);
+		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f4) {
 		glm::ivec2 pos = fur.getBotLeft();
-		stream.writeBin(pos);
+		writeBinary(stream, pos);
 		ulong totalIndex = (ulong)fur.getTotalIndex();
-		stream.writeBin(totalIndex);
+		writeBinary(stream, totalIndex);
 	}
 }

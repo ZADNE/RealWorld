@@ -1,33 +1,33 @@
-#include "FurnitureRegister.hpp"
+#include <RealWorld/furniture/FurnitureRegister.hpp>
 
 #include <RealEngine/SpriteBatch.hpp>
 #include <RealEngine/ResourceManager.hpp>
 
-#include "../world/World.hpp"
-#include "FDB.hpp"
-#include "../world/TDB.hpp"
-#include "../world/physics/position_conversions.hpp"
+#include <RealWorld/world/World.hpp>
+#include <RealWorld/furniture/FDB.hpp>
+#include <RealWorld/world/TDB.hpp>
+#include <RealWorld/world/physics/position_conversions.hpp>
 
-#define onVectorByType(type, oper)	switch (##type##) { \
+#define onVectorByType(type, oper)	switch (type) { \
 										case F_TYPE::STATIC:{ \
 											auto& v = m_fs.fc.f0; \
-											##oper##; \
+											oper; \
 											break; }\
 										case F_TYPE::CHEST:{ \
 											auto& v = m_fs.fc.f1; \
-											##oper##; \
+											oper; \
 											break; }\
 										case F_TYPE::CRAFTING_STATION:{ \
 											auto& v = m_fs.fc.f2; \
-											##oper##; \
+											oper; \
 											break; }\
 										case F_TYPE::FURNACE:{ \
 											auto& v = m_fs.fc.f3; \
-											##oper##; \
+											oper; \
 											break; }\
 										case F_TYPE::LIGHT_SOURCE:{ \
 											auto& v = m_fs.fc.f4; \
-											##oper##; \
+											oper; \
 											break; }\
 										default: \
 											throw; \

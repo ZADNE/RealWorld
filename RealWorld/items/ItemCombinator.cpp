@@ -1,9 +1,9 @@
-#include "ItemCombinator.hpp"
+#include <RealWorld/items/ItemCombinator.hpp>
 
-#include "Inventory.hpp"
-#include "ItemInstructionDatabase.hpp"
-#include "CraftingDrawer.hpp"
-#include "ItemInstructionDatabase.hpp"
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/items/ItemInstructionDatabase.hpp>
+#include <RealWorld/items/CraftingDrawer.hpp>
+#include <RealWorld/items/ItemInstructionDatabase.hpp>
 
 
 ItemCombinator::ItemCombinator(){

@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
 
-#include "physics/PlayerData.hpp"
-#include "../furniture/FurnitureCollection.hpp"
-#include "WorldInfo.hpp"
+#include <RealWorld/world/physics/PlayerData.hpp>
+#include <RealWorld/furniture/FurnitureCollection.hpp>
+#include <RealWorld/world/WorldInfo.hpp>
 
 struct WorldData {
 

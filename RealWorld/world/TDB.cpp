@@ -1,9 +1,16 @@
-#include "TDB.hpp"
+#include <RealWorld/world/TDB.hpp>
 
 #include <fstream>
 
-#define writeBin(x) write(reinterpret_cast<const char *>(&##x##), sizeof(##x##))
-#define readBin(x) read(reinterpret_cast<char *>(&##x##), sizeof(##x##))
+template<class T> 
+void writeBinary(std::ofstream& file, const T& x){
+	file.write(reinterpret_cast<const char *>(&x), sizeof(x));
+}
+
+template<class T>
+void readBinary(std::ifstream& file, T& x){
+	file.read(reinterpret_cast<char *>(&x), sizeof(x));
+}
 
 std::vector<BlockMetadata> TDB::m_blockMetadata;
 std::vector<WallMetadata> TDB::m_wallMetadata;
@@ -28,9 +35,9 @@ void TDB::init() {
 	file.seekg(4, std::ios::beg);
 	m_blockMetadata.resize(std::numeric_limits<std::underlying_type_t<BLOCK_ID>>::max());
 	for (size_t i = 0u; i < (size_t)fileSize; i += BlockMetadata::saveSize()) {
-		file.readBin(m_blockMetadata[i / BlockMetadata::saveSize()].hardness);
-		file.readBin(m_blockMetadata[i / BlockMetadata::saveSize()].toughness);
-		file.readBin(m_blockMetadata[i / BlockMetadata::saveSize()].itemID);
+		readBinary(file, m_blockMetadata[i / BlockMetadata::saveSize()].hardness);
+		readBinary(file, m_blockMetadata[i / BlockMetadata::saveSize()].toughness);
+		readBinary(file, m_blockMetadata[i / BlockMetadata::saveSize()].itemID);
 	}
 	file.close();
 
@@ -45,11 +52,8 @@ void TDB::init() {
 	file.seekg(4, std::ios::beg);
 	m_wallMetadata.resize(std::numeric_limits<std::underlying_type_t<WALL_ID>>::max());
 	for (size_t i = 0u; i < (size_t)fileSize; i += WallMetadata::saveSize()) {
-		file.readBin(m_wallMetadata[i / WallMetadata::saveSize()].hardness);
-		file.readBin(m_wallMetadata[i / WallMetadata::saveSize()].toughness);
-		file.readBin(m_wallMetadata[i / WallMetadata::saveSize()].itemID);
+		readBinary(file, m_wallMetadata[i / WallMetadata::saveSize()].hardness);
+		readBinary(file, m_wallMetadata[i / WallMetadata::saveSize()].toughness);
+		readBinary(file, m_wallMetadata[i / WallMetadata::saveSize()].itemID);
 	}
 }
-
-#undef writeBin
-#undef readBin

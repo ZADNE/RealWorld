@@ -1,14 +1,14 @@
-#include "ChunkHandler.hpp"
+#include <RealWorld/world/ChunkHandler.hpp>
 
 #include <iostream>
 #include <algorithm>
 
-#include <SDL\SDL_timer.h>
+#include <SDL2/SDL_timer.h>
 
-#include "../metadata.hpp"
-#include "ChunkGenerator.hpp"
-#include "ChunkLoader.hpp"
-#include "../div.hpp"
+#include <RealWorld/metadata.hpp>
+#include <RealWorld/world/ChunkGenerator.hpp>
+#include <RealWorld/world/ChunkLoader.hpp>
+#include <RealWorld/div.hpp>
 
 
 

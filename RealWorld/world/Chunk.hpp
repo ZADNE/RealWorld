@@ -5,7 +5,7 @@
 
 #include <glm/vec2.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm/ext.hpp"
+#include <glm/ext.hpp>
 
 using uchar = unsigned char;
 using ushort = unsigned short;
@@ -38,10 +38,10 @@ public:
 	/**
 	 * Contructs new chunk.
 	 * 
-	 * \param chunkPos Position of the chunk, in chunk coordinates.
-	 * \param dims Dimensions of the chunk, in blocks.
-	 * \param data Raw data of the chunk, size should be dims.x * dims.y * 4
-	 * \throws std::exception If data does not hold enough bytes.
+	 * @param chunkPos Position of the chunk, in chunk coordinates.
+	 * @param dims Dimensions of the chunk, in blocks.
+	 * @param data Raw data of the chunk, size should be dims.x * dims.y * 4
+	 * @throws std::exception If data does not hold enough bytes.
 	 */
 	Chunk(glm::ivec2 chunkPos, glm::uvec2 dims, std::vector<unsigned char> data):
 		m_chunkPos(chunkPos), m_dims(dims), m_data(data) {
@@ -61,10 +61,10 @@ public:
 	 * Gets a value relating to a block from the chunk, checks the bounds of the chunk.
 	 * Resets the timer since last operation.
 	 * 
-	 * \param type What type of value is requested.
-	 * \param posBc Position of the block, relative to the chunk.
-	 * \return Value of the block.
-	 * \throws std::out_of_range When position is outside of this chunk.
+	 * @param type What type of value is requested.
+	 * @param posBc Position of the block, relative to the chunk.
+	 * @return Value of the block.
+	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
 	uchar inline get(chunk::BLOCK_VALUES type, glm::uvec2 posBc) const {
 		m_stepsSinceLastOperation = 0;
@@ -76,9 +76,9 @@ public:
 	 * Gets a value relating to a block from the chunk, does not check the bounds of the chunk.
 	 * Does not reset the timer since last operation.
 	 * 
-	 * \param type What type of value is requested.
-	 * \param posBc Position of the block, relative to the chunk.
-	 * \return Value of the block.
+	 * @param type What type of value is requested.
+	 * @param posBc Position of the block, relative to the chunk.
+	 * @return Value of the block.
 	 */
 	uchar inline getUnsafe(chunk::BLOCK_VALUES type, glm::uvec2 posBc) const {
 		return m_data[getIndexToBuffer(type, posBc)];
@@ -88,10 +88,10 @@ public:
 	 * Sets a value relating to a block from the chunk, checks the bounds of the chunk.
 	 * Resets the timer since last operation.
 	 * 
-	 * \param type What type of value is to be set.
-	 * \param posBc Position of the block, relative to the chunk.
-	 * \param value Value to be set.
-	 * \throws std::out_of_range When position is outside of this chunk.
+	 * @param type What type of value is to be set.
+	 * @param posBc Position of the block, relative to the chunk.
+	 * @param value Value to be set.
+	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
 	void inline set(chunk::BLOCK_VALUES type, glm::uvec2 posBc, uchar value) {
 		boundsCheck(posBc);
@@ -103,9 +103,9 @@ public:
 	 * Sets a value relating to a block from the chunk, does not check the bounds of the chunk.
 	 * Does not reset the timer since last operation.
 	 * 
-	 * \param type What type of value is to be set.
-	 * \param posBc Position of the block, relative to the chunk.
-	 * \param value Value to be set.
+	 * @param type What type of value is to be set.
+	 * @param posBc Position of the block, relative to the chunk.
+	 * @param value Value to be set.
 	 */
 	void inline setUnsafe(chunk::BLOCK_VALUES type, glm::uvec2 posBc, uchar value) {
 		m_data[getIndexToBuffer(type, posBc)] = value;
@@ -116,7 +116,7 @@ public:
 	 * If the chunk is active, timer is not incremented.
 	 * Chunk is expected to be removed after a certain period of time with no operations.
 	 * 
-	 * \return The number of steps since last operation
+	 * @return The number of steps since last operation
 	 */
 	ulong step() const {
 		return m_active ? m_stepsSinceLastOperation : ++m_stepsSinceLastOperation;
@@ -125,7 +125,7 @@ public:
 	/**
 	 * Returns raw data in vector.
 	 * 
-	 * \return Raw data in vector.
+	 * @return Raw data in vector.
 	 */
 	std::vector<unsigned char>& data() {
 		return m_data;
@@ -143,7 +143,7 @@ public:
 
 	/**
 	 * Tells whether the chunk is active.
-	 * \return True if it is active, false otherwise.
+	 * @return True if it is active, false otherwise.
 	*/
 	bool isActive() const {
 		return m_active;
@@ -153,8 +153,8 @@ private:
 	 * Checks whether given position is within bound of the chunk.
 	 * Throws when it is not.
 	 * 
-	 * \param posBc The position to check.
-	 * \throws std::out_of_range When position is outside of this chunk.
+	 * @param posBc The position to check.
+	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
 	void inline boundsCheck(glm::uvec2 posBc) const {
 		if (posBc.x >= m_dims.x || posBc.y >= m_dims.y) {
@@ -166,9 +166,9 @@ private:
 	 * Calculates index of value inside buffer based on position and block value type.
 	 * Calculation is agnostic of chunk bounds.
 	 * 
-	 * \param type Block value
-	 * \param posBc Position
-	 * \return Index to the buffer.
+	 * @param type Block value
+	 * @param posBc Position
+	 * @return Index to the buffer.
 	 */
 	size_t inline getIndexToBuffer(chunk::BLOCK_VALUES type, glm::uvec2 posBc) const {
 		return (posBc.x + ((size_t)m_dims.y - posBc.y - 1ull) * m_dims.x) * 4ull + (ulong)type;

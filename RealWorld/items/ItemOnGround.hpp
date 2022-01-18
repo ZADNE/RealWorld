@@ -1,8 +1,8 @@
 #pragma once
 #include <RealEngine/ResourceManager.hpp>
 
-#include "Item.hpp"
-#include "../world/physics/DynamicHitbox.hpp"
+#include <RealWorld/items/Item.hpp>
+#include <RealWorld/world/physics/DynamicHitbox.hpp>
 
 class World;
 class Inventory;

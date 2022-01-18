@@ -1,20 +1,19 @@
-﻿#include "WorldDrawer.hpp"
+﻿#include <RealWorld/world/WorldDrawer.hpp>
 
 #include <vector>
 
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\mat4x4.hpp>
-#include <glm\vec3.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/mat4x4.hpp>
 
 #include <RealEngine/Vertex.hpp>
 #include <RealEngine/Surface.hpp>
 #include <RealEngine/UniformManager.hpp>
 #include <RealEngine/utility.hpp>
 
-#include "ChunkHandler.hpp"
-#include "../metadata.hpp"
-#include "../shaders/shaders.hpp"
-#include "../div.hpp"
+#include <RealWorld/world/ChunkHandler.hpp>
+#include <RealWorld/metadata.hpp>
+#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/div.hpp>
 
 struct WorldDrawUniforms {
 	glm::mat4 viewMat;

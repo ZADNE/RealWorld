@@ -1,11 +1,11 @@
 #pragma once
 #include <vector>
 
-#include "FX/FStatic.hpp"
-#include "FX/FChest.hpp"
-#include "FX/FCraftS.hpp"
-#include "FX/FFurnace.hpp"
-#include "FX/FLightS.hpp"
+#include <RealWorld/furniture/FX/FStatic.hpp>
+#include <RealWorld/furniture/FX/FChest.hpp>
+#include <RealWorld/furniture/FX/FCraftS.hpp>
+#include <RealWorld/furniture/FX/FFurnace.hpp>
+#include <RealWorld/furniture/FX/FLightS.hpp>
 
 
 struct FurnitureCollection {

@@ -1,6 +1,6 @@
-#include <SDL\SDL_main.h>
+#include <SDL2/SDL_main.h>
 
-#include "Game.hpp"
+#include <RealWorld/Game.hpp>
 
 int main(int argc, char* argv[]) {
 	Game game;

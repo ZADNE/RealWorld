@@ -1,9 +1,16 @@
-#include "IDB.hpp"
+#include <RealWorld/items/IDB.hpp>
 
 #include <fstream>
 
-#define writeBin(x) write(reinterpret_cast<const char *>(&##x##), sizeof(##x##))
-#define readBin(x) read(reinterpret_cast<char *>(&##x##), sizeof(##x##))
+template<class T> 
+void writeBinary(std::ofstream& file, const T& x){
+	file.write(reinterpret_cast<const char *>(&x), sizeof(x));
+}
+
+template<class T>
+void readBinary(std::ifstream& file, T& x){
+	file.read(reinterpret_cast<char *>(&x), sizeof(x));
+}
 
 std::vector<ItemMetadata> IDB::m_itemMetadata;
 
@@ -25,14 +32,11 @@ void IDB::init() {
 	file.seekg(4, std::ios::beg);
 	m_itemMetadata.resize((unsigned int)fileSize / ItemMetadata::saveSize());
 	for (size_t i = 0u; i < (size_t)fileSize; i += ItemMetadata::saveSize()) {
-		file.readBin(m_itemMetadata[i / ItemMetadata::saveSize()].maxStack);
-		file.readBin(m_itemMetadata[i / ItemMetadata::saveSize()].textureAtlas);
-		file.readBin(m_itemMetadata[i / ItemMetadata::saveSize()].spriteIndex);
-		file.readBin(m_itemMetadata[i / ItemMetadata::saveSize()].drawScale);
-		file.readBin(m_itemMetadata[i / ItemMetadata::saveSize()].type);
-		file.readBin(m_itemMetadata[i / ItemMetadata::saveSize()].typeIndex);
+		readBinary(file, m_itemMetadata[i / ItemMetadata::saveSize()].maxStack);
+		readBinary(file, m_itemMetadata[i / ItemMetadata::saveSize()].textureAtlas);
+		readBinary(file, m_itemMetadata[i / ItemMetadata::saveSize()].spriteIndex);
+		readBinary(file, m_itemMetadata[i / ItemMetadata::saveSize()].drawScale);
+		readBinary(file, m_itemMetadata[i / ItemMetadata::saveSize()].type);
+		readBinary(file, m_itemMetadata[i / ItemMetadata::saveSize()].typeIndex);
 	}
 }
-
-#undef writeBin
-#undef readBin

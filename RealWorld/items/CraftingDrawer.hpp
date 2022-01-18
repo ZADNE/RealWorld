@@ -2,7 +2,7 @@
 #include <vector>
 #include <list>
 
-#include <glm\vec2.hpp>
+#include <glm/vec2.hpp>
 
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/Vertex.hpp>
@@ -10,9 +10,9 @@
 #include <RealEngine/ShaderProgramCache.hpp>
 #include <RealEngine/default_shaders.hpp>
 
-#include "ItemSprite.hpp"
-#include "../shaders/shaders.hpp"
-#include "../metadata.hpp"
+#include <RealWorld/items/ItemSprite.hpp>
+#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/metadata.hpp>
 
 class ItemCombinator;
 class ItemInstruction;

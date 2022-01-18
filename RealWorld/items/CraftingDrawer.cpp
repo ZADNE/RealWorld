@@ -1,14 +1,14 @@
-#include "CraftingDrawer.hpp"
+#include <RealWorld/items/CraftingDrawer.hpp>
 
-#include <glm\gtc\matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/SpriteBatch.hpp>
 #include <RealEngine/Font.hpp>
 #include <RealEngine/ResourceManager.hpp>
 #include <RealEngine/Error.hpp>
 
-#include "ItemCombinator.hpp"
-#include "ItemInstruction.hpp"
+#include <RealWorld/items/ItemCombinator.hpp>
+#include <RealWorld/items/ItemInstruction.hpp>
 
 CraftingDrawer::CraftingDrawer() {
 
@@ -232,7 +232,7 @@ void CraftingDrawer::draw() {
 				m_spriteBatch->addTexture(m_mainSlotTex.get(), pos, 5, m_defColour, glm::vec2(m_queueScale, m_queueScale));
 				m_spriteBatch->addSprite(pair.first, pos, 6, m_defColour, glm::vec2(m_queueScale, m_queueScale));
 				if (pair.second > 1) {
-					font->add(*m_spriteBatch, std::to_string(pair.second).c_str(), glm::vec2(pos.x, pos.y - 40.0f * m_queueScale), 7, m_amountColour, RE::HAlign::MIDDLE);
+					font->add(*m_spriteBatch, std::to_string(pair.second), glm::vec2(pos.x, pos.y - 40.0f * m_queueScale), 7, m_amountColour, RE::HAlign::MIDDLE);
 				}
 				offsetX += slotAndPadding.x * m_queueScale;
 			} else {
@@ -289,14 +289,14 @@ void CraftingDrawer::reloadInstructionDescription(const ItemInstruction* instruc
 		offset = (float)(m_descriptionWidth - instruction->numberOfInputs() + 1u) / 2.0f * slotAndPadding.x + m_paddingSlots.x / 2.0f;
 		for (uchar input = 0u; input < instruction->numberOfInputs(); ++input) {
 			if (instruction->input(input).amount > 1) {
-				font->add(*m_spriteBatch, std::to_string(instruction->input(input).amount).c_str(), glm::vec2((float)input * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y - 40.0f + fontHeight), 0, m_amountColour, RE::HAlign::MIDDLE);
+				font->add(*m_spriteBatch, std::to_string(instruction->input(input).amount), glm::vec2((float)input * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y - 40.0f + fontHeight), 0, m_amountColour, RE::HAlign::MIDDLE);
 			}
 		}
 		//Outputs
 		offset = (float)(m_descriptionWidth - instruction->numberOfOutputs() + 1u) / 2.0f * slotAndPadding.x + m_paddingSlots.x / 2.0f;
 		for (uchar output = 0u; output < instruction->numberOfOutputs(); ++output) {
 			if (instruction->output(output).amount > 1) {
-				font->add(*m_spriteBatch, std::to_string(instruction->output(output).amount).c_str(), glm::vec2((float)output * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + slotAndPadding.y - 40.0f + fontHeight), 0, m_amountColour, RE::HAlign::MIDDLE);
+				font->add(*m_spriteBatch, std::to_string(instruction->output(output).amount), glm::vec2((float)output * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + slotAndPadding.y - 40.0f + fontHeight), 0, m_amountColour, RE::HAlign::MIDDLE);
 			}
 		}
 		m_spriteBatch->end();

@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
 
-#include <glm\glm.hpp>
+#include <glm/vec2.hpp>
 
-#include "InventoryData.hpp"
-#include "../metadata.hpp"
+#include <RealWorld/items/InventoryData.hpp>
+#include <RealWorld/items/InventoryDrawer.hpp>
+#include <RealWorld/metadata.hpp>
 
-enum Connection;
 class InventoryDrawer;
 class ItemCombinator;
 

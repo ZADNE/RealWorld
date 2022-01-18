@@ -1,4 +1,4 @@
-#include "WDS.hpp"
+#include <RealWorld/shaders/WDS.hpp>
 
 #ifdef __INTELLISENSE__
 #pragma diag_suppress 29
