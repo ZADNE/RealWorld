@@ -7,7 +7,7 @@
 
 const std::string ITEM_ATLAS_PREFIX = "itemAtlas";
 
-enum class I_ID : ushort {
+enum class I_ID : uint16_t {
 	EMPTY,
 
 	B_STONE,
@@ -44,7 +44,7 @@ enum class I_ID : ushort {
 	LAST
 };
 
-enum class I_TYPE : ulong {
+enum class I_TYPE : uint32_t {
 	EMPTY,
 	MATERIAL,
 	BLOCK,
@@ -57,7 +57,7 @@ enum class I_TYPE : ulong {
 
 struct ItemMetadata {
 	ItemMetadata() {};
-	ItemMetadata(const std::string& name, int maxStack, char textureAtlas, float spriteIndex, float drawScale, I_TYPE type, int typeIndex) :
+	ItemMetadata(const std::string& name, int32_t maxStack, char textureAtlas, float spriteIndex, float drawScale, I_TYPE type, int32_t typeIndex) :
 		name(name),
 		maxStack(maxStack),
 		textureAtlas(textureAtlas),
@@ -71,14 +71,14 @@ struct ItemMetadata {
 	static size_t constexpr saveSize() { return (sizeof(maxStack) + sizeof(textureAtlas) + sizeof(spriteIndex) + sizeof(drawScale) + sizeof(type) + sizeof(typeIndex)); }
 
 	std::string name/* = ""*/;
-	int maxStack/* = 0*/;
+	int32_t maxStack/* = 0*/;
 
 	char textureAtlas/* = '0'*/;//Indicates which texture atlas should be used to draw this item
 	float spriteIndex/* = 0.0f*/;//Indicates which sprite in the texture atlas should be used
 	float drawScale;//Both X and Y scaling used when drawing the item inside slot (in world it is unstretched)
 
 	I_TYPE type/* = I_TYPE::MATERIAL*/;
-	int typeIndex/* = 0*/;//ID of the block with block types | totalIndex of furniture with furniture types
+	int32_t typeIndex/* = 0*/;//ID of the block with block types | totalIndex of furniture with furniture types
 };
 
 struct PickaxeMetadata {

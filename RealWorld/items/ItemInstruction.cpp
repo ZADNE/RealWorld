@@ -5,13 +5,13 @@ bool ItemInstruction::operator==(const ItemInstruction& other) const{
 		return false;
 	}
 	//Check all inputs whether they are same
-	for (uchar i = 0u; i < m_inputN; i++) {
+	for (unsigned int i = 0u; i < m_inputN; i++) {
 		if (m_inputs[i] != other.input(i)) {
 			return false;
 		}
 	}
 	//Check all outputs whether they are same
-	for (uchar i = 0u; i < m_outputN; i++) {
+	for (unsigned int i = 0u; i < m_outputN; i++) {
 		if (m_outputs[i] != other.output(i)) {
 			return false;
 		}
@@ -19,19 +19,19 @@ bool ItemInstruction::operator==(const ItemInstruction& other) const{
 	return true;
 }
 
-uchar ItemInstruction::numberOfInputs() const{
+uint8_t ItemInstruction::numberOfInputs() const{
 	return m_inputN;
 }
 
-uchar ItemInstruction::numberOfOutputs() const{
+uint8_t ItemInstruction::numberOfOutputs() const{
 	return m_outputN;
 }
 
-uchar ItemInstruction::numberOfMainOutputs() const{
+uint8_t ItemInstruction::numberOfMainOutputs() const{
 	return m_mainOutputN;
 }
 
-Item ItemInstruction::input(uchar index) const{
+Item ItemInstruction::input(unsigned int index) const{
 	if (index < m_inputN) {
 		return m_inputs[index];
 	}
@@ -39,7 +39,7 @@ Item ItemInstruction::input(uchar index) const{
 	return Item{};
 }
 
-Item ItemInstruction::output(uchar index) const{
+Item ItemInstruction::output(unsigned int index) const{
 	if (index < m_outputN) {
 		return m_outputs[index];
 	}

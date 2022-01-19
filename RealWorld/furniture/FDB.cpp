@@ -58,7 +58,7 @@ F_TYPE FDB::getType(size_t totalIndex) {
 	return m_commonInfo[totalIndex].type;
 }
 
-uchar FDB::getSpecificIndex(size_t totalIndex) {
+uint8_t FDB::getSpecificIndex(size_t totalIndex) {
 	return m_commonInfo[totalIndex].index;
 }
 

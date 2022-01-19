@@ -14,8 +14,8 @@ public:
 	bool operator!=(InputProxyIterator& IPI);
 	const Item& operator*();
 private:
-	InputProxyIterator(uchar index, const ItemInstruction& II) : m_index(index), m_II(II) {}
-	uchar m_index;
+	InputProxyIterator(uint8_t index, const ItemInstruction& II) : m_index(index), m_II(II) {}
+	uint8_t m_index;
 	const ItemInstruction& m_II;
 };
 
@@ -26,8 +26,8 @@ public:
 	bool operator!=(OutputProxyIterator& IPI);
 	const Item& operator*();
 private:
-	OutputProxyIterator(uchar index, const ItemInstruction& II) : m_index(index), m_II(II) {}
-	uchar m_index;
+	OutputProxyIterator(uint8_t index, const ItemInstruction& II) : m_index(index), m_II(II) {}
+	uint8_t m_index;
 	const ItemInstruction& m_II;
 };
 
@@ -60,7 +60,7 @@ public:
 	//Empty instruction
 	ItemInstruction() {};
 
-	ItemInstruction(uchar inputs, uchar outputs, uchar mainOutputs = 1):
+	ItemInstruction(uint8_t inputs, uint8_t outputs, uint8_t mainOutputs = 1):
 		m_inputs(new Item[inputs]),
 		m_outputs(new Item[outputs]),
 		m_inputN(inputs),
@@ -71,12 +71,12 @@ public:
 
 	bool operator==(const ItemInstruction& other) const;
 
-	uchar numberOfInputs() const;
-	uchar numberOfOutputs() const;
-	uchar numberOfMainOutputs() const;
+	uint8_t numberOfInputs() const;
+	uint8_t numberOfOutputs() const;
+	uint8_t numberOfMainOutputs() const;
 
-	Item input(uchar index) const;
-	Item output(uchar index) const;
+	Item input(unsigned int index) const;
+	Item output(unsigned int index) const;
 
 	IIInputProxy inputs() const;
 	IIOutputProxy outputs() const;
@@ -84,9 +84,9 @@ public:
 	ushort craftTime() const;
 
 private:
-	uchar m_inputN = 0u;
-	uchar m_outputN = 0u;
-	uchar m_mainOutputN = 0u;//mainOutputN <= outputN
+	uint8_t m_inputN = 0u;
+	uint8_t m_outputN = 0u;
+	uint8_t m_mainOutputN = 0u;//mainOutputN <= outputN
 
 	std::shared_ptr<Item[]> m_inputs;
 	std::shared_ptr<Item[]> m_outputs;

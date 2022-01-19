@@ -107,7 +107,7 @@ CancelError ItemCombinator::cancel(size_t order, size_t instrOfTheOrder){
 			//it finally points to wanted instruction, now we cancel all orders until we find next padding
 			do {
 				//We need to add outputs of this instruction to items that would be crafted
-				for (uchar out = 0u; out < it->first->numberOfOutputs(); ++out) {
+				for (unsigned int out = 0u; out < it->first->numberOfOutputs(); ++out) {
 					addItemToMap(it->first->output(out) * it->second, itemsInQueue);
 				}
 				//Second we need to return inputs of the instruction (if they will not be crafted)
@@ -180,7 +180,7 @@ void ItemCombinator::connectToIID(ItemInstructionDatabase* database){
 
 bool ItemCombinator::craftInternal(const ItemInstruction * itemI, int times, bool testMode, std::unordered_map<ItemSample, int, ItemSampleHasher>& invMap, std::vector<Item>& itemsToBeRemoved){
 	//Check if all inputs are available
-	uchar currInput = 0u;
+	unsigned int currInput = 0u;
 	for (auto& input : itemI->inputs()) {
 		++currInput;
 		ItemSample sample = ItemSample{input};
@@ -196,7 +196,7 @@ bool ItemCombinator::craftInternal(const ItemInstruction * itemI, int times, boo
 			m_database->whatOutputs(sample, possibleInstructions);
 			if (possibleInstructions.size() == 0u) {//If cannot craft this item (and do not have it)
 				//First we need to return items to the inventory map
-				for (uchar i = 0u; i < (currInput - 1u); ++i) {
+				for (unsigned int i = 0u; i < (currInput - 1u); ++i) {
 					addItemToMap(Item{ sample, input.amount * times }, invMap);
 				}
 				addItemToMap(Item{ sample, input.amount * times }, invMap);
@@ -217,7 +217,7 @@ bool ItemCombinator::craftInternal(const ItemInstruction * itemI, int times, boo
 			}
 			if (!wasCrafted) {//We do not have enough materials to finish any of possible instructions, cannot craft this item
 				//First we need to return items to the inventory map
-				for (uchar i = 0u; i < currInput; ++i) {
+				for (unsigned int i = 0u; i < currInput; ++i) {
 					addItemToMap(Item{ sample, input.amount * times }, invMap);
 				}
 				return false;

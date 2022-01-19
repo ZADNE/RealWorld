@@ -49,7 +49,7 @@ private:
 	glm::ivec2 m_relCursorPos;//Relative position of the cursor to the world view
 
 		//Furniture-building related
-	uchar m_canBuildFurniture = 0;//0 = too far, 1 = bad placement/occupied, 2 = can build
+	unsigned int m_canBuildFurniture = 0;//0 = too far, 1 = bad placement/occupied, 2 = can build
 	RE::Colour m_furBlueprint[3] = {{0, 0, 0, 0}, {255, 63, 63, 191}, {63, 63, 255, 191}};
 	void checkBuildFurniture();
 

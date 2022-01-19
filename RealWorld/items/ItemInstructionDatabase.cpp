@@ -20,11 +20,11 @@ ItemInstructionDatabase::~ItemInstructionDatabase(){
 void ItemInstructionDatabase::addInstruction(const ItemInstruction& instruction){
 	m_instructions->push_back(instruction);
 	//Inputs map
-	for (uchar input = 0u; input < instruction.numberOfInputs(); ++input) {
+	for (unsigned int input = 0u; input < instruction.numberOfInputs(); ++input) {
 		m_inputsMap->emplace(ItemSample{ instruction.input(input) }, m_instructions->size() - 1u);
 	}
 	//Outputs map
-	for (uchar output = 0u; output < instruction.numberOfOutputs(); ++output) {
+	for (unsigned int output = 0u; output < instruction.numberOfOutputs(); ++output) {
 		m_outputsMap->emplace(ItemSample{ instruction.output(output) }, m_instructions->size() - 1u);
 	}
 }

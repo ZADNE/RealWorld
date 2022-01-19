@@ -31,7 +31,7 @@ public:
 	//Getters
 	virtual size_t getTotalIndex() const { return p_totalIndex; };
 	virtual F_TYPE getType() const { return FDB::getType(p_totalIndex); };
-	virtual uchar getSpecificIndex() const { return FDB::getSpecificIndex(p_totalIndex); };
+	virtual uint8_t getSpecificIndex() const { return FDB::getSpecificIndex(p_totalIndex); };
 	virtual glm::ivec2 getBotLeft() const { return p_botLeftBc; };
 	virtual glm::ivec2 getMiddlePos() const { return p_botLeftBc + getDims() / 2; };
 	virtual glm::ivec2 getDims() const { return FDB::getDims(p_totalIndex); };

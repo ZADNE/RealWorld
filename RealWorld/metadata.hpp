@@ -1,10 +1,6 @@
 #pragma once
 #include <GL/glew.h>
 
-using uchar = unsigned char;
-using ushort = unsigned short;
-using ulong = unsigned long;
-
 //Physics steps per second
 const int PHYSICS_STEPS_PER_SECOND = 50;
 
@@ -25,7 +21,7 @@ const ulong MAX_RANGE = 30u;
 }
 
 
-enum class BLOCK_ID : uchar {
+enum class BLOCK_ID : uint8_t {
 	AIR = 0, STONE = 1, DIRT = 2, GRASS = 3,
 	BEDROCK = 4, LEAVES = 5, TECHBLOCK = 6, COAL = 7,
 	HEMATITE = 8, BAUXITE = 9, COPPER_ORE = 10, CASSITERITE = 11,
@@ -33,7 +29,7 @@ enum class BLOCK_ID : uchar {
 	RAW_WOOD = 16, WOODEN_PLANKS = 17, COLD_STONE = 18
 };
 
-enum class WALL_ID : uchar {
+enum class WALL_ID : uint8_t {
 	AIR = 0, STONE = 1, WOOD = 2, DIRT = 3,
 	LEAVES = 4, COLD_STONE = 5
 };

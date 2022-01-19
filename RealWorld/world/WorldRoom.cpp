@@ -197,32 +197,25 @@ void WorldRoom::drawGUI() {
 	float row = 0.0f;
 	RE::Colour tint{200, 0, 0, 255};
 
-	char buffer[50];
-
 	auto font = RE::RM::getFont(m_inventoryFont);
 
+	std::stringstream stream;
 
 	//FPS
-	snprintf(buffer, 50, "FPS: %i", p_MP->getFramesPerSecond());
-	font->add(RE::SpriteBatch::std(), buffer, topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
-	topLeft.y -= font->getFontHeight();
+	stream << "FPS: " << p_MP->getFramesPerSecond() << '\n';
 	//MAX FT
-	snprintf(buffer, 50, "Max FT: %.lli us", std::chrono::duration_cast<std::chrono::microseconds>(p_MP->getMaxFrameTime()).count());
-	font->add(RE::SpriteBatch::std(), buffer, topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
-	topLeft.y -= font->getFontHeight();
+	stream << "Max FT: " << std::chrono::duration_cast<std::chrono::microseconds>(p_MP->getMaxFrameTime()).count() << " us" << '\n';
 	//CHUNKS
-	snprintf(buffer, 50, "Chunks: %i", m_world->getNumberOfChunksLoaded());
-	font->add(RE::SpriteBatch::std(), buffer, topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
-	topLeft.y -= font->getFontHeight();
-	//ITEMS OG
-	snprintf(buffer, 50, "ItemsOG: %u", m_itemOnGroundManager->getNumberOfItemsOG());
-	font->add(RE::SpriteBatch::std(), buffer, topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
-	topLeft.y -= font->getFontHeight();
+	stream << "Chunks: " << m_world->getNumberOfChunksLoaded() << '\n';
+	//ITEMS
+	stream << "Items: " << m_itemOnGroundManager->getNumberOfItemsOG() << '\n';
 	//POSBC
 	glm::ivec2 cursorPos = pxToBc(static_cast<glm::ivec2>(m_worldView->getCursorRel()));
-	snprintf(buffer, 50, "CursorBc: [%.3i; %.3i]", cursorPos.x, cursorPos.y);
-	font->add(RE::SpriteBatch::std(), buffer, topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
-	topLeft.y -= font->getFontHeight();
+	stream << "CursorBc: [" << std::setw(5) << cursorPos.x << ", "
+			<< std::setw(5) << cursorPos.y << "]" << '\n';
+
+
+	font->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
 
 	m_inventoryDrawer->draw();
 	m_craftingDrawer->draw();

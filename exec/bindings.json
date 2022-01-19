@@ -1,0 +1,39 @@
+{
+  "INV": {
+    "SWITCHSTATE": "E",
+    "SWAPCURSOR": "LMB",
+    "MOVEPORTION": "RMB",
+    "PREVSLOT": "Q",
+    "RIGHTSLOT": "DMW",
+    "LEFTSLOT": "UMW",
+    "SLOT0": "K1",
+    "SLOT1": "K2",
+    "SLOT2": "K3",
+    "SLOT3": "K4",
+    "SLOT4": "K5",
+    "SLOT5": "K6",
+    "SLOT6": "K7",
+    "SLOT7": "K8",
+    "SLOT8": "K9",
+    "SLOT9": "K0",
+    "USEPRIMARY": "LMB",
+    "USESECONDARY": "RMB"
+  },
+  "CRAFT": {
+    "ONE": "LMB",
+    "SOME": "RMB",
+    "ROLL_RIGHT": "DMW",
+    "ROLL_LEFT": "UMW",
+    "CANCEL": "RMB"
+  },
+  "PLAYER": {
+    "JUMP": "Space",
+    "LEFT": "A",
+    "RIGHT": "D"
+  },
+  "DEBUG": {
+    "ENDGAME": "Escape",
+    "WORLDDRAW": "P",
+    "WORLDDARKNESS": "O"
+  }
+}

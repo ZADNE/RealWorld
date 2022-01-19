@@ -1,3 +1,9 @@
+.vscode/*
+exec/RealWorld
+exec/saves/*
+!exec/saves/covfefe
+!exec/saves/menu
+
 ##### Windows
 # Windows thumbnail cache files
 Thumbs.db
@@ -82,7 +88,6 @@ Temporary Items
 # Generated files
 bin/
 gen/
-out/
 #  Uncomment the following line in case you need and you don't have the release build type files in your app
 # release/
 
@@ -350,10 +355,6 @@ tmtags
 
 ##### VisualStudioCode
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 *.code-workspace
 
 # Local History for Visual Studio Code

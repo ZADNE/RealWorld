@@ -14,7 +14,7 @@ class Texture;
 }
 
 #undef ERROR
-enum class F_TYPE : uchar {
+enum class F_TYPE : uint8_t {
 	STATIC,
 	CHEST,
 	CRAFTING_STATION,
@@ -28,7 +28,7 @@ enum class F_TYPE : uchar {
 };
 
 /*
-enum class PLACEMENT: uchar {
+enum class PLACEMENT: uint8_t {
 	FFFF0 = 0u,
 	TFFF0,
 	FTFF0,
@@ -129,11 +129,11 @@ enum class PLACEMENT: uchar {
 */
 struct Placement {
 	//indoors: 0 = no walls behind | 1 = some walls behind | 2 = every wall behind
-	bool canBePlaced(bool grounD, bool ceilinG, bool sidE, uchar indoorS) const {
+	bool canBePlaced(bool grounD, bool ceilinG, bool sidE, uint8_t indoorS) const {
 		if (indoorS != indoors && indoors != 1) {//Bad background
 			return false;
 		}
-		uchar cmet = 0u;
+		uint8_t cmet = 0u;
 		if (grounD && ground) { cmet++; }
 		if (ceilinG && ceiling) { cmet++; }
 		if (sidE && side) { cmet++; }
@@ -143,7 +143,7 @@ struct Placement {
 		return false;
 	};
 
-	uchar ground : 1,//1 = must touch ground | 0 = does not have to touch ground
+	uint8_t ground : 1,//1 = must touch ground | 0 = does not have to touch ground
 		ceiling : 1,//1 = must touch ceiling | 0 = does not have to touch ceiling
 		side : 1,//1 = must touch from sides | 0 = does not have to touch from sides
 		indoors : 2,//0 = must not be inside | 1 = do not care | 2 = must be inside (in front of walls)
@@ -156,7 +156,7 @@ public:
 	static void init();
 
 	static F_TYPE getType(size_t totalIndex);//Quick
-	static uchar getSpecificIndex(size_t totalIndex);//Quick
+	static uint8_t getSpecificIndex(size_t totalIndex);//Quick
 	static size_t getTotalIndex(F_TYPE type, size_t specificIndex);//Slow (linear search; 0 returned if not found)
 	static glm::ivec2 getDims(size_t totalIndex);
 	static RE::TexturePtr getTexture(size_t totalIndex);
@@ -167,12 +167,12 @@ public:
 
 private:
 	struct FurEntry {
-		constexpr static size_t saveSize() { return (sizeof(F_TYPE) + 2u * sizeof(char) + 2u * sizeof(uchar) + sizeof(float) + sizeof(I_ID) + sizeof(Placement)); }
+		constexpr static size_t saveSize() { return (sizeof(F_TYPE) + 2u * sizeof(char) + 2u * sizeof(uint8_t) + sizeof(float) + sizeof(I_ID) + sizeof(Placement)); }
 		F_TYPE type = F_TYPE::NONE;
-		uchar index = 0u;
+		uint8_t index = 0u;
 		char dimx = 1;
 		char dimy = 1;
-		uchar sprite = 0u;
+		uint8_t sprite = 0u;
 		float imageSpeed = 1.0f;
 		I_ID itemID = I_ID::EMPTY;
 		Placement placement;
@@ -180,7 +180,7 @@ private:
 
 	struct CommonInfo {
 		F_TYPE type;
-		uchar index;
+		uint8_t index;
 		glm::ivec2 dim;//dimensions in Bc
 		float sprite;
 		float imageSpeed;

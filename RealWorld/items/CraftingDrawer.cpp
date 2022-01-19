@@ -50,7 +50,7 @@ void CraftingDrawer::reloadEverything() {
 	m_itemCombinator->getCraftableInstructions(m_craftableInstructions);
 	m_itemSprites.clear();
 	for (auto it = m_craftableInstructions.begin(); it != m_craftableInstructions.end(); ++it) {
-		for (uchar i = 0u; i < it->first->numberOfMainOutputs(); ++i) {
+		for (unsigned int i = 0u; i < it->first->numberOfMainOutputs(); ++i) {
 			m_itemSprites.emplace_back((*(*it).first).output(i));
 		}
 	}
@@ -185,7 +185,7 @@ void CraftingDrawer::draw() {
 	for (auto it = m_craftableInstructions.begin(); it != m_craftableInstructions.end(); ++it) {
 		glm::vec2 botLeftPx = glm::vec2{m_offsetDraw + (float)(instrI + 1) * m_paddingSlots.x + ((float)instrI + 0.5f) * m_mainSlotDims.x, m_rowY};
 		//Draw outputs
-		for (uchar out = 0u; out < it->first->numberOfMainOutputs(); ++out) {
+		for (unsigned int out = 0u; out < it->first->numberOfMainOutputs(); ++out) {
 			const Item& item = (*(*it).first).output(out);
 			m_spriteBatch->addTexture(m_mainSlotTex.get(), botLeftPx - glm::vec2(0.0f, (float)out) * (m_mainSlotDims + m_paddingSlots), 0);
 			m_spriteBatch->addSprite(m_itemSprites[itemSpriteCounter++], botLeftPx - glm::vec2(0.0f, (float)out) * (m_mainSlotDims + m_paddingSlots), 1);
@@ -209,11 +209,11 @@ void CraftingDrawer::draw() {
 		//Sprites
 		ulong fontHeight = (ulong)font->getFontHeight();
 		float off = ((float)m_description->numberOfInputs() - 1.0f) * -0.5f * slotAndPadding.x;
-		for (uchar input = 0u; input < m_description->numberOfInputs(); ++input) {
+		for (unsigned int input = 0u; input < m_description->numberOfInputs(); ++input) {
 			m_spriteBatch->addSprite(m_inputDescrIS[input], m_absCursorPos + offset + glm::vec2((float)input * slotAndPadding.x + off, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + fontHeight), 3);
 		}
 		off = ((float)m_description->numberOfOutputs() - 1.0f) * -0.5f * slotAndPadding.x;
-		for (uchar output = 0u; output < m_description->numberOfOutputs(); ++output) {
+		for (unsigned int output = 0u; output < m_description->numberOfOutputs(); ++output) {
 			m_spriteBatch->addSprite(m_outputDescrIS[output], m_absCursorPos + offset + glm::vec2((float)output * slotAndPadding.x + off, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + slotAndPadding.y + fontHeight), 3);
 		}
 		m_spriteBatch->addSurface(m_surfaceDescription, m_absCursorPos + offset, 4, 1);//Numbers
@@ -271,12 +271,12 @@ void CraftingDrawer::reloadInstructionDescription(const ItemInstruction* instruc
 		m_spriteBatch->begin();
 		//Inputs
 		float offset = (float)(m_descriptionWidth - instruction->numberOfInputs() + 1u) / 2.0f * slotAndPadding.x + m_paddingSlots.x / 2.0f;
-		for (uchar input = 0u; input < instruction->numberOfInputs(); ++input) {
+		for (unsigned int input = 0u; input < instruction->numberOfInputs(); ++input) {
 			m_spriteBatch->addTexture(m_mainSlotTex.get(), glm::vec2((float)input * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + fontHeight), 0);
 		}
 		//Outputs
 		offset = (float)(m_descriptionWidth - instruction->numberOfOutputs() + 1u) / 2.0f * slotAndPadding.x + m_paddingSlots.x / 2.0f;
-		for (uchar output = 0u; output < instruction->numberOfOutputs(); ++output) {
+		for (unsigned int output = 0u; output < instruction->numberOfOutputs(); ++output) {
 			m_spriteBatch->addTexture(m_mainSlotTex.get(), glm::vec2((float)output * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + slotAndPadding.y + fontHeight), 0);
 		}
 		m_spriteBatch->end();
@@ -287,14 +287,14 @@ void CraftingDrawer::reloadInstructionDescription(const ItemInstruction* instruc
 		m_spriteBatch->begin();
 		//Inputs
 		offset = (float)(m_descriptionWidth - instruction->numberOfInputs() + 1u) / 2.0f * slotAndPadding.x + m_paddingSlots.x / 2.0f;
-		for (uchar input = 0u; input < instruction->numberOfInputs(); ++input) {
+		for (unsigned int input = 0u; input < instruction->numberOfInputs(); ++input) {
 			if (instruction->input(input).amount > 1) {
 				font->add(*m_spriteBatch, std::to_string(instruction->input(input).amount), glm::vec2((float)input * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y - 40.0f + fontHeight), 0, m_amountColour, RE::HAlign::MIDDLE);
 			}
 		}
 		//Outputs
 		offset = (float)(m_descriptionWidth - instruction->numberOfOutputs() + 1u) / 2.0f * slotAndPadding.x + m_paddingSlots.x / 2.0f;
-		for (uchar output = 0u; output < instruction->numberOfOutputs(); ++output) {
+		for (unsigned int output = 0u; output < instruction->numberOfOutputs(); ++output) {
 			if (instruction->output(output).amount > 1) {
 				font->add(*m_spriteBatch, std::to_string(instruction->output(output).amount), glm::vec2((float)output * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + slotAndPadding.y - 40.0f + fontHeight), 0, m_amountColour, RE::HAlign::MIDDLE);
 			}
@@ -306,11 +306,11 @@ void CraftingDrawer::reloadInstructionDescription(const ItemInstruction* instruc
 
 		//ITEM SPRITES
 		m_inputDescrIS.resize(instruction->numberOfInputs());
-		for (uchar input = 0u; input < instruction->numberOfInputs(); ++input) {
+		for (unsigned int input = 0u; input < instruction->numberOfInputs(); ++input) {
 			m_inputDescrIS[input] = ItemSprite(instruction->input(input));
 		}
 		m_outputDescrIS.resize(instruction->numberOfOutputs());
-		for (uchar output = 0u; output < instruction->numberOfOutputs(); ++output) {
+		for (unsigned int output = 0u; output < instruction->numberOfOutputs(); ++output) {
 			m_outputDescrIS[output] = ItemSprite(instruction->output(output));
 		}
 	}
