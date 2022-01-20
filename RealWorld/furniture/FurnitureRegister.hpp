@@ -145,15 +145,15 @@ private:
 		//Size of element inside each vector in bytes
 		static const size_t sizeOfElement[numberOfMembers];
 
-		inline char* getVec(ulong type) const {
+		inline char* getVec(unsigned int type) const {
 			return ((char*)this + offset[type]);
 		}
 
-		inline char* getFirstElem(ulong type) const {
+		inline char* getFirstElem(unsigned int type) const {
 			return (char*)reinterpret_cast<const std::vector<FStatic>*>(getVec(type))->data();
 		}
 
-		inline char* getElem(ulong type, ulong index) const {
+		inline char* getElem(unsigned int type, unsigned int index) const {
 			return (char*)(getFirstElem(type) + (index * sizeOfElement[type]));
 		}
 	};

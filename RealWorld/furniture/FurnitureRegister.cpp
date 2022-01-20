@@ -249,17 +249,17 @@ void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc){
 }
 
 FStatic* FurnitureRegister::getFurniture(const FIndex fIndex) const {
-	ulong type = (ulong)fIndex.getType();
-	if (type >= (ulong)F_TYPE::LAST) {
+	unsigned int type = (unsigned int)fIndex.getType();
+	if (type >= (unsigned int)F_TYPE::LAST) {
 		//The fIndex is invaid
 		return nullptr;
 	}
 
-	return (FStatic*)m_fs.getElem(type, (ulong)fIndex.getIndex());
+	return (FStatic*)m_fs.getElem(type, (unsigned int)fIndex.getIndex());
 }
 
 FIndex FurnitureRegister::addFurniture(const FStatic& furniture) {
-	ulong type = (ulong)furniture.getType();
+	unsigned int type = (unsigned int)furniture.getType();
 	FIndex newFIndex;
 	std::vector<FStatic>* vec = (std::vector<FStatic>*)m_fs.getVec(type);
 	if (m_fsFI[type].empty()) {
@@ -289,7 +289,7 @@ bool FurnitureRegister::destroySimple(const FIndex fIndex) {
 	size_t index = fIndex.getIndex();
 	onVectorByType(type, v[index].destroy());
 	//We add the index to free indexes
-	m_fsFI[(ulong)type].push(index);
+	m_fsFI[(unsigned int)type].push(index);
 	//Removing the fIndex from QT
 	auto f = getFurniture(fIndex);
 	m_fsQT.erase(QTFurniture{ f->getBotLeft(), f->getDims() });

@@ -143,7 +143,7 @@ void WorldDataLoader::loadFurniture(FurnitureCollection& fc, const std::string& 
 		throw std::exception{};
 	}
 
-	const ulong entrySize = sizeof(glm::ivec2) + sizeof(ulong);
+	const unsigned int entrySize = sizeof(glm::ivec2) + sizeof(unsigned int);
 
 	stream.seekg(0, std::ios::end);
 	auto streamSize = stream.tellg();
@@ -151,8 +151,8 @@ void WorldDataLoader::loadFurniture(FurnitureCollection& fc, const std::string& 
 	streamSize -= stream.tellg();
 
 	glm::ivec2 pos = glm::ivec2(0, 0);
-	ulong totalIndex = 0;
-	for (ulong i = 0u; i < streamSize; i += entrySize) {
+	unsigned int totalIndex = 0;
+	for (unsigned int i = 0u; i < streamSize; i += entrySize) {
 		readBinary(stream, pos);
 		readBinary(stream, totalIndex);
 		switch (FDB::getType(totalIndex)) {
@@ -221,31 +221,31 @@ void WorldDataLoader::saveFurniture(const FurnitureCollection& fc, const std::st
 	for (auto& fur: fc.f0) {
 		glm::ivec2 pos = fur.getBotLeft();
 		writeBinary(stream, pos);
-		ulong totalIndex = (ulong)fur.getTotalIndex();
+		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
 		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f1) {
 		glm::ivec2 pos = fur.getBotLeft();
 		writeBinary(stream, pos);
-		ulong totalIndex = (ulong)fur.getTotalIndex();
+		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
 		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f2) {
 		glm::ivec2 pos = fur.getBotLeft();
 		writeBinary(stream, pos);
-		ulong totalIndex = (ulong)fur.getTotalIndex();
+		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
 		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f3) {
 		glm::ivec2 pos = fur.getBotLeft();
 		writeBinary(stream, pos);
-		ulong totalIndex = (ulong)fur.getTotalIndex();
+		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
 		writeBinary(stream, totalIndex);
 	}
 	for (auto& fur : fc.f4) {
 		glm::ivec2 pos = fur.getBotLeft();
 		writeBinary(stream, pos);
-		ulong totalIndex = (ulong)fur.getTotalIndex();
+		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
 		writeBinary(stream, totalIndex);
 	}
 }

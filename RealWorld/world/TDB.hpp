@@ -5,7 +5,7 @@
 #include <RealWorld/items/IDB.hpp>
 
 
-const ulong LAST_NONSOLIDBLOCK = 0;
+const unsigned int LAST_NONSOLIDBLOCK = 0;
 
 
 struct BlockMetadata {

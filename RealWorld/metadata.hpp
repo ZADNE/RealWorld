@@ -17,7 +17,7 @@ const int PHYSICS_STEPS_PER_SECOND = 50;
 #define float_NUMBER_OF_WALL_VARIATIONS 256.0f
 
 namespace light {
-const ulong MAX_RANGE = 30u;
+const unsigned int MAX_RANGE = 30u;
 }
 
 

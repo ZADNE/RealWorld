@@ -207,7 +207,7 @@ void CraftingDrawer::draw() {
 		}
 		m_spriteBatch->addSurface(m_surfaceDescription, m_absCursorPos + offset, 2, 0);//Slots
 		//Sprites
-		ulong fontHeight = (ulong)font->getFontHeight();
+		unsigned int fontHeight = static_cast<unsigned int>(font->getFontHeight());
 		float off = ((float)m_description->numberOfInputs() - 1.0f) * -0.5f * slotAndPadding.x;
 		for (unsigned int input = 0u; input < m_description->numberOfInputs(); ++input) {
 			m_spriteBatch->addSprite(m_inputDescrIS[input], m_absCursorPos + offset + glm::vec2((float)input * slotAndPadding.x + off, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + fontHeight), 3);
@@ -260,9 +260,9 @@ void CraftingDrawer::reloadInstructionDescription(const ItemInstruction* instruc
 	if (instruction) {
 		m_descriptionWidth = std::max(instruction->numberOfInputs(), instruction->numberOfOutputs());
 		glm::vec2 slotAndPadding = m_mainSlotDims + m_paddingSlots;
-		ulong fontHeight = (ulong)font->getFontHeight();
+		unsigned int fontHeight = static_cast<unsigned int>(font->getFontHeight());
 		//Resize the surface
-		m_surfaceDescription.resize(glm::uvec2(m_descriptionWidth * (ulong)(slotAndPadding.x) + m_paddingSlots.x, (slotAndPadding.y) * 2u + fontHeight), 2);
+		m_surfaceDescription.resize(glm::uvec2(m_descriptionWidth * (unsigned int)(slotAndPadding.x) + m_paddingSlots.x, (slotAndPadding.y) * 2u + fontHeight), 2);
 		//Set origin to bottom-middle
 		m_surfaceDescription.setPivot(glm::vec2(((float)m_descriptionWidth * slotAndPadding.x + m_paddingSlots.x) / 2.0f, 0.0f));
 

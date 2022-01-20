@@ -16,11 +16,11 @@ std::vector<BlockMetadata> TDB::m_blockMetadata;
 std::vector<WallMetadata> TDB::m_wallMetadata;
 
 const BlockMetadata& TDB::gb(BLOCK_ID ID) {
-	return m_blockMetadata[(ulong)ID];
+	return m_blockMetadata[(unsigned int)ID];
 }
 
 const WallMetadata& TDB::gw(WALL_ID ID) {
-	return m_wallMetadata[(ulong)ID];
+	return m_wallMetadata[(unsigned int)ID];
 }
 
 void TDB::init() {

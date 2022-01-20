@@ -15,7 +15,7 @@ void readBinary(std::ifstream& file, T& x){
 std::vector<ItemMetadata> IDB::m_itemMetadata;
 
 const ItemMetadata& IDB::g(I_ID ID){
-	return m_itemMetadata[(ulong)ID];
+	return m_itemMetadata[static_cast<unsigned int>(ID)];
 }
 
 void IDB::init() {

@@ -56,7 +56,7 @@ IIOutputProxy ItemInstruction::outputs() const{
 	return IIOutputProxy(*this);
 }
 
-ushort ItemInstruction::craftTime() const{
+unsigned int ItemInstruction::craftTime() const{
 	return m_timeNeeded;
 }
 

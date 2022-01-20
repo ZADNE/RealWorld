@@ -81,7 +81,7 @@ public:
 	IIInputProxy inputs() const;
 	IIOutputProxy outputs() const;
 
-	ushort craftTime() const;
+	unsigned int craftTime() const;
 
 private:
 	uint8_t m_inputN = 0u;
@@ -91,5 +91,5 @@ private:
 	std::shared_ptr<Item[]> m_inputs;
 	std::shared_ptr<Item[]> m_outputs;
 
-	ushort m_timeNeeded = 1u;
+	unsigned int m_timeNeeded = 1u;
 };

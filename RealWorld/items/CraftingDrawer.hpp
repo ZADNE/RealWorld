@@ -72,7 +72,7 @@ private:
 
 	int m_possibleInstrsCursorIndex = -100;
 	bool m_pointingAtSomePS = false;//PS = possible instructions
-	ulong m_descriptionWidth;
+	unsigned int m_descriptionWidth;
 	std::vector<ItemSprite> m_inputDescrIS;
 	std::vector<ItemSprite> m_outputDescrIS;
 	float m_queueScale = 0.75f;

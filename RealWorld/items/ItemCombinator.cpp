@@ -149,7 +149,7 @@ void ItemCombinator::step(){
 	//Crafting something
 	m_progress += m_craftingSpeed;
 	std::pair<const ItemInstruction*, int> crafted = m_queue.front();
-	if ((ushort)m_progress >= (crafted.first->craftTime() * crafted.second)) {//If instruction finished
+	if (static_cast<unsigned int>(m_progress) >= (crafted.first->craftTime() * crafted.second)) {//If instruction finished
 		std::pair<const ItemInstruction*, int> finished = m_queue.front();
 		m_queue.pop_front();
 		if (!m_queue.front().first) {//If at the end of order (outputing final product)
