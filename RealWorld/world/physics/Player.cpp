@@ -1,6 +1,6 @@
 #include <RealWorld/world/physics/Player.hpp>
 
-#include <RealEngine/SpriteBatch.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
 
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/items/ItemCombinator.hpp>

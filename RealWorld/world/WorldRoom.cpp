@@ -1,6 +1,6 @@
 #include <RealWorld/world/WorldRoom.hpp>
 
-#include <RealEngine/UniformManager.hpp>
+#include <RealEngine/graphics/UniformManager.hpp>
 
 #include <RealWorld/world/TDB.hpp>
 

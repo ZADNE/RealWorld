@@ -1,5 +1,5 @@
 #pragma once
-#include <RealEngine/Sprite.hpp>
+#include <RealEngine/graphics/Sprite.hpp>
 
 #include <RealWorld/items/IDB.hpp>
 

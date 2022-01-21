@@ -2,11 +2,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealEngine/Vertex.hpp>
-#include <RealEngine/Error.hpp>
-#include <RealEngine/Vertex.hpp>
-#include <RealEngine/Error.hpp>
-#include <RealEngine/UniformManager.hpp>
+#include <RealEngine/graphics/Vertex.hpp>
+#include <RealEngine/main/Error.hpp>
+#include <RealEngine/graphics/UniformManager.hpp>
 
 #include <RealWorld/shaders/shaders.hpp>
 #include <RealWorld/world/TDB.hpp>

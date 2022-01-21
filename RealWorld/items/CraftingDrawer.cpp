@@ -2,10 +2,10 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealEngine/SpriteBatch.hpp>
-#include <RealEngine/Font.hpp>
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/Error.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/graphics/Font.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/main/Error.hpp>
 
 #include <RealWorld/items/ItemCombinator.hpp>
 #include <RealWorld/items/ItemInstruction.hpp>

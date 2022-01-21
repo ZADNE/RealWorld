@@ -1,9 +1,9 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/Surface.hpp>
-#include <RealEngine/default_shaders.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/graphics/default_shaders.hpp>
 
 #include <RealWorld/world/physics/Hitbox.hpp>
 #include <RealWorld/items/Item.hpp>

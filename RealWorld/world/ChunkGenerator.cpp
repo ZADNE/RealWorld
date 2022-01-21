@@ -7,9 +7,9 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealEngine/Vertex.hpp>
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/UniformManager.hpp>
+#include <RealEngine/graphics/Vertex.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/graphics/UniformManager.hpp>
 
 #include <RealWorld/world//TDB.hpp>
 #include <RealWorld/items/Item.hpp>

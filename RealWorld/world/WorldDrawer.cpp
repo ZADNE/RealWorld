@@ -5,10 +5,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 
-#include <RealEngine/Vertex.hpp>
-#include <RealEngine/Surface.hpp>
-#include <RealEngine/UniformManager.hpp>
-#include <RealEngine/utility.hpp>
+#include <RealEngine/graphics/Vertex.hpp>
+#include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/graphics/UniformManager.hpp>
+#include <RealEngine/utility/utility.hpp>
 
 #include <RealWorld/world/ChunkHandler.hpp>
 #include <RealWorld/metadata.hpp>

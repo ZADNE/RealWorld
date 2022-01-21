@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include <RealEngine/ResourceManager.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 template<class T> 
 void writeBinary(std::ofstream& file, const T& x){

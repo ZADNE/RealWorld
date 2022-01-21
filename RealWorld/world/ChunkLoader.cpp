@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include <RealEngine/lodepng.hpp>
+#include <RealEngine/external/lodepng/lodepng.hpp>
 
 std::vector<unsigned char> ChunkLoader::loadChunk(const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims){
 	std::vector<unsigned char> bytes;

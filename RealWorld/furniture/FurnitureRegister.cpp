@@ -1,7 +1,7 @@
 #include <RealWorld/furniture/FurnitureRegister.hpp>
 
-#include <RealEngine/SpriteBatch.hpp>
-#include <RealEngine/ResourceManager.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/furniture/FDB.hpp>

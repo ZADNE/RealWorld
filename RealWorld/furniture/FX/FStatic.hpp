@@ -2,7 +2,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/Sprite.hpp>
+#include <RealEngine/graphics/Sprite.hpp>
 
 #include <RealWorld/furniture/FDB.hpp>
 #include <RealWorld/world/LightManipulator.hpp>

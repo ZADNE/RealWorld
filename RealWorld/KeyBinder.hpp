@@ -33,35 +33,35 @@
     m(DEBUG, WORLDDARKNESS)  \
 
 #define KB_DEFAULT_LIST {	\
-		RE::RKey::E,	\
-		RE::RKey::LMB,	\
-		RE::RKey::RMB,	\
-		RE::RKey::Q,	\
-		RE::RKey::DMW,	\
-		RE::RKey::UMW,	\
-		RE::RKey::K1,	\
-		RE::RKey::K2,	\
-		RE::RKey::K3,	\
-		RE::RKey::K4,	\
-		RE::RKey::K5,	\
-		RE::RKey::K6,	\
-		RE::RKey::K7,	\
-		RE::RKey::K8,	\
-		RE::RKey::K9,	\
-		RE::RKey::K0,	\
-		RE::RKey::LMB,	\
-		RE::RKey::RMB,	\
-		RE::RKey::LMB,	\
-		RE::RKey::RMB,	\
-		RE::RKey::DMW,	\
-		RE::RKey::UMW,	\
-		RE::RKey::RMB,	\
-		RE::RKey::Space,	\
-		RE::RKey::A,	\
-		RE::RKey::D,	\
-		RE::RKey::Escape,	\
-		RE::RKey::P,	\
-		RE::RKey::O, }	\
+		RE::Key::E,	\
+		RE::Key::LMB,	\
+		RE::Key::RMB,	\
+		RE::Key::Q,	\
+		RE::Key::DMW,	\
+		RE::Key::UMW,	\
+		RE::Key::K1,	\
+		RE::Key::K2,	\
+		RE::Key::K3,	\
+		RE::Key::K4,	\
+		RE::Key::K5,	\
+		RE::Key::K6,	\
+		RE::Key::K7,	\
+		RE::Key::K8,	\
+		RE::Key::K9,	\
+		RE::Key::K0,	\
+		RE::Key::LMB,	\
+		RE::Key::RMB,	\
+		RE::Key::LMB,	\
+		RE::Key::RMB,	\
+		RE::Key::DMW,	\
+		RE::Key::UMW,	\
+		RE::Key::RMB,	\
+		RE::Key::Space,	\
+		RE::Key::A,	\
+		RE::Key::D,	\
+		RE::Key::Escape,	\
+		RE::Key::P,	\
+		RE::Key::O, }	\
 
 #endif // !KB_BINDING_LIST
-#include <RealEngine/KeyBinder.hpp>
+#include <RealEngine/user_input/KeyBinder.hpp>

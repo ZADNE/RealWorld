@@ -1,6 +1,6 @@
 #include <RealWorld/items/ItemSprite.hpp>
 
-#include <RealEngine/ResourceManager.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/items/Item.hpp>
 

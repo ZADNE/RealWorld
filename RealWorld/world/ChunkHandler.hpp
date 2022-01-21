@@ -4,7 +4,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <RealEngine/Surface.hpp>
+#include <RealEngine/graphics/Surface.hpp>
 
 #include <RealWorld/world/Chunk.hpp>
 

@@ -5,9 +5,9 @@
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
-#include <RealEngine/SpriteBatch.hpp>
-#include <RealEngine/Surface.hpp>
-#include <RealEngine/ResourceManager.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/world/WorldDrawer.hpp>
 #include <RealWorld/world/ChunkHandler.hpp>
@@ -129,10 +129,10 @@ private:
 	GLuint m_setWithUpdateVAO = 0;
 	GLuint m_setWithUpdateVBO = 0;
 	float m_time = 17.0f;
-	RE::ShaderProgramPtr m_setWithVarUpdateShader = RE::RM::getShaderProgram({{.vert = shaders::setWithVarUpdate_vert, .frag = shaders::setWithVarUpdate_frag }});
+	RE::ShaderProgramPtr m_setWithVarUpdateShader = RE::RM::getShaderProgram({.vert = shaders::setWithVarUpdate_vert, .frag = shaders::setWithVarUpdate_frag });
 
 	//Debug
-	RE::ShaderProgramPtr m_debugDraw = RE::RM::getShaderProgram({{.vert = shaders::data_vert, .frag = shaders::worldDebug_frag }});
+	RE::ShaderProgramPtr m_debugDraw = RE::RM::getShaderProgram({.vert = shaders::data_vert, .frag = shaders::worldDebug_frag });
 	GLuint m_debugVAO = 0;
 	GLuint m_debugVBO = 0;
 	bool m_shouldDrawDebug = false;

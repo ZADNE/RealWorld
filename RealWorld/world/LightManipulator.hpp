@@ -1,5 +1,5 @@
 #pragma once
-#include <RealEngine/Vertex.hpp>
+#include <RealEngine/graphics/Vertex.hpp>
 
 #include <RealWorld/world/DestroyTicket.hpp>
 #include <RealWorld/world/StaticLight.hpp>

@@ -4,7 +4,7 @@
 
 #include <glm/geometric.hpp>
 
-#include <RealEngine/SpriteBatch.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
 
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/world/TDB.hpp>

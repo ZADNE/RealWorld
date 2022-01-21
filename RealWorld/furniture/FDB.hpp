@@ -4,7 +4,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/ResourceManager.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/metadata.hpp>
 #include <RealWorld/items/IDB.hpp>

@@ -2,8 +2,8 @@
 #include <random>
 #include <array>
 
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/Surface.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/graphics/Surface.hpp>
 
 #include <RealWorld/world/Chunk.hpp>
 #include <RealWorld/shaders/shaders.hpp>
@@ -58,10 +58,10 @@ private:
 	GLuint m_VAO = 0;
 	GLuint m_VBO = 0;
 
-	RE::ShaderProgramPtr m_setShader = RE::RM::getShaderProgram({{.vert = WGS::chunkGen_vert, .frag = WGS::set_frag }});
-	RE::ShaderProgramPtr m_basicTerrainShader = RE::RM::getShaderProgram({{.vert = WGS::chunkGen_vert, .frag = WGS::basicTerrain_frag }});
-	RE::ShaderProgramPtr m_varShader = RE::RM::getShaderProgram({{.vert = WGS::chunkGen_vert, .frag = WGS::var_frag }});
-	RE::ShaderProgramPtr m_cellularAutomatonShader = RE::RM::getShaderProgram({{.vert = WGS::chunkGen_vert, .frag = WGS::cellularAutomaton_frag }});
+	RE::ShaderProgramPtr m_setShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::set_frag });
+	RE::ShaderProgramPtr m_basicTerrainShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::basicTerrain_frag });
+	RE::ShaderProgramPtr m_varShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::var_frag });
+	RE::ShaderProgramPtr m_cellularAutomatonShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::cellularAutomaton_frag });
 
 	std::mt19937 m_randomGen;
 

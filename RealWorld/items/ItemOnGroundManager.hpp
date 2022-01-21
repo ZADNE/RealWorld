@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include <RealEngine/SpriteBatch.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
 
 #include <RealWorld/items/ItemOnGround.hpp>
 #include <RealWorld/world/World.hpp>

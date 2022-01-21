@@ -7,8 +7,8 @@
 #include <SDL2/SDL_timer.h>
 #include <nlohmann/json.hpp>
 
-#include <RealEngine/lodepng.hpp>
-#include <RealEngine/Error.hpp>
+#include <RealEngine/external/lodepng/lodepng.hpp>
+#include <RealEngine/main/Error.hpp>
 
 #include <RealWorld/furniture/FDB.hpp>
 

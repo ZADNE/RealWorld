@@ -4,11 +4,10 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/Vertex.hpp>
-#include <RealEngine/Surface.hpp>
-#include <RealEngine/ShaderProgramCache.hpp>
-#include <RealEngine/default_shaders.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/graphics/Vertex.hpp>
+#include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/graphics/default_shaders.hpp>
 
 #include <RealWorld/items/ItemSprite.hpp>
 #include <RealWorld/shaders/shaders.hpp>

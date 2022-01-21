@@ -1,5 +1,5 @@
 #pragma once
-#include <RealEngine/ResourceManager.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/world/physics/DynamicHitbox.hpp>

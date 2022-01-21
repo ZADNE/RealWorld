@@ -1,8 +1,7 @@
 #include <RealWorld/items/ItemUser.hpp>
 
-#include <RealEngine/SpriteBatch.hpp>
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/utility.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/utility/utility.hpp>
 
 #include <RealWorld/world/TDB.hpp>
 #include <RealWorld/items/IDB.hpp>

@@ -1,10 +1,10 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/Room.hpp>
+#include <RealEngine/main/Room.hpp>
 
 #define MENU_KEEP_INFOS
-#include <RealEngine/Menu.hpp>
+#include <RealEngine/GUI/Menu.hpp>
 
 class MainMenuRoom : public RE::Room {
 public:

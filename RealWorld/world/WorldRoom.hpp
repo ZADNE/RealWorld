@@ -1,10 +1,10 @@
 #pragma once
 #include <memory>
 
-#include <RealEngine/Room.hpp>
-#include <RealEngine/View.hpp>
-#include <RealEngine/FontCache.hpp>
-#include <RealEngine/default_shaders.hpp>
+#include <RealEngine/main/Room.hpp>
+#include <RealEngine/graphics/View.hpp>
+#include <RealEngine/resources/FontCache.hpp>
+#include <RealEngine/graphics/default_shaders.hpp>
 
 class View;
 class World;

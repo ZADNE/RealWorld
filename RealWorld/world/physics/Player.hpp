@@ -1,8 +1,8 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/InputManager.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/user_input/InputManager.hpp>
 
 #include <RealWorld/world/physics/Health.hpp>
 #include <RealWorld/world/physics/DynamicHitbox.hpp>

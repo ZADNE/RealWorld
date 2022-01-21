@@ -1,7 +1,7 @@
 #include <RealWorld/furniture/FX/FStatic.hpp>
 
-#include <RealEngine/SpriteBatch.hpp>
-#include <RealEngine/ResourceManager.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 RE::SpriteBatch* FStatic::p_spriteBatch = nullptr;
 LightManipulator FStatic::p_lightManipulator = {};

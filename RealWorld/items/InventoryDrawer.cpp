@@ -5,10 +5,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/geometric.hpp>
 
-#include <RealEngine/ResourceManager.hpp>
-#include <RealEngine/SpriteBatch.hpp>
-#include <RealEngine/Font.hpp>
-#include <RealEngine/utility.hpp> //rmath::clamp()
+#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/graphics/Font.hpp>
+#include <RealEngine/utility/utility.hpp> //rmath::clamp()
 
 #include <RealWorld//metadata.hpp>
 #include <RealWorld/shaders/shaders.hpp>

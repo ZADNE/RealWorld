@@ -3,7 +3,7 @@
 
 #include <GL/glew.h>
 
-#include <RealEngine/MainProgram.hpp>
+#include <RealEngine/main/MainProgram.hpp>
 
 #include <RealWorld/world/WorldRoom.hpp>
 #include <RealWorld/menu/MainMenuRoom.hpp>

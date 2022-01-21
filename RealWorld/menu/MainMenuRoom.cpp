@@ -1,6 +1,6 @@
 #include <RealWorld/menu/MainMenuRoom.hpp>
 
-#include <RealEngine/View.hpp>
+#include <RealEngine/graphics/View.hpp>
 
 #include <RealWorld/world/WorldCreator.hpp>
 #include <RealWorld/world/WorldDataLoader.hpp>
@@ -49,13 +49,13 @@ void MainMenuRoom::E_step() {
 	auto cursorPos = (glm::vec2)IM->getCursorAbs();
 
 	m_menu.step(cursorPos);
-	if (IM->wasPressed(RE::RKey::LMB)) {
+	if (IM->wasPressed(RE::Key::LMB)) {
 		m_menu.onPress(cursorPos);
 	}
-	if (IM->wasReleased(RE::RKey::LMB)) {
+	if (IM->wasReleased(RE::Key::LMB)) {
 		m_menu.onRelease(cursorPos);
 	}
-	if (IM->wasReleased(RE::RKey::Escape)) {
+	if (IM->wasReleased(RE::Key::Escape)) {
 		m_menu.setState(1.0f);
 	}
 }
