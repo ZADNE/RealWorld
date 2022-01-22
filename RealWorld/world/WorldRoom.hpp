@@ -15,18 +15,12 @@ class CraftingDrawer;
 
 class WorldRoom : public RE::Room {
 public:
-	WorldRoom();
+	WorldRoom(RE::CommandLineArguments args);
 	~WorldRoom();
-
-	virtual void E_build(const std::vector<std::string>& buildArgs) override;
-	virtual void E_destroy() override;
-	virtual void E_entry(std::vector<void*> enterPointers) override;
-	virtual std::vector<void*> E_exit() override;
+	virtual void E_entry(RE::RoomTransitionParameters params) override;
+	virtual RE::RoomTransitionParameters E_exit() override;
 	virtual void E_step() override;
 	virtual void E_draw(double interpolationFactor) override;
-
-	virtual int getNextIndex() const override;
-	virtual int getPrevIndex() const override;
 
 	void resizeWindow(const glm::ivec2& newDims, bool isPermanent);
 private:

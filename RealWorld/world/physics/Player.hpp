@@ -24,7 +24,7 @@ public:
 	Player();
 	~Player();
 
-	void init(RE::InputManager* inputmanager, World* world, RE::SpriteBatch* spriteBatch, ItemOnGroundManager* itemOnGroundManager);
+	void init(const RE::InputManager* inputmanager, World* world, RE::SpriteBatch* spriteBatch, ItemOnGroundManager* itemOnGroundManager);
 
 	void adoptPlayerData(const PlayerData& pd);
 	void gatherPlayerData(PlayerData& pd);
@@ -55,7 +55,7 @@ private:
 
 	Health m_health;
 	DynamicHitbox m_hitbox;
-	RE::InputManager* m_inputManager = nullptr;
+	const RE::InputManager* m_inputManager = nullptr;
 
 	Inventory* m_mainInventory = nullptr;
 	ItemUser* m_itemUser = nullptr;

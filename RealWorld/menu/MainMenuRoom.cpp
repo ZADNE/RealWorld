@@ -6,17 +6,7 @@
 #include <RealWorld/world/WorldDataLoader.hpp>
 
 
-MainMenuRoom::MainMenuRoom() {
-
-}
-
-
-MainMenuRoom::~MainMenuRoom() {
-
-}
-
-void MainMenuRoom::E_build(const std::vector<std::string>& buildArgs) {
-	m_windowDim = p_MP->getWindowDim();
+MainMenuRoom::MainMenuRoom(RE::CommandLineArguments args) {
 	//Menu init
 	std::vector<void (MainMenuRoom::*)(const std::string&)> functions = {
 		&MainMenuRoom::mainMenuCallback,
@@ -24,38 +14,38 @@ void MainMenuRoom::E_build(const std::vector<std::string>& buildArgs) {
 		&MainMenuRoom::loadWorldCallback,
 		&MainMenuRoom::deleteWorldCallback
 	};
-	auto error = m_menu.loadMenuFromFile("menu/index.jsom", m_windowDim, &RE::SpriteBatch::std(), functions, RE::TypingHandle{p_MP});
+	auto error = m_menu.loadMenuFromFile("menu/index.jsom", window()->getDims(), &RE::SpriteBatch::std(), functions);
 	if (error != RGUI::MenuParserError::OK) {
 		RE::fatalError("Failed to load menu files");
 	}
 }
 
-void MainMenuRoom::E_destroy() {
+
+MainMenuRoom::~MainMenuRoom() {
 
 }
 
-void MainMenuRoom::E_entry(std::vector<void*> enterPointers) {
-	p_MP->setFramesPerSecondLimit(50u);
+void MainMenuRoom::E_entry(RE::RoomTransitionParameters params) {
+	synchronizer()->setFramesPerSecondLimit(50u);
 	//Background color
 	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 }
 
-std::vector<void*> MainMenuRoom::E_exit() {
-	return p_leavePointers;
+RE::RoomTransitionParameters MainMenuRoom::E_exit() {
+	return {&m_worldToLoad};
 }
 
 void MainMenuRoom::E_step() {
-	RE::InputManager* IM = p_MP->IM();
-	auto cursorPos = (glm::vec2)IM->getCursorAbs();
+	auto cursorPos = (glm::vec2)input()->getCursorAbs();
 
 	m_menu.step(cursorPos);
-	if (IM->wasPressed(RE::Key::LMB)) {
+	if (input()->wasPressed(RE::Key::LMB)) {
 		m_menu.onPress(cursorPos);
 	}
-	if (IM->wasReleased(RE::Key::LMB)) {
+	if (input()->wasReleased(RE::Key::LMB)) {
 		m_menu.onRelease(cursorPos);
 	}
-	if (IM->wasReleased(RE::Key::Escape)) {
+	if (input()->wasReleased(RE::Key::Escape)) {
 		m_menu.setState(1.0f);
 	}
 }
@@ -67,17 +57,8 @@ void MainMenuRoom::E_draw(double interpolationFactor) {
 	RE::SpriteBatch::std().draw();
 }
 
-int MainMenuRoom::getNextIndex() const {
-	return 1;
-}
-
-int MainMenuRoom::getPrevIndex() const {
-	return Room::NO_ROOM_INDEX;
-}
-
 void MainMenuRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
-	p_MP->resizeWindow(newDims, isPermanent);
-	m_windowDim = newDims;
+	window()->resize(newDims, isPermanent);
 }
 
 void MainMenuRoom::buildSavesButtons() {
@@ -98,9 +79,10 @@ void MainMenuRoom::buildSavesButtons() {
 		mainInfo.text.set(name);
 		m_menu.addController(name, mainInfo);
 		m_menu.addController("del_" + name, delInfo);
-		glm::vec2 pos = mainInfo.pos.get(); pos.y -= 0.05f * m_windowDim.y;
+		glm::vec2 windowDims = window()->getDims();
+		glm::vec2 pos = mainInfo.pos.get(); pos.y -= 0.05f * windowDims.y;
 		mainInfo.pos.set(pos);
-		pos = delInfo.pos.get(); pos.y -= 0.05f * m_windowDim.y;
+		pos = delInfo.pos.get(); pos.y -= 0.05f * windowDims.y;
 		delInfo.pos.set(pos);
 	}
 }
@@ -116,7 +98,7 @@ void MainMenuRoom::mainMenuCallback(const std::string& button) {
 		buildSavesButtons();
 		m_menu.setState(3.0f);
 	} else if (button == "exit") {
-		p_MP->exitProgram();
+		program()->scheduleProgramExit();
 	} else if (button == "return") {
 		m_menu.setState(1.0f);
 	}
@@ -162,7 +144,6 @@ void MainMenuRoom::deleteWorldCallback(const std::string& button) {
 }
 
 void MainMenuRoom::loadWorld(const std::string& worldName) {
-	p_leavePointers.clear();
-	p_leavePointers.push_back(new std::string(worldName));
-	p_MP->goToRoom(1);
+	m_worldToLoad = worldName;
+	program()->scheduleNextRoom(1);
 }

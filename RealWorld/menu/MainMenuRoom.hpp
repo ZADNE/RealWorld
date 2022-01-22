@@ -8,26 +8,21 @@
 
 class MainMenuRoom : public RE::Room {
 public:
-	MainMenuRoom();
+	MainMenuRoom(RE::CommandLineArguments args);
 	~MainMenuRoom();
-
-	virtual void E_build(const std::vector<std::string>& buildArgs) override;
-	virtual void E_destroy() override;
-	virtual void E_entry(std::vector<void*> enterPointers) override;
-	virtual std::vector<void*> E_exit() override;
+	virtual void E_entry(RE::RoomTransitionParameters params) override;
+	virtual RE::RoomTransitionParameters E_exit() override;
 	virtual void E_step() override;
 	virtual void E_draw(double interpolationFactor) override;
-
-	virtual int getNextIndex() const override;
-	virtual int getPrevIndex() const override;
 
 	void resizeWindow(const glm::ivec2& newDims, bool isPermanent);
 
 private:
-	glm::vec2 m_windowDim;
-
-	RGUI::Menu<MainMenuRoom> m_menu{this};
+	RGUI::Menu<MainMenuRoom> m_menu{program(), this};
 	std::vector<std::string> m_savesButtons;
+
+	std::string m_worldToLoad;
+
 	void buildSavesButtons();
 
 	void mainMenuCallback(const std::string& button);

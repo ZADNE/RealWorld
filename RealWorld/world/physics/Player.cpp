@@ -20,7 +20,7 @@ Player::~Player() {
 	delete m_mainInventory;
 }
 
-void Player::init(RE::InputManager* inputmanager, World* world, RE::SpriteBatch* spriteBatch, ItemOnGroundManager* itemOnGroundManager) {
+void Player::init(const RE::InputManager* inputmanager, World* world, RE::SpriteBatch* spriteBatch, ItemOnGroundManager* itemOnGroundManager) {
 	m_inputManager = inputmanager;
 	m_hitbox.init(world);
 	m_spriteBatch = spriteBatch;

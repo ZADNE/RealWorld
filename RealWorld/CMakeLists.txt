@@ -5,9 +5,10 @@ add_subdirectory(shaders)
 add_subdirectory(world)
 
 target_sources(${PROJECT_NAME} PRIVATE 
-			div.hpp
-			Game.hpp				Game.cpp
-			KeyBinder.hpp
-			LanguageManager.hpp
-									main.cpp
-			metadata.hpp)
+	div.hpp					
+	KeyBinder.hpp			
+	LanguageManager.hpp		
+							main.cpp
+	metadata.hpp
+	RealWorld.hpp			RealWorld.cpp
+)
