@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <RealWorld/world/physics/Hitbox.hpp>
 
 class World;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <RealEngine/graphics/Sprite.hpp>
 
 #include <RealWorld/items/IDB.hpp>

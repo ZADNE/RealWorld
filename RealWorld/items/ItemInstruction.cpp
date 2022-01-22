@@ -1,4 +1,4 @@
-#include <RealWorld/items/ItemInstruction.hpp>
+﻿#include <RealWorld/items/ItemInstruction.hpp>
 
 bool ItemInstruction::operator==(const ItemInstruction& other) const{
 	if (m_inputN != other.numberOfInputs() || m_outputN != other.numberOfOutputs() || m_timeNeeded != other.craftTime()) {

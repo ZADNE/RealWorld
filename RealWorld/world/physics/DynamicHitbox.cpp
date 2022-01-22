@@ -1,4 +1,4 @@
-#include <RealWorld/world/physics/DynamicHitbox.hpp>
+﻿#include <RealWorld/world/physics/DynamicHitbox.hpp>
 
 #include <algorithm>
 

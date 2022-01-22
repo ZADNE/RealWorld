@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <RealWorld/items/ItemSample.hpp>
 
 struct Item : public ItemSample {

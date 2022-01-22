@@ -1,9 +1,9 @@
-#include <RealWorld/RealWorld.hpp>
+﻿#include <RealWorld/RealWorld.hpp>
 
 #include <RealWorld/world/WorldRoom.hpp>
 #include <RealWorld/menu/MainMenuRoom.hpp>
 
-RealWorld::RealWorld(RE::CommandLineArguments args) : RE::MainProgram(args) {
+RealWorld::RealWorld(RE::CommandLineArguments args) {
 	p_window.setTitle("Realworld");
 
 	p_roomManager.addRoom<MainMenuRoom>(args);

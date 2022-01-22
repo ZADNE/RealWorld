@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <RealWorld/furniture/FX/FStatic.hpp>
 #include <RealWorld/world/DestroyTicket.hpp>
 

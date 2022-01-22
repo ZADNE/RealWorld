@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 struct DynamicLight {
 	DynamicLight(const glm::vec2& posPx, RE::Colour col, GLfloat dir, GLfloat cone) : posPx(posPx), col(col), dir(dir), cone(cone) {}

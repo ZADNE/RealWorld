@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <RealEngine/graphics/Vertex.hpp>
 
 #include <RealWorld/world/DestroyTicket.hpp>

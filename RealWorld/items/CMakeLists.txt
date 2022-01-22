@@ -1,4 +1,4 @@
-target_sources(${PROJECT_NAME} PRIVATE 
+﻿target_sources(${PROJECT_NAME} PRIVATE 
 			CraftingDrawer.hpp			CraftingDrawer.cpp
 			IDB.hpp						IDB.cpp
 			Inventory.hpp				Inventory.cpp

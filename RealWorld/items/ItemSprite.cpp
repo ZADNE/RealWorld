@@ -1,4 +1,4 @@
-#include <RealWorld/items/ItemSprite.hpp>
+﻿#include <RealWorld/items/ItemSprite.hpp>
 
 #include <RealEngine/resources/ResourceManager.hpp>
 

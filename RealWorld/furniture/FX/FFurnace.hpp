@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <RealWorld/furniture/FX/FStatic.hpp>
 
 class FFurnace: public FStatic{

@@ -1,4 +1,4 @@
-#include <RealWorld/world/LightManipulator.hpp>
+﻿#include <RealWorld/world/LightManipulator.hpp>
 
 #include <RealWorld/world/WorldDrawer.hpp>
 

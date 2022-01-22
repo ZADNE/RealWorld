@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 struct StaticLight {
 	StaticLight(const glm::vec2& posBc, RE::Colour col, GLfloat dir, GLfloat cone) : posBc(posBc), col(col), dir(dir), cone(cone) {}

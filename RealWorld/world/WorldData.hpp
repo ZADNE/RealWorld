@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 
 #include <RealWorld/world/physics/PlayerData.hpp>

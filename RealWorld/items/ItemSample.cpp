@@ -1,4 +1,4 @@
-#include <RealWorld/items/ItemSample.hpp>
+﻿#include <RealWorld/items/ItemSample.hpp>
 
 bool ItemSample::operator==(const ItemSample& other) const {
 	if (ID != other.ID || special != special) {

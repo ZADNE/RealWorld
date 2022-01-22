@@ -1,4 +1,4 @@
-#include <RealWorld/furniture/FX/FStatic.hpp>
+﻿#include <RealWorld/furniture/FX/FStatic.hpp>
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>

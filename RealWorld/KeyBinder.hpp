@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef KB_BINDING_LIST
 
 #define KB_BINDING_LIST(m)   \

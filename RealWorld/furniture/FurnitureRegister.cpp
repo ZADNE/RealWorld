@@ -1,4 +1,4 @@
-#include <RealWorld/furniture/FurnitureRegister.hpp>
+﻿#include <RealWorld/furniture/FurnitureRegister.hpp>
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <unordered_map>
 
 #define GLM_ENABLE_EXPERIMENTAL

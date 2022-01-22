@@ -1,4 +1,4 @@
-#include <RealWorld/items/ItemUser.hpp>
+﻿#include <RealWorld/items/ItemUser.hpp>
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/utility/utility.hpp>
