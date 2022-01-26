@@ -10,10 +10,11 @@
 #include <RealEngine/graphics/UniformManager.hpp>
 #include <RealEngine/utility/utility.hpp>
 
-#include <RealWorld/world/ChunkHandler.hpp>
+#include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/metadata.hpp>
 #include <RealWorld/shaders/shaders.hpp>
 #include <RealWorld/div.hpp>
+#include <RealWorld/rendering/Vertex.hpp>
 
 struct WorldDrawUniforms {
 	glm::mat4 viewMat;
@@ -41,7 +42,7 @@ WorldDrawer::~WorldDrawer() {
 	glDeleteBuffers(1, &m_VBO_DLs);
 }
 
-void WorldDrawer::init(const glm::uvec2& viewSizePx, const glm::mat4& viewMatrix, ChunkHandler* chunkHandler) {
+void WorldDrawer::init(const glm::uvec2& viewSizePx, const glm::mat4& viewMatrix, ChunkManager* chunkHandler) {
 	m_chunkHandler = chunkHandler;
 	reloadViewSize(viewSizePx);
 	initShaders(viewMatrix);
@@ -67,9 +68,10 @@ void WorldDrawer::init(const glm::uvec2& viewSizePx, const glm::mat4& viewMatrix
 	TEX_UNIT_VOLATILE.setActive();
 
 	//For dynamic lights
+	glEnable(GL_POINT_SPRITE);/*TODO*/
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	glEnable(GL_POINT_SPRITE);
 	glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
+	glPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE, 2.0f);
 
 
 	TEX_UNIT_BLOCK_ATLAS.setActive();
@@ -83,11 +85,11 @@ void WorldDrawer::init(const glm::uvec2& viewSizePx, const glm::mat4& viewMatrix
 	TEX_UNIT_VOLATILE.setActive();
 }
 
-void WorldDrawer::setTarget(const glm::ivec2& worldDimBc, GLuint worldTexture) {
+void WorldDrawer::setTarget(const glm::ivec2& worldDimBc, RE::TextureProxy worldTexture) {
 	m_worldDimBc = worldDimBc;
 
 	TEX_UNIT_WORLD_TEXTURE.setActive();
-	glBindTexture(GL_TEXTURE_2D, worldTexture);
+	worldTexture.bind();
 	TEX_UNIT_VOLATILE.setActive();
 }
 
@@ -184,7 +186,7 @@ void WorldDrawer::beginStep(const glm::vec2& botLeftPx) {
 	m_SurLighting.setTarget();
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glBindVertexArray(m_VAOLighting);
-	m_worldToLight->setShader();
+	m_worldToLight->use();
 	m_worldToLight->setUniform(WDS::LOC_POSITION, static_cast<glm::vec2>(m_botLeftBc));
 	float f = /*rmath::clamp(sin(m_currentTime / m_dayLength), (10.0f/256.0f), 1.0f)*/1.0f;
 	auto background = m_backgroundColour;
@@ -193,30 +195,30 @@ void WorldDrawer::beginStep(const glm::vec2& botLeftPx) {
 	m_worldToLight->setUniform(WDS::LOC_WORLD_TO_LIGHT_DIAPHRAGMS, glm::vec4(0.8f, 0.7f, 0.4f, 0.0f));
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	auto fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	m_worldToLight->resetShader();
+	m_worldToLight->unuse();
 	glBindVertexArray(0);
 
 	//Sum static lights
 	glBindVertexArray(m_VAO_SLs);
-	m_sumSL->setShader();
+	m_sumSL->use();
 	glBlendFunci(0, GL_ONE, GL_ONE);
 	glColorMaski(0, GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 	m_sumSL->setUniform(WDS::LOC_POSITION, m_botLeftBc);
 	glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 100000000);
 	glDrawArrays(GL_POINTS, 0, (GLsizei)m_staticLights.size());
 	fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	m_sumSL->resetShader();
+	m_sumSL->unuse();
 
 
 	//Add static lights
-	m_addSL->setShader();
+	m_addSL->use();
 	glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
 	glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
 	glBlendFunci(1, GL_ONE, GL_ONE);
 	m_addSL->setUniform(WDS::LOC_POSITION, m_botLeftBc);
 	glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 100000000);
 	glDrawArrays(GL_POINTS, 0, (GLsizei)m_staticLights.size());
-	m_addSL->resetShader();
+	m_addSL->unuse();
 	glBindVertexArray(0);
 	m_SurLighting.resetTarget();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -238,22 +240,22 @@ void WorldDrawer::endStep() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(m_VAO_DLs);
 
-	m_addDL->setShader();
+	m_addDL->use();
 	glBlendFunc(GL_ONE, GL_ONE);
 	m_addDL->setUniform(WDS::LOC_POSITION, static_cast<glm::vec2>(m_botLeftBc));
 	glDrawArrays(GL_POINTS, 0, (GLsizei)m_VBO_DLs_size);
 	auto fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	m_addDL->resetShader();
+	m_addDL->unuse();
 	glBindVertexArray(0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//Combine diaphragm and lighting texture to the finished texture
 	glDisable(GL_BLEND);
 	glBindVertexArray(m_VAOLighting);
-	m_combineLighting->setShader();
+	m_combineLighting->use();
 	glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 100000000);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	m_combineLighting->resetShader();
+	m_combineLighting->unuse();
 	glBindVertexArray(0);
 	m_SurLighting.resetTarget();
 	glEnable(GL_BLEND);
@@ -262,20 +264,20 @@ void WorldDrawer::endStep() {
 void WorldDrawer::drawWorld() {
 	//Tiles
 	glBindVertexArray(m_VAO);
-	m_standardDraw->setShader();
+	m_standardDraw->use();
 	m_standardDraw->setUniform(WDS::LOC_POSITION, m_botLeftPx);
 	glDrawArrays(GL_TRIANGLES, 0, m_viewsizeBc.x * m_viewsizeBc.y * 6);
-	m_standardDraw->resetShader();
+	m_standardDraw->unuse();
 	glBindVertexArray(0);
 }
 
 void WorldDrawer::coverWithDarkness() {
 	//Draw the finished lighting
 	glBindVertexArray(m_VAOLighting);
-	m_finalLighting->setShader();
+	m_finalLighting->use();
 	m_finalLighting->setUniform(WDS::LOC_POSITION, glm::mod(m_botLeftPx, vec2_BLOCK_SIZE));
 	glDrawArrays(GL_TRIANGLES, 6, 6);
-	m_finalLighting->resetShader();
+	m_finalLighting->unuse();
 	glBindVertexArray(0);
 }
 
@@ -288,7 +290,7 @@ void WorldDrawer::reloadViewSize(const glm::uvec2& viewSizePx) {
 }
 
 void WorldDrawer::generateMesh() {
-	std::vector<RE::VertexPOUV> vertexData;
+	std::vector<VertexPOUV> vertexData;
 	vertexData.reserve((size_t)m_viewsizeBc.x * m_viewsizeBc.y * 6u);
 
 	float xx, yy;
@@ -310,7 +312,7 @@ void WorldDrawer::generateMesh() {
 
 	//Uploading mesh
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(RE::VertexPOUV) * vertexData.size(), &vertexData[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPOUV) * vertexData.size(), &vertexData[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -324,16 +326,16 @@ void WorldDrawer::createGLObjects() {
 	glBindVertexArray(m_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 
-	glEnableVertexAttribArray(RE::ATTLOC_PO);//Position
-	glVertexAttribPointer(RE::ATTLOC_PO, 2, GL_FLOAT, GL_FALSE, sizeof(RE::VertexPOUV), (void*)offsetof(RE::VertexPOUV, position));
-	glEnableVertexAttribArray(RE::ATTLOC_UV);//UV
-	glVertexAttribPointer(RE::ATTLOC_UV, 2, GL_FLOAT, GL_FALSE, sizeof(RE::VertexPOUV), (void*)offsetof(RE::VertexPOUV, uv));
+	glEnableVertexAttribArray(RE::ATTR_POSITION);//Position
+	glVertexAttribPointer(RE::ATTR_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPOUV), (void*)offsetof(VertexPOUV, position));
+	glEnableVertexAttribArray(RE::ATTR_UV);//UV
+	glVertexAttribPointer(RE::ATTR_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPOUV), (void*)offsetof(VertexPOUV, uv));
 
 	glBindVertexArray(0);
 }
 
 void WorldDrawer::generateMeshLighting() {
-	RE::VertexPOUV vertexData[12];
+	VertexPOUV vertexData[12];
 	//Block
 	vertexData[0].setPosition(0.0f, 0.0f);
 	vertexData[1].setPosition((float)m_viewsizeLightingBc.x, (float)m_viewsizeLightingBc.y);
@@ -376,10 +378,10 @@ void WorldDrawer::createGLObjectsLighting() {
 	glBindVertexArray(m_VAOLighting);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBOLighting);
 
-	glEnableVertexAttribArray(RE::ATTLOC_PO);//Position
-	glVertexAttribPointer(RE::ATTLOC_PO, 2, GL_FLOAT, GL_FALSE, sizeof(RE::VertexPOUV), (void*)offsetof(RE::VertexPOUV, position));
-	glEnableVertexAttribArray(RE::ATTLOC_UV);//UV
-	glVertexAttribPointer(RE::ATTLOC_UV, 2, GL_FLOAT, GL_FALSE, sizeof(RE::VertexPOUV), (void*)offsetof(RE::VertexPOUV, uv));
+	glEnableVertexAttribArray(RE::ATTR_POSITION);//Position
+	glVertexAttribPointer(RE::ATTR_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPOUV), (void*)offsetof(VertexPOUV, position));
+	glEnableVertexAttribArray(RE::ATTR_UV);//UV
+	glVertexAttribPointer(RE::ATTR_UV, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPOUV), (void*)offsetof(VertexPOUV, uv));
 
 	glBindVertexArray(0);
 }
@@ -394,10 +396,10 @@ void WorldDrawer::createGLObjectsStaticLights() {
 	glBindVertexArray(m_VAO_SLs);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_SLs);
 
-	glEnableVertexAttribArray(RE::ATTLOC_PO);//Position
-	glVertexAttribPointer(RE::ATTLOC_PO, 2, GL_FLOAT, GL_FALSE, sizeof(StaticLight), (void*)offsetof(StaticLight, posBc));
-	glEnableVertexAttribArray(RE::ATTLOC_CO);//Colour
-	glVertexAttribPointer(RE::ATTLOC_CO, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(StaticLight), (void*)offsetof(StaticLight, col));
+	glEnableVertexAttribArray(RE::ATTR_POSITION);//Position
+	glVertexAttribPointer(RE::ATTR_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(StaticLight), (void*)offsetof(StaticLight, posBc));
+	glEnableVertexAttribArray(RE::ATTR_COLOUR);//Colour
+	glVertexAttribPointer(RE::ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(StaticLight), (void*)offsetof(StaticLight, col));
 	glEnableVertexAttribArray(2u);//Direction
 	glVertexAttribPointer(2u, 1, GL_FLOAT, GL_FALSE, sizeof(StaticLight), (void*)offsetof(StaticLight, dir));
 	glEnableVertexAttribArray(3u);//Cone
@@ -416,10 +418,10 @@ void WorldDrawer::createGLObjectsDynamicLights() {
 	glBindVertexArray(m_VAO_DLs);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_DLs);
 
-	glEnableVertexAttribArray(RE::ATTLOC_PO);//Position
-	glVertexAttribPointer(RE::ATTLOC_PO, 2, GL_FLOAT, GL_FALSE, sizeof(DynamicLight), (void*)offsetof(DynamicLight, posPx));
-	glEnableVertexAttribArray(RE::ATTLOC_CO);//Colour
-	glVertexAttribPointer(RE::ATTLOC_CO, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(DynamicLight), (void*)offsetof(DynamicLight, col));
+	glEnableVertexAttribArray(RE::ATTR_POSITION);//Position
+	glVertexAttribPointer(RE::ATTR_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(DynamicLight), (void*)offsetof(DynamicLight, posPx));
+	glEnableVertexAttribArray(RE::ATTR_COLOUR);//Colour
+	glVertexAttribPointer(RE::ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(DynamicLight), (void*)offsetof(DynamicLight, col));
 	glEnableVertexAttribArray(2u);//Direction
 	glVertexAttribPointer(2u, 1, GL_FLOAT, GL_FALSE, sizeof(DynamicLight), (void*)offsetof(DynamicLight, dir));
 	glEnableVertexAttribArray(3u);//Cone

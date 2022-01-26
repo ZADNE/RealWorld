@@ -7,29 +7,28 @@
 #include <RealEngine/graphics/Surface.hpp>
 
 #include <RealWorld/world/Chunk.hpp>
-
-class ChunkGenerator;
+#include <RealWorld/world/ChunkGenerator.hpp>
 
 /**
  * Handles collection of chunks.
  * Allows access to world as if it was a single array.
  */
-class ChunkHandler{
+class ChunkManager {
 public:
 	/**
-	 * Contructs ChunkHandler with default removal threshold of one minute.
+	 * Contructs ChunkManager with default removal threshold of one minute.
 	 */
-	ChunkHandler();
+	ChunkManager();
 
 	/**
 	 * Calls saveAndFreeAllChunks() and deconstructs the object.
 	 */
-	~ChunkHandler();
+	~ChunkManager();
 
 	/**
 	 * Retargets chunk handler to a new world.
 	 * Saves and frees all previous chunks.
-	 * 
+	 *
 	 * \param seed Seed of the world.
 	 * \param chunkDims Dimensions of chunks in the world, in blocks
 	 * \param activeChunksRect Dimensions of the active chunks rectangle, in chunks
@@ -45,14 +44,14 @@ public:
 
 	/**
 	 * Saves all chunks, keeps them in the memory.
-	 * 
+	 *
 	 * \return True if successful, false otherwise.
 	 */
 	bool saveChunks() const;
 
 	/**
 	 * Gets the number of chunks held in memory.
-	 * 
+	 *
 	 * \return The number of chunks held in memory.
 	 */
 	int getNumberOfChunksLoaded();
@@ -69,7 +68,7 @@ public:
 
 	/**
 	 * @brief Performs step operation on the chunk handler.
-	 * 
+	 *
 	 * This function increments internal timers for possible memory deallocation.
 	 * It should be called every physics step.
 	*/
@@ -117,10 +116,10 @@ private:
 
 	/**
 	 * @brief Gets chunk at given position
-	 * 
+	 *
 	 * The chunk is loaded from respective file or generated if required.
-	 * 
-	 * 
+	 *
+	 *
 	 * @param posCh Position of the chunk
 	 * @return Activated chunk
 	*/
@@ -135,7 +134,7 @@ private:
 
 	std::string m_folderPath;
 	ulong m_chunkRemovalThreshold;
-	ChunkGenerator* m_chunkGen = nullptr;
+	ChunkGenerator m_chunkGen;
 	RE::Surface* m_ws = nullptr;
 	glm::ivec2 m_wsSize;
 };

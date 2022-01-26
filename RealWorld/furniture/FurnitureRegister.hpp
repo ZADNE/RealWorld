@@ -35,7 +35,7 @@
 
 
 namespace RE {
-	class SpriteBatch;
+class SpriteBatch;
 }
 
 class World;
@@ -50,7 +50,7 @@ struct QTFurniture {
 	}
 
 	inline bool collidesWith(const QTFurniture& oB) const {
-		if (botLeft.x < (oB.botLeft.x + oB.dim.x) && (botLeft.x + dim.x) > oB.botLeft.x&&
+		if (botLeft.x < (oB.botLeft.x + oB.dim.x) && (botLeft.x + dim.x) > oB.botLeft.x &&
 			botLeft.y < (oB.botLeft.y + oB.dim.y) && (botLeft.y + dim.y) > oB.botLeft.y) {
 			return true;
 		}
@@ -65,10 +65,8 @@ struct QTFurniture {
 
 class FurnitureRegister {
 public:
-	FurnitureRegister();
+	FurnitureRegister(RE::SpriteBatch& spriteBatch, const glm::ivec2& worldDims, World& world, const glm::vec2& viewSizePx);
 	~FurnitureRegister();
-
-	void init(RE::SpriteBatch* spriteBatch, const glm::ivec2& worldDims, World* world, const glm::vec2& viewSizePx);
 
 	void resizeView(const glm::vec2& viewSizePx);
 
@@ -108,7 +106,7 @@ public:
 	void draw();
 
 	void adoptFurnitureCollection(const FurnitureCollection& fc);
-	void gatherFurnitureCollection(FurnitureCollection& fc);
+	void gatherFurnitureCollection(FurnitureCollection& fc) const;
 private:
 	FStatic* getFurniture(const FIndex fIndex) const;
 
@@ -125,8 +123,8 @@ private:
 	template<class ...Args> void callOnEach(void (FStatic::* func)(Args...) const, Args... args) const;
 	template<class ...Args> void callWithEach(void (FurnitureRegister::* func)(const FStatic*, Args...) const, Args... args) const;
 
-	RE::SpriteBatch* m_spriteBatch = nullptr;
-	World* m_world = nullptr;
+	RE::SpriteBatch& m_spriteBatch;
+	World& m_world;
 
 	//Should guarantee that all fIndexes are valid
 	Quadtree<QTFurniture> m_fsQT;

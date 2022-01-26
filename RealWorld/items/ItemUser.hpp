@@ -18,10 +18,8 @@ enum ItemUse { MAIN, ALTERNATIVE, NUMBER_OF_USES };
 
 class ItemUser {
 public:
-	ItemUser();
+	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
 	~ItemUser();
-
-	void init(World* world, Inventory* inventory, Hitbox* operatorsHitbox, RE::SpriteBatch* spriteBatch, ItemOnGroundManager* itemOnGroundManager);
 
 	void beginUse(ItemUse use);
 	void endUse(ItemUse use);
@@ -31,11 +29,11 @@ public:
 	void step(const glm::ivec2& relCursorPos);
 	void draw();
 private:
-	World* m_world = nullptr;
-	Inventory* m_inv = nullptr;
-	Hitbox* m_operatorsHitbox = nullptr;
-	ItemOnGroundManager* m_itemOnGroundManager = nullptr;
-	RE::SpriteBatch* m_spriteBatch = nullptr;
+	World& m_world;
+	Inventory& m_inv;
+	Hitbox& m_operatorsHitbox;
+	ItemOnGroundManager& m_itemOnGroundManager;
+	RE::SpriteBatch& m_spriteBatch;
 
 	int m_chosenSlot = 0;
 

@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <map>
 
-#include <GL/glew.h>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
@@ -15,7 +14,7 @@
 #include <RealWorld/world/DestroyTicket.hpp>
 #include <RealWorld/world/LightManipulator.hpp>
 
-class ChunkHandler;
+class ChunkManager;
 
 class WorldDrawer {
 	friend class LightManipulator;
@@ -23,8 +22,8 @@ public:
 	WorldDrawer();
 	~WorldDrawer();
 
-	void init(const glm::uvec2& viewSizePx, const glm::mat4& viewMatrix, ChunkHandler* chunkHandler);
-	void setTarget(const glm::ivec2& worldDimBc, GLuint worldTexture);
+	void init(const glm::uvec2& viewSizePx, const glm::mat4& viewMatrix, ChunkManager* chunkHandler);
+	void setTarget(const glm::ivec2& worldDimBc, RE::TextureProxy worldTexture);
 	void resizeView(const glm::uvec2& newViewSizePx, const glm::mat4& newViewMatrix);
 
 	//For adding and removing lights
@@ -81,22 +80,22 @@ private:
 	glm::vec2 m_viewsizePxLarger;//m_viewsizeBc * BLOCK_SIZE; larger than m_viewsizePx
 	glm::uvec2 m_viewsizeBc;
 	glm::uvec2 m_viewsizeLightingBc;
-	ChunkHandler* m_chunkHandler;
+	ChunkManager* m_chunkHandler;
 
 	glm::ivec2 m_worldDimBc;
 
 	RE::TexturePtr m_blockAtlasTex;
 	RE::TexturePtr m_wallAtlasTex;
 
-	RE::ShaderProgramPtr m_standardDraw = RE::RM::getShaderProgram({.vert = WDS::tilesDraw_vert, .frag = WDS::tilesDraw_frag });
-	RE::ShaderProgramPtr m_finalLighting = RE::RM::getShaderProgram({.vert = WDS::finalLighting_vert, .frag = shaders::gauss32_frag });//Used to draw finished lighting to the screen
+	RE::ShaderProgramPtr m_standardDraw = RE::RM::getShaderProgram({.vert = WDS::tilesDraw_vert, .frag = WDS::tilesDraw_frag});
+	RE::ShaderProgramPtr m_finalLighting = RE::RM::getShaderProgram({.vert = WDS::finalLighting_vert, .frag = shaders::gauss32_frag});//Used to draw finished lighting to the screen
 
-	RE::ShaderProgramPtr m_combineLighting = RE::RM::getShaderProgram({.vert = WDS::PT_vert, .frag = WDS::combineLighting_frag });//Combine finished diaphragm with lighting to produce finished lighting
-	RE::ShaderProgramPtr m_worldToLight = RE::RM::getShaderProgram({.vert = WDS::PT_vert, .frag = WDS::worldToLight_frag });//Process world texture to light
+	RE::ShaderProgramPtr m_combineLighting = RE::RM::getShaderProgram({.vert = WDS::PT_vert, .frag = WDS::combineLighting_frag});//Combine finished diaphragm with lighting to produce finished lighting
+	RE::ShaderProgramPtr m_worldToLight = RE::RM::getShaderProgram({.vert = WDS::PT_vert, .frag = WDS::worldToLight_frag});//Process world texture to light
 
-	RE::ShaderProgramPtr m_sumSL = RE::RM::getShaderProgram({.vert = WDS::addStaticLight_vert, .frag = WDS::sumStaticLight_frag });
-	RE::ShaderProgramPtr m_addSL = RE::RM::getShaderProgram({.vert = WDS::addStaticLight_vert, .frag = WDS::addStaticLight_frag });
-	RE::ShaderProgramPtr m_addDL = RE::RM::getShaderProgram({.vert = WDS::addDynamicLight_vert, .frag = WDS::addDynamicLight_frag });
+	RE::ShaderProgramPtr m_sumSL = RE::RM::getShaderProgram({.vert = WDS::addStaticLight_vert, .frag = WDS::sumStaticLight_frag});
+	RE::ShaderProgramPtr m_addSL = RE::RM::getShaderProgram({.vert = WDS::addStaticLight_vert, .frag = WDS::addStaticLight_frag});
+	RE::ShaderProgramPtr m_addDL = RE::RM::getShaderProgram({.vert = WDS::addDynamicLight_vert, .frag = WDS::addDynamicLight_frag});
 
 	//Tile drawing
 	GLuint m_VAO = 0u;

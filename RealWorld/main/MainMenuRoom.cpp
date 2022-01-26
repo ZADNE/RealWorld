@@ -1,4 +1,4 @@
-﻿#include <RealWorld/menu/MainMenuRoom.hpp>
+﻿#include <RealWorld/main/MainMenuRoom.hpp>
 
 #include <RealEngine/graphics/View.hpp>
 
@@ -25,17 +25,17 @@ MainMenuRoom::~MainMenuRoom() {
 
 }
 
-void MainMenuRoom::E_entry(RE::RoomTransitionParameters params) {
+void MainMenuRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	synchronizer()->setFramesPerSecondLimit(50u);
 	//Background color
 	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 }
 
-RE::RoomTransitionParameters MainMenuRoom::E_exit() {
-	return {&m_worldToLoad};
+void MainMenuRoom::sessionEnd() {
+
 }
 
-void MainMenuRoom::E_step() {
+void MainMenuRoom::step() {
 	auto cursorPos = (glm::vec2)input()->getCursorAbs();
 
 	m_menu.step(cursorPos);
@@ -50,7 +50,7 @@ void MainMenuRoom::E_step() {
 	}
 }
 
-void MainMenuRoom::E_draw(double interpolationFactor) {
+void MainMenuRoom::render(double interpolationFactor) {
 	RE::SpriteBatch::std().begin(RE::GlyphSortType::POS_TOP);
 	m_menu.draw();
 	RE::SpriteBatch::std().end();
@@ -144,6 +144,5 @@ void MainMenuRoom::deleteWorldCallback(const std::string& button) {
 }
 
 void MainMenuRoom::loadWorld(const std::string& worldName) {
-	m_worldToLoad = worldName;
-	program()->scheduleNextRoom(1);
+	program()->scheduleRoomTransition(1, {worldName});
 }

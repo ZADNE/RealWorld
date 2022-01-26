@@ -1,35 +1,29 @@
 ﻿#pragma once
 #include <string>
 
-#include <GL/glew.h>
-#include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
+#include <RealEngine/graphics/VertexArray.hpp>
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/world/WorldDrawer.hpp>
-#include <RealWorld/world/ChunkHandler.hpp>
-#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/world/WorldData.hpp>
+#include <RealWorld/world/physics/Player.hpp>
+#include <RealWorld/shaders/shaders.hpp>
 #include <RealWorld/furniture/FurnitureRegister.hpp>
+#include <RealWorld/rendering/Vertex.hpp>
 
-class Player;
-class FurnitureRegister;
-namespace RE {
-class SpriteBatch;
-}
 
 /**
- * Class representing whole world.
+ * Represents world as a grid of tiles.
  */
 class World {
 public:
-	World();
+	World(const glm::mat4& viewMatrix, const glm::uvec2& windowDims, RE::SpriteBatch& sb, Player& player);
 	~World();
-
-	void init(const glm::mat4& viewMatrix, const glm::uvec2& windowDims, RE::SpriteBatch* sb, Player* player);
 
 	/**
 	 * Loads a world.
@@ -107,37 +101,57 @@ private:
 	std::string m_folderName;
 	std::string m_worldName;
 
-	Player* m_player = nullptr;
-	WorldDrawer* m_worldDrawer = nullptr;
-	glm::vec2 m_windowDim;
+	Player& m_player;
+	WorldDrawer m_worldDrawer;
+	glm::vec2 m_windowDims;
 
 	glm::vec2 m_gravity = glm::vec2(0.0f, -0.5f);
 
-	void initOpenGLObjects();
+	void initVAOs();
 	void initConstantUniforms();
 	void initUniformBuffers();
 
 	void rebuildDebugRectangle();
-	void rebuildWorldRectangle();
 	void updateUniformsAfterWorldResize();
 
-	//Effect
-	GLuint m_effectVAO = 0;
-	GLuint m_effectVBO = 0;
+	using enum RE::BufferUsageFlags;
+	using enum RE::VertexComponentCount;
+	using enum RE::VertexComponentType;
 
-	//Set with var update
-	GLuint m_setWithUpdateVAO = 0;
-	GLuint m_setWithUpdateVBO = 0;
+	//Set with update
+	RE::VertexArray m_setWithUpdateVAO;
+	RE::Buffer<RE::BufferType::ARRAY> m_setWithUpdateVBO{
+		sizeof(SET_WITH_UPDATE_VERTICES), NO_FLAGS, SET_WITH_UPDATE_VERTICES
+	};
 	float m_time = 17.0f;
-	RE::ShaderProgramPtr m_setWithVarUpdateShader = RE::RM::getShaderProgram({.vert = shaders::setWithVarUpdate_vert, .frag = shaders::setWithVarUpdate_frag });
+	RE::ShaderProgramPtr m_setWithUpdateShader = RE::RM::getShaderProgram({.vert = shaders::setWithUpdate_vert, .frag = shaders::setWithUpdate_frag});
 
 	//Debug
-	RE::ShaderProgramPtr m_debugDraw = RE::RM::getShaderProgram({.vert = shaders::data_vert, .frag = shaders::worldDebug_frag });
-	GLuint m_debugVAO = 0;
-	GLuint m_debugVBO = 0;
+	RE::ShaderProgramPtr m_debugDraw = RE::RM::getShaderProgram({.vert = shaders::data_vert, .frag = shaders::worldDebug_frag});
+	RE::VertexArray m_debugVAO;
+	RE::Buffer<RE::BufferType::ARRAY> m_debugVBO{
+		sizeof(VertexPOUV) * 6, DYNAMIC_STORAGE
+	};
+
 	bool m_shouldDrawDebug = false;
 	bool m_shouldDrawDarkness = true;
 
-	FurnitureRegister* m_fReg = nullptr;
-	ChunkHandler m_chunkHandler;
+	FurnitureRegister m_fReg;
+	ChunkManager m_chunkHandler;
+
+	const unsigned int ATTR_SET_AROUND = 1u;
+
+	struct VertexSetWithUpdate {
+		VertexSetWithUpdate(const glm::vec2& position, unsigned int setAround) :
+			position(position), setAround(setAround) {}
+
+		glm::vec2 position;
+		unsigned int setAround;//bitfield informing about blocks added/removed around this block
+	};
+
+	inline static const VertexSetWithUpdate SET_WITH_UPDATE_VERTICES[9] = {
+		{{-1.0f, -1.0f}, 16}, {{-1.0f, 0.0f}, 32}, {{-1.0f, 1.0f}, 64},
+		{{0.0f, -1.0f}, 8},  {{0.0f, 0.0f}, 0},  {{0.0f, 1.0f}, 128},
+		{{1.0f, -1.0f}, 4},  {{1.0f, 0.0f}, 2},  {{1.0f, 1.0f}, 1}
+	};
 };

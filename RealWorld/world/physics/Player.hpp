@@ -6,25 +6,18 @@
 
 #include <RealWorld/world/physics/Health.hpp>
 #include <RealWorld/world/physics/DynamicHitbox.hpp>
-#include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/KeyBinder.hpp>
-#include <RealWorld/items/ItemInstructionDatabase.hpp>
 #include <RealWorld/world/physics/PlayerData.hpp>
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/items/ItemUser.hpp>
+#include <RealWorld/items/ItemInstructionDatabase.hpp>
+#include <RealWorld/items/ItemCombinator.hpp>
+#include <RealWorld/KeyBinder.hpp>
 
-class World;
-class ItemUser;
-class ItemCombinator;
-class ItemOnGroundManager;
-namespace RE {
-class SpriteBatch;
-}
 
 class Player {
 public:
-	Player();
+	Player(const RE::InputManager& inputManager, World& world, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
 	~Player();
-
-	void init(const RE::InputManager* inputmanager, World* world, RE::SpriteBatch* spriteBatch, ItemOnGroundManager* itemOnGroundManager);
 
 	void adoptPlayerData(const PlayerData& pd);
 	void gatherPlayerData(PlayerData& pd);
@@ -36,9 +29,9 @@ public:
 	//Getters
 	glm::ivec2 getPos();
 	DynamicHitbox& getHitbox();
-	Inventory* getMainInventory();
-	ItemUser* getItemUser();
-	ItemCombinator* getItemCombinator();
+	Inventory& getMainInventory();
+	ItemUser& getItemUser();
+	ItemCombinator& getItemCombinator();
 	ItemInstructionDatabase& getIID();
 
 	//Should be called every physics step (not draw step)
@@ -51,15 +44,15 @@ private:
 	float m_maxSpeed = 10.0f;
 	float m_jumpSpeed = 9.0f;
 
-	RE::SpriteBatch* m_spriteBatch = nullptr;
+	RE::SpriteBatch& m_spriteBatch;
 
 	Health m_health;
 	DynamicHitbox m_hitbox;
-	const RE::InputManager* m_inputManager = nullptr;
+	const RE::InputManager& m_inputManager;
 
-	Inventory* m_mainInventory = nullptr;
-	ItemUser* m_itemUser = nullptr;
-	ItemCombinator* m_itemCombinator = nullptr;
+	Inventory m_mainInventory;
+	ItemUser m_itemUser;
+	ItemCombinator m_itemCombinator;
 	ItemInstructionDatabase m_instructionDatabase;
 
 	RE::TexturePtr m_playerTex = RE::ResourceManager::getTexture("test");

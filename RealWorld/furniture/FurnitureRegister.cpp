@@ -33,25 +33,21 @@
 											throw; \
 										} \
 
-const size_t FurnitureRegister::FurStore::offset[] = { offsetof(FurStore, fc.f0), offsetof(FurStore, fc.f1), offsetof(FurStore, fc.f2), offsetof(FurStore, fc.f3), offsetof(FurStore, fc.f4) };
-const size_t FurnitureRegister::FurStore::sizeOfElement[] = { sizeof(FStatic), sizeof(FChest), sizeof(FCraftS), sizeof(FFurnace), sizeof(FLightS) };
+const size_t FurnitureRegister::FurStore::offset[] = {offsetof(FurStore, fc.f0), offsetof(FurStore, fc.f1), offsetof(FurStore, fc.f2), offsetof(FurStore, fc.f3), offsetof(FurStore, fc.f4)};
+const size_t FurnitureRegister::FurStore::sizeOfElement[] = {sizeof(FStatic), sizeof(FChest), sizeof(FCraftS), sizeof(FFurnace), sizeof(FLightS)};
 
 
-FurnitureRegister::FurnitureRegister() {
+FurnitureRegister::FurnitureRegister(RE::SpriteBatch& spriteBatch, const glm::ivec2& worldDims, World& world, const glm::vec2& viewSizePx) :
+	m_spriteBatch(spriteBatch),
+	m_world(world) {
+	FStatic::initStatics(spriteBatch, m_world.getLightManipulator());
+	m_fsQT = Quadtree<QTFurniture>{0u, QTFurniture{ {0, 0}, worldDims }};
 
+	resizeView(viewSizePx);
 }
 
 FurnitureRegister::~FurnitureRegister() {
 
-}
-
-void FurnitureRegister::init(RE::SpriteBatch* spriteBatch, const glm::ivec2& worldDims, World* world, const glm::vec2& viewSizePx) {
-	m_spriteBatch = spriteBatch;
-	m_world = world;
-	FStatic::initStatics(spriteBatch, m_world->getLightManipulator());
-	m_fsQT = Quadtree<QTFurniture>{ 0u, QTFurniture{ {0, 0}, worldDims } };
-
-	resizeView(viewSizePx);
 }
 
 void FurnitureRegister::resizeView(const glm::vec2& viewSizePx) {
@@ -63,7 +59,7 @@ BuildError FurnitureRegister::accepts(const FStatic& furniture) {
 	//First we check if this spot is blocked by another furniture
 	auto bl = furniture.getBotLeft();
 	auto dims = furniture.getDims();
-	QTFurniture b{ bl, dims };
+	QTFurniture b{bl, dims};
 	if (!m_fsQT.empty()) {
 		std::vector<QTFurniture> possibleCollisions;
 		m_fsQT.retrieve(possibleCollisions, b);
@@ -74,18 +70,18 @@ BuildError FurnitureRegister::accepts(const FStatic& furniture) {
 		}
 	}
 	//Then we check if this spot is blocked by blocks
-	if (m_world->getMax(chunk::BLOCK_VALUES::BLOCK, bl, bl + dims - glm::ivec2(1, 1)) > LAST_NONSOLIDBLOCK) {
+	if (m_world.getMax(chunk::BLOCK_VALUES::BLOCK, bl, bl + dims - glm::ivec2(1, 1)) > LAST_NONSOLIDBLOCK) {
 		return BuildError::OCCUPIED;
 	}
 	//Now we check placement
-	bool ground = (m_world->getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x, bl.y - 1), glm::ivec2(bl.x + dims.x - 1, bl.y - 1)) > LAST_NONSOLIDBLOCK);
-	bool side = ((m_world->getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x - 1, bl.y), glm::ivec2(bl.x - 1, bl.y + dims.y - 1)) > LAST_NONSOLIDBLOCK)
-				|| (m_world->getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x + dims.x, bl.y), glm::ivec2(bl.x + dims.x, bl.y + dims.y - 1)) > LAST_NONSOLIDBLOCK));
-	bool ceiling = (m_world->getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x, bl.y + dims.y), glm::ivec2(bl.x + dims.x - 1, bl.y + dims.y)) > LAST_NONSOLIDBLOCK);
+	bool ground = (m_world.getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x, bl.y - 1), glm::ivec2(bl.x + dims.x - 1, bl.y - 1)) > LAST_NONSOLIDBLOCK);
+	bool side = ((m_world.getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x - 1, bl.y), glm::ivec2(bl.x - 1, bl.y + dims.y - 1)) > LAST_NONSOLIDBLOCK)
+				|| (m_world.getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x + dims.x, bl.y), glm::ivec2(bl.x + dims.x, bl.y + dims.y - 1)) > LAST_NONSOLIDBLOCK));
+	bool ceiling = (m_world.getMin(chunk::BLOCK_VALUES::BLOCK, glm::ivec2(bl.x, bl.y + dims.y), glm::ivec2(bl.x + dims.x - 1, bl.y + dims.y)) > LAST_NONSOLIDBLOCK);
 	uchar indoors = 1;
-	if (m_world->getMax(chunk::BLOCK_VALUES::WALL, bl, bl + dims - glm::ivec2(1, 1)) == 0u) {
+	if (m_world.getMax(chunk::BLOCK_VALUES::WALL, bl, bl + dims - glm::ivec2(1, 1)) == 0u) {
 		indoors = 0;//outdoors
-	} else if (m_world->getMin(chunk::BLOCK_VALUES::WALL, bl, bl + dims - glm::ivec2(1, 1)) > 0u) {
+	} else if (m_world.getMin(chunk::BLOCK_VALUES::WALL, bl, bl + dims - glm::ivec2(1, 1)) > 0u) {
 		indoors = 2;//indoors
 	}
 	if (!FDB::getPlacement(furniture.getTotalIndex()).canBePlaced(ground, ceiling, side, indoors)) {
@@ -102,7 +98,7 @@ const FStatic* FurnitureRegister::getcFurniture(const glm::ivec2& posSq) const {
 
 FIndex FurnitureRegister::getFIndex(const glm::ivec2& posSq) const {
 	std::vector<QTFurniture> found;
-	QTFurniture b{ posSq, glm::ivec2(1, 1) };
+	QTFurniture b{posSq, glm::ivec2(1, 1)};
 	m_fsQT.retrieve(found, b);
 	for (auto& furniture : found) {
 		if (b.collidesWith(furniture)) {
@@ -110,10 +106,10 @@ FIndex FurnitureRegister::getFIndex(const glm::ivec2& posSq) const {
 		}
 	}
 	//There is no furniture with such position
-	return FIndex{ BuildError::NOT_FOUND };
+	return FIndex{BuildError::NOT_FOUND};
 }
 
-FIndex FurnitureRegister::build(const FStatic& furniture, bool actuallyBuild){
+FIndex FurnitureRegister::build(const FStatic& furniture, bool actuallyBuild) {
 	if (furniture.getType() == F_TYPE::NONE) {
 		return FIndex(BuildError::NO_ERROR);//Silently ignoring
 	}
@@ -125,8 +121,7 @@ FIndex FurnitureRegister::build(const FStatic& furniture, bool actuallyBuild){
 			return addFurniture(furniture);
 		}
 		return FIndex(furniture.getType(), 0u);
-	}
-	else {
+	} else {
 		return FIndex(be);
 	}
 }
@@ -164,7 +159,7 @@ void FurnitureRegister::step(const glm::vec2& botLeftPosPx) {
 		//Updating list of furniture that should be drawn
 		m_botLeftOfViewBc = newBL;
 		m_QTFurToDraw.clear();
-		m_fsQT.retrieve(m_QTFurToDraw, QTFurniture{ m_botLeftOfViewBc, m_viewSizeBc });
+		m_fsQT.retrieve(m_QTFurToDraw, QTFurniture{m_botLeftOfViewBc, m_viewSizeBc});
 		m_furToDraw.clear();
 		m_furToDraw.reserve(m_QTFurToDraw.size());
 		for (size_t i = 0u; i < m_QTFurToDraw.size(); ++i) {
@@ -177,12 +172,12 @@ void FurnitureRegister::step(const glm::vec2& botLeftPosPx) {
 }
 
 void FurnitureRegister::draw() {
-	for (auto& f: m_furToDraw) {
+	for (auto& f : m_furToDraw) {
 		f->draw();
 	}
 }
 
-void FurnitureRegister::adoptFurnitureCollection(const FurnitureCollection& fc){
+void FurnitureRegister::adoptFurnitureCollection(const FurnitureCollection& fc) {
 	clear();
 	for (auto& fur : fc.f0)
 		addFurniture(fur);
@@ -196,7 +191,7 @@ void FurnitureRegister::adoptFurnitureCollection(const FurnitureCollection& fc){
 		addFurniture(fur);
 }
 
-void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc){
+void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc) const {
 	auto FI0 = m_fsFI[0];
 	FI0.push(m_fs.fc.f0.size());
 	for (size_t i = 0u; i < m_fs.fc.f0.size(); ++i) {
@@ -211,8 +206,7 @@ void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc){
 	for (size_t i = 0u; i < m_fs.fc.f1.size(); ++i) {
 		if (i != FI1.top()) {
 			fc.f1.push_back(m_fs.fc.f1[i]);
-		}
-		else {
+		} else {
 			FI1.pop();
 		}
 	}
@@ -221,8 +215,7 @@ void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc){
 	for (size_t i = 0u; i < m_fs.fc.f2.size(); ++i) {
 		if (i != FI2.top()) {
 			fc.f2.push_back(m_fs.fc.f2[i]);
-		}
-		else {
+		} else {
 			FI2.pop();
 		}
 	}
@@ -231,8 +224,7 @@ void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc){
 	for (size_t i = 0u; i < m_fs.fc.f3.size(); ++i) {
 		if (i != FI3.top()) {
 			fc.f3.push_back(m_fs.fc.f3[i]);
-		}
-		else {
+		} else {
 			FI3.pop();
 		}
 	}
@@ -241,8 +233,7 @@ void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc){
 	for (size_t i = 0u; i < m_fs.fc.f4.size(); ++i) {
 		if (i != FI4.top()) {
 			fc.f4.push_back(m_fs.fc.f4[i]);
-		}
-		else {
+		} else {
 			FI4.pop();
 		}
 	}
@@ -273,7 +264,7 @@ FIndex FurnitureRegister::addFurniture(const FStatic& furniture) {
 		m_fsFI[type].pop();
 		onVectorByType(furniture.getType(), v[i] = furniture; v[i].build());
 	}
-	m_fsQT.insert(QTFurniture{ furniture.getBotLeft(), furniture.getDims(), newFIndex });
+	m_fsQT.insert(QTFurniture{furniture.getBotLeft(), furniture.getDims(), newFIndex});
 	m_mustRealoadDrawable = true;
 	return newFIndex;
 }
@@ -292,7 +283,7 @@ bool FurnitureRegister::destroySimple(const FIndex fIndex) {
 	m_fsFI[(unsigned int)type].push(index);
 	//Removing the fIndex from QT
 	auto f = getFurniture(fIndex);
-	m_fsQT.erase(QTFurniture{ f->getBotLeft(), f->getDims() });
+	m_fsQT.erase(QTFurniture{f->getBotLeft(), f->getDims()});
 	m_mustRealoadDrawable = true;
 	return true;
 }

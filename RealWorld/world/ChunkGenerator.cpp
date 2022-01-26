@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include <GL/glew.h>
-
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -26,14 +24,12 @@ struct ChunkUniforms {
 };
 
 ChunkGenerator::ChunkGenerator() {
-	//Inits
-	initObjects();
 	initShaders();
+	initVAO();
 }
 
 ChunkGenerator::~ChunkGenerator() {
-	glDeleteVertexArrays(1, &m_VAO);
-	glDeleteBuffers(1, &m_VBO);
+
 }
 
 void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims, glm::uvec2 activeChunksRect) {
@@ -53,6 +49,9 @@ void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims, glm::uvec2 a
 	TEX_UNIT_CHUNK_MATERIAL.setActive();
 	m_genSurf[0].bindTexture(1);
 	TEX_UNIT_VOLATILE.setActive();
+
+	//Update VBO to new chunk size
+	setVBOToWholeChunk();
 }
 
 Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm::ivec2 offset) {
@@ -64,9 +63,8 @@ Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm:
 
 
 	m_genSurf[0].setTarget();
-	glDisable(GL_POINT_SPRITE);
-	glBindVertexArray(m_VAO);
-	setVBOToWholeChunk();
+
+	m_VAO.bind();
 
 	//Actual generation
 	generateBasicTerrain();
@@ -74,28 +72,25 @@ Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm:
 	setVars();
 
 
-	glEnable(GL_POINT_SPRITE);
-	glBindVertexArray(0);
+	m_VAO.unbind();
 
 	std::vector<unsigned char> data;
 	data.resize((size_t)m_chunkDims.x * m_chunkDims.y * 4ull);
 	//Download data -> CPU stall -> Pixel Buffer Object todo
 	glReadPixels(BORDER_WIDTH, BORDER_WIDTH, m_chunkDims.x, m_chunkDims.y, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, data.data());
+
 	glCopyTextureSubImage2D(uploadTexture, 0, offset.x, offset.y, BORDER_WIDTH, BORDER_WIDTH, m_chunkDims.x, m_chunkDims.y);
 
 	m_genSurf[0].resetTarget();
 
-	return Chunk(posCh, m_chunkDims, std::move(data));
+	return Chunk(posCh, m_chunkDims, data);
 }
 
 void ChunkGenerator::initShaders() {
 	RE::UniformManager::std.addUniformBuffer("ChunkUniforms", sizeof(ChunkUniforms));
 	RE::UniformManager::std.addShader("ChunkUniforms", m_varShader.get());
-	RE::UniformManager::std.addShader("ChunkUniforms", m_setShader.get());
 	RE::UniformManager::std.addShader("ChunkUniforms", m_basicTerrainShader.get());
 	RE::UniformManager::std.addShader("ChunkUniforms", m_cellularAutomatonShader.get());
-
-	//SET shader
 
 	//BASIC TERRAIN shader
 
@@ -110,33 +105,26 @@ void ChunkGenerator::initShaders() {
 	m_cellularAutomatonShader->setUniform(shaders::LOC_AIR_ID, glm::uvec4((GLuint)BLOCK_ID::AIR, 0, (GLuint)WALL_ID::AIR, 0));
 }
 
-void ChunkGenerator::initObjects() {
-	//Generating OpenGL objects
-	glGenVertexArrays(1, &m_VAO);
-	glGenBuffers(1, &m_VBO);
-	//Setting up VAO
-	glBindVertexArray(m_VAO);
-	glEnableVertexAttribArray(RE::ATTLOC_PO);
-	//Setting up VBO
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	//Position
-	glVertexAttribPointer(RE::ATTLOC_PO, 2, GL_FLOAT, GL_FALSE, sizeof(RE::VertexPO), (void*)offsetof(RE::VertexPO, position));
+void ChunkGenerator::initVAO() {
+	m_VAO.setBindingPoint(0u, m_VBO, 0, sizeof(RE::VertexPO));
 
-	glBindVertexArray(0);
+	m_VAO.setAttribute(RE::ATTR_POSITION, RE::VertexComponentCount::XY, RE::VertexComponentType::FLOAT, offsetof(RE::VertexPO, position));
+
+	m_VAO.connectAttributeToBindingPoint(RE::ATTR_POSITION, 0u);
 }
 
 void ChunkGenerator::setVBOToWholeChunk() {
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	RE::VertexPO vertices[6];
-	//Left-top triangle
-	vertices[0].setPosition(-BORDER_WIDTH, -BORDER_WIDTH);
-	vertices[1].setPosition(m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH);
-	vertices[2].setPosition(-BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH);
-	//Right-bottom triangle
-	vertices[3].setPosition(-BORDER_WIDTH, -BORDER_WIDTH);
-	vertices[4].setPosition(m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH);
-	vertices[5].setPosition(m_chunkDims_f.x + BORDER_WIDTH, -BORDER_WIDTH);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &(vertices[0]), GL_STREAM_DRAW);
+	const RE::VertexPO vertices[6] = {
+		//Left-top triangle
+		glm::vec2{-BORDER_WIDTH, -BORDER_WIDTH},
+		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
+		glm::vec2{-BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
+		//Right-bottom triangle
+		glm::vec2{-BORDER_WIDTH, -BORDER_WIDTH},
+		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
+		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, -BORDER_WIDTH}
+	};
+	m_VBO.overwrite(sizeof(vertices), vertices);
 }
 
 void ChunkGenerator::updateUniformsAfterSetTarget() {
@@ -149,21 +137,21 @@ void ChunkGenerator::updateUniformsAfterSetTarget() {
 }
 
 void ChunkGenerator::generateBasicTerrain() {
-	m_basicTerrainShader->setShader();
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	m_basicTerrainShader->resetShader();
+	m_basicTerrainShader->use();
+	m_VAO.renderArrays(RE::Primitive::TRIANGLES, 0, 6);
+	m_basicTerrainShader->unuse();
 }
 
 void ChunkGenerator::cellularAutomaton() {
 	GLuint surfIndex = 1u;
 	auto pass = [this, &surfIndex](GLuint low, GLuint high, size_t passes) {
-		glUniform1ui(WGS::LOC_CELL_AUTO_LOW, low);
-		glUniform1ui(WGS::LOC_CELL_AUTO_HIGH, high);
+		m_cellularAutomatonShader->setUniform(WGS::LOC_CELL_AUTO_LOW, low);
+		m_cellularAutomatonShader->setUniform(WGS::LOC_CELL_AUTO_HIGH, high);
 		for (size_t i = 0; i < passes; i++) {
 			m_genSurf[surfIndex % m_genSurf.size()].setTarget();
-			glUniform1ui(WGS::LOC_TILES_SELECTOR, surfIndex);
+			m_cellularAutomatonShader->setUniform(WGS::LOC_TILES_SELECTOR, surfIndex);
 			surfIndex++;
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_VAO.renderArrays(RE::Primitive::TRIANGLES, 0, 6);
 		}
 	};
 	auto doublePass = [this, &surfIndex, pass](GLuint firstlow, GLuint firsthigh, GLuint secondlow, GLuint secondhigh, size_t passes) {
@@ -173,7 +161,7 @@ void ChunkGenerator::cellularAutomaton() {
 		}
 	};
 
-	m_cellularAutomatonShader->setShader();
+	m_cellularAutomatonShader->use();
 
 	RE::SurfaceTargetTextures stt{};
 	stt.targetTexture(0);
@@ -181,17 +169,15 @@ void ChunkGenerator::cellularAutomaton() {
 
 	doublePass(3, 4, 4, 5, 4);
 
-
-	m_cellularAutomatonShader->resetShader();
+	m_cellularAutomatonShader->unuse();
 
 	stt.targetTexture(1);
 	m_genSurf[0].setTarget();
 	m_genSurf[0].setTargetTextures(stt);
-	glTextureBarrier();
 }
 
 void ChunkGenerator::setVars() {
-	m_varShader->setShader();
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	m_varShader->resetShader();
+	m_varShader->use();
+	m_VAO.renderArrays(RE::Primitive::TRIANGLES, 0, 6);
+	m_varShader->unuse();
 }

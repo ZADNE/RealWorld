@@ -8,10 +8,10 @@
 #include <RealWorld/world/LightManipulator.hpp>
 
 namespace RE {
-	class SpriteBatch;
+class SpriteBatch;
 }
 
-class FStatic{
+class FStatic {
 public:
 	FStatic(const glm::ivec2& botLeftBc, size_t totalIndex);//Quick and safe (as long as totalIndex is not above bounds)
 	FStatic(const glm::ivec2& botLeftBc, F_TYPE type, size_t specificIndex);//Slow (linear search included); may fail (if specificIndex not found)
@@ -25,7 +25,7 @@ public:
 
 	virtual void destroy();
 
-	static void initStatics(RE::SpriteBatch* spriteBatch, LightManipulator lightManipulator);
+	static void initStatics(RE::SpriteBatch& spriteBatch, LightManipulator lightManipulator);
 
 
 	//Getters
