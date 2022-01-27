@@ -1,6 +1,7 @@
 ﻿#include <RealWorld/items/InventoryDrawer.hpp>
 
 #include <string>
+#include <algorithm>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/geometric.hpp>
@@ -8,7 +9,6 @@
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/graphics/Font.hpp>
-#include <RealEngine/utility/utility.hpp> //rmath::clamp()
 
 #include <RealWorld//metadata.hpp>
 #include <RealWorld/shaders/shaders.hpp>
@@ -17,8 +17,10 @@
 
 
 
-InventoryDrawer::InventoryDrawer() {
-
+InventoryDrawer::InventoryDrawer(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font) :
+	m_spriteBatch(spriteBatch) {
+	m_font = font;
+	resizeWindow(windowSize);
 }
 
 InventoryDrawer::~InventoryDrawer() {
@@ -28,12 +30,6 @@ InventoryDrawer::~InventoryDrawer() {
 			m_inv[i]->connectToDrawer(nullptr, (Connection)i);
 		}
 	}
-}
-
-void InventoryDrawer::init(RE::SpriteBatch* spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font) {
-	m_spriteBatch = spriteBatch;
-	m_font = font;
-	resizeWindow(windowSize);
 }
 
 void InventoryDrawer::resizeWindow(const glm::vec2& newWindowSize) {
@@ -149,12 +145,11 @@ void InventoryDrawer::movePortion(float portion) {
 
 void InventoryDrawer::chooseSlot(Choose choose, int number) {
 	if (m_opened) { return; }
-	int temp;
 
 	switch (choose) {
 	case Choose::ABS:
 		m_chosenSlotPrev = m_chosenSlot;
-		m_chosenSlot = rmath::clamp(number, 0, m_invSize[Connection::PRIMARY].x - 1);
+		m_chosenSlot = std::clamp(number, 0, m_invSize[Connection::PRIMARY].x - 1);
 		break;
 	case Choose::RIGHT:
 		m_chosenSlotPrev = m_chosenSlot;
@@ -175,9 +170,7 @@ void InventoryDrawer::chooseSlot(Choose choose, int number) {
 		m_chosenSlot = m_invSize[Connection::PRIMARY].x - 1;
 		break;
 	case Choose::PREV:
-		temp = m_chosenSlot;
-		m_chosenSlot = m_chosenSlotPrev;
-		m_chosenSlotPrev = temp;
+		std::swap(m_chosenSlot, m_chosenSlotPrev);
 		break;
 	}
 
@@ -213,7 +206,7 @@ void InventoryDrawer::draw() {
 		//MAIN INVENTORY
 		if (m_inv[Connection::PRIMARY]) {
 			//Slots
-			m_spriteBatch->addSurface(m_cover, glm::vec2(0.0f, 0.0f), 0, 0);
+			m_spriteBatch.addSurface(m_cover, glm::vec2(0.0f, 0.0f), 0, 0);
 			//Item sprites
 			for (int y = 0; y < m_invSize[Connection::PRIMARY].y; y++) {
 				for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
@@ -222,19 +215,19 @@ void InventoryDrawer::draw() {
 						continue;//Not drawing empty item
 					}
 					pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, y);
-					m_spriteBatch->addSprite(m_invItemSprites[Connection::PRIMARY][x][y], pos, 1);
+					m_spriteBatch.addSprite(m_invItemSprites[Connection::PRIMARY][x][y], pos, 1);
 				}
 			}
 			if (!m_itemUnderCursor.isEmpty()) {
 				//Item under cursor
-				m_spriteBatch->addSprite(m_underCursorItemSprite, m_absCursorPos, 10);
+				m_spriteBatch.addSprite(m_underCursorItemSprite, m_absCursorPos, 10);
 				snprintf(amount, 10, "%i", m_itemUnderCursor.amount);
 				if (m_itemUnderCursor.amount > 1) {
-					RE::RM::getFont(m_font)->add(*m_spriteBatch, amount, glm::vec2(m_absCursorPos.x, m_absCursorPos.y - 40.0f), glm::vec2(1.0f, 1.0f), 11, m_amountColour, RE::HAlign::MIDDLE);
+					RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(m_absCursorPos.x, m_absCursorPos.y - 40.0f), glm::vec2(1.0f, 1.0f), 11, m_amountColour, RE::HAlign::MIDDLE);
 				}
 			}
 			//Amounts
-			m_spriteBatch->addSurface(m_cover, glm::vec2(0.0f, 0.0f), 2, 1);
+			m_spriteBatch.addSurface(m_cover, glm::vec2(0.0f, 0.0f), 2, 1);
 		}
 	} else {//CLOSED INVENTORY
 	   //MAIN INVENTORY
@@ -243,20 +236,20 @@ void InventoryDrawer::draw() {
 				Item& item = m_inv[Connection::PRIMARY]->m_data.items[x][0];
 				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, 0);
 				//Slot
-				m_spriteBatch->addTexture(m_mainSlotTex.get(), pos, 0);
+				m_spriteBatch.addTexture(m_mainSlotTex.get(), pos, 0);
 				if (item.isEmpty()) {
 					continue;//Not drawing empty item
 				}
 				//Item sprite
-				m_spriteBatch->addSprite(m_invItemSprites[Connection::PRIMARY][x][0], pos, 1);
+				m_spriteBatch.addSprite(m_invItemSprites[Connection::PRIMARY][x][0], pos, 1);
 				//Amount
 				if (item.amount > 1) {
 					snprintf(amount, 10, "%i", item.amount);
-					RE::RM::getFont(m_font)->add(*m_spriteBatch, amount, glm::vec2(pos.x, pos.y - 40.0f), glm::vec2(1.0f, 1.0f), 3, m_amountColour, RE::HAlign::MIDDLE);
+					RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(pos.x, pos.y - 40.0f), glm::vec2(1.0f, 1.0f), 3, m_amountColour, RE::HAlign::MIDDLE);
 				}
 			}
 			//Chosen slot indicator
-			m_spriteBatch->addTexture(m_slotIndicatorTex.get(), glm::vec2(m_paddingWindow.x + (m_mainSlotDims.x + m_paddingSlots.x) * (float)m_chosenSlot, m_paddingWindow.y), 2);
+			m_spriteBatch.addTexture(m_slotIndicatorTex.get(), glm::vec2(m_paddingWindow.x + (m_mainSlotDims.x + m_paddingSlots.x) * (float)m_chosenSlot, m_paddingWindow.y), 2);
 		}
 	}
 }
@@ -285,17 +278,17 @@ void InventoryDrawer::updateSurfaceSlots() {
 	if (m_inv[Connection::PRIMARY]) {
 		glm::vec2 pos;
 
-		m_spriteBatch->begin();
+		m_spriteBatch.begin();
 
 		for (int y = 0; y < m_invSize[Connection::PRIMARY].y; y++) {
 			for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
 				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, y);
-				m_spriteBatch->addTexture(m_mainSlotTex.get(), pos, 0);
+				m_spriteBatch.addTexture(m_mainSlotTex.get(), pos, 0);
 			}
 		}
 
-		m_spriteBatch->end();
-		m_spriteBatch->draw();
+		m_spriteBatch.end();
+		m_spriteBatch.draw();
 	}
 
 	m_cover.resetTarget();
@@ -310,19 +303,19 @@ void InventoryDrawer::updateSurfaceNumbers() {
 		glm::vec2 pos;
 		char amount[10];
 
-		m_spriteBatch->begin();
+		m_spriteBatch.begin();
 
 		for (int y = 0; y < m_invSize[Connection::PRIMARY].y; y++) {
 			for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
 				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, y);
 				if (m_inv[Connection::PRIMARY]->m_data.items[x][y].amount > 1) {
 					snprintf(amount, 10, "%i", m_inv[Connection::PRIMARY]->m_data.items[x][y].amount);
-					RE::RM::getFont(m_font)->add(*m_spriteBatch, amount, glm::vec2(pos.x, pos.y - 40.0f), glm::vec2(1.0f, 1.0f), 2, m_amountColour, RE::HAlign::MIDDLE);
+					RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(pos.x, pos.y - 40.0f), glm::vec2(1.0f, 1.0f), 2, m_amountColour, RE::HAlign::MIDDLE);
 				}
 			}
 		}
-		m_spriteBatch->end();
-		m_spriteBatch->draw(m_PTSAbove);
+		m_spriteBatch.end();
+		m_spriteBatch.draw(m_PTSAbove);
 	}
 
 	m_cover.resetTarget();

@@ -1,5 +1,5 @@
 R""(
-#version 440
+#version 460
 
 layout(location = 2) out vec4 colour;
 

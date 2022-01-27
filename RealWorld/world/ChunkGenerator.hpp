@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <random>
 #include <array>
 
 #include <RealEngine/resources/ResourceManager.hpp>
@@ -62,8 +61,6 @@ private:
 	RE::ShaderProgramPtr m_basicTerrainShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::basicTerrain_frag});
 	RE::ShaderProgramPtr m_varShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::var_frag});
 	RE::ShaderProgramPtr m_cellularAutomatonShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::cellularAutomaton_frag});
-
-	std::mt19937 m_randomGen;
 
 	std::array<RE::Surface, 2> m_genSurf = {
 		RE::Surface{ {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false },

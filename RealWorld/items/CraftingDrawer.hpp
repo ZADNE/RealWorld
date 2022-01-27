@@ -22,11 +22,9 @@ class SpriteFont;
 
 class CraftingDrawer {
 public:
-	CraftingDrawer();
+	CraftingDrawer(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font);
 	~CraftingDrawer();
 
-	//All objects must be already initialized
-	void init(RE::SpriteBatch* spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font);
 	void resizeWindow(const glm::vec2& newWindowSize);
 
 	//Disconnects from previous and connects to new item combinator
@@ -56,7 +54,7 @@ private:
 	void reloadInstructionDescription(const ItemInstruction* instruction);
 
 	ItemCombinator* m_itemCombinator = nullptr;
-	RE::SpriteBatch* m_spriteBatch = nullptr;
+	RE::SpriteBatch& m_spriteBatch;
 	RE::FontSeed m_font;
 
 	glm::vec2 m_absCursorPos = glm::vec2(0.0f, 0.0f);

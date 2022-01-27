@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <GL/glew.h>
 #include <glm/vec2.hpp>
 
 class World;
@@ -23,7 +22,7 @@ public:
 
 	void setDims(const glm::ivec2& dimensionPx);
 	//Getters
-		
+
 		//Origin of the hitbox
 	glm::ivec2 getPos() const;
 	bool isGrounded() const;

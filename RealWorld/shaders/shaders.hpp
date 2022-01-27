@@ -10,7 +10,7 @@ extern const char* standard_vert;
 
 extern const char* standardOut1_frag;
 
-extern const char* gauss32_frag;
+extern const char* texture_frag;
 
 extern const char* data_vert;
 

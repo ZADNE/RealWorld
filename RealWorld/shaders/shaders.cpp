@@ -12,8 +12,8 @@ const char* shaders::standardOut1_frag =
 #include "standardOut1.frag"
 ;
 
-const char* shaders::gauss32_frag =
-#include "gauss32.frag"
+const char* shaders::texture_frag =
+#include "texture.frag"
 ;
 
 const char* shaders::data_vert =

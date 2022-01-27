@@ -1,5 +1,5 @@
 R""(
-#version 440
+#version 460
 
 in vec2 pos;
 

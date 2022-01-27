@@ -12,6 +12,7 @@
 #include <RealWorld/world//TDB.hpp>
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/div.hpp>
+#include <RealWorld/rendering/TextureUnits.hpp>
 
 const int BORDER_WIDTH = 16;
 
@@ -55,7 +56,6 @@ void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims, glm::uvec2 a
 }
 
 Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm::ivec2 offset) {
-	m_randomGen.seed(m_seed);
 	ChunkUniforms chunkUniforms;
 	chunkUniforms.chunkOffsetBc = static_cast<glm::vec2>(posCh) * m_chunkDims_f;
 	RE::UniformManager::std.setUniformBuffer(
@@ -124,7 +124,7 @@ void ChunkGenerator::setVBOToWholeChunk() {
 		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
 		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, -BORDER_WIDTH}
 	};
-	m_VBO.overwrite(sizeof(vertices), vertices);
+	m_VBO.overwrite(0, sizeof(vertices), vertices);
 }
 
 void ChunkGenerator::updateUniformsAfterSetTarget() {

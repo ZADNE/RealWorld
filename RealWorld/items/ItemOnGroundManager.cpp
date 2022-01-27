@@ -5,18 +5,16 @@
 #include <RealWorld/items/IDB.hpp>
 
 
-ItemOnGroundManager::ItemOnGroundManager() {
+ItemOnGroundManager::ItemOnGroundManager(RE::SpriteBatch& spriteBatch, World& world, Hitbox& playerHitbox, Inventory& playerInventory) :
+	m_spriteBatch(spriteBatch),
+	m_world(world),
+	m_playerHitbox(playerHitbox),
+	m_playerInventory(playerInventory) {
 
 }
 
 ItemOnGroundManager::~ItemOnGroundManager() {
 
-}
-
-void ItemOnGroundManager::init(RE::SpriteBatch* spriteBatch, World* world, std::pair<Hitbox*, Inventory*> defaultTarget) {
-	m_spriteBatch = spriteBatch;
-	m_world = world;
-	m_defaultTarget = defaultTarget;
 }
 
 void ItemOnGroundManager::add(ItemOnGround& itemOG) {
@@ -25,7 +23,7 @@ void ItemOnGroundManager::add(ItemOnGround& itemOG) {
 
 void ItemOnGroundManager::add(const glm::ivec2& pos, const Item& item) {
 	if (item.isEmpty()) { return; }
-	m_itemsOG.emplace_back(pos, m_world, item, m_defaultLifetime, m_defaultTarget);
+	m_itemsOG.emplace_back(pos, m_world, item, m_defaultLifetime, m_playerHitbox, m_playerInventory);
 }
 
 ulong ItemOnGroundManager::getNumberOfItemsOG() {
@@ -46,6 +44,6 @@ void ItemOnGroundManager::step() {
 
 void ItemOnGroundManager::draw() {
 	for (const auto& itemOG : m_itemsOG) {
-		itemOG.draw(*m_spriteBatch);
+		itemOG.draw(m_spriteBatch);
 	}
 }

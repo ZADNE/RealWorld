@@ -6,22 +6,19 @@
 
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(RE::View::std.getViewMatrix(), window()->getDims(), RE::SpriteBatch::std(), m_player),
-	m_player(*input(), m_world, RE::SpriteBatch::std(), m_itemOnGroundManager) {
+	m_player(*input(), m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
+	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
+	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
+	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_player.getMainInventory()) {
 
 	//World view
 	m_worldView.initView(window()->getDims());
 
 	//Drawers
-	m_inventoryDrawer.init(&RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont);
 	m_inventoryDrawer.connectToInventory(&m_player.getMainInventory(), Connection::PRIMARY);
-
 	m_inventoryDrawer.connectToItemUser(&m_player.getItemUser());
 
-	m_craftingDrawer.init(&RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont);
 	m_craftingDrawer.connectToItemCombinator(&m_player.getItemCombinator());
-
-	//ItemOnGroundManager
-	m_itemOnGroundManager.init(&RE::SpriteBatch::std(), &m_world, std::make_pair(&m_player.getHitbox(), &m_player.getMainInventory()));
 }
 
 WorldRoom::~WorldRoom() {
@@ -30,21 +27,14 @@ WorldRoom::~WorldRoom() {
 
 void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	try {
-		if (params.size() != 1) { program()->scheduleProgramExit(1); }
-
-		bool loaded = m_world.loadWorld(std::any_cast<const std::string&>(params[0]));
-
-		if (!loaded) {
+		if (!m_world.loadWorld(std::any_cast<const std::string&>(params[0]))) {
 			program()->scheduleRoomTransition(0, {});
 			return;
 		}
-
 	}
 	catch (...) {
 		RE::fatalError("Bad transition paramaters to start WorldRoom session");
 	}
-
-
 
 	synchronizer()->setStepsPerSecond(PHYSICS_STEPS_PER_SECOND);
 #ifdef _DEBUG
@@ -69,7 +59,7 @@ void WorldRoom::step() {
 	//World BEGIN STEP
 	m_world.beginStep(m_worldView.getPosition(), m_worldView.getBotLeft());
 	auto lm = m_world.getLightManipulator();
-	lm.dynamicLight_add(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 0u, 255u}, 0.0f, 1.0f);
+	lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 0u, 255u}, 0.0f, 1.0f);
 
 	//ItemOnGroundManager
 	m_itemOnGroundManager.step();

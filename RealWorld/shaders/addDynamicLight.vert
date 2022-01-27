@@ -1,7 +1,7 @@
 R""(
-#version 440
+#version 460
 
-layout(location = 0) in vec2 position;
+layout(location = 0) in vec2 posPx;
 layout(location = 1) in vec4 colour;
 layout(location = 2) in float direction;
 layout(location = 3) in float cone;
@@ -18,14 +18,17 @@ layout(std140) uniform WorldDrawUniforms {
 };
 
 layout(location = 3) uniform vec2 botLeftBc;
-uniform vec2 blockSizePx;
+layout(location = 7) uniform float y;
+uniform vec2 invBlockSizePx;
+uniform float yInversion;
 
 void main() {
-	vec2 pos = (position + blockSizePx * 0.5) / blockSizePx - botLeftBc;
-	vec2 blockPos;
-	interpolation = modf(pos, blockPos);
+	vec2 pos = vec2(posPx.x,  yInversion - posPx.y) * invBlockSizePx - botLeftBc;
 	
-	gl_Position = viewsizeLightingBcMat * vec4(blockPos, 0.0, 1.0);
+	vec2 tilePosBc;
+	interpolation = modf(pos, tilePosBc);
+	
+	gl_Position = viewsizeLightingBcMat * vec4(tilePosBc, 0.0, 1.0);
 	gl_PointSize = 2.0;
 	fragColour = colour;
 	lightDir = direction;

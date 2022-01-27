@@ -87,6 +87,10 @@ public:
 	void drawEndStep();
 
 private:
+	using enum RE::BufferUsageFlags;
+	using enum RE::VertexComponentCount;
+	using enum RE::VertexComponentType;
+
 	void adoptWorldData(const WorldData& wd, const std::string& name);
 	void gatherWorldData(WorldData& wd) const;
 
@@ -113,10 +117,6 @@ private:
 
 	void rebuildDebugRectangle();
 	void updateUniformsAfterWorldResize();
-
-	using enum RE::BufferUsageFlags;
-	using enum RE::VertexComponentCount;
-	using enum RE::VertexComponentType;
 
 	//Set with update
 	RE::VertexArray m_setWithUpdateVAO;

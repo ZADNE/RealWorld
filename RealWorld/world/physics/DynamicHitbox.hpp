@@ -3,7 +3,7 @@
 
 class World;
 
-class DynamicHitbox : public Hitbox{
+class DynamicHitbox : public Hitbox {
 public:
 	DynamicHitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimensionPx, const glm::ivec2& offsetPx = glm::ivec2(0, 0));
 	DynamicHitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimensionPx, World* world, const glm::ivec2& offsetPx = glm::ivec2(0, 0));

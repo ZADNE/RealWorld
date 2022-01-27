@@ -1,8 +1,7 @@
-R""(
-#version 440
+﻿R""(
+#version 460
 
-in vec2 blockUV;
-in vec2 wallUV;
+in vec4 block_wall_UV;
 
 out vec4 colour;
 
@@ -10,8 +9,8 @@ uniform sampler2D blockTexture;
 uniform sampler2D wallTexture;
 
 void main() {
-	vec4 block = texture(blockTexture, blockUV);
-	colour = mix(texture(wallTexture, wallUV), block, block.a);
+	vec4 block = texture(blockTexture, block_wall_UV.xy);
+	colour = mix(texture(wallTexture, block_wall_UV.zw), block, block.a);
 }
 
 )""

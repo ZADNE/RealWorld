@@ -8,6 +8,12 @@ struct VertexPOUV {
 	VertexPOUV(const glm::vec2& position, const glm::vec2& uv) :
 		position(position), uv(uv) {}
 
+	VertexPOUV(const glm::vec2& position, float u, float v) :
+		position(position), uv(u, v) {}
+
+	VertexPOUV(float x, float y, const glm::vec2& uv) :
+		position(x, y), uv(uv) {}
+
 	VertexPOUV(float x, float y, float u, float v) :
 		position(x, y), uv(u, v) {}
 

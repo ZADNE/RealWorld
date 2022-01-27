@@ -55,6 +55,8 @@ enum class I_TYPE : uint32_t {
 	FURNITURE
 };
 
+#pragma warning(push)
+#pragma warning(disable: 26495)
 struct ItemMetadata {
 	ItemMetadata() {};
 	ItemMetadata(const std::string& name, int32_t maxStack, char textureAtlas, float spriteIndex, float drawScale, I_TYPE type, int32_t typeIndex) :
@@ -80,6 +82,7 @@ struct ItemMetadata {
 	I_TYPE type/* = I_TYPE::MATERIAL*/;
 	int32_t typeIndex/* = 0*/;//ID of the block with block types | totalIndex of furniture with furniture types
 };
+#pragma warning(pop)
 
 struct PickaxeMetadata {
 	PickaxeMetadata(int strength, float speed, float range) :

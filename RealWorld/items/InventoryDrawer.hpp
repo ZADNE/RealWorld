@@ -14,20 +14,14 @@ enum Connection { PRIMARY, SECONDARY, TERTIARY, NUMBER_OF_TYPES };
 
 enum class Choose { ABS, RIGHT, LEFT, PREV, LAST_SLOT };
 
-namespace RE {
-class SpriteFont;
-class SpriteBatch;
-}
-
 class Inventory;
 class ItemUser;
 
 class InventoryDrawer {
 public:
-	InventoryDrawer();
+	InventoryDrawer(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font);
 	~InventoryDrawer();
-	//All objects must be already initialized
-	void init(RE::SpriteBatch* spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font);
+
 	void resizeWindow(const glm::vec2& newWindowSize);
 	//nullptr effectively disconnects previous inventory
 	//Inventory is also connected to this drawer (connection must be mutual to work properly)
@@ -51,7 +45,7 @@ public:
 	void step(const glm::ivec2& absCursorPos);
 	void draw();
 private:
-	RE::SpriteBatch* m_spriteBatch = nullptr;
+	RE::SpriteBatch& m_spriteBatch;
 	RE::FontSeed m_font;
 	ItemUser* m_itemUser = nullptr;
 

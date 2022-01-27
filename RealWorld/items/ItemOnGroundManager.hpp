@@ -9,13 +9,11 @@
 
 class ItemOnGroundManager {
 public:
-	ItemOnGroundManager();
+	ItemOnGroundManager(RE::SpriteBatch& spriteBatch, World& world, Hitbox& playerHitbox, Inventory& playerInventory);
 	~ItemOnGroundManager();
 
-	void init(RE::SpriteBatch* spriteBatch, World* world, std::pair<Hitbox*, Inventory*> defaultTarget);
-
 	void add(ItemOnGround& itemOG);
-		//Checks and blocks creation of empty item inside
+	//Checks and blocks creation of empty item inside
 	void add(const glm::ivec2& pos, const Item& item);
 
 	ulong getNumberOfItemsOG();
@@ -23,9 +21,10 @@ public:
 	void step();
 	void draw();
 private:
-	RE::SpriteBatch* m_spriteBatch = nullptr;
-	World* m_world = nullptr;
-	std::pair<Hitbox*, Inventory*> m_defaultTarget = std::make_pair<Hitbox*, Inventory*>(nullptr, nullptr);
+	RE::SpriteBatch& m_spriteBatch;
+	World& m_world;
+	Hitbox& m_playerHitbox;
+	Inventory& m_playerInventory;
 	std::vector<ItemOnGround> m_itemsOG;
 	float m_decay = 1.0f;
 	float m_defaultLifetime = 4000.0f;

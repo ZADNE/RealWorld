@@ -18,9 +18,8 @@ struct WorldUniforms {
 World::World(const glm::mat4& viewMatrix, const glm::uvec2& windowDims, RE::SpriteBatch& sb, Player& player) :
 	m_windowDims(windowDims),
 	m_player(player),
-	m_fReg(sb, {1, 1}, * this, (glm::vec2)windowDims) {
-
-	m_worldDrawer.init(windowDims, viewMatrix, &m_chunkHandler);
+	m_fReg(sb, {1, 1}, * this, (glm::vec2)windowDims),
+	m_worldDrawer(windowDims, viewMatrix, m_chunkHandler) {
 
 	initVAOs();
 	initConstantUniforms();
@@ -228,7 +227,7 @@ void World::rebuildDebugRectangle() {
 		{{middle.x + world.x * scale, middle.y + world.y * scale}, {1.0f, 0.0f}},
 	};
 
-	m_debugVBO.overwrite(sizeof(vertexData), vertexData);
+	m_debugVBO.overwrite(0, sizeof(vertexData), vertexData);
 }
 
 void World::initConstantUniforms() {

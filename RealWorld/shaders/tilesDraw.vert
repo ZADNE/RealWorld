@@ -1,11 +1,10 @@
-R""(
-#version 440
+﻿R""(
+#version 460
 
-layout(location = 0) in vec2 position;
-layout(location = 2) in vec2 UV;
+layout(location = 0) in vec2 basePosBc;
+layout(location = 2) in vec2 baseUV;
 
-out vec2 blockUV;
-out vec2 wallUV;
+out vec4 block_wall_UV;
 
 layout(std140) uniform WorldDrawUniforms {
 	mat4 viewMat;
@@ -14,17 +13,29 @@ layout(std140) uniform WorldDrawUniforms {
 };
 
 layout(location = 2) uniform usampler2D worldTexture;
-layout(location = 3) uniform vec2 positionPx;
-uniform ivec2 blockSizePx;
-uniform ivec2 lastBlock_lastVar;
+layout(location = 3) uniform vec2 realPosPx;
+uniform vec2 blockSizePx;
+uniform vec2 perTileUVIncrement;
+uniform int viewWidthBc;
 
 void main() {
-	gl_Position = viewMat * vec4(position - mod(positionPx, blockSizePx), 0.0, 1.0);
-	vec2 worldUV = floor((positionPx + position - UV * blockSizePx * lastBlock_lastVar) / blockSizePx);
-	ivec2 textureUV = ivec2(mod(worldUV - vec2(0.0, 1.0), vec2(textureSize(worldTexture, 0)))) ;
-	uvec4 data = texelFetch(worldTexture, ivec2(textureUV.x, textureSize(worldTexture, 0).y - textureUV.y - 1), 0);
-	blockUV = vec2(UV.x + float(data.y) / float(lastBlock_lastVar.x) , UV.y + float(data.x) / float(-lastBlock_lastVar.y));
-	wallUV = vec2(UV.x + float(data.w) / float(lastBlock_lastVar.x) , UV.y + float(data.z) / float(-lastBlock_lastVar.y));
+	vec2 posBc = basePosBc + vec2(gl_InstanceID % viewWidthBc, gl_InstanceID / viewWidthBc);
+	
+	vec2 globalWorldPosBc = posBc + floor(realPosPx / blockSizePx) + baseUV * vec2(-1.0, 1.0) - vec2(0.0, 1.0);
+
+	vec2 worldTexSize = vec2(textureSize(worldTexture, 0));
+	
+	vec2 localWorldPosBc = mod(globalWorldPosBc, worldTexSize);
+	localWorldPosBc.y = worldTexSize.y - localWorldPosBc.y - 1;
+	
+	vec4 tile = vec4(texelFetch(worldTexture, ivec2(localWorldPosBc), 0));
+	
+	//Clip if both block and wall are air
+	vec4 clip = (tile.x == 0.0 && tile.z == 0.0) ? vec4(-1.0) : vec4(1.0);
+	
+	gl_Position = viewMat * vec4(posBc * blockSizePx - mod(realPosPx, blockSizePx), 0.0, clip);
+	
+	block_wall_UV = (tile.yxwz + baseUV.xyxy) * perTileUVIncrement.xyxy;
 }
 
 )""

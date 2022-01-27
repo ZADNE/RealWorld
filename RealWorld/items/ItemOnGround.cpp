@@ -10,12 +10,13 @@
 #include <RealWorld/world/TDB.hpp>
 
 
-ItemOnGround::ItemOnGround(const glm::ivec2& pos, World* world, const Item& item, float lifetime, std::pair<Hitbox*, Inventory*> target) :
+ItemOnGround::ItemOnGround(const glm::ivec2& pos, World& world, const Item& item, float lifetime, Hitbox& targetHitbox, Inventory& targetInventory) :
 	m_tex(RE::RM::getTexture(ITEM_ATLAS_PREFIX + IDB::g(item.ID).textureAtlas)),
-	m_hitbox(pos, m_tex->getSubimageDims(), world, m_tex->getPivot()),
+	m_hitbox(pos, m_tex->getSubimageDims(), &world, m_tex->getPivot()),
 	m_item(item),
 	m_lifetime(lifetime),
-	m_target(target) {
+	m_targetHitbox(&targetHitbox),
+	m_targetInventory(&targetInventory) {
 	m_hitbox.setFriction(glm::vec2(0.05f, 0.05f));
 }
 
@@ -24,7 +25,7 @@ ItemOnGround::~ItemOnGround() {
 }
 
 bool ItemOnGround::step(float decay, float angleDeviation) {
-	glm::vec2 vec = (glm::vec2)(m_target.first->getPos() - m_hitbox.getPos());
+	glm::vec2 vec = (glm::vec2)(m_targetHitbox->getPos() - m_hitbox.getPos());
 
 	if (glm::length(vec) < 300.0f) {
 		float temp = std::max(4.0f, glm::length(m_hitbox.getVelocity()));
@@ -36,8 +37,8 @@ bool ItemOnGround::step(float decay, float angleDeviation) {
 
 		m_hitbox.setVelocity(glm::vec2(velocity * std::cos(radAngle), velocity * std::sin(radAngle)));
 
-		if (m_hitbox.collidesWith(*m_target.first)) {
-			*m_target.second += m_item;
+		if (m_hitbox.collidesWith(*m_targetHitbox)) {
+			*m_targetInventory += m_item;
 			if (m_item.isEmpty()) {
 				return true;//Item is empty
 			}

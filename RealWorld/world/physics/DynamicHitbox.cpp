@@ -11,7 +11,7 @@
 
 DynamicHitbox::DynamicHitbox(const glm::ivec2& positionPx, const glm::ivec2& dimensionPx, const glm::ivec2& offsetPx/* = glm::ivec2(0, 0)*/) :
 	Hitbox(positionPx, dimensionPx - glm::ivec2(1, 1), offsetPx),
-	m_velocityPx(0){
+	m_velocityPx(0) {
 
 }
 
@@ -21,21 +21,21 @@ DynamicHitbox::DynamicHitbox(const glm::ivec2& positionPx, const glm::ivec2& dim
 
 }
 
-DynamicHitbox::~DynamicHitbox(){
+DynamicHitbox::~DynamicHitbox() {
 
 }
 
-void DynamicHitbox::setPosition(const glm::ivec2& positionPx){
+void DynamicHitbox::setPosition(const glm::ivec2& positionPx) {
 	p_botLeftPx = positionPx - p_offsetPx;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::setPositionX(int positionPx){
+void DynamicHitbox::setPositionX(int positionPx) {
 	p_botLeftPx.x = positionPx - p_offsetPx.x;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::setPositionY(int positionPx){
+void DynamicHitbox::setPositionY(int positionPx) {
 	p_botLeftPx.y = positionPx - p_offsetPx.y;
 	m_justChanged = true;
 }
@@ -45,57 +45,57 @@ void DynamicHitbox::setVelocity(const glm::vec2& velocityPx) {
 	m_justChanged = true;
 }
 
-void DynamicHitbox::setVelocityX(float velocityPx){
+void DynamicHitbox::setVelocityX(float velocityPx) {
 	m_velocityPx.x = velocityPx;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::setVelocityY(float velocityPx){
+void DynamicHitbox::setVelocityY(float velocityPx) {
 	m_velocityPx.y = velocityPx;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::setFriction(const glm::vec2& frictionPx){
+void DynamicHitbox::setFriction(const glm::vec2& frictionPx) {
 	m_frictionPx = frictionPx;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::addVelocity(const glm::vec2& velocityPx){
+void DynamicHitbox::addVelocity(const glm::vec2& velocityPx) {
 	m_velocityPx += velocityPx;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::addVelocityX(float velocityPx){
+void DynamicHitbox::addVelocityX(float velocityPx) {
 	m_velocityPx.x += velocityPx;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::addVelocityY(float velocityPx){
+void DynamicHitbox::addVelocityY(float velocityPx) {
 	m_velocityPx.y += velocityPx;
 	m_justChanged = true;
 }
 
-void DynamicHitbox::limitVelocity(const glm::vec2& velocityPx){
+void DynamicHitbox::limitVelocity(const glm::vec2& velocityPx) {
 	m_velocityPx = glm::clamp(m_velocityPx, -velocityPx, velocityPx);
 }
 
-void DynamicHitbox::limitVelocityX(float velocityPx){
-	m_velocityPx.x = rmath::clamp(m_velocityPx.x, -velocityPx, velocityPx);
+void DynamicHitbox::limitVelocityX(float velocityPx) {
+	m_velocityPx.x = std::clamp(m_velocityPx.x, -velocityPx, velocityPx);
 }
 
-void DynamicHitbox::limitVelocityY(float velocityPx){
-	m_velocityPx.y = rmath::clamp(m_velocityPx.y, -velocityPx, velocityPx);
+void DynamicHitbox::limitVelocityY(float velocityPx) {
+	m_velocityPx.y = std::clamp(m_velocityPx.y, -velocityPx, velocityPx);
 }
 
-glm::vec2 DynamicHitbox::getVelocity() const{
+glm::vec2 DynamicHitbox::getVelocity() const {
 	return m_velocityPx;
 }
 
-glm::vec2 DynamicHitbox::getFriction() const{
+glm::vec2 DynamicHitbox::getFriction() const {
 	return m_frictionPx;
 }
 
-void DynamicHitbox::step(){
+void DynamicHitbox::step() {
 	//Gravity
 	m_velocityPx += p_world->getGravity();
 	//Friction
