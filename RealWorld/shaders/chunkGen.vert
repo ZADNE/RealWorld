@@ -15,7 +15,7 @@ layout(std140) uniform ChunkUniforms {
 
 void main() {
 	gl_Position = chunkGenMatrix * vec4(position, 0.0, 1.0);
-	pos = chunkOffsetBc + vec2(position.x, chunkDims.y - position.y - 1.0);
+	pos = chunkOffsetBc + vec2(position.x, chunkDims.y - position.y);
 }
 
 )""
