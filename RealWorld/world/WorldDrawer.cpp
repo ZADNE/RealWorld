@@ -131,7 +131,7 @@ void WorldDrawer::beginStep(const glm::vec2& botLeftPx) {
 	m_SurLighting.resetTarget();
 
 	//Clear dynamic lights
-	//m_bufferDynamicLights.invalidate();
+	m_bufferDynamicLights.invalidate();
 	m_dynamicLights.clear();
 }
 
@@ -146,6 +146,7 @@ void WorldDrawer::endStep() {
 	glm::vec2 dynLightBotLeftBc = static_cast<glm::vec2>(m_botLeftBc) - glm::vec2(0.5, 0.5);//0.5 to shift to center of block
 	m_addDynamicLightShader->setUniform(WDS::LOC_POSITION, dynLightBotLeftBc);
 	m_arrayLights.renderArrays(POINTS, 0, static_cast<GLsizei>(m_dynamicLights.size()));
+	glTextureBarrier();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	m_addDynamicLightShader->unuse();
 	m_arrayLights.unbind();

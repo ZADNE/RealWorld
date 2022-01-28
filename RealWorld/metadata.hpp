@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cstdint>
 
 //Physics steps per second
 const int PHYSICS_STEPS_PER_SECOND = 50;
