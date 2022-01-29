@@ -10,7 +10,7 @@ enum class BuildError {
 
 //abrv. FurnitureIndex
 class FIndex {
-	friend class FurnitureRegister;
+	friend class FurnitureManager;
 	friend class Planner;
 	friend struct QTFurniture;
 public:

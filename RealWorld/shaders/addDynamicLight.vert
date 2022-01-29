@@ -11,8 +11,7 @@ out float lightDir;
 out float lightCone;
 out vec2 interpolation;
 
-layout(std140) uniform WorldDrawUniforms {
-	mat4 viewMat;
+layout(std140, binding = 0) uniform WorldDrawUniforms {
 	mat4 viewsizePxMat;
 	mat4 viewsizeLightingBcMat;
 };

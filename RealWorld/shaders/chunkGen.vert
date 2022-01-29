@@ -5,7 +5,7 @@ layout(location = 0) in vec2 position;
 
 out vec2 pos;
 
-layout(std140) uniform ChunkUniforms {
+layout(std140, binding = 0) uniform ChunkUniforms {
 	mat4 chunkGenMatrix;
 	vec2 chunkOffsetBc;
 	vec2 chunkDims;

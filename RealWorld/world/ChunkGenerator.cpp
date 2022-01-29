@@ -7,7 +7,6 @@
 
 #include <RealEngine/graphics/Vertex.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
-#include <RealEngine/graphics/UniformManager.hpp>
 
 #include <RealWorld/world//TDB.hpp>
 #include <RealWorld/items/Item.hpp>
@@ -15,14 +14,6 @@
 #include <RealWorld/rendering/TextureUnits.hpp>
 
 const int BORDER_WIDTH = 16;
-
-struct ChunkUniforms {
-	glm::mat4 chunkGenMatrix;
-	glm::vec2 chunkOffsetBc;
-	glm::vec2 chunkDims;
-	glm::vec2 chunkBorders;
-	int seed;
-};
 
 ChunkGenerator::ChunkGenerator() {
 	initShaders();
@@ -56,11 +47,9 @@ void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims, glm::uvec2 a
 }
 
 Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm::ivec2 offset) {
-	ChunkUniforms chunkUniforms;
-	chunkUniforms.chunkOffsetBc = static_cast<glm::vec2>(posCh) * m_chunkDims_f;
-	RE::UniformManager::std.setUniformBuffer(
-		"ChunkUniforms", offsetof(ChunkUniforms, chunkOffsetBc), sizeof(chunkUniforms.chunkOffsetBc), &chunkUniforms.chunkOffsetBc);
-
+	//Update chunk offset with uniform buffer
+	glm::vec2 chunkOffsetBc = static_cast<glm::vec2>(posCh) * m_chunkDims_f;
+	m_chunkUniformBuffer.overwrite(offsetof(ChunkUniforms, chunkOffsetBc), sizeof(chunkOffsetBc), &chunkOffsetBc);
 
 	m_genSurf[0].setTarget();
 
@@ -69,7 +58,7 @@ Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm:
 	//Actual generation
 	generateBasicTerrain();
 	cellularAutomaton();
-	setVars();
+	selectVariations();
 
 
 	m_VAO.unbind();
@@ -87,71 +76,63 @@ Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm:
 }
 
 void ChunkGenerator::initShaders() {
-	RE::UniformManager::std.addUniformBuffer("ChunkUniforms", sizeof(ChunkUniforms));
-	RE::UniformManager::std.addShader("ChunkUniforms", m_varShader.get());
-	RE::UniformManager::std.addShader("ChunkUniforms", m_basicTerrainShader.get());
-	RE::UniformManager::std.addShader("ChunkUniforms", m_cellularAutomatonShader.get());
+	m_chunkUniformBuffer.connectToShaderProgram(m_basicTerrainShader, 0u);
+	m_chunkUniformBuffer.connectToShaderProgram(m_cellularAutomatonShader, 0u);
+	m_chunkUniformBuffer.connectToShaderProgram(m_selectVariationShader, 0u);
 
-	//BASIC TERRAIN shader
+	m_selectVariationShader.setUniform("air", glm::uvec2(BLOCK_ID::AIR, WALL_ID::AIR));
+	m_selectVariationShader.setUniform(WGS::LOC_WORLD_TEXTURE, TEX_UNIT_CHUNK_TILES1);
 
-	//VAR shader
-	m_varShader->setUniform("air", glm::uvec2(BLOCK_ID::AIR, WALL_ID::AIR));
-	m_varShader->setUniform(WGS::LOC_WORLD_TEXTURE, TEX_UNIT_CHUNK_TILES1.index());
-
-	//CELLULAR AUTOMATON shader
-	m_cellularAutomatonShader->setUniform(WGS::LOC_TILES0_TEXTURE, TEX_UNIT_CHUNK_TILES0.index());
-	m_cellularAutomatonShader->setUniform(WGS::LOC_TILES1_TEXTURE, TEX_UNIT_CHUNK_TILES1.index());
-	m_cellularAutomatonShader->setUniform(WGS::LOC_MATERIAL_TEXTURE, TEX_UNIT_CHUNK_MATERIAL.index());
-	m_cellularAutomatonShader->setUniform(shaders::LOC_AIR_ID, glm::uvec4((GLuint)BLOCK_ID::AIR, 0, (GLuint)WALL_ID::AIR, 0));
+	m_cellularAutomatonShader.setUniform(WGS::LOC_TILES0_TEXTURE, TEX_UNIT_CHUNK_TILES0);
+	m_cellularAutomatonShader.setUniform(WGS::LOC_TILES1_TEXTURE, TEX_UNIT_CHUNK_TILES1);
+	m_cellularAutomatonShader.setUniform(WGS::LOC_MATERIAL_TEXTURE, TEX_UNIT_CHUNK_MATERIAL);
+	m_cellularAutomatonShader.setUniform(shaders::LOC_AIR_ID, (GLuint)BLOCK_ID::AIR, 0u, (GLuint)WALL_ID::AIR, 0u);
 }
 
 void ChunkGenerator::initVAO() {
 	m_VAO.setBindingPoint(0u, m_VBO, 0, sizeof(RE::VertexPO));
 
-	m_VAO.setAttribute(RE::ATTR_POSITION, RE::VertexComponentCount::XY, RE::VertexComponentType::FLOAT, offsetof(RE::VertexPO, position));
+	m_VAO.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(RE::VertexPO, position));
 
 	m_VAO.connectAttributeToBindingPoint(RE::ATTR_POSITION, 0u);
 }
 
 void ChunkGenerator::setVBOToWholeChunk() {
-	const RE::VertexPO vertices[6] = {
-		//Left-top triangle
+	const RE::VertexPO vertices[4] = {
 		glm::vec2{-BORDER_WIDTH, -BORDER_WIDTH},
-		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
+		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, -BORDER_WIDTH},
 		glm::vec2{-BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
-		//Right-bottom triangle
-		glm::vec2{-BORDER_WIDTH, -BORDER_WIDTH},
-		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
-		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, -BORDER_WIDTH}
+		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH}
 	};
 	m_VBO.overwrite(0, sizeof(vertices), vertices);
 }
 
 void ChunkGenerator::updateUniformsAfterSetTarget() {
-	ChunkUniforms uni;
-	uni.chunkGenMatrix = glm::ortho(static_cast<float>(-BORDER_WIDTH), m_chunkDims_f.x + BORDER_WIDTH, static_cast<float>(-BORDER_WIDTH), m_chunkDims_f.y + BORDER_WIDTH);
-	uni.chunkDims = m_chunkDims_f;
-	uni.chunkBorders = glm::vec2(BORDER_WIDTH, BORDER_WIDTH);
-	uni.seed = m_seed;
-	RE::UniformManager::std.setUniformBuffer("ChunkUniforms", 0u, sizeof(uni), &uni);
+	ChunkUniforms uni{
+		.chunkGenMatrix = glm::ortho(static_cast<float>(-BORDER_WIDTH), m_chunkDims_f.x + BORDER_WIDTH, static_cast<float>(-BORDER_WIDTH), m_chunkDims_f.y + BORDER_WIDTH),
+		.chunkDims = m_chunkDims_f,
+		.chunkBorders = glm::vec2(BORDER_WIDTH, BORDER_WIDTH),
+		.seed = m_seed
+	};
+	m_chunkUniformBuffer.overwrite(uni);
 }
 
 void ChunkGenerator::generateBasicTerrain() {
-	m_basicTerrainShader->use();
-	m_VAO.renderArrays(RE::Primitive::TRIANGLES, 0, 6);
-	m_basicTerrainShader->unuse();
+	m_basicTerrainShader.use();
+	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
+	m_basicTerrainShader.unuse();
 }
 
 void ChunkGenerator::cellularAutomaton() {
 	GLuint surfIndex = 1u;
 	auto pass = [this, &surfIndex](GLuint low, GLuint high, size_t passes) {
-		m_cellularAutomatonShader->setUniform(WGS::LOC_CELL_AUTO_LOW, low);
-		m_cellularAutomatonShader->setUniform(WGS::LOC_CELL_AUTO_HIGH, high);
+		m_cellularAutomatonShader.setUniform(WGS::LOC_CELL_AUTO_LOW, low);
+		m_cellularAutomatonShader.setUniform(WGS::LOC_CELL_AUTO_HIGH, high);
 		for (size_t i = 0; i < passes; i++) {
 			m_genSurf[surfIndex % m_genSurf.size()].setTarget();
-			m_cellularAutomatonShader->setUniform(WGS::LOC_TILES_SELECTOR, surfIndex);
+			m_cellularAutomatonShader.setUniform(WGS::LOC_TILES_SELECTOR, surfIndex);
 			surfIndex++;
-			m_VAO.renderArrays(RE::Primitive::TRIANGLES, 0, 6);
+			m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 		}
 	};
 	auto doublePass = [this, &surfIndex, pass](GLuint firstlow, GLuint firsthigh, GLuint secondlow, GLuint secondhigh, size_t passes) {
@@ -161,7 +142,7 @@ void ChunkGenerator::cellularAutomaton() {
 		}
 	};
 
-	m_cellularAutomatonShader->use();
+	m_cellularAutomatonShader.use();
 
 	RE::SurfaceTargetTextures stt{};
 	stt.targetTexture(0);
@@ -169,15 +150,15 @@ void ChunkGenerator::cellularAutomaton() {
 
 	doublePass(3, 4, 4, 5, 4);
 
-	m_cellularAutomatonShader->unuse();
+	m_cellularAutomatonShader.unuse();
 
 	stt.targetTexture(1);
 	m_genSurf[0].setTarget();
 	m_genSurf[0].setTargetTextures(stt);
 }
 
-void ChunkGenerator::setVars() {
-	m_varShader->use();
-	m_VAO.renderArrays(RE::Primitive::TRIANGLES, 0, 6);
-	m_varShader->unuse();
+void ChunkGenerator::selectVariations() {
+	m_selectVariationShader.use();
+	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
+	m_selectVariationShader.unuse();
 }

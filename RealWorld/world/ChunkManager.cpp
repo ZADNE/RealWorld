@@ -142,7 +142,7 @@ glm::ivec2 ChunkManager::chunkPosToActiveChunkPos(glm::ivec2 posCh) const {
 
 Chunk*& ChunkManager::getActiveChunk(glm::ivec2 posCh) {
 	glm::ivec2 pos = chunkPosToActiveChunkPos(posCh);
-	return m_activeChunks[pos.x + pos.y * m_activeChunksRect.x];
+	return m_activeChunks[static_cast<size_t>(pos.y) * m_activeChunksRect.x + pos.x];
 }
 
 void ChunkManager::activateChunkAtPos(Chunk* chunk, glm::ivec2 posCh, bool uploadRequired) {

@@ -1,4 +1,4 @@
-﻿#include <RealWorld/furniture/FurnitureRegister.hpp>
+﻿#include <RealWorld/furniture/FurnitureManager.hpp>
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
@@ -33,29 +33,29 @@
 											throw; \
 										} \
 
-const size_t FurnitureRegister::FurStore::offset[] = {offsetof(FurStore, fc.f0), offsetof(FurStore, fc.f1), offsetof(FurStore, fc.f2), offsetof(FurStore, fc.f3), offsetof(FurStore, fc.f4)};
-const size_t FurnitureRegister::FurStore::sizeOfElement[] = {sizeof(FStatic), sizeof(FChest), sizeof(FCraftS), sizeof(FFurnace), sizeof(FLightS)};
+const size_t FurnitureManager::FurStore::offset[] = {offsetof(FurStore, fc.f0), offsetof(FurStore, fc.f1), offsetof(FurStore, fc.f2), offsetof(FurStore, fc.f3), offsetof(FurStore, fc.f4)};
+const size_t FurnitureManager::FurStore::sizeOfElement[] = {sizeof(FStatic), sizeof(FChest), sizeof(FCraftS), sizeof(FFurnace), sizeof(FLightS)};
 
 
-FurnitureRegister::FurnitureRegister(RE::SpriteBatch& spriteBatch, const glm::ivec2& worldDims, World& world, const glm::vec2& viewSizePx) :
+FurnitureManager::FurnitureManager(RE::SpriteBatch& spriteBatch, const glm::ivec2& worldDims, World& world, const glm::vec2& viewSizePx) :
 	m_spriteBatch(spriteBatch),
 	m_world(world) {
-	FStatic::initStatics(spriteBatch, m_world.getLightManipulator());
+	FStatic::initStatics(spriteBatch);
 	m_fsQT = Quadtree<QTFurniture>{0u, QTFurniture{ {0, 0}, worldDims }};
 
 	resizeView(viewSizePx);
 }
 
-FurnitureRegister::~FurnitureRegister() {
+FurnitureManager::~FurnitureManager() {
 
 }
 
-void FurnitureRegister::resizeView(const glm::vec2& viewSizePx) {
+void FurnitureManager::resizeView(const glm::vec2& viewSizePx) {
 	m_viewSizeBc = glm::ivec2(1, 1) + glm::ivec2(ceil(viewSizePx / vec2_BLOCK_SIZE));
 	m_mustRealoadDrawable = true;
 }
 
-BuildError FurnitureRegister::accepts(const FStatic& furniture) {
+BuildError FurnitureManager::accepts(const FStatic& furniture) {
 	//First we check if this spot is blocked by another furniture
 	auto bl = furniture.getBotLeft();
 	auto dims = furniture.getDims();
@@ -92,11 +92,11 @@ BuildError FurnitureRegister::accepts(const FStatic& furniture) {
 	return BuildError::NO_ERROR;
 }
 
-const FStatic* FurnitureRegister::getcFurniture(const glm::ivec2& posSq) const {
+const FStatic* FurnitureManager::getcFurniture(const glm::ivec2& posSq) const {
 	return getcFurniture(getFIndex(posSq));
 }
 
-FIndex FurnitureRegister::getFIndex(const glm::ivec2& posSq) const {
+FIndex FurnitureManager::getFIndex(const glm::ivec2& posSq) const {
 	std::vector<QTFurniture> found;
 	QTFurniture b{posSq, glm::ivec2(1, 1)};
 	m_fsQT.retrieve(found, b);
@@ -109,7 +109,7 @@ FIndex FurnitureRegister::getFIndex(const glm::ivec2& posSq) const {
 	return FIndex{BuildError::NOT_FOUND};
 }
 
-FIndex FurnitureRegister::build(const FStatic& furniture, bool actuallyBuild) {
+FIndex FurnitureManager::build(const FStatic& furniture, bool actuallyBuild) {
 	if (furniture.getType() == F_TYPE::NONE) {
 		return FIndex(BuildError::NO_ERROR);//Silently ignoring
 	}
@@ -126,15 +126,15 @@ FIndex FurnitureRegister::build(const FStatic& furniture, bool actuallyBuild) {
 	}
 }
 
-const FStatic* FurnitureRegister::getcFurniture(const FIndex fIndex) const {
+const FStatic* FurnitureManager::getcFurniture(const FIndex fIndex) const {
 	return getFurniture(fIndex);
 }
 
-std::pair<size_t, glm::ivec2> FurnitureRegister::destroy(const glm::ivec2& posSq) {
+std::pair<size_t, glm::ivec2> FurnitureManager::destroy(const glm::ivec2& posSq) {
 	return destroy(getFIndex(posSq));
 }
 
-std::pair<size_t, glm::ivec2> FurnitureRegister::destroy(const FIndex fIndex) {
+std::pair<size_t, glm::ivec2> FurnitureManager::destroy(const FIndex fIndex) {
 	FStatic* furniture = getFurniture(fIndex);
 	if (!furniture) {
 		return std::make_pair(0u, glm::ivec2{0, 0});//getFIndex() returned erroneous FIndex (a furniture with such position probably does not exist)
@@ -144,7 +144,7 @@ std::pair<size_t, glm::ivec2> FurnitureRegister::destroy(const FIndex fIndex) {
 	return std::make_pair(furniture->getTotalIndex(), furniture->getBotLeft());
 }
 
-void FurnitureRegister::clear() {
+void FurnitureManager::clear() {
 	m_fsQT.clear();//Quadtree
 	callOnEach(&FStatic::destroy);
 	m_fs.clear();//FurnitureStore
@@ -153,7 +153,7 @@ void FurnitureRegister::clear() {
 	}
 }
 
-void FurnitureRegister::step(const glm::vec2& botLeftPosPx) {
+void FurnitureManager::step(const glm::vec2& botLeftPosPx) {
 	glm::ivec2 newBL = pxToBc((glm::ivec2)botLeftPosPx);
 	if (m_botLeftOfViewBc != newBL || m_mustRealoadDrawable) {
 		//Updating list of furniture that should be drawn
@@ -171,13 +171,13 @@ void FurnitureRegister::step(const glm::vec2& botLeftPosPx) {
 	callOnEach(&FStatic::step);
 }
 
-void FurnitureRegister::draw() {
+void FurnitureManager::draw() {
 	for (auto& f : m_furToDraw) {
 		f->draw();
 	}
 }
 
-void FurnitureRegister::adoptFurnitureCollection(const FurnitureCollection& fc) {
+void FurnitureManager::adoptFurnitureCollection(const FurnitureCollection& fc) {
 	clear();
 	for (auto& fur : fc.f0)
 		addFurniture(fur);
@@ -191,7 +191,7 @@ void FurnitureRegister::adoptFurnitureCollection(const FurnitureCollection& fc) 
 		addFurniture(fur);
 }
 
-void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc) const {
+void FurnitureManager::gatherFurnitureCollection(FurnitureCollection& fc) const {
 	auto FI0 = m_fsFI[0];
 	FI0.push(m_fs.fc.f0.size());
 	for (size_t i = 0u; i < m_fs.fc.f0.size(); ++i) {
@@ -239,7 +239,7 @@ void FurnitureRegister::gatherFurnitureCollection(FurnitureCollection& fc) const
 	}
 }
 
-FStatic* FurnitureRegister::getFurniture(const FIndex fIndex) const {
+FStatic* FurnitureManager::getFurniture(const FIndex fIndex) const {
 	unsigned int type = (unsigned int)fIndex.getType();
 	if (type >= (unsigned int)F_TYPE::LAST) {
 		//The fIndex is invaid
@@ -249,7 +249,7 @@ FStatic* FurnitureRegister::getFurniture(const FIndex fIndex) const {
 	return (FStatic*)m_fs.getElem(type, (unsigned int)fIndex.getIndex());
 }
 
-FIndex FurnitureRegister::addFurniture(const FStatic& furniture) {
+FIndex FurnitureManager::addFurniture(const FStatic& furniture) {
 	unsigned int type = (unsigned int)furniture.getType();
 	FIndex newFIndex;
 	std::vector<FStatic>* vec = (std::vector<FStatic>*)m_fs.getVec(type);
@@ -269,11 +269,11 @@ FIndex FurnitureRegister::addFurniture(const FStatic& furniture) {
 	return newFIndex;
 }
 
-bool FurnitureRegister::destroySimple(const glm::ivec2& posSq) {
+bool FurnitureManager::destroySimple(const glm::ivec2& posSq) {
 	return destroySimple(getFIndex(posSq));
 }
 
-bool FurnitureRegister::destroySimple(const FIndex fIndex) {
+bool FurnitureManager::destroySimple(const FIndex fIndex) {
 	if (fIndex.isError()) { return false; }//Cannot destroy by an erroneous FIndex
 	//Call destroy in destroyed furniture
 	F_TYPE type = fIndex.getType();

@@ -32,12 +32,12 @@ public:
 	glm::vec2 getVelocity() const;
 	glm::vec2 getFriction() const;
 
-	//Should be called every physics step (not draw step)
+	//Should be called every physics beginStep (not draw beginStep)
 	void step() override;
 private:
 	//Basic physics variables
 	glm::vec2 m_velocityPx = glm::vec2(0.0f, 0.0f);
-	glm::vec2 m_frictionPx = glm::vec2(0.0f, 0.0f);//Removed from velocity each step
+	glm::vec2 m_frictionPx = glm::vec2(0.0f, 0.0f);//Removed from velocity each beginStep
 
 	bool m_justChanged = false;
 };

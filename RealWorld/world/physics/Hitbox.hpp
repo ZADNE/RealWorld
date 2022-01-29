@@ -31,7 +31,7 @@ public:
 
 	bool overlapsBlockwise(const glm::ivec2& pointPx) const;
 
-	//Should be called every physics step (not draw step)
+	//Should be called every physics beginStep (not draw beginStep)
 	virtual void step();
 protected:
 	//Basic physics variables

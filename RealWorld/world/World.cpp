@@ -3,24 +3,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/main/Error.hpp>
-#include <RealEngine/graphics/UniformManager.hpp>
+#include <RealEngine/graphics/Viewport.hpp>
 
 #include <RealWorld/world/TDB.hpp>
 #include <RealWorld/world/physics/Player.hpp>
-#include <RealWorld/world/WorldDataLoader.hpp>
-
-struct WorldUniforms {
-	glm::mat4 worldMatrix;
-	glm::vec2 worldSize;
-};
+#include <RealWorld/rendering/TextureUnits.hpp>
+#include <RealWorld/shaders/WDS.hpp>
 
 
-World::World(const glm::mat4& viewMatrix, const glm::uvec2& windowDims, RE::SpriteBatch& sb, Player& player) :
-	m_windowDims(windowDims),
-	m_player(player),
-	m_fReg(sb, {1, 1}, * this, (glm::vec2)windowDims),
-	m_worldDrawer(windowDims, viewMatrix, m_chunkHandler) {
-
+World::World() {
 	initVAOs();
 	initConstantUniforms();
 	initUniformBuffers();
@@ -30,82 +21,56 @@ World::~World() {
 
 }
 
-bool World::loadWorld(const std::string& worldName) {
-	WorldData wd = WorldData();
-	if (!WorldDataLoader::loadWorldData(wd, worldName)) return false;
-	adoptWorldData(wd, worldName);
-	return true;
-}
-
-bool World::saveWorld() const {
-	WorldData wd;
-	gatherWorldData(wd);
-	if (!WorldDataLoader::saveWorldData(wd, m_worldName)) return false;
-	return m_chunkHandler.saveChunks();
-}
-
-void World::resizeWindow(const glm::mat4& newViewMatrix, const glm::uvec2& newWindowDims) {
-	m_windowDims = glm::vec2(newWindowDims);
-	m_worldDrawer.resizeView(newWindowDims, newViewMatrix);
-	m_fReg.resizeView((glm::vec2)newWindowDims);
-	rebuildDebugRectangle();
-}
-
-void World::drawBeginStep() {
-	m_worldDrawer.drawWorld();
-	m_fReg.draw();
-}
-
-void World::drawEndStep() {
-	if (m_shouldDrawDarkness) {
-		m_worldDrawer.coverWithDarkness();
-	}
-	if (m_shouldDrawDebug) {
-		drawDebug();
-	}
+void World::resizeWindow(const glm::vec2& newWindowDims) {
+	rebuildDebugRectangle(newWindowDims);
 }
 
 void World::drawDebug() {
-	m_debugDraw->use();
-	m_debugVAO.bind();
+	if (m_shouldDrawDebug) {
+		m_debugDraw.use();
+		m_debugVAO.bind();
 
-	m_ws.bindTexture();
-	m_debugVAO.renderArrays(RE::Primitive::TRIANGLES, 0, 6);
+		m_debugVAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 
-	m_debugVAO.unbind();
-	m_debugDraw->unuse();
+		m_debugVAO.unbind();
+		m_debugDraw.unuse();
+	}
 }
 
-void World::adoptWorldData(const WorldData& wd, const std::string& name) {
+glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, const glm::vec2& windowDims) {
 	m_seed = wd.wi.seed;
 	m_chunkDims = wd.wi.chunkDims;
 	m_ws.resize(m_chunkDims * m_activeChunksRect, 1);
 	m_worldName = name;
-	m_worldDrawer.setTarget(m_ws.getDims(), m_ws.getTextureProxy());
+
+	TEX_UNIT_WORLD_TEXTURE.setActive();
+	m_ws.bindTexture();
+	TEX_UNIT_VOLATILE.setActive();
+
 	m_chunkHandler.setTarget(m_seed, m_chunkDims, m_activeChunksRect, wd.path, &m_ws);
 
-	rebuildDebugRectangle();
+	rebuildDebugRectangle(windowDims);
 	updateUniformsAfterWorldResize();
 
-	m_player.adoptPlayerData(wd.pd);
-	m_fReg.adoptFurnitureCollection(wd.fc);
+	return m_ws.getDims();
 }
 
 void World::gatherWorldData(WorldData& wd) const {
 	wd.wi.chunkDims = m_chunkDims;
 	wd.wi.seed = m_seed;
 	wd.wi.worldName = m_worldName;
-
-	m_player.gatherPlayerData(wd.pd);
-	m_fReg.gatherFurnitureCollection(wd.fc);
 }
 
-LightManipulator World::getLightManipulator() {
-	return m_worldDrawer.getLightManipulator();
+bool World::saveChunks() const {
+	return m_chunkHandler.saveChunks();
 }
 
 int World::getNumberOfChunksLoaded() {
 	return m_chunkHandler.getNumberOfChunksLoaded();
+}
+
+void World::forceActivationOfChunks(const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc) {
+	m_chunkHandler.forceActivationOfChunks(botLeftBc, topRightBc);
 }
 
 uchar World::get(chunk::BLOCK_VALUES type, const glm::ivec2& posBc) {
@@ -141,23 +106,20 @@ void World::set(chunk::SET_TYPES type, const glm::ivec2& posBc, uchar index) {
 	}
 
 	m_ws.setTarget();
-	m_setWithUpdateShader->use();
+	m_setWithUpdateShader.use();
 	m_setWithUpdateVAO.bind();
 
-	m_setWithUpdateShader->setUniform(WGS::LOC_SET, (unsigned int)index);
-	m_setWithUpdateShader->setUniform(WDS::LOC_POSITION, glm::vec2(static_cast<GLfloat>(posBc.x), static_cast<GLfloat>(posBc.y)));
-	m_setWithUpdateShader->setUniform(shaders::LOC_TIME, ++m_time);
-
-	m_ws.bindTexture();
+	m_setWithUpdateShader.setUniform(WGS::LOC_SET, (unsigned int)index);
+	m_setWithUpdateShader.setUniform(WDS::LOC_POSITION, glm::vec2(static_cast<GLfloat>(posBc.x), static_cast<GLfloat>(posBc.y)));
+	m_setWithUpdateShader.setUniform(shaders::LOC_TIME, ++m_time);
 
 	m_setWithUpdateVAO.renderArrays(RE::Primitive::POINTS, 0, 9);
 
 	m_setWithUpdateVAO.unbind();
-	m_setWithUpdateShader->unuse();
+	m_setWithUpdateShader.unuse();
 	m_ws.resetTarget();
 
 	glColorMask(true, true, true, true);
-
 }
 
 bool World::exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc, uchar index) {
@@ -168,26 +130,8 @@ bool World::exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const 
 	return m_chunkHandler.exists(type, botLeftBc, topRightBc, index);
 }
 
-FIndex World::build(const FStatic& furniture, bool actuallyBuild) {
-	return m_fReg.build(furniture, actuallyBuild);
-}
-
-std::pair<size_t, glm::ivec2> World::destroy(const glm::ivec2& posSq) {
-	return m_fReg.destroy(posSq);
-}
-
-void World::deallocateAll() {
-	m_chunkHandler.flushChunks();
-}
-
-void World::beginStep(const glm::vec2& middlePosPx, const glm::vec2& botLeftPosPx) {
+void World::step() {
 	m_chunkHandler.step();
-	m_worldDrawer.beginStep(middlePosPx - m_windowDims / 2.0f);
-	m_fReg.step(botLeftPosPx);
-}
-
-void World::endStep() {
-	m_worldDrawer.endStep();
 }
 
 void World::initVAOs() {
@@ -211,48 +155,40 @@ void World::initVAOs() {
 	m_debugVAO.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
 }
 
-void World::rebuildDebugRectangle() {
+void World::rebuildDebugRectangle(const glm::vec2& newWindowDims) {
 	float scale = 0.4f;
-	const glm::vec2 middle = m_windowDims / 2.0f;
+	const glm::vec2 middle = newWindowDims / 2.0f;
 	const glm::vec2 world = m_ws.getDims();
 
-	const VertexPOUV vertexData[6] = {
-		//Left-top triangle
+	const VertexPOUV vertexData[4] = {
 		{{middle.x - world.x * scale, middle.y + world.y * scale}, {0.0f, 0.0f}},
-		{{middle.x + world.x * scale, middle.y - world.y * scale}, {1.0f, 1.0f}},
-		{{middle.x - world.x * scale, middle.y - world.y * scale}, {0.0f, 1.0f}},
-		//Right-bottom triangle
-		{{middle.x - world.x * scale, middle.y + world.y * scale}, {0.0f, 0.0f}},
-		{{middle.x + world.x * scale, middle.y - world.y * scale}, {1.0f, 1.0f}},
 		{{middle.x + world.x * scale, middle.y + world.y * scale}, {1.0f, 0.0f}},
+		{{middle.x - world.x * scale, middle.y - world.y * scale}, {0.0f, 1.0f}},
+		{{middle.x + world.x * scale, middle.y - world.y * scale}, {1.0f, 1.0f}}
 	};
 
 	m_debugVBO.overwrite(0, sizeof(vertexData), vertexData);
 }
 
 void World::initConstantUniforms() {
-	//SET shader
-	//nothing to do
-
 	//SET WITH VAR UPDATE
-	m_setWithUpdateShader->setUniform(shaders::LOC_AIR_ID, glm::uvec2((GLuint)BLOCK_ID::AIR, (GLuint)WALL_ID::AIR));
-	m_setWithUpdateShader->setUniform(WGS::LOC_WORLD_TEXTURE, 0);
+	m_setWithUpdateShader.setUniform(shaders::LOC_AIR_ID, glm::uvec2((GLuint)BLOCK_ID::AIR, (GLuint)WALL_ID::AIR));
+	m_setWithUpdateShader.setUniform(WGS::LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
 
 	//DEBUG DRAW shader
-	m_debugDraw->setUniform(shaders::LOC_BASE_TEXTURE, 0);
+	m_debugDraw.setUniform(shaders::LOC_BASE_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
 }
 
 void World::initUniformBuffers() {
-	RE::UniformManager::std.addShader("GlobalMatrices", m_debugDraw.get());
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_debugDraw, 0u);
 
-	RE::UniformManager::std.addUniformBuffer("WorldUniforms", sizeof(WorldUniforms));
-	RE::UniformManager::std.addShader("WorldUniforms", m_setWithUpdateShader.get());
+	m_worldUniformBuffer.connectToShaderProgram(m_setWithUpdateShader, 0u);
 }
 
 void World::updateUniformsAfterWorldResize() {
-	WorldUniforms wu;
-	wu.worldSize = glm::vec2(m_ws.getDims());
-	wu.worldMatrix = glm::ortho(0.0f, wu.worldSize.x, 0.0f, wu.worldSize.y);
-
-	RE::UniformManager::std.setUniformBuffer("WorldUniforms", 0, sizeof(wu), &wu);
+	WorldUniforms wu{
+		.worldMatrix = glm::ortho(0.0f, static_cast<float>(m_ws.getDims().x), 0.0f, static_cast<float>(m_ws.getDims().y)),
+		.worldSize = glm::vec2(m_ws.getDims())
+	};
+	m_worldUniformBuffer.overwrite(0, sizeof(wu), &wu);
 }

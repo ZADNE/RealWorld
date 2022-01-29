@@ -6,8 +6,7 @@ layout(location = 2) in vec2 UV;
 
 out vec2 fragUV;
 
-layout(std140) uniform WorldDrawUniforms {
-	mat4 viewMat;
+layout(std140, binding = 0) uniform WorldDrawUniforms {
 	mat4 viewsizePxMat;
 	mat4 viewsizeLightingBcMat;
 };

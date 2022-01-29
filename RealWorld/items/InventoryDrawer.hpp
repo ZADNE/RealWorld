@@ -49,7 +49,7 @@ private:
 	RE::FontSeed m_font;
 	ItemUser* m_itemUser = nullptr;
 
-	RE::ShaderProgram m_PTSAbove{{.vert = RE::vert_sprite, .frag = shaders::standardOut1_frag }};
+	RE::ShaderProgram m_PTSAbove{{.vert = RE::sprite_vert, .frag = shaders::standardOut1_frag }};
 
 	RE::Colour m_defColour{255, 255, 255, 255};
 	glm::vec2 m_windowSize;

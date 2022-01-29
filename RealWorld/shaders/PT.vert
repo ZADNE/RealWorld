@@ -4,8 +4,7 @@ R""(
 layout(location = 0) in vec2 position;
 layout(location = 2) in vec2 UV;
 
-layout(std140) uniform WorldDrawUniforms {
-	mat4 viewMat;
+layout(std140, binding = 0) uniform WorldDrawUniforms {
 	mat4 viewsizePxMat;
 	mat4 viewsizeLightingBcMat;
 };

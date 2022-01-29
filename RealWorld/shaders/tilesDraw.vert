@@ -6,10 +6,13 @@ layout(location = 2) in vec2 baseUV;
 
 out vec4 block_wall_UV;
 
-layout(std140) uniform WorldDrawUniforms {
-	mat4 viewMat;
+layout(std140, binding = 0) uniform WorldDrawUniforms {
 	mat4 viewsizePxMat;
 	mat4 viewsizeLightingBcMat;
+};
+
+layout(std140, binding = 1) uniform ViewportMatrices {
+	mat4 viewMat;
 };
 
 layout(location = 2) uniform usampler2D worldTexture;

@@ -48,8 +48,8 @@ const char* WGS::basicTerrain_frag =
 #include "basicTerrain.frag"
 ;
 
-const char* WGS::var_frag =
-#include "var.frag"
+const char* WGS::selectVariation_frag =
+#include "selectVariation.frag"
 ;
 
 const char* WGS::cellularAutomaton_frag =

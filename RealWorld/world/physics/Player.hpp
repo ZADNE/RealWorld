@@ -16,15 +16,15 @@
 
 class Player {
 public:
-	Player(const RE::InputManager& inputManager, World& world, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
+	Player(const RE::InputManager& inputManager, World& world, FurnitureManager& furnitureManager, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
 	~Player();
 
 	void adoptPlayerData(const PlayerData& pd);
-	void gatherPlayerData(PlayerData& pd);
+	void gatherPlayerData(PlayerData& pd) const;
 
-	//Movement (should be called before step)
+	//Movement (should be called before beginStep)
 	//TO BE DONE (jump(), goLeft(), goRight())
-	//It is now done inside step() instead.
+	//It is now done inside beginStep() instead.
 
 	//Getters
 	glm::ivec2 getPos();
@@ -34,8 +34,8 @@ public:
 	ItemCombinator& getItemCombinator();
 	ItemInstructionDatabase& getIID();
 
-	//Should be called every physics step (not draw step)
-	void beginStep();
+	//Should be called every physics beginStep (not draw beginStep)
+	void step();
 	void endStep(const glm::ivec2& cursorRel);
 
 	void draw();

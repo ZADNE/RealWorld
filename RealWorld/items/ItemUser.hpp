@@ -1,24 +1,22 @@
 ﻿#pragma once
 #include <glm/vec2.hpp>
 
+#include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/metadata.hpp>
-
-class World;
-class Inventory;
-class Hitbox;
-class ItemOnGroundManager;
-struct Item;
-namespace RE {
-class SpriteBatch;
-}
+#include <RealWorld/world/TDB.hpp>
+#include <RealWorld/world/World.hpp>
+#include <RealWorld/items/IDB.hpp>
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/items/ItemOnGroundManager.hpp>
+#include <RealWorld/furniture/FurnitureManager.hpp>
 
 enum ItemUse { MAIN, ALTERNATIVE, NUMBER_OF_USES };
 
 class ItemUser {
 public:
-	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
+	ItemUser(World& world, FurnitureManager& furnitureManager, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
 	~ItemUser();
 
 	void beginUse(ItemUse use);
@@ -30,6 +28,7 @@ public:
 	void draw();
 private:
 	World& m_world;
+	FurnitureManager& m_furnitureManager;
 	Inventory& m_inv;
 	Hitbox& m_operatorsHitbox;
 	ItemOnGroundManager& m_itemOnGroundManager;
@@ -60,7 +59,7 @@ private:
 	glm::ivec2 m_UCTilePx = glm::ivec2(0, 0);//Center of the block in pixels
 	BLOCK_ID m_UCBlock = BLOCK_ID::AIR;
 	WALL_ID m_UCWall = WALL_ID::AIR;
-	//P -> previous (step)
+	//P -> previous (beginStep)
 	glm::ivec2 m_UCTileBcP = glm::ivec2(0, 0);//Position in blocks
 	glm::ivec2 m_UCTilePxP = glm::ivec2(0, 0);//Center of the block in pixels
 	BLOCK_ID m_UCBlockP = BLOCK_ID::AIR;

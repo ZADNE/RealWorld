@@ -6,7 +6,7 @@ layout(location = 1) in uint setAround;
 
 flat out uint fragSetAround;
 
-layout(std140) uniform WorldUniforms {
+layout(std140, binding = 0) uniform WorldUniforms {
 	mat4 worldMatrix;
 	vec2 worldSize;
 };

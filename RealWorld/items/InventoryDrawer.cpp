@@ -92,7 +92,7 @@ void InventoryDrawer::reloadEverything() {
 	}
 	updateHitboxMesh();
 	updateSurfaceSlots();
-	updateSurfaceNumbers();
+	//updateSurfaceNumbers();
 }
 
 void InventoryDrawer::swapUnderCursor() {
@@ -181,7 +181,7 @@ void InventoryDrawer::chooseSlot(Choose choose, int number) {
 
 void InventoryDrawer::step(const glm::ivec2& absCursorPos) {
 	m_absCursorPos = absCursorPos;
-	//ItemSprite step for all items
+	//ItemSprite beginStep for all items
 	for (size_t i = Connection::PRIMARY; i != Connection::NUMBER_OF_TYPES; ++i) {
 		if (m_inv[i]) {//If connected to this inventory slot
 			m_invSize[Connection::PRIMARY] = m_inv[Connection::PRIMARY]->getSize();

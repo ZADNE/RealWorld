@@ -5,7 +5,6 @@
 #include <RealEngine/graphics/Sprite.hpp>
 
 #include <RealWorld/furniture/FDB.hpp>
-#include <RealWorld/world/LightManipulator.hpp>
 
 namespace RE {
 class SpriteBatch;
@@ -25,7 +24,7 @@ public:
 
 	virtual void destroy();
 
-	static void initStatics(RE::SpriteBatch& spriteBatch, LightManipulator lightManipulator);
+	static void initStatics(RE::SpriteBatch& spriteBatch);
 
 
 	//Getters
@@ -38,7 +37,6 @@ public:
 
 protected:
 	static RE::SpriteBatch* p_spriteBatch;
-	static LightManipulator p_lightManipulator;
 
 	glm::ivec2 p_botLeftBc;
 	size_t p_totalIndex;

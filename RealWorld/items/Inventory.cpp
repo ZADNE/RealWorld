@@ -8,7 +8,7 @@
 #include <RealWorld/items/ItemCombinator.hpp>
 
 
-Inventory::Inventory(const glm::ivec2& size){
+Inventory::Inventory(const glm::ivec2& size) {
 	m_data.size = size;
 	//Creating row
 	std::vector<Item> row;
@@ -19,7 +19,7 @@ Inventory::Inventory(const glm::ivec2& size){
 	}
 }
 
-Inventory::~Inventory(){
+Inventory::~Inventory() {
 	//Disconnecting connected objects (to avoid dangling pointers)
 	if (m_inventoryDrawer) {
 		m_inventoryDrawer->connectToInventory(nullptr, m_invDrawerConnection);
@@ -29,7 +29,7 @@ Inventory::~Inventory(){
 	}
 }
 
-void Inventory::resize(const glm::ivec2& newSize){
+void Inventory::resize(const glm::ivec2& newSize) {
 	m_data.resize(newSize);
 
 	//Notifying connected objects about the change
@@ -41,16 +41,16 @@ void Inventory::resize(const glm::ivec2& newSize){
 	}
 }
 
-void Inventory::connectToDrawer(InventoryDrawer* inventoryDrawer, Connection connection){
+void Inventory::connectToDrawer(InventoryDrawer* inventoryDrawer, Connection connection) {
 	m_inventoryDrawer = inventoryDrawer;
 	m_invDrawerConnection = connection;
 }
 
-void Inventory::connectToItemCombinator(ItemCombinator* itemCombinator){
+void Inventory::connectToItemCombinator(ItemCombinator* itemCombinator) {
 	m_itemCombinator = itemCombinator;
 }
 
-bool Inventory::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/){
+bool Inventory::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
 	if (item.amount <= 0) { return true; }
 	int target = item.amount - (int)(std::ceil((float)item.amount * portion));
 	for (int y = startSlot.y; y < m_data.size.y; y++) {
@@ -71,7 +71,7 @@ bool Inventory::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& s
 	return false;
 }
 
-bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/){
+bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
 	if (item.amount <= 0) { return true; }
 	int target = item.amount - (int)((float)item.amount * portion);
 	//Filling already existing stacks
@@ -98,7 +98,7 @@ bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& sta
 	return false;
 }
 
-int Inventory::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/){
+int Inventory::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
 	if (item.amount <= 0) { return 0; }
 	int leftToRemove = item.amount;
 	for (int y = startSlot.y; y < m_data.size.y; y++) {
@@ -128,20 +128,19 @@ void Inventory::wasChanged() const {
 	}
 }
 
-void Inventory::adoptInventoryData(const InventoryData& id){
+void Inventory::adoptInventoryData(const InventoryData& id) {
 	m_data = id;
 	wasChanged();
 }
 
-void Inventory::gatherInventoryData(InventoryData& id){
+void Inventory::gatherInventoryData(InventoryData& id) const {
 	id = m_data;
-	wasChanged();
 }
 
-void Inventory::operator+=(Item& item){
+void Inventory::operator+=(Item& item) {
 	fill(item, 1.0f);
 }
 
-int Inventory::operator-=(const Item& item){
+int Inventory::operator-=(const Item& item) {
 	return remove(item);
 }

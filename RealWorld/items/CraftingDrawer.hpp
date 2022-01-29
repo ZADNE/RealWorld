@@ -87,7 +87,7 @@ private:
 	std::vector<ItemSprite> m_itemSprites;
 	RE::Colour m_defColour{255u, 255u, 255u, 255u};
 	RE::Colour m_amountColour{255u, 0u, 0u, 255u};
-	RE::ShaderProgram m_PTSBelow{{.vert = RE::vert_sprite, .frag = RE::frag_sprite}};
-	RE::ShaderProgram m_PTSAbove{{.vert = RE::vert_sprite, .frag = shaders::standardOut1_frag}};
+	RE::ShaderProgram m_PTSBelow{{.vert = RE::sprite_vert, .frag = RE::sprite_frag}};
+	RE::ShaderProgram m_PTSAbove{{.vert = RE::sprite_vert, .frag = shaders::standardOut1_frag}};
 	bool m_shouldDraw = false;
 };

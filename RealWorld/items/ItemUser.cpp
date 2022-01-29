@@ -1,18 +1,13 @@
 ﻿#include <RealWorld/items/ItemUser.hpp>
 
-#include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/utility/utility.hpp>
 
-#include <RealWorld/world/TDB.hpp>
-#include <RealWorld/items/IDB.hpp>
-#include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/world/World.hpp>
-#include <RealWorld/items/ItemOnGroundManager.hpp>
 #include <RealWorld/world/physics/position_conversions.hpp>
 
 
-ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
+ItemUser::ItemUser(World& world, FurnitureManager& furnitureManager, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
 	m_world(world),
+	m_furnitureManager(furnitureManager),
 	m_inv(inventory),
 	m_operatorsHitbox(operatorsHitbox),
 	m_spriteBatch(spriteBatch),
@@ -66,7 +61,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			//Dismantling furniture
 			if (m_using[ItemUse::MAIN] == 1 && //If just clicked
 				rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= pickaxeMetadata[im.typeIndex].range) {//If the operator stands close enough
-				auto fur = m_world.destroy(m_UCTileBc);
+				auto fur = m_furnitureManager.destroy(m_UCTileBc);
 				m_itemOnGroundManager.add(fur.second * ivec2_BLOCK_SIZE, Item(FDB::getItemID(fur.first), 1));
 			}
 
@@ -118,7 +113,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 		case I_TYPE::BLOCK:
 			if (m_UCBlock == BLOCK_ID::AIR//If there already is not a block
 				&& rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= m_buildingRange//If the operator stands close enough
-				&& !m_world.build(FStatic{m_UCTileBc, 0u}, false).isError()) {//If there is not any furniture
+				&& !m_furnitureManager.build(FStatic{m_UCTileBc, 0u}, false).isError()) {//If there is not any furniture
 				if (!m_operatorsHitbox.overlapsBlockwise(m_relCursorPos)) {//If not inside operator
 					m_world.set(chunk::SET_TYPES::BLOCK, m_UCTileBc, im.typeIndex);
 					m_UCBlock = (BLOCK_ID)im.typeIndex;
@@ -139,7 +134,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			break;
 		case I_TYPE::FURNITURE:
 			if (rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx + (FDB::getDims((size_t)im.typeIndex) - glm::ivec2{1, 1}) * ivec2_BLOCK_SIZE / 2) <= m_buildingRange) {//If the operator stands close enough
-				FIndex findex = m_world.build(FStatic{m_UCTileBc, (size_t)im.typeIndex});//Try to build
+				FIndex findex = m_furnitureManager.build(FStatic{m_UCTileBc, (size_t)im.typeIndex});//Try to build
 				if (findex.getError() == BuildError::NO_ERROR) {//Successfully built
 					--(*m_item);
 					m_inv.wasChanged();
@@ -179,7 +174,7 @@ void ItemUser::draw() {
 void ItemUser::checkBuildFurniture() {
 	ItemMetadata im = IDB::g(m_item->ID);
 	if (rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx + (FDB::getDims((size_t)im.typeIndex) - glm::ivec2{1, 1}) * ivec2_BLOCK_SIZE / 2) <= m_buildingRange) {//If the operator stands close enough
-		FIndex findex = m_world.build(FStatic{m_UCTileBc, (size_t)im.typeIndex}, false);//Try to build
+		FIndex findex = m_furnitureManager.build(FStatic{m_UCTileBc, (size_t)im.typeIndex}, false);//Try to build
 		if (findex.getError() == BuildError::NO_ERROR) {
 			m_canBuildFurniture = 2;//Can build
 		} else {

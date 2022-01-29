@@ -67,10 +67,10 @@ public:
 	bool exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc, uchar index);
 
 	/**
-	 * @brief Performs step operation on the chunk handler.
+	 * @brief Performs beginStep operation on the chunk handler.
 	 *
 	 * This function increments internal timers for possible memory deallocation.
-	 * It should be called every physics step.
+	 * It should be called every physics beginStep.
 	*/
 	void step();
 

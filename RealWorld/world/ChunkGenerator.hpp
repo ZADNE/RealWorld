@@ -1,12 +1,13 @@
 ﻿#pragma once
 #include <array>
 
-#include <RealEngine/resources/ResourceManager.hpp>
+#include <RealEngine/graphics/ShaderProgram.hpp>
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
 #include <RealWorld/world/Chunk.hpp>
 #include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/rendering/UniformBuffers.hpp>
 
 /**
  * Generates new chunks.
@@ -45,6 +46,24 @@ public:
 	Chunk generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm::ivec2 uploadOffset);
 
 private:
+	using enum RE::BufferType;
+	using enum RE::BufferStorage;
+	using enum RE::BufferAccessFrequency;
+	using enum RE::BufferAccessNature;
+	using enum RE::BufferUsageFlags;
+	using enum RE::VertexComponentCount;
+	using enum RE::VertexComponentType;
+	using enum RE::Primitive;
+
+	struct ChunkUniforms {
+		glm::mat4 chunkGenMatrix;
+		glm::vec2 chunkOffsetBc;
+		glm::vec2 chunkDims;
+		glm::vec2 chunkBorders;
+		int seed;
+	};
+	RE::UniformBuffer m_chunkUniformBuffer{UNIF_BUF_CHUNKGEN, true, RE::BufferUsageFlags::DYNAMIC_STORAGE, sizeof(ChunkUniforms)};
+
 	void initShaders();
 	void initVAO();
 	void setVBOToWholeChunk();
@@ -53,14 +72,14 @@ private:
 	//Actual generation functions
 	void generateBasicTerrain();
 	void cellularAutomaton();
-	void setVars();
+	void selectVariations();
 
 	RE::VertexArray m_VAO;
-	RE::Buffer<RE::BufferType::ARRAY> m_VBO{sizeof(RE::VertexPO) * 6, RE::BufferUsageFlags::DYNAMIC_STORAGE};
+	RE::Buffer<ARRAY, IMMUTABLE> m_VBO{sizeof(RE::VertexPO) * 4, DYNAMIC_STORAGE};
 
-	RE::ShaderProgramPtr m_basicTerrainShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::basicTerrain_frag});
-	RE::ShaderProgramPtr m_varShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::var_frag});
-	RE::ShaderProgramPtr m_cellularAutomatonShader = RE::RM::getShaderProgram({.vert = WGS::chunkGen_vert, .frag = WGS::cellularAutomaton_frag});
+	RE::ShaderProgram m_basicTerrainShader = RE::ShaderProgram{{.vert = WGS::chunkGen_vert, .frag = WGS::basicTerrain_frag}};
+	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.vert = WGS::chunkGen_vert, .frag = WGS::cellularAutomaton_frag}};
+	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.vert = WGS::chunkGen_vert, .frag = WGS::selectVariation_frag}};
 
 	std::array<RE::Surface, 2> m_genSurf = {
 		RE::Surface{ {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false },

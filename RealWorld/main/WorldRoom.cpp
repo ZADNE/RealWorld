@@ -1,18 +1,23 @@
 ﻿#include <RealWorld/main/WorldRoom.hpp>
 
-#include <RealEngine/graphics/UniformManager.hpp>
-
 #include <RealWorld/world/physics/position_conversions.hpp>
+#include <RealWorld/world/WorldDataLoader.hpp>
+
+
+#ifdef _DEBUG
+const unsigned int FPS_LIMIT = 150u;
+#else
+const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
+#endif // _DEBUG
 
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
-	m_world(RE::View::std.getViewMatrix(), window()->getDims(), RE::SpriteBatch::std(), m_player),
-	m_player(*input(), m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
+	m_world(),
+	m_worldDrawer(window()->getDims()),
+	m_furnitureManager(RE::SpriteBatch::std(), {1, 1}, m_world, window()->getDims()),
+	m_player(*input(), m_world, m_furnitureManager, RE::SpriteBatch::std(), m_itemOnGroundManager),
 	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
 	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
 	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_player.getMainInventory()) {
-
-	//World view
-	m_worldView.initView(window()->getDims());
 
 	//Drawers
 	m_inventoryDrawer.connectToInventory(&m_player.getMainInventory(), Connection::PRIMARY);
@@ -27,7 +32,7 @@ WorldRoom::~WorldRoom() {
 
 void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	try {
-		if (!m_world.loadWorld(std::any_cast<const std::string&>(params[0]))) {
+		if (!loadWorld(std::any_cast<const std::string&>(params[0]))) {
 			program()->scheduleRoomTransition(0, {});
 			return;
 		}
@@ -37,28 +42,30 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	}
 
 	synchronizer()->setStepsPerSecond(PHYSICS_STEPS_PER_SECOND);
-#ifdef _DEBUG
-	synchronizer()->setFramesPerSecondLimit(150u);
-#else
-	synchronizer()->setFramesPerSecondLimit(RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND);
-#endif // _DEBUG
+	synchronizer()->setFramesPerSecondLimit(FPS_LIMIT);
 }
 
 void WorldRoom::sessionEnd() {
-	//m_world.saveWorld();/*TEMP*/
+#ifdef SAVE_WORLD_ON_EXIT
+	saveWorld();
+#endif // SAVE_WORLD_ON_EXIT
 }
 
 void WorldRoom::step() {
 	//Player BEGIN
-	m_player.beginStep();
+	m_player.step();
 	//View
 	m_worldView.setPosition(m_player.getPos(), input()->getCursorAbs());
 	m_worldView.update();
+	m_worldViewUnifromBuffer.overwrite(m_worldView.getViewMatrix());
+
+	m_worldDrawer.beginStep(m_worldView.getBotLeft(), m_world);
 	//Player END
 	m_player.endStep((glm::ivec2)m_worldView.getCursorRel());
 	//World BEGIN STEP
-	m_world.beginStep(m_worldView.getPosition(), m_worldView.getBotLeft());
-	auto lm = m_world.getLightManipulator();
+	m_world.step();
+	m_furnitureManager.step(m_worldView.getBotLeft());
+	auto lm = m_worldDrawer.getLightManipulator();
 	lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 0u, 255u}, 0.0f, 1.0f);
 
 	//ItemOnGroundManager
@@ -96,47 +103,41 @@ void WorldRoom::step() {
 		if (input()->wasReleased(KB(INV_USEPRIMARY))) { m_player.getItemUser().endUse(ItemUse::MAIN); }
 		if (input()->wasReleased(KB(INV_USESECONDARY))) { m_player.getItemUser().endUse(ItemUse::ALTERNATIVE); }
 	}
-	//World END STEP
-	m_world.endStep();
+	m_worldDrawer.endStep();
 	//TEMP or DEBUG
-	if (input()->wasPressed(KB(DEBUG_ENDGAME))) { program()->scheduleRoomTransition(0, {}); }
 	if (input()->wasPressed(KB(DEBUG_WORLDDRAW))) { m_world.switchDebugDraw(); }
-	if (input()->wasPressed(KB(DEBUG_WORLDDARKNESS))) { m_world.switchDebugDarkness(); }
+	//if (input()->wasPressed(KB(DEBUG_WORLDDARKNESS))) { m_worldDrawer.switchDebugDarkness(); }
+	if (input()->wasPressed(KB(DEBUG_ENDGAME))) { program()->scheduleRoomTransition(0, {}); }
 }
 
 void WorldRoom::render(double interpolationFactor) {
-	RE::SpriteBatch::std().begin();
-	//World draw NORMAL
-	m_world.drawBeginStep();
+	m_worldViewUnifromBuffer.bind();//World view matrix
 
-	//ItemOnGroundManager
+	m_worldDrawer.drawTiles();
+
+	RE::SpriteBatch::std().begin();
+	m_furnitureManager.draw();
 	m_itemOnGroundManager.draw();
-
-	RE::SpriteBatch::std().end();
-	auto temp = m_worldView.getViewMatrix();
-	RE::UniformManager::std.setUniformBuffer("GlobalMatrices", 0u, sizeof(glm::mat4), &temp);
-	RE::SpriteBatch::std().draw();
-	//Player draw
-	RE::SpriteBatch::std().begin();
 	m_player.draw();
 	RE::SpriteBatch::std().end();
 	RE::SpriteBatch::std().draw();
-	temp = RE::View::std.getViewMatrix();
-	RE::UniformManager::std.setUniformBuffer("GlobalMatrices", 0u, sizeof(glm::mat4), &temp);
 
-	m_world.drawEndStep();
+	m_worldDrawer.coverWithDarkness();
 
-	//GUI
+	RE::Viewport::getWindowMatrixUniformBuffer().bind();//Window view matrix
+
 	drawGUI();
 }
 
 void WorldRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
 	window()->resize(newDims, isPermanent);
-	m_worldView.resizeView(glm::vec2(newDims));
+	m_worldView.resizeView(newDims);
 	m_worldView.update();
-	m_world.resizeWindow(RE::View::std.getViewMatrix(), glm::uvec2(newDims));
-	m_inventoryDrawer.resizeWindow(glm::vec2(newDims));
-	m_craftingDrawer.resizeWindow(glm::vec2(newDims));
+	m_world.resizeWindow(newDims);
+	m_worldDrawer.resizeView(newDims);
+	m_furnitureManager.resizeView(newDims);
+	m_inventoryDrawer.resizeWindow(newDims);
+	m_craftingDrawer.resizeWindow(newDims);
 }
 
 void WorldRoom::drawGUI() {
@@ -166,4 +167,28 @@ void WorldRoom::drawGUI() {
 
 	RE::SpriteBatch::std().end();
 	RE::SpriteBatch::std().draw();
+
+	m_world.drawDebug();
+}
+
+bool WorldRoom::loadWorld(const std::string& worldName) {
+	WorldData wd = WorldData();
+
+	if (!WorldDataLoader::loadWorldData(wd, worldName)) return false;
+
+	auto worldTextureSize = m_world.adoptWorldData(wd, worldName, window()->getDims());
+	m_player.adoptPlayerData(wd.pd);
+
+	m_worldDrawer.setTarget(worldTextureSize);
+	m_furnitureManager.adoptFurnitureCollection(wd.fc);
+	return true;
+}
+
+bool WorldRoom::saveWorld() const {
+	WorldData wd;
+	m_world.gatherWorldData(wd);
+	m_player.gatherPlayerData(wd.pd);
+	m_furnitureManager.gatherFurnitureCollection(wd.fc);
+	if (!WorldDataLoader::saveWorldData(wd, wd.wi.worldName)) return false;
+	return m_world.saveChunks();
 }

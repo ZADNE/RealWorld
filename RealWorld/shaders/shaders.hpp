@@ -45,7 +45,7 @@ extern const char* set_frag;
 
 extern const char* basicTerrain_frag;
 
-extern const char* var_frag;
+extern const char* selectVariation_frag;
 
 const int LOC_CELL_AUTO_LOW = 33;
 const int LOC_CELL_AUTO_HIGH = 34;

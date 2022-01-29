@@ -4,7 +4,6 @@
 #include <RealEngine/resources/ResourceManager.hpp>
 
 RE::SpriteBatch* FStatic::p_spriteBatch = nullptr;
-LightManipulator FStatic::p_lightManipulator = {};
 
 FStatic::FStatic(const glm::ivec2& botLeftBc, size_t totalIndex) :
 	p_botLeftBc(botLeftBc),
@@ -40,7 +39,6 @@ void FStatic::destroy() {
 
 }
 
-void FStatic::initStatics(RE::SpriteBatch& spriteBatch, LightManipulator lightManipulator) {
+void FStatic::initStatics(RE::SpriteBatch& spriteBatch) {
 	p_spriteBatch = &spriteBatch;
-	p_lightManipulator = lightManipulator;
 }

@@ -63,10 +63,10 @@ struct QTFurniture {
 };
 
 
-class FurnitureRegister {
+class FurnitureManager {
 public:
-	FurnitureRegister(RE::SpriteBatch& spriteBatch, const glm::ivec2& worldDims, World& world, const glm::vec2& viewSizePx);
-	~FurnitureRegister();
+	FurnitureManager(RE::SpriteBatch& spriteBatch, const glm::ivec2& worldDims, World& world, const glm::vec2& viewSizePx);
+	~FurnitureManager();
 
 	void resizeView(const glm::vec2& viewSizePx);
 
@@ -100,7 +100,7 @@ public:
 	void clear();
 
 
-	//Should be called each physics step
+	//Should be called each physics beginStep
 	void step(const glm::vec2& botLeftPosPx);
 
 	void draw();
@@ -118,10 +118,10 @@ private:
 	bool destroySimple(const FIndex fIndex);
 
 	template<class ...Args> void callOnEach(void (FStatic::* func)(Args...), Args... args);
-	template<class ...Args> void callWithEach(void (FurnitureRegister::* func)(const FStatic*, Args...), Args... args);
+	template<class ...Args> void callWithEach(void (FurnitureManager::* func)(const FStatic*, Args...), Args... args);
 
 	template<class ...Args> void callOnEach(void (FStatic::* func)(Args...) const, Args... args) const;
-	template<class ...Args> void callWithEach(void (FurnitureRegister::* func)(const FStatic*, Args...) const, Args... args) const;
+	template<class ...Args> void callWithEach(void (FurnitureManager::* func)(const FStatic*, Args...) const, Args... args) const;
 
 	RE::SpriteBatch& m_spriteBatch;
 	World& m_world;
@@ -169,7 +169,7 @@ private:
 };
 
 template<class ...Args>
-inline void FurnitureRegister::callOnEach(void(FStatic::* func)(Args...), Args... args) {
+inline void FurnitureManager::callOnEach(void(FStatic::* func)(Args...), Args... args) {
 	callOnEachOfType(0, func, args...);
 	callOnEachOfType(1, func, args...);
 	callOnEachOfType(2, func, args...);
@@ -178,7 +178,7 @@ inline void FurnitureRegister::callOnEach(void(FStatic::* func)(Args...), Args..
 }
 
 template<class ...Args>
-inline void FurnitureRegister::callWithEach(void(FurnitureRegister::* func)(const FStatic*, Args...), Args... args) {
+inline void FurnitureManager::callWithEach(void(FurnitureManager::* func)(const FStatic*, Args...), Args... args) {
 	callWithEachOfType(0, func, args...);
 	callWithEachOfType(1, func, args...);
 	callWithEachOfType(2, func, args...);
@@ -187,7 +187,7 @@ inline void FurnitureRegister::callWithEach(void(FurnitureRegister::* func)(cons
 }
 
 template<class ...Args>
-inline void FurnitureRegister::callOnEach(void(FStatic::* func)(Args...) const, Args ...args) const {
+inline void FurnitureManager::callOnEach(void(FStatic::* func)(Args...) const, Args ...args) const {
 	callOnEachOfType(0, func, args...);
 	callOnEachOfType(1, func, args...);
 	callOnEachOfType(2, func, args...);
@@ -196,7 +196,7 @@ inline void FurnitureRegister::callOnEach(void(FStatic::* func)(Args...) const, 
 }
 
 template<class ...Args>
-inline void FurnitureRegister::callWithEach(void(FurnitureRegister::* func)(const FStatic*, Args...) const, Args... args) const {
+inline void FurnitureManager::callWithEach(void(FurnitureManager::* func)(const FStatic*, Args...) const, Args... args) const {
 	callWithEachOfType(0, func, args...);
 	callWithEachOfType(1, func, args...);
 	callWithEachOfType(2, func, args...);
