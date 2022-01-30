@@ -21,10 +21,6 @@ public:
 	World();
 	~World();
 
-	void resizeWindow(const glm::vec2& newWindowDims);
-
-	void switchDebugDraw() { m_shouldDrawDebug = !m_shouldDrawDebug; };
-
 	//Getters
 	int getNumberOfChunksLoaded();
 
@@ -50,8 +46,6 @@ public:
 
 	void step();
 
-	void drawDebug();
-
 	glm::uvec2 adoptWorldData(const WorldData& wd, const std::string& name, const glm::vec2& windowDims);
 	void gatherWorldData(WorldData& wd) const;
 	bool saveChunks() const;
@@ -76,7 +70,6 @@ private:
 	void initConstantUniforms();
 	void initUniformBuffers();
 
-	void rebuildDebugRectangle(const glm::vec2& newWindowDims);
 	void updateUniformsAfterWorldResize();
 
 	//Set with update
@@ -87,20 +80,11 @@ private:
 	float m_time = 17.0f;
 	RE::ShaderProgram m_setWithUpdateShader = RE::ShaderProgram{{.vert = shaders::setWithUpdate_vert, .frag = shaders::setWithUpdate_frag}};
 
-	//Debug
-	RE::ShaderProgram m_debugDraw = RE::ShaderProgram{{.vert = shaders::data_vert, .frag = shaders::worldDebug_frag}};
-	RE::VertexArray m_debugVAO;
-	RE::Buffer<ARRAY> m_debugVBO{
-		sizeof(VertexPOUV) * 4, DYNAMIC_STORAGE
-	};
-
 	struct WorldUniforms {
 		glm::mat4 worldMatrix;
 		glm::vec2 worldSize;
 	};
 	RE::UniformBuffer m_worldUniformBuffer{UNIF_BUF_WORLD, true, RE::BufferUsageFlags::DYNAMIC_STORAGE, sizeof(WorldUniforms)};
-
-	bool m_shouldDrawDebug = false;
 
 	ChunkManager m_chunkHandler;
 

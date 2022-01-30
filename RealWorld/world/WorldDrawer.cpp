@@ -18,6 +18,7 @@
 const GLint VERTICES_POUV_WORLDTOLIGHT_RECT = 0;
 const GLint VERTICES_POUV_DARKNESS_RECT = 4;
 const GLint VERTICES_POUV_NORM_RECT = 8;
+const GLint VERTICES_POUV_MINIMAP_RECT = 12;
 
 const GLuint ATTR_DIR = 2u;
 const GLuint ATTR_CONE = 3u;
@@ -42,12 +43,6 @@ WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {
 
 	TEX_UNIT_VOLATILE.setActive();
 
-	//For dynamic lights
-	glEnable(GL_PROGRAM_POINT_SIZE);
-	glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
-	glPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE, 2.0f);
-
-
 	TEX_UNIT_BLOCK_ATLAS.setActive();
 	m_blockAtlasTex = RE::RM::getTexture("blockAtlas");
 	m_blockAtlasTex->bind();
@@ -68,6 +63,7 @@ void WorldDrawer::setTarget(const glm::ivec2& worldDimBc) {
 
 	glClearColor(m_backgroundColour.r, m_backgroundColour.g, m_backgroundColour.b, m_backgroundColour.a);
 	m_addDynamicLightShader.setUniform("yInversion", m_worldDimBc.y * vec2_BLOCK_SIZE.y);
+	updatePOUVBuffers();
 }
 
 void WorldDrawer::resizeView(const glm::uvec2& newViewSizePx) {
@@ -127,14 +123,13 @@ void WorldDrawer::beginStep(const glm::vec2& botLeftPx, World& world) {
 void WorldDrawer::endStep() {
 	//Dynamic lights
 	m_bufferDynamicLights.redefine(m_dynamicLights);
-
 	m_SurLighting.setTarget();
 	m_arrayLights.bind();
 	m_addDynamicLightShader.use();
 	glBlendFunc(GL_ONE, GL_ONE);
-	glm::vec2 dynLightBotLeftBc = static_cast<glm::vec2>(m_botLeftBc) - glm::vec2(0.5, 0.5);//0.5 to shift to center of block
+	glm::vec2 dynLightBotLeftBc = static_cast<glm::vec2>(m_botLeftBc);
 	m_addDynamicLightShader.setUniform(WDS::LOC_POSITION, dynLightBotLeftBc);
-	m_arrayLights.renderArrays(POINTS, 0, static_cast<GLsizei>(m_dynamicLights.size()));
+	m_arrayLights.renderArrays(POINTS, 0, static_cast<GLsizei>(m_dynamicLights.size()), 4);
 	glTextureBarrier();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	m_addDynamicLightShader.unuse();
@@ -167,6 +162,16 @@ void WorldDrawer::coverWithDarkness() {
 	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_DARKNESS_RECT, 4);
 	m_coverWithDarknessShader.unuse();
 	m_arrayPOUV.unbind();
+}
+
+void WorldDrawer::drawMinimap() {
+	if (m_drawMinimap) {
+		m_arrayPOUV.bind();
+		m_minimapShader.use();
+		m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_MINIMAP_RECT, 4);
+		m_minimapShader.unuse();
+		m_arrayPOUV.unbind();
+	}
 }
 
 void WorldDrawer::addLight(const glm::vec2& posPx, RE::Colour col, float dir, float cone) {
@@ -205,16 +210,16 @@ void WorldDrawer::initVAOs() {
 }
 
 void WorldDrawer::updatePOUVBuffers() {
-	VertexPOUV vertices[12];
+	VertexPOUV vertices[16];
 
-	//Block size RECT
+	//Block size rectangle
 	size_t i = VERTICES_POUV_WORLDTOLIGHT_RECT;
 	vertices[i++].setPosition(0.0f, 0.0f);
 	vertices[i++].setPosition((float)m_viewsizeLightingBc.x, 0.0f);
 	vertices[i++].setPosition(0.0f, (float)m_viewsizeLightingBc.y);
 	vertices[i++].setPosition((float)m_viewsizeLightingBc.x, (float)m_viewsizeLightingBc.y);
 
-	//DARKNESS RECT
+	//Darkness rectangle
 	i = VERTICES_POUV_DARKNESS_RECT;
 	glm::vec2 minn = glm::vec2((float)light::MAX_RANGE / m_viewsizeLightingBc.x, 1.0f - (float)light::MAX_RANGE / m_viewsizeLightingBc.y);
 	glm::vec2 maxx = glm::vec2(1.0f, 1.0f) - minn;
@@ -224,12 +229,22 @@ void WorldDrawer::updatePOUVBuffers() {
 	vertices[i++] = {0.0f, darknessRect.y, minn.x, maxx.y};
 	vertices[i++] = {darknessRect.x, darknessRect.y, maxx.x, maxx.y};
 
-	//Tiles mesh
+	//Normalized rectangle
 	i = VERTICES_POUV_NORM_RECT;
 	vertices[i++] = {0.0f, 0.0f, 0.0f, 1.0f};
 	vertices[i++] = {1.0f, 0.0f, 1.0f, 1.0f};
 	vertices[i++] = {0.0f, 1.0f, 0.0f, 0.0f};
 	vertices[i++] = {1.0f, 1.0f, 1.0f, 0.0f};
+
+	//Minimap rectangle
+	float scale = 0.4f;
+	const glm::vec2 middle = m_viewsizePx / 2.0f;
+	const glm::vec2 world = m_worldDimBc;
+	i = VERTICES_POUV_MINIMAP_RECT;
+	vertices[i++] = {{middle.x - world.x * scale, middle.y + world.y * scale}, {0.0f, 0.0f}};
+	vertices[i++] = {{middle.x + world.x * scale, middle.y + world.y * scale}, {1.0f, 0.0f}};
+	vertices[i++] = {{middle.x - world.x * scale, middle.y - world.y * scale}, {0.0f, 1.0f}};
+	vertices[i++] = {{middle.x + world.x * scale, middle.y - world.y * scale}, {1.0f, 1.0f}};
 
 	m_bufferPOUV.overwrite(0, sizeof(vertices), vertices);
 }
@@ -259,6 +274,9 @@ void WorldDrawer::initShaders() {
 
 	m_addDynamicLightShader.setUniform(WDS::LOC_DIAPHRAGM, TEX_UNIT_DIAPHRAGM);
 	m_addDynamicLightShader.setUniform("invBlockSizePx", 1.0f / vec2_BLOCK_SIZE);
+
+	m_minimapShader.setUniform(shaders::LOC_BASE_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_minimapShader, 0u);
 }
 
 void WorldDrawer::updateUniformsAfterViewResize() {

@@ -92,7 +92,7 @@ void InventoryDrawer::reloadEverything() {
 	}
 	updateHitboxMesh();
 	updateSurfaceSlots();
-	//updateSurfaceNumbers();
+	updateSurfaceNumbers();
 }
 
 void InventoryDrawer::swapUnderCursor() {
@@ -287,7 +287,7 @@ void InventoryDrawer::updateSurfaceSlots() {
 			}
 		}
 
-		m_spriteBatch.end();
+		m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
 		m_spriteBatch.draw();
 	}
 
@@ -314,7 +314,7 @@ void InventoryDrawer::updateSurfaceNumbers() {
 				}
 			}
 		}
-		m_spriteBatch.end();
+		m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
 		m_spriteBatch.draw(m_PTSAbove);
 	}
 

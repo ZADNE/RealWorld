@@ -51,9 +51,9 @@ void MainMenuRoom::step() {
 }
 
 void MainMenuRoom::render(double interpolationFactor) {
-	RE::SpriteBatch::std().begin(RE::GlyphSortType::POS_TOP);
+	RE::SpriteBatch::std().begin();
 	m_menu.draw();
-	RE::SpriteBatch::std().end();
+	RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
 	RE::SpriteBatch::std().draw();
 }
 

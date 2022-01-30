@@ -35,6 +35,9 @@ public:
 	void drawTiles();
 	//Should be called at the end of draw beginStep (to cover everything else with darkness) but before GUI
 	void coverWithDarkness();
+
+	void toggleMinimap() { m_drawMinimap = !m_drawMinimap; }
+	void drawMinimap();
 private:
 	using enum RE::BufferType;
 	using enum RE::BufferStorage;
@@ -81,11 +84,14 @@ private:
 
 	RE::ShaderProgram m_addDynamicLightShader = RE::ShaderProgram({.vert = WDS::addDynamicLight_vert, .frag = WDS::addDynamicLight_frag});
 
+	RE::ShaderProgram m_minimapShader = RE::ShaderProgram{{.vert = shaders::data_vert, .frag = shaders::worldDebug_frag}};
+	bool m_drawMinimap = false;
+
 
 	RE::VertexArray m_arrayPOUV;
 	RE::VertexArray m_arrayLights;
 
-	RE::Buffer<ARRAY, IMMUTABLE> m_bufferPOUV{sizeof(VertexPOUV) * 12, DYNAMIC_STORAGE};
+	RE::Buffer<ARRAY, IMMUTABLE> m_bufferPOUV{sizeof(VertexPOUV) * 16, DYNAMIC_STORAGE};
 	RE::Buffer<ARRAY, MUTABLE> m_bufferDynamicLights{STREAM, DRAW};
 
 	struct WorldDrawUniforms {

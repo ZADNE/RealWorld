@@ -3,7 +3,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/main/Error.hpp>
-#include <RealEngine/graphics/Viewport.hpp>
 
 #include <RealWorld/world/TDB.hpp>
 #include <RealWorld/world/physics/Player.hpp>
@@ -21,22 +20,6 @@ World::~World() {
 
 }
 
-void World::resizeWindow(const glm::vec2& newWindowDims) {
-	rebuildDebugRectangle(newWindowDims);
-}
-
-void World::drawDebug() {
-	if (m_shouldDrawDebug) {
-		m_debugDraw.use();
-		m_debugVAO.bind();
-
-		m_debugVAO.renderArrays(TRIANGLE_STRIP, 0, 4);
-
-		m_debugVAO.unbind();
-		m_debugDraw.unuse();
-	}
-}
-
 glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, const glm::vec2& windowDims) {
 	m_seed = wd.wi.seed;
 	m_chunkDims = wd.wi.chunkDims;
@@ -49,7 +32,6 @@ glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, c
 
 	m_chunkHandler.setTarget(m_seed, m_chunkDims, m_activeChunksRect, wd.path, &m_ws);
 
-	rebuildDebugRectangle(windowDims);
 	updateUniformsAfterWorldResize();
 
 	return m_ws.getDims();
@@ -144,44 +126,15 @@ void World::initVAOs() {
 
 	m_setWithUpdateVAO.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
 	m_setWithUpdateVAO.connectAttributeToBindingPoint(ATTR_SET_AROUND, vboBindingPoint);
-
-	//Debug
-	m_debugVAO.setBindingPoint(vboBindingPoint, m_debugVBO, 0u, sizeof(VertexPOUV));
-
-	m_debugVAO.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexPOUV, position));
-	m_debugVAO.setAttribute(RE::ATTR_UV, XY, FLOAT, offsetof(VertexPOUV, uv));
-
-	m_debugVAO.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
-	m_debugVAO.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
-}
-
-void World::rebuildDebugRectangle(const glm::vec2& newWindowDims) {
-	float scale = 0.4f;
-	const glm::vec2 middle = newWindowDims / 2.0f;
-	const glm::vec2 world = m_ws.getDims();
-
-	const VertexPOUV vertexData[4] = {
-		{{middle.x - world.x * scale, middle.y + world.y * scale}, {0.0f, 0.0f}},
-		{{middle.x + world.x * scale, middle.y + world.y * scale}, {1.0f, 0.0f}},
-		{{middle.x - world.x * scale, middle.y - world.y * scale}, {0.0f, 1.0f}},
-		{{middle.x + world.x * scale, middle.y - world.y * scale}, {1.0f, 1.0f}}
-	};
-
-	m_debugVBO.overwrite(0, sizeof(vertexData), vertexData);
 }
 
 void World::initConstantUniforms() {
 	//SET WITH VAR UPDATE
 	m_setWithUpdateShader.setUniform(shaders::LOC_AIR_ID, glm::uvec2((GLuint)BLOCK_ID::AIR, (GLuint)WALL_ID::AIR));
 	m_setWithUpdateShader.setUniform(WGS::LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
-
-	//DEBUG DRAW shader
-	m_debugDraw.setUniform(shaders::LOC_BASE_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
 }
 
 void World::initUniformBuffers() {
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_debugDraw, 0u);
-
 	m_worldUniformBuffer.connectToShaderProgram(m_setWithUpdateShader, 0u);
 }
 

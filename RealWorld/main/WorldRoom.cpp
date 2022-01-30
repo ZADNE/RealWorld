@@ -10,6 +10,8 @@ const unsigned int FPS_LIMIT = 150u;
 const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 #endif // _DEBUG
 
+static float x = 0.0;
+
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
@@ -31,6 +33,7 @@ WorldRoom::~WorldRoom() {
 }
 
 void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
+	x = 0.0;
 	try {
 		if (!loadWorld(std::any_cast<const std::string&>(params[0]))) {
 			program()->scheduleRoomTransition(0, {});
@@ -66,7 +69,9 @@ void WorldRoom::step() {
 	m_world.step();
 	m_furnitureManager.step(m_worldView.getBotLeft());
 	auto lm = m_worldDrawer.getLightManipulator();
-	lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 0u, 255u}, 0.0f, 1.0f);
+	if (input()->isDown(RE::Key::H)) { x += 0.01f; }
+
+	lm.addLight(m_worldView.getCursorRel() + glm::vec2(sin(x) * 64.0f, 0.0f), RE::Colour{0u, 0u, 0u, 255u}, 0.0f, 1.0f);
 
 	//ItemOnGroundManager
 	m_itemOnGroundManager.step();
@@ -105,7 +110,7 @@ void WorldRoom::step() {
 	}
 	m_worldDrawer.endStep();
 	//TEMP or DEBUG
-	if (input()->wasPressed(KB(DEBUG_WORLDDRAW))) { m_world.switchDebugDraw(); }
+	if (input()->wasPressed(KB(DEBUG_WORLDDRAW))) { m_worldDrawer.toggleMinimap(); }
 	//if (input()->wasPressed(KB(DEBUG_WORLDDARKNESS))) { m_worldDrawer.switchDebugDarkness(); }
 	if (input()->wasPressed(KB(DEBUG_ENDGAME))) { program()->scheduleRoomTransition(0, {}); }
 }
@@ -119,7 +124,7 @@ void WorldRoom::render(double interpolationFactor) {
 	m_furnitureManager.draw();
 	m_itemOnGroundManager.draw();
 	m_player.draw();
-	RE::SpriteBatch::std().end();
+	RE::SpriteBatch::std().end(RE::GlyphSortType::TEXTURE);
 	RE::SpriteBatch::std().draw();
 
 	m_worldDrawer.coverWithDarkness();
@@ -133,7 +138,6 @@ void WorldRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
 	window()->resize(newDims, isPermanent);
 	m_worldView.resizeView(newDims);
 	m_worldView.update();
-	m_world.resizeWindow(newDims);
 	m_worldDrawer.resizeView(newDims);
 	m_furnitureManager.resizeView(newDims);
 	m_inventoryDrawer.resizeWindow(newDims);
@@ -141,7 +145,7 @@ void WorldRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
 }
 
 void WorldRoom::drawGUI() {
-	RE::SpriteBatch::std().begin(RE::GlyphSortType::POS_TOP);
+	RE::SpriteBatch::std().begin();
 	std::stringstream stream;
 
 	stream << "FPS: " << synchronizer()->getFramesPerSecond() << '\n';
@@ -165,10 +169,10 @@ void WorldRoom::drawGUI() {
 	m_inventoryDrawer.draw();
 	m_craftingDrawer.draw();
 
-	RE::SpriteBatch::std().end();
+	RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
 	RE::SpriteBatch::std().draw();
 
-	m_world.drawDebug();
+	m_worldDrawer.drawMinimap();
 }
 
 bool WorldRoom::loadWorld(const std::string& worldName) {

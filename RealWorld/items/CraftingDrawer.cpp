@@ -275,7 +275,7 @@ void CraftingDrawer::reloadInstructionDescription(const ItemInstruction* instruc
 		for (unsigned int output = 0u; output < instruction->numberOfOutputs(); ++output) {
 			m_spriteBatch.addTexture(m_mainSlotTex.get(), glm::vec2((float)output * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + slotAndPadding.y + fontHeight), 0);
 		}
-		m_spriteBatch.end();
+		m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
 		m_spriteBatch.draw(m_PTSBelow);
 
 		//NUMBERS
@@ -295,7 +295,7 @@ void CraftingDrawer::reloadInstructionDescription(const ItemInstruction* instruc
 				font->add(m_spriteBatch, std::to_string(instruction->output(output).amount), glm::vec2((float)output * slotAndPadding.x + offset, m_mainSlotDims.y - m_mainSlotTex->getPivot().y + slotAndPadding.y - 40.0f + fontHeight), 0, m_amountColour, RE::HAlign::MIDDLE);
 			}
 		}
-		m_spriteBatch.end();
+		m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
 		m_spriteBatch.draw(m_PTSAbove);
 
 		m_surfaceDescription.resetTarget();
