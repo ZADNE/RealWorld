@@ -15,11 +15,11 @@ void readBinary(std::ifstream& file, T& x){
 std::vector<BlockMetadata> TDB::m_blockMetadata;
 std::vector<WallMetadata> TDB::m_wallMetadata;
 
-const BlockMetadata& TDB::gb(BLOCK_ID ID) {
+const BlockMetadata& TDB::gb(BLOCK ID) {
 	return m_blockMetadata[(unsigned int)ID];
 }
 
-const WallMetadata& TDB::gw(WALL_ID ID) {
+const WallMetadata& TDB::gw(WALL ID) {
 	return m_wallMetadata[(unsigned int)ID];
 }
 
@@ -33,7 +33,7 @@ void TDB::init() {
 
 	fileSize -= 4u;
 	file.seekg(4, std::ios::beg);
-	m_blockMetadata.resize(std::numeric_limits<std::underlying_type_t<BLOCK_ID>>::max());
+	m_blockMetadata.resize(std::numeric_limits<std::underlying_type_t<BLOCK>>::max());
 	for (size_t i = 0u; i < (size_t)fileSize; i += BlockMetadata::saveSize()) {
 		readBinary(file, m_blockMetadata[i / BlockMetadata::saveSize()].hardness);
 		readBinary(file, m_blockMetadata[i / BlockMetadata::saveSize()].toughness);
@@ -50,7 +50,7 @@ void TDB::init() {
 
 	fileSize -= 4u;
 	file.seekg(4, std::ios::beg);
-	m_wallMetadata.resize(std::numeric_limits<std::underlying_type_t<WALL_ID>>::max());
+	m_wallMetadata.resize(std::numeric_limits<std::underlying_type_t<WALL>>::max());
 	for (size_t i = 0u; i < (size_t)fileSize; i += WallMetadata::saveSize()) {
 		readBinary(file, m_wallMetadata[i / WallMetadata::saveSize()].hardness);
 		readBinary(file, m_wallMetadata[i / WallMetadata::saveSize()].toughness);

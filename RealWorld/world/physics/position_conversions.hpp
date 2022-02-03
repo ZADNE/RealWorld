@@ -10,8 +10,8 @@
  * \return Position in blocks
  */
 inline glm::ivec2 pxToBc(glm::ivec2 posPx) {
-    div_t x = div(posPx.x, ivec2_BLOCK_SIZE.x);
-    div_t y = div(posPx.y, ivec2_BLOCK_SIZE.y);
+    div_t x = div(posPx.x, iTILE_SIZE.x);
+    div_t y = div(posPx.y, iTILE_SIZE.y);
 
     glm::ivec2 r = { x.quot, y.quot };
 	if (x.rem != 0 && posPx.x < 0) r.x--;
@@ -26,5 +26,5 @@ inline glm::ivec2 pxToBc(glm::ivec2 posPx) {
  * \return Position in pixels
  */
 inline glm::ivec2 bcToPx(glm::ivec2 posBc) {
-	return posBc * ivec2_BLOCK_SIZE;
+	return posBc * iTILE_SIZE;
 }

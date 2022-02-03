@@ -1,6 +1,4 @@
 R""(
-#version 460
-
 layout(location = 2) out vec4 colour;
 
 layout(location = 100) uniform sampler2D diaphragm;

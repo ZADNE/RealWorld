@@ -11,7 +11,7 @@
 #include <RealEngine/graphics/Font.hpp>
 
 #include <RealWorld//metadata.hpp>
-#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/shaders/common.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemUser.hpp>
 

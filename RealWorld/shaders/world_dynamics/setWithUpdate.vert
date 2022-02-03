@@ -1,6 +1,4 @@
 R""(
-#version 460
-
 layout(location = 0) in vec2 shiftFromCenter;
 layout(location = 1) in uint setAround;
 

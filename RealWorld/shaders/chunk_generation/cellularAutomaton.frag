@@ -1,22 +1,20 @@
 R""(
-#version 460
-
 layout(location = 0) out uvec4 result;
 
 layout(location = 1) uniform uint tilesSelector;
 layout(location = 2) uniform usampler2D tilesTexture[2];
 layout(location = 4) uniform usampler2D materialTexture;
 
-layout(location = 10) uniform uvec4 air;
-
 layout(location = 33) uniform uint low;
 layout(location = 34) uniform uint high;
+uniform uvec4 air;
 
 const ivec2 offsets[] = ivec2[](
 	ivec2(-1, -1), 	ivec2(+0, -1), 	ivec2(+1, -1),
 	ivec2(-1, +0), 				 	ivec2(+1, +0),
 	ivec2(-1, +1), 	ivec2(+0, +1), 	ivec2(+1, +1)
 );
+
 
 void main() {
 	ivec2 pos = ivec2(gl_FragCoord.xy);

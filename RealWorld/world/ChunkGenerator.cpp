@@ -13,7 +13,7 @@
 #include <RealWorld/div.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>
 
-const int BORDER_WIDTH = 16;
+const int BORDER_WIDTH = 8;
 
 ChunkGenerator::ChunkGenerator() {
 	initShaders();
@@ -24,11 +24,9 @@ ChunkGenerator::~ChunkGenerator() {
 
 }
 
-void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims, glm::uvec2 activeChunksRect) {
+void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims) {
 	m_seed = seed;
-	m_chunkDims = chunkDims;
-	m_chunkDims_f = static_cast<glm::vec2>(chunkDims);
-	m_activeChunksRect = static_cast<glm::ivec2>(activeChunksRect);
+	m_chunkDimsTi = static_cast<glm::vec2>(chunkDims);
 	m_genSurf[0].resize({chunkDims + glm::uvec2(BORDER_WIDTH, BORDER_WIDTH) * 2u}, 2u);
 	m_genSurf[1].resize({chunkDims + glm::uvec2(BORDER_WIDTH, BORDER_WIDTH) * 2u}, 1u);
 	updateUniformsAfterSetTarget();
@@ -48,8 +46,8 @@ void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims, glm::uvec2 a
 
 Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm::ivec2 offset) {
 	//Update chunk offset with uniform buffer
-	glm::vec2 chunkOffsetBc = static_cast<glm::vec2>(posCh) * m_chunkDims_f;
-	m_chunkUniformBuffer.overwrite(offsetof(ChunkUniforms, chunkOffsetBc), sizeof(chunkOffsetBc), &chunkOffsetBc);
+	glm::vec2 chunkOffsetTi = static_cast<glm::vec2>(posCh) * m_chunkDimsTi;
+	m_chunkUniformBuffer.overwrite(offsetof(ChunkUniforms, chunkOffsetTi), sizeof(chunkOffsetTi), &chunkOffsetTi);
 
 	m_genSurf[0].setTarget();
 
@@ -64,15 +62,16 @@ Chunk ChunkGenerator::generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm:
 	m_VAO.unbind();
 
 	std::vector<unsigned char> data;
-	data.resize((size_t)m_chunkDims.x * m_chunkDims.y * 4ull);
+	glm::uvec2 chunkDimsTi = m_chunkDimsTi;
+	data.resize((size_t)chunkDimsTi.x * chunkDimsTi.y * 4ull);
 	//Download data -> CPU stall -> Pixel Buffer Object todo
-	glReadPixels(BORDER_WIDTH, BORDER_WIDTH, m_chunkDims.x, m_chunkDims.y, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, data.data());
+	glReadPixels(BORDER_WIDTH, BORDER_WIDTH, chunkDimsTi.x, chunkDimsTi.y, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, data.data());
 
-	glCopyTextureSubImage2D(uploadTexture, 0, offset.x, offset.y, BORDER_WIDTH, BORDER_WIDTH, m_chunkDims.x, m_chunkDims.y);
+	glCopyTextureSubImage2D(uploadTexture, 0, offset.x, offset.y, BORDER_WIDTH, BORDER_WIDTH, chunkDimsTi.x, chunkDimsTi.y);
 
 	m_genSurf[0].resetTarget();
 
-	return Chunk(posCh, m_chunkDims, data);
+	return Chunk(posCh, chunkDimsTi, data);
 }
 
 void ChunkGenerator::initShaders() {
@@ -80,13 +79,13 @@ void ChunkGenerator::initShaders() {
 	m_chunkUniformBuffer.connectToShaderProgram(m_cellularAutomatonShader, 0u);
 	m_chunkUniformBuffer.connectToShaderProgram(m_selectVariationShader, 0u);
 
-	m_selectVariationShader.setUniform("air", glm::uvec2(BLOCK_ID::AIR, WALL_ID::AIR));
-	m_selectVariationShader.setUniform(WGS::LOC_WORLD_TEXTURE, TEX_UNIT_CHUNK_TILES1);
+	m_selectVariationShader.setUniform("air", glm::uvec2{BLOCK::AIR, WALL::AIR});
+	m_selectVariationShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_CHUNK_TILES1);
 
-	m_cellularAutomatonShader.setUniform(WGS::LOC_TILES0_TEXTURE, TEX_UNIT_CHUNK_TILES0);
-	m_cellularAutomatonShader.setUniform(WGS::LOC_TILES1_TEXTURE, TEX_UNIT_CHUNK_TILES1);
-	m_cellularAutomatonShader.setUniform(WGS::LOC_MATERIAL_TEXTURE, TEX_UNIT_CHUNK_MATERIAL);
-	m_cellularAutomatonShader.setUniform(shaders::LOC_AIR_ID, (GLuint)BLOCK_ID::AIR, 0u, (GLuint)WALL_ID::AIR, 0u);
+	m_cellularAutomatonShader.setUniform(LOC_TILES0_TEXTURE, TEX_UNIT_CHUNK_TILES0);
+	m_cellularAutomatonShader.setUniform(LOC_TILES1_TEXTURE, TEX_UNIT_CHUNK_TILES1);
+	m_cellularAutomatonShader.setUniform(LOC_MATERIAL_TEXTURE, TEX_UNIT_CHUNK_MATERIAL);
+	m_cellularAutomatonShader.setUniform("air", glm::uvec4{BLOCK::AIR, 0u, WALL::AIR, 0u});
 }
 
 void ChunkGenerator::initVAO() {
@@ -100,19 +99,19 @@ void ChunkGenerator::initVAO() {
 void ChunkGenerator::setVBOToWholeChunk() {
 	const RE::VertexPO vertices[4] = {
 		glm::vec2{-BORDER_WIDTH, -BORDER_WIDTH},
-		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, -BORDER_WIDTH},
-		glm::vec2{-BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH},
-		glm::vec2{m_chunkDims_f.x + BORDER_WIDTH, m_chunkDims_f.y + BORDER_WIDTH}
+		glm::vec2{m_chunkDimsTi.x + BORDER_WIDTH, -BORDER_WIDTH},
+		glm::vec2{-BORDER_WIDTH, m_chunkDimsTi.y + BORDER_WIDTH},
+		glm::vec2{m_chunkDimsTi.x + BORDER_WIDTH, m_chunkDimsTi.y + BORDER_WIDTH}
 	};
 	m_VBO.overwrite(0, sizeof(vertices), vertices);
 }
 
 void ChunkGenerator::updateUniformsAfterSetTarget() {
 	ChunkUniforms uni{
-		.chunkGenMatrix = glm::ortho(static_cast<float>(-BORDER_WIDTH), m_chunkDims_f.x + BORDER_WIDTH, static_cast<float>(-BORDER_WIDTH), m_chunkDims_f.y + BORDER_WIDTH),
-		.chunkDims = m_chunkDims_f,
+		.chunkGenMatrix = glm::ortho(static_cast<float>(-BORDER_WIDTH), m_chunkDimsTi.x + BORDER_WIDTH, static_cast<float>(-BORDER_WIDTH), m_chunkDimsTi.y + BORDER_WIDTH),
+		.chunkDimsTi = m_chunkDimsTi,
 		.chunkBorders = glm::vec2(BORDER_WIDTH, BORDER_WIDTH),
-		.seed = m_seed
+		.seed = static_cast<float>(m_seed)
 	};
 	m_chunkUniformBuffer.overwrite(uni);
 }
@@ -126,11 +125,11 @@ void ChunkGenerator::generateBasicTerrain() {
 void ChunkGenerator::cellularAutomaton() {
 	GLuint surfIndex = 1u;
 	auto pass = [this, &surfIndex](GLuint low, GLuint high, size_t passes) {
-		m_cellularAutomatonShader.setUniform(WGS::LOC_CELL_AUTO_LOW, low);
-		m_cellularAutomatonShader.setUniform(WGS::LOC_CELL_AUTO_HIGH, high);
+		m_cellularAutomatonShader.setUniform(LOC_CELL_AUTO_LOW, low);
+		m_cellularAutomatonShader.setUniform(LOC_CELL_AUTO_HIGH, high);
 		for (size_t i = 0; i < passes; i++) {
 			m_genSurf[surfIndex % m_genSurf.size()].setTarget();
-			m_cellularAutomatonShader.setUniform(WGS::LOC_TILES_SELECTOR, surfIndex);
+			m_cellularAutomatonShader.setUniform(LOC_TILES_SELECTOR, surfIndex);
 			surfIndex++;
 			m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 		}

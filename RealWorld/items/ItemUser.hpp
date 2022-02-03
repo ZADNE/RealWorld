@@ -53,17 +53,17 @@ private:
 
 	//TILE RELATED \|/
 	void reloadTarget();
-	float m_buildingRange = 8.0f * vec2_BLOCK_SIZE.x;
+	float m_buildingRange = 8.0f * TILE_SIZE.x;
 	//UC -> under cursor
 	glm::ivec2 m_UCTileBc = glm::ivec2(0, 0);//Position in blocks
 	glm::ivec2 m_UCTilePx = glm::ivec2(0, 0);//Center of the block in pixels
-	BLOCK_ID m_UCBlock = BLOCK_ID::AIR;
-	WALL_ID m_UCWall = WALL_ID::AIR;
+	BLOCK m_UCBlock = BLOCK::AIR;
+	WALL m_UCWall = WALL::AIR;
 	//P -> previous (beginStep)
 	glm::ivec2 m_UCTileBcP = glm::ivec2(0, 0);//Position in blocks
 	glm::ivec2 m_UCTilePxP = glm::ivec2(0, 0);//Center of the block in pixels
-	BLOCK_ID m_UCBlockP = BLOCK_ID::AIR;
-	WALL_ID m_UCWallP = WALL_ID::AIR;
+	BLOCK m_UCBlockP = BLOCK::AIR;
+	WALL m_UCWallP = WALL::AIR;
 
 	float m_neededToMineBlock = 0.0f;
 	float m_neededToMineWall = 0.0f;

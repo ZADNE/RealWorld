@@ -8,7 +8,7 @@
 #include <RealWorld/world/physics/Hitbox.hpp>
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
-#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/shaders/common.hpp>
 
 enum Connection { PRIMARY, SECONDARY, TERTIARY, NUMBER_OF_TYPES };
 
@@ -49,7 +49,7 @@ private:
 	RE::FontSeed m_font;
 	ItemUser* m_itemUser = nullptr;
 
-	RE::ShaderProgram m_PTSAbove{{.vert = RE::sprite_vert, .frag = shaders::standardOut1_frag }};
+	RE::ShaderProgram m_PTSAbove{{.vert = RE::sprite_vert, .frag = standardOut1_frag }};
 
 	RE::Colour m_defColour{255, 255, 255, 255};
 	glm::vec2 m_windowSize;

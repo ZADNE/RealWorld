@@ -10,7 +10,7 @@
 
 #include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/world/WorldData.hpp>
-#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/shaders/world_dynamics.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
 
 /**
@@ -78,7 +78,7 @@ private:
 		sizeof(SET_WITH_UPDATE_VERTICES), NO_FLAGS, SET_WITH_UPDATE_VERTICES
 	};
 	float m_time = 17.0f;
-	RE::ShaderProgram m_setWithUpdateShader = RE::ShaderProgram{{.vert = shaders::setWithUpdate_vert, .frag = shaders::setWithUpdate_frag}};
+	RE::ShaderProgram m_setWithUpdateShader = RE::ShaderProgram{{.vert = setWithUpdate_vert, .frag = setWithUpdate_frag}};
 
 	struct WorldUniforms {
 		glm::mat4 worldMatrix;

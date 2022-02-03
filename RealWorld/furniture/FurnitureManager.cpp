@@ -51,7 +51,7 @@ FurnitureManager::~FurnitureManager() {
 }
 
 void FurnitureManager::resizeView(const glm::vec2& viewSizePx) {
-	m_viewSizeBc = glm::ivec2(1, 1) + glm::ivec2(ceil(viewSizePx / vec2_BLOCK_SIZE));
+	m_viewSizeBc = glm::ivec2(1, 1) + glm::ivec2(glm::ceil(viewSizePx / TILE_SIZE));
 	m_mustRealoadDrawable = true;
 }
 

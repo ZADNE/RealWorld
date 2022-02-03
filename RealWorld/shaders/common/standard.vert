@@ -1,6 +1,4 @@
 R""(
-#version 460
-
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec4 colour;
 layout(location = 2) in vec2 UV;

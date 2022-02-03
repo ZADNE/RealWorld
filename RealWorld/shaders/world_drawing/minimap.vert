@@ -1,12 +1,10 @@
 R""(
-#version 460
-
 layout(location = 0) in vec2 position;
 layout(location = 2) in vec2 UV;
 
 out vec2 fragUV;
 
-layout(std140) uniform GlobalMatrices{
+layout(std140, binding = 0) uniform GlobalMatrices{
 	mat4 viewMatrix;
 };
 

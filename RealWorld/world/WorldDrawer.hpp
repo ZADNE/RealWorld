@@ -2,12 +2,12 @@
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
-#include <RealEngine/resources/TextureCache.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
-#include <RealWorld/shaders/shaders.hpp>
-#include <RealWorld/shaders/WDS.hpp>
+#include <RealWorld/shaders/world_drawing.hpp>
+#include <RealWorld/shaders/common.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/DynamicLight.hpp>
 #include <RealWorld/world/LightManipulator.hpp>
@@ -20,7 +20,7 @@ public:
 	WorldDrawer(const glm::uvec2& viewSizePx);
 	~WorldDrawer();
 
-	void setTarget(const glm::ivec2& worldDimBc);
+	void setTarget(const glm::ivec2& worldDimTi);
 	void resizeView(const glm::uvec2& newViewSizePx);
 
 	//For adding and removing lights
@@ -33,7 +33,8 @@ public:
 
 	//Should be called at the beginning of draw beginStep
 	void drawTiles();
-	//Should be called at the end of draw beginStep (to cover everything else with darkness) but before GUI
+
+	void toggleDarkness() { m_drawDarkness = !m_drawDarkness; }
 	void coverWithDarkness();
 
 	void toggleMinimap() { m_drawMinimap = !m_drawMinimap; }
@@ -67,24 +68,25 @@ private:
 	//2 texture (finished lighting):	RGBA = drawn to screen
 
 	glm::vec2 m_botLeftPx;//Bottom-left corner of the view
-	glm::ivec2 m_botLeftBc;//Bottom-left corner of the view in blocks
+	glm::ivec2 m_botLeftTi;//Bottom-left corner of the view in blocks
 	glm::vec2 m_viewsizePx;
-	glm::uvec2 m_viewsizeBc;
-	glm::uvec2 m_viewsizeLightingBc;
+	glm::uvec2 m_viewsizeTi;
+	glm::uvec2 m_viewsizeLightingTi;
 
-	glm::ivec2 m_worldDimBc;
+	glm::ivec2 m_worldDimTi;
 
-	RE::TexturePtr m_blockAtlasTex;
-	RE::TexturePtr m_wallAtlasTex;
+	RE::TexturePtr m_blockAtlasTex = RE::RM::getTexture("blockAtlas");
+	RE::TexturePtr m_wallAtlasTex = RE::RM::getTexture("wallAtlas");
 
-	RE::ShaderProgram m_tilesShader = RE::ShaderProgram({.vert = WDS::tilesDraw_vert, .frag = WDS::tilesDraw_frag});
-	RE::ShaderProgram m_coverWithDarknessShader = RE::ShaderProgram({.vert = WDS::finalLighting_vert, .frag = shaders::texture_frag});
-	RE::ShaderProgram m_computeLightingShader = RE::ShaderProgram({.vert = WDS::PT_vert, .frag = WDS::combineLighting_frag});//Combines diaphragm with lights
-	RE::ShaderProgram m_worldToLightsShader = RE::ShaderProgram({.vert = WDS::PT_vert, .frag = WDS::worldToLight_frag});//Processes world texture to light
+	RE::ShaderProgram m_tilesShader = RE::ShaderProgram({.vert = tilesDraw_vert, .frag = tilesDraw_frag});
+	RE::ShaderProgram m_coverWithDarknessShader = RE::ShaderProgram({.vert = finalLighting_vert, .frag = texture_frag});
+	RE::ShaderProgram m_computeLightingShader = RE::ShaderProgram({.vert = PT_vert, .frag = combineLighting_frag});//Combines diaphragm with lights
+	RE::ShaderProgram m_worldToLightsShader = RE::ShaderProgram({.vert = PT_vert, .frag = worldToLight_frag});//Processes world texture to light
 
-	RE::ShaderProgram m_addDynamicLightShader = RE::ShaderProgram({.vert = WDS::addDynamicLight_vert, .frag = WDS::addDynamicLight_frag});
+	RE::ShaderProgram m_addDynamicLightShader = RE::ShaderProgram({.vert = addDynamicLight_vert, .frag = addDynamicLight_frag});
 
-	RE::ShaderProgram m_minimapShader = RE::ShaderProgram{{.vert = shaders::data_vert, .frag = shaders::worldDebug_frag}};
+	RE::ShaderProgram m_minimapShader = RE::ShaderProgram{{.vert = minimap_vert, .frag = minimap_frag}};
+	bool m_drawDarkness = true;
 	bool m_drawMinimap = false;
 
 
@@ -96,7 +98,7 @@ private:
 
 	struct WorldDrawUniforms {
 		glm::mat4 viewsizePxMat;
-		glm::mat4 viewsizeLightingBcMat;
+		glm::mat4 viewsizeLightingTiMat;
 	};
 	RE::UniformBuffer m_worldDrawUniformBuffer{UNIF_BUF_WORLDDRAWER, true, DYNAMIC_STORAGE, sizeof(WorldDrawUniforms)};
 

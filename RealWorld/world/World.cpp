@@ -7,7 +7,7 @@
 #include <RealWorld/world/TDB.hpp>
 #include <RealWorld/world/physics/Player.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>
-#include <RealWorld/shaders/WDS.hpp>
+#include <RealWorld/shaders/world_drawing.hpp>
 
 
 World::World() {
@@ -91,9 +91,9 @@ void World::set(chunk::SET_TYPES type, const glm::ivec2& posBc, uchar index) {
 	m_setWithUpdateShader.use();
 	m_setWithUpdateVAO.bind();
 
-	m_setWithUpdateShader.setUniform(WGS::LOC_SET, (unsigned int)index);
-	m_setWithUpdateShader.setUniform(WDS::LOC_POSITION, glm::vec2(static_cast<GLfloat>(posBc.x), static_cast<GLfloat>(posBc.y)));
-	m_setWithUpdateShader.setUniform(shaders::LOC_TIME, ++m_time);
+	m_setWithUpdateShader.setUniform(LOC_SET, (unsigned int)index);
+	m_setWithUpdateShader.setUniform(LOC_POSITION, glm::vec2(static_cast<GLfloat>(posBc.x), static_cast<GLfloat>(posBc.y)));
+	m_setWithUpdateShader.setUniform(LOC_TIME, ++m_time);
 
 	m_setWithUpdateVAO.renderArrays(RE::Primitive::POINTS, 0, 9);
 
@@ -130,8 +130,8 @@ void World::initVAOs() {
 
 void World::initConstantUniforms() {
 	//SET WITH VAR UPDATE
-	m_setWithUpdateShader.setUniform(shaders::LOC_AIR_ID, glm::uvec2((GLuint)BLOCK_ID::AIR, (GLuint)WALL_ID::AIR));
-	m_setWithUpdateShader.setUniform(WGS::LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
+	m_setWithUpdateShader.setUniform(LOC_AIR_ID, glm::uvec2(BLOCK::AIR, WALL::AIR));
+	m_setWithUpdateShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
 }
 
 void World::initUniformBuffers() {

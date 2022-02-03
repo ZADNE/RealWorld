@@ -24,7 +24,7 @@ void ChunkManager::setTarget(int seed, glm::uvec2 chunkDims, glm::uvec2 activeCh
 	flushChunks();
 	m_chunkDims = chunkDims;
 	m_folderPath = folderPath;
-	m_chunkGen.setTargetWorld(seed, chunkDims, activeChunksRect);
+	m_chunkGen.setTargetWorld(seed, chunkDims);
 	m_ws = ws;
 	m_wsSize = static_cast<glm::ivec2>(m_ws->getDims());
 	m_activeChunksRect = static_cast<glm::ivec2>(activeChunksRect);

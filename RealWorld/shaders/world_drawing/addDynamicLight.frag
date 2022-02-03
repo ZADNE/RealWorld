@@ -1,6 +1,4 @@
 R""(
-#version 460
-
 in vec4 vert_light;
 in vec4 vert_diaphragm;
 

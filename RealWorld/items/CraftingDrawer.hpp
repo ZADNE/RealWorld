@@ -10,7 +10,7 @@
 #include <RealEngine/graphics/default_shaders.hpp>
 
 #include <RealWorld/items/ItemSprite.hpp>
-#include <RealWorld/shaders/shaders.hpp>
+#include <RealWorld/shaders/common.hpp>
 #include <RealWorld/metadata.hpp>
 
 class ItemCombinator;
@@ -88,6 +88,6 @@ private:
 	RE::Colour m_defColour{255u, 255u, 255u, 255u};
 	RE::Colour m_amountColour{255u, 0u, 0u, 255u};
 	RE::ShaderProgram m_PTSBelow{{.vert = RE::sprite_vert, .frag = RE::sprite_frag}};
-	RE::ShaderProgram m_PTSAbove{{.vert = RE::sprite_vert, .frag = shaders::standardOut1_frag}};
+	RE::ShaderProgram m_PTSAbove{{.vert = RE::sprite_vert, .frag = standardOut1_frag}};
 	bool m_shouldDraw = false;
 };

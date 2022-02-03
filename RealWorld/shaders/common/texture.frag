@@ -1,6 +1,4 @@
 R""(
-#version 460
-
 in vec2 fragUV;
 
 out vec4 colour;

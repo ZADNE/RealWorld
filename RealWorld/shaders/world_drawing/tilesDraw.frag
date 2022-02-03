@@ -1,6 +1,4 @@
 ﻿R""(
-#version 460
-
 in vec4 block_wall_UV;
 
 out vec4 colour;

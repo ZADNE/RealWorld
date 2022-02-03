@@ -43,8 +43,8 @@ class TDB {
 public:
 	void static init();
 
-	const static BlockMetadata& gb(BLOCK_ID ID);
-	const static WallMetadata& gw(WALL_ID ID);
+	const static BlockMetadata& gb(BLOCK ID);
+	const static WallMetadata& gw(WALL ID);
 private:
 	static std::vector<BlockMetadata> m_blockMetadata;
 	static std::vector<WallMetadata> m_wallMetadata;

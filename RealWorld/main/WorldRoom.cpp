@@ -10,8 +10,6 @@ const unsigned int FPS_LIMIT = 150u;
 const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 #endif // _DEBUG
 
-static float x = 0.0;
-
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
@@ -33,7 +31,6 @@ WorldRoom::~WorldRoom() {
 }
 
 void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
-	x = 0.0;
 	try {
 		if (!loadWorld(std::any_cast<const std::string&>(params[0]))) {
 			program()->scheduleRoomTransition(0, {});
@@ -69,9 +66,8 @@ void WorldRoom::step() {
 	m_world.step();
 	m_furnitureManager.step(m_worldView.getBotLeft());
 	auto lm = m_worldDrawer.getLightManipulator();
-	if (input()->isDown(RE::Key::H)) { x += 0.01f; }
 
-	lm.addLight(m_worldView.getCursorRel() + glm::vec2(sin(x) * 64.0f, 0.0f), RE::Colour{0u, 0u, 0u, 255u}, 0.0f, 1.0f);
+	lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 127u, 0u, 120u}, 0.0f, 1.0f);
 
 	//ItemOnGroundManager
 	m_itemOnGroundManager.step();
@@ -104,14 +100,14 @@ void WorldRoom::step() {
 		if (input()->wasPressed(KB(INV_SLOT9))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 9); }
 
 		if (input()->wasPressed(KB(INV_USEPRIMARY))) { m_player.getItemUser().beginUse(ItemUse::MAIN); }
-		if (input()->wasPressed(KB(INV_USESECONDARY))) { m_player.getItemUser().beginUse(ItemUse::ALTERNATIVE); }
 		if (input()->wasReleased(KB(INV_USEPRIMARY))) { m_player.getItemUser().endUse(ItemUse::MAIN); }
+		if (input()->wasPressed(KB(INV_USESECONDARY))) { m_player.getItemUser().beginUse(ItemUse::ALTERNATIVE); }
 		if (input()->wasReleased(KB(INV_USESECONDARY))) { m_player.getItemUser().endUse(ItemUse::ALTERNATIVE); }
 	}
 	m_worldDrawer.endStep();
 	//TEMP or DEBUG
 	if (input()->wasPressed(KB(DEBUG_WORLDDRAW))) { m_worldDrawer.toggleMinimap(); }
-	//if (input()->wasPressed(KB(DEBUG_WORLDDARKNESS))) { m_worldDrawer.switchDebugDarkness(); }
+	if (input()->wasPressed(KB(DEBUG_WORLDDARKNESS))) { m_worldDrawer.toggleDarkness(); }
 	if (input()->wasPressed(KB(DEBUG_ENDGAME))) { program()->scheduleRoomTransition(0, {}); }
 }
 
@@ -156,9 +152,9 @@ void WorldRoom::drawGUI() {
 
 	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
 
-	glm::ivec2 cursorPos = pxToBc(static_cast<glm::ivec2>(m_worldView.getCursorRel()));
+	glm::ivec2 cursorPos = pxToBc(static_cast<glm::ivec2>(m_player.getPos()));
 	stream << "CursorBc: [" << std::setw(4) << cursorPos.x << ", "
-		<< std::setw(4) << cursorPos.y << "]" << '\n';
+		<< std::setw(4) << cursorPos.y << "]\n";
 
 
 	glm::vec2 topLeft = glm::vec2(0.0f, window()->getDims().y);

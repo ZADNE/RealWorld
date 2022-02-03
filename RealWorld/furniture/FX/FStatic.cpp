@@ -32,7 +32,7 @@ void FStatic::step() {
 }
 
 void FStatic::draw() {
-	p_spriteBatch->addSprite(p_sprite, glm::vec2(p_botLeftBc * ivec2_BLOCK_SIZE), 5);
+	p_spriteBatch->addSprite(p_sprite, glm::vec2(p_botLeftBc * iTILE_SIZE), 5);
 }
 
 void FStatic::destroy() {

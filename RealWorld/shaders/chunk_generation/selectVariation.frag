@@ -1,6 +1,4 @@
 R""(
-#version 460
-
 in vec2 pos;
 
 out uvec4 result;

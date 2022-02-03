@@ -42,7 +42,7 @@ public:
 private:
 	float m_acceleration = 1.0f;
 	float m_maxSpeed = 10.0f;
-	float m_jumpSpeed = 9.0f;
+	float m_jumpSpeed = 17.0f;
 
 	RE::SpriteBatch& m_spriteBatch;
 

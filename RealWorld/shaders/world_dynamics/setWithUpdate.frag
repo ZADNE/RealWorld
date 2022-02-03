@@ -1,6 +1,4 @@
 R""(
-#version 460
-
 flat in uint fragSetAround;
 
 out uvec4 result;
