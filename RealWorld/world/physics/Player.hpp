@@ -41,8 +41,8 @@ public:
 	void draw();
 private:
 	float m_acceleration = 1.0f;
-	float m_maxSpeed = 10.0f;
-	float m_jumpSpeed = 17.0f;
+	float m_maxSpeed = 30.0f;
+	float m_jumpSpeed = 15.0f;
 
 	RE::SpriteBatch& m_spriteBatch;
 

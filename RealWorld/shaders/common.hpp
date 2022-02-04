@@ -11,5 +11,4 @@ extern std::string_view standardOut1_frag;
 
 extern std::string_view texture_frag;
 
-const int LOC_AIR_ID = 10;
 const int LOC_TIME = 6;

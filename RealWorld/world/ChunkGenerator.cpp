@@ -79,13 +79,11 @@ void ChunkGenerator::initShaders() {
 	m_chunkUniformBuffer.connectToShaderProgram(m_cellularAutomatonShader, 0u);
 	m_chunkUniformBuffer.connectToShaderProgram(m_selectVariationShader, 0u);
 
-	m_selectVariationShader.setUniform("air", glm::uvec2{BLOCK::AIR, WALL::AIR});
 	m_selectVariationShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_CHUNK_TILES1);
 
 	m_cellularAutomatonShader.setUniform(LOC_TILES0_TEXTURE, TEX_UNIT_CHUNK_TILES0);
 	m_cellularAutomatonShader.setUniform(LOC_TILES1_TEXTURE, TEX_UNIT_CHUNK_TILES1);
 	m_cellularAutomatonShader.setUniform(LOC_MATERIAL_TEXTURE, TEX_UNIT_CHUNK_MATERIAL);
-	m_cellularAutomatonShader.setUniform("air", glm::uvec4{BLOCK::AIR, 0u, WALL::AIR, 0u});
 }
 
 void ChunkGenerator::initVAO() {

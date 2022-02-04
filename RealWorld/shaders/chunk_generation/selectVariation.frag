@@ -4,7 +4,6 @@ in vec2 pos;
 out uvec4 result;
 
 layout(location = 2) uniform usampler2D worldTexture;
-layout(location = 10) uniform uvec2 air;
 
 const uint variations[256] = uint[256](
 	29, 29, 12, 12, 29, 29, 12, 12,//  0
@@ -51,14 +50,14 @@ void main() {
 	uvec2 block_wall = texelFetch(worldTexture, posBc, 0).rb;
 
 	//Fetching surrounds
-	uvec2 toptop = 	uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+0, -1), 0).rb, air)) << 7;
-	uvec2 topright = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+1, -1), 0).rb, air)) << 6;
-	uvec2 midright = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+1, +0), 0).rb, air)) << 5;
-	uvec2 botright = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+1, +1), 0).rb, air)) << 4;
-	uvec2 botbot = uvec2(notEqual(texelFetch(worldTexture, posBc + 		ivec2(+0, +1), 0).rb, air)) << 3;
-	uvec2 botleft = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(-1, +1), 0).rb, air)) << 2;
-	uvec2 midleft = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(-1, +0), 0).rb, air)) << 1;
-	uvec2 topleft = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(-1, -1), 0).rb, air));
+	uvec2 toptop = 	uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+0, -1), 0).rb, AIR)) << 7;
+	uvec2 topright = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+1, -1), 0).rb, AIR)) << 6;
+	uvec2 midright = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+1, +0), 0).rb, AIR)) << 5;
+	uvec2 botright = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(+1, +1), 0).rb, AIR)) << 4;
+	uvec2 botbot = uvec2(notEqual(texelFetch(worldTexture, posBc + 		ivec2(+0, +1), 0).rb, AIR)) << 3;
+	uvec2 botleft = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(-1, +1), 0).rb, AIR)) << 2;
+	uvec2 midleft = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(-1, +0), 0).rb, AIR)) << 1;
+	uvec2 topleft = uvec2(notEqual(texelFetch(worldTexture, posBc + 	ivec2(-1, -1), 0).rb, AIR));
 	
 	
 	uvec2 varIndex = toptop | topright | midright | botright | botbot | botleft | midleft | topleft;

@@ -7,7 +7,6 @@ layout(location = 4) uniform usampler2D materialTexture;
 
 layout(location = 33) uniform uint low;
 layout(location = 34) uniform uint high;
-uniform uvec4 air;
 
 const ivec2 offsets[] = ivec2[](
 	ivec2(-1, -1), 	ivec2(+0, -1), 	ivec2(+1, -1),
@@ -26,15 +25,15 @@ void main() {
 	uvec2 neighborsN = uvec2(0, 0);
 	for (int i = 0; i < offsets.length(); i++){
 		uvec4 neighbor = texelFetch(tilesTexture[tilesIndex], pos + offsets[i], 0);
-		neighborsN += mix(uvec2(0, 0), uvec2(1, 1), notEqual(neighbor.rb, air.rb));
+		neighborsN += mix(uvec2(0, 0), uvec2(1, 1), notEqual(neighbor.rb, AIR));
 	}
 	
 	if (previous.g > 0){//If there are more cycles to be done on this tile
 		previous.g -= 1;
 		uvec4 resultMaterial = uvec4(material.r, previous.gba);
-		uvec4 resultAir = uvec4(air.r, previous.gba);
+		uvec4 resultAir = uvec4(AIR.r, previous.gba);
 		
-		if (previous.r == air.x){
+		if (previous.r == AIR.x){
 			result = neighborsN.x > high ? resultMaterial : previous;
 		} else {
 			result = neighborsN.x < low ? resultAir : previous;

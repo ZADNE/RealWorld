@@ -129,8 +129,6 @@ void World::initVAOs() {
 }
 
 void World::initConstantUniforms() {
-	//SET WITH VAR UPDATE
-	m_setWithUpdateShader.setUniform(LOC_AIR_ID, glm::uvec2(BLOCK::AIR, WALL::AIR));
 	m_setWithUpdateShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
 }
 

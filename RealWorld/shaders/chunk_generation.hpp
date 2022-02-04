@@ -15,9 +15,9 @@ extern std::string_view chunkGen_vert;
 
 extern std::string_view basicTerrain_frag;
 
-extern std::string_view selectVariation_frag;
-
 const int LOC_CELL_AUTO_LOW = 33;
 const int LOC_CELL_AUTO_HIGH = 34;
 
 extern std::string_view cellularAutomaton_frag;
+
+extern std::string_view selectVariation_frag;

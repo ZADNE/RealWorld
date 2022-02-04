@@ -63,7 +63,8 @@ void Player::step() {
 	//Jumping
 	bool grounded = m_hitbox.isGrounded();
 	if (m_inputManager.wasPressed(KB(PLAYER_JUMP)) && grounded) {
-		m_hitbox.setVelocityY(m_jumpSpeed);
+		float multiplier = m_inputManager.isDown(RE::Key::LShift) ? 2.0f : 1.0f;
+		m_hitbox.setVelocityY(m_jumpSpeed * multiplier);
 	}
 	//Moving left
 	if (m_inputManager.isDown(KB(PLAYER_LEFT))) {

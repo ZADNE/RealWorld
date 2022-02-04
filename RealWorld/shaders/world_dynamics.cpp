@@ -9,5 +9,7 @@ std::string_view setWithUpdate_vert =
 ;
 
 std::string_view setWithUpdate_frag =
+#include "external/hash.glsl"
+#include "common/tileConstants.glsl"
 #include "world_dynamics/setWithUpdate.frag"
 ;
