@@ -20,10 +20,13 @@ std::string_view basicTerrain_frag =
 
 std::string_view cellularAutomaton_frag =
 #include "common/tileConstants.glsl"
+#include "common/textureUnits.glsl"
 #include "chunk_generation/cellularAutomaton.frag"
 ;
 
 std::string_view selectVariation_frag =
+#include "external/hash.glsl"
 #include "common/tileConstants.glsl"
+#include "common/textureUnits.glsl"
 #include "chunk_generation/selectVariation.frag"
 ;

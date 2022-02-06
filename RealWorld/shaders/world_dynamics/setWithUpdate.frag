@@ -3,7 +3,7 @@ flat in uint fragSetAround;
 
 out uvec4 result;
 
-layout(location = 2) uniform usampler2D worldTexture;
+layout(binding = TEX_UNIT_WORLD_TEXTURE) uniform usampler2D worldTexture;
 layout(location = 5) uniform uint set;
 layout(location = 6) uniform float time;
 

@@ -13,8 +13,7 @@ const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
-	m_furnitureManager(RE::SpriteBatch::std(), {1, 1}, m_world, window()->getDims()),
-	m_player(*input(), m_world, m_furnitureManager, RE::SpriteBatch::std(), m_itemOnGroundManager),
+	m_player(*input(), m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
 	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
 	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
 	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_player.getMainInventory()) {
@@ -64,7 +63,6 @@ void WorldRoom::step() {
 	m_player.endStep((glm::ivec2)m_worldView.getCursorRel());
 	//World BEGIN STEP
 	m_world.step();
-	m_furnitureManager.step(m_worldView.getBotLeft());
 	auto lm = m_worldDrawer.getLightManipulator();
 
 	lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 127u, 0u, 120u}, 0.0f, 1.0f);
@@ -117,7 +115,6 @@ void WorldRoom::render(double interpolationFactor) {
 	m_worldDrawer.drawTiles();
 
 	RE::SpriteBatch::std().begin();
-	m_furnitureManager.draw();
 	m_itemOnGroundManager.draw();
 	m_player.draw();
 	RE::SpriteBatch::std().end(RE::GlyphSortType::TEXTURE);
@@ -135,7 +132,6 @@ void WorldRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
 	m_worldView.resizeView(newDims);
 	m_worldView.update();
 	m_worldDrawer.resizeView(newDims);
-	m_furnitureManager.resizeView(newDims);
 	m_inventoryDrawer.resizeWindow(newDims);
 	m_craftingDrawer.resizeWindow(newDims);
 }
@@ -180,7 +176,6 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 	m_player.adoptPlayerData(wd.pd);
 
 	m_worldDrawer.setTarget(worldTextureSize);
-	m_furnitureManager.adoptFurnitureCollection(wd.fc);
 	return true;
 }
 
@@ -188,7 +183,6 @@ bool WorldRoom::saveWorld() const {
 	WorldData wd;
 	m_world.gatherWorldData(wd);
 	m_player.gatherPlayerData(wd.pd);
-	m_furnitureManager.gatherFurnitureCollection(wd.fc);
 	if (!WorldDataLoader::saveWorldData(wd, wd.wi.worldName)) return false;
 	return m_world.saveChunks();
 }

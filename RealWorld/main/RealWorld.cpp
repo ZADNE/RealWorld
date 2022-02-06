@@ -22,5 +22,4 @@ RealWorld::~RealWorld() {
 RealWorld::Databases::Databases() {
 	IDB::init();
 	TDB::init();
-	FDB::init();
 }

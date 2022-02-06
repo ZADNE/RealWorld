@@ -5,13 +5,13 @@
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/items/ItemCombinator.hpp>
 
-Player::Player(const RE::InputManager& inputManager, World& world, FurnitureManager& furnitureManager, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
+Player::Player(const RE::InputManager& inputManager, World& world, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
 	m_health(100.0f),
 	m_hitbox({0, 0}, glm::ivec2(28, 40), glm::ivec2(0, 0)),
 	m_mainInventory(glm::ivec2(10, 5)),
 	m_spriteBatch(spriteBatch),
 	m_inputManager(inputManager),
-	m_itemUser(world, furnitureManager, m_mainInventory, m_hitbox, spriteBatch, itemOnGroundManager) {
+	m_itemUser(world, m_mainInventory, m_hitbox, spriteBatch, itemOnGroundManager) {
 
 	m_hitbox.setFriction(glm::vec2(0.8f, 0.0f));
 	m_hitbox.init(&world);

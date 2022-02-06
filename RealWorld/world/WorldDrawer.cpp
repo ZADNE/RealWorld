@@ -15,29 +15,28 @@
 #include <RealWorld/rendering/TextureUnits.hpp>
 
 const GLint VERTICES_POUV_WORLDTOLIGHT_RECT = 0;
-const GLint VERTICES_POUV_DARKNESS_RECT = 4;
+const GLint VERTICES_POUV_COMPUTELIGHT_RECT = 4;
 const GLint VERTICES_POUV_NORM_RECT = 8;
 const GLint VERTICES_POUV_MINIMAP_RECT = 12;
 
 const GLuint ATTR_DIR = 2u;
 const GLuint ATTR_CONE = 3u;
 
+const int LIGHT_DOWNSAMPLE = 4;
+const int LIGHT_MAX_RANGEUn = 30;
+const int LIGHT_MAX_RANGETi = LIGHT_MAX_RANGEUn * LIGHT_DOWNSAMPLE;
+
+
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {
 	reloadViewSize(viewSizePx);
-	m_SurLighting.resize({m_viewsizeLightingTi}, 3);
+	m_SurLighting.resize({m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
 
 	//Bind textures to texture units
-	TEX_UNIT_BLOCK_ATLAS.setActive();
-	m_blockAtlasTex->bind();
-	TEX_UNIT_WALL_ATLAS.setActive();
-	m_wallAtlasTex->bind();
-	TEX_UNIT_DIAPHRAGM.setActive();
-	m_SurLighting.bindTexture(0);
-	TEX_UNIT_LIGHTING.setActive();
-	m_SurLighting.bindTexture(1);
-	TEX_UNIT_LIGHT_FINISHED.setActive();
-	m_SurLighting.bindTexture(2);
-	TEX_UNIT_VOLATILE.setActive();
+	m_blockAtlasTex->bind(TEX_UNIT_BLOCK_ATLAS);
+	m_wallAtlasTex->bind(TEX_UNIT_WALL_ATLAS);
+	m_SurLighting.bindTexture(TEX_UNIT_DIAPHRAGM, 0);
+	m_SurLighting.bindTexture(TEX_UNIT_LIGHTING, 1);
+	m_SurLighting.bindTexture(TEX_UNIT_LIGHT_FINISHED, 2);
 
 	initShaders();
 	initVAOs();
@@ -52,7 +51,7 @@ void WorldDrawer::setTarget(const glm::ivec2& worldDimTi) {
 	m_worldDimTi = worldDimTi;
 
 	glClearColor(m_backgroundColour.r, m_backgroundColour.g, m_backgroundColour.b, m_backgroundColour.a);
-	m_addDynamicLightShader.setUniform("yInversion", m_worldDimTi.y * TILE_SIZE.y);
+	m_addDynamicLightShader.setUniform("yInversion", m_worldDimTi.y * TILE_SIZE.y / LIGHT_DOWNSAMPLE);
 	updatePOUVBuffers();
 }
 
@@ -61,18 +60,10 @@ void WorldDrawer::resizeView(const glm::uvec2& newViewSizePx) {
 	updateUniformsAfterViewResize();
 	updatePOUVBuffers();
 
-	m_SurLighting.resize({m_viewsizeLightingTi}, 3);
-
-	TEX_UNIT_DIAPHRAGM.setActive();
-	m_SurLighting.bindTexture(0);
-
-	TEX_UNIT_LIGHTING.setActive();
-	m_SurLighting.bindTexture(1);
-
-	TEX_UNIT_LIGHT_FINISHED.setActive();
-	m_SurLighting.bindTexture(2);
-
-	TEX_UNIT_VOLATILE.setActive();
+	m_SurLighting.resize({m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
+	m_SurLighting.bindTexture(TEX_UNIT_DIAPHRAGM, 0);
+	m_SurLighting.bindTexture(TEX_UNIT_LIGHTING, 1);
+	m_SurLighting.bindTexture(TEX_UNIT_LIGHT_FINISHED, 2);
 }
 
 LightManipulator WorldDrawer::getLightManipulator() {
@@ -84,21 +75,25 @@ void WorldDrawer::beginStep(const glm::vec2& botLeftPx, World& world) {
 	m_botLeftPx = botLeftPx;
 	m_botLeftTi = glm::floor(botLeftPx / TILE_SIZE);
 	//Force activation of chunks
-	glm::ivec2 chunkHandlerBotleft = m_botLeftTi - glm::ivec2((int)light::MAX_RANGE, (int)light::MAX_RANGE);
-	world.forceActivationOfChunks(chunkHandlerBotleft, chunkHandlerBotleft + static_cast<glm::ivec2>(m_viewsizeLightingTi));
+	glm::ivec2 chunkHandlerBotleft = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi);
+	world.forceActivationOfChunks(chunkHandlerBotleft, chunkHandlerBotleft
+		+ static_cast<glm::ivec2>(m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u) * LIGHT_DOWNSAMPLE);
 
-	m_botLeftTi -= glm::ivec2((int)light::MAX_RANGE, -(int)light::MAX_RANGE);
+	m_botLeftTi += glm::ivec2(-LIGHT_MAX_RANGETi, LIGHT_MAX_RANGETi);
+	glm::vec2 worldToLightPos = static_cast<glm::vec2>(m_botLeftTi) / LIGHT_DOWNSAMPLE;
 	m_botLeftTi.y = m_worldDimTi.y - m_botLeftTi.y - m_viewsizeTi.y;
+
+	worldToLightPos = glm::floor(worldToLightPos) * LIGHT_DOWNSAMPLE;
+	worldToLightPos.y = m_worldDimTi.y - worldToLightPos.y - m_viewsizeTi.y;
 
 	//Process world texture to diaphragm and light
 	m_SurLighting.setTarget();
 	glDisable(GL_BLEND);
 	m_arrayPOUV.bind();
 	m_worldToLightsShader.use();
-	m_worldToLightsShader.setUniform(LOC_POSITION, static_cast<glm::vec2>(m_botLeftTi));
+	m_worldToLightsShader.setUniform(LOC_POSITION, worldToLightPos);
 	float f = /*rmath::clamp(sin(m_currentTime / m_dayLength), (10.0f/256.0f), 1.0f)*/1.0f;
 	m_worldToLightsShader.setUniform(LOC_WORLD_TO_LIGHT_DAYLIGHT, glm::vec4(0.0f, 0.0f, 0.0f, f * 0.1f));
-	m_worldToLightsShader.setUniform(LOC_WORLD_TO_LIGHT_DIAPHRAGMS, glm::vec4(0.85f, 0.75f, 0.5f, 0.0f));
 	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_WORLDTOLIGHT_RECT, 4);
 	m_worldToLightsShader.unuse();
 	m_arrayPOUV.unbind();
@@ -129,11 +124,11 @@ void WorldDrawer::endStep() {
 	glDisable(GL_BLEND);
 	m_arrayPOUV.bind();
 	m_computeLightingShader.use();
-	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_WORLDTOLIGHT_RECT, 4);
+	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_COMPUTELIGHT_RECT, 4);
 	m_computeLightingShader.unuse();
 	m_arrayPOUV.unbind();
-	m_SurLighting.resetTarget();
 	glEnable(GL_BLEND);
+	m_SurLighting.resetTarget();
 }
 
 void WorldDrawer::drawTiles() {
@@ -149,8 +144,8 @@ void WorldDrawer::coverWithDarkness() {
 	if (m_drawDarkness) {
 		m_arrayPOUV.bind();
 		m_coverWithDarknessShader.use();
-		m_coverWithDarknessShader.setUniform(LOC_POSITION, glm::mod(m_botLeftPx, TILE_SIZE));
-		m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_DARKNESS_RECT, 4);
+		m_coverWithDarknessShader.setUniform(LOC_POSITION, glm::mod(m_botLeftPx, TILE_SIZE * LIGHT_DOWNSAMPLE));
+		m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewsizeUn.x * m_viewsizeUn.y);
 		m_coverWithDarknessShader.unuse();
 		m_arrayPOUV.unbind();
 	}
@@ -173,7 +168,7 @@ void WorldDrawer::addLight(const glm::vec2& posPx, RE::Colour col, float dir, fl
 void WorldDrawer::reloadViewSize(const glm::uvec2& viewSizePx) {
 	m_viewsizePx = (glm::vec2)viewSizePx;
 	m_viewsizeTi = glm::uvec2(1u, 1u) + glm::uvec2(glm::ceil(m_viewsizePx / TILE_SIZE));
-	m_viewsizeLightingTi = m_viewsizeTi + glm::uvec2(light::MAX_RANGE * 2, light::MAX_RANGE * 2);
+	m_viewsizeUn = glm::uvec2(1u, 1u) + glm::uvec2(glm::ceil(m_viewsizePx / TILE_SIZE / LIGHT_DOWNSAMPLE));
 }
 
 void WorldDrawer::initVAOs() {
@@ -204,22 +199,21 @@ void WorldDrawer::initVAOs() {
 void WorldDrawer::updatePOUVBuffers() {
 	VertexPOUV vertices[16];
 
-	//Block size rectangle
+	//World to light rectangle
 	size_t i = VERTICES_POUV_WORLDTOLIGHT_RECT;
+	glm::vec2 worldToLightDims = glm::vec2(m_viewsizeUn) + glm::vec2(LIGHT_MAX_RANGEUn) * 2.0f;
 	vertices[i++].setPosition(0.0f, 0.0f);
-	vertices[i++].setPosition((float)m_viewsizeLightingTi.x, 0.0f);
-	vertices[i++].setPosition(0.0f, (float)m_viewsizeLightingTi.y);
-	vertices[i++].setPosition((float)m_viewsizeLightingTi.x, (float)m_viewsizeLightingTi.y);
+	vertices[i++].setPosition(worldToLightDims.x, 0.0f);
+	vertices[i++].setPosition(0.0f, worldToLightDims.y);
+	vertices[i++].setPosition(worldToLightDims.x, worldToLightDims.y);
 
-	//Darkness rectangle
-	i = VERTICES_POUV_DARKNESS_RECT;
-	glm::vec2 minn = glm::vec2((float)light::MAX_RANGE / m_viewsizeLightingTi.x, 1.0f - (float)light::MAX_RANGE / m_viewsizeLightingTi.y);
-	glm::vec2 maxx = glm::vec2(1.0f, 1.0f) - minn;
-	glm::vec2 darknessRect = uTILE_SIZE * m_viewsizeTi;
-	vertices[i++] = {0.0f, 0.0f, minn.x, minn.y};
-	vertices[i++] = {darknessRect.x, 0.0f, maxx.x, minn.y};
-	vertices[i++] = {0.0f, darknessRect.y, minn.x, maxx.y};
-	vertices[i++] = {darknessRect.x, darknessRect.y, maxx.x, maxx.y};
+	//Compute light rectangle
+	i = VERTICES_POUV_COMPUTELIGHT_RECT;
+	glm::vec2 computeLightTopRight = glm::vec2(m_viewsizeUn) + glm::vec2(LIGHT_MAX_RANGEUn + 1);
+	vertices[i++].setPosition(LIGHT_MAX_RANGEUn, LIGHT_MAX_RANGEUn);
+	vertices[i++].setPosition(computeLightTopRight.x, LIGHT_MAX_RANGEUn);
+	vertices[i++].setPosition(LIGHT_MAX_RANGEUn, computeLightTopRight.y);
+	vertices[i++].setPosition(computeLightTopRight.x, computeLightTopRight.y);
 
 	//Normalized rectangle
 	i = VERTICES_POUV_NORM_RECT;
@@ -229,7 +223,7 @@ void WorldDrawer::updatePOUVBuffers() {
 	vertices[i++] = {1.0f, 1.0f, 1.0f, 0.0f};
 
 	//Minimap rectangle
-	float scale = 0.6f;
+	float scale = std::min(m_viewsizePx.x / m_worldDimTi.x, m_viewsizePx.y / m_worldDimTi.y) * 0.5f;
 	const glm::vec2 middle = m_viewsizePx / 2.0f;
 	const glm::vec2 world = m_worldDimTi;
 	i = VERTICES_POUV_MINIMAP_RECT;
@@ -244,38 +238,25 @@ void WorldDrawer::updatePOUVBuffers() {
 void WorldDrawer::initShaders() {
 	m_worldDrawUniformBuffer.connectToShaderProgram(m_tilesShader, 0u);
 	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_tilesShader, 1u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_coverWithDarknessShader, 0u);
 	m_worldDrawUniformBuffer.connectToShaderProgram(m_coverWithDarknessShader, 0u);
 	m_worldDrawUniformBuffer.connectToShaderProgram(m_computeLightingShader, 0u);
 	m_worldDrawUniformBuffer.connectToShaderProgram(m_worldToLightsShader, 0u);
 	m_worldDrawUniformBuffer.connectToShaderProgram(m_addDynamicLightShader, 0u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_minimapShader, 0u);
 	updateUniformsAfterViewResize();
 
-	m_tilesShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
-	m_tilesShader.setUniform("blockTexture", TEX_UNIT_BLOCK_ATLAS);
-	m_tilesShader.setUniform("wallTexture", TEX_UNIT_WALL_ATLAS);
-	m_tilesShader.setUniform("tileSizePx", TILE_SIZE);
-	glm::vec4 atlasDims{m_blockAtlasTex->getTrueDims(), m_wallAtlasTex->getTrueDims()};
-	m_tilesShader.setUniform("perTileUVIncrement", 1.0f / (atlasDims / glm::vec4(TILE_SIZE, TILE_SIZE)));
-	m_tilesShader.setUniform("viewWidthTi", static_cast<int>(m_viewsizeTi.x));
-
-	m_coverWithDarknessShader.setUniform(LOC_BASE_TEXTURE, TEX_UNIT_LIGHT_FINISHED);
-
-	m_computeLightingShader.setUniform(LOC_DIAPHRAGM, TEX_UNIT_DIAPHRAGM);
-	m_computeLightingShader.setUniform(LOC_LIGHTING, TEX_UNIT_LIGHTING);
-
-	m_worldToLightsShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
-
 	m_addDynamicLightShader.setUniform("perPixelIncrementTi", 1.0f / TILE_SIZE);
-
-	m_minimapShader.setUniform(LOC_BASE_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_minimapShader, 0u);
+	m_worldToLightsShader.setUniform(LOC_WORLD_TO_LIGHT_DIAPHRAGMS, glm::vec3(0.9f, 0.8f, 0.6f));
 }
 
 void WorldDrawer::updateUniformsAfterViewResize() {
+	glm::vec2 worldToLightDims = glm::vec2(m_viewsizeUn) + glm::vec2(LIGHT_MAX_RANGEUn) * 2.0f;
 	WorldDrawUniforms wdu{
 		.viewsizePxMat = glm::ortho(0.0f, m_viewsizePx.x, 0.0f, m_viewsizePx.y),
-		.viewsizeLightingTiMat = glm::ortho(0.0f, (float)m_viewsizeLightingTi.x, 0.0f, (float)m_viewsizeLightingTi.y)
+		.viewsizeLightingUnMat = glm::ortho(0.0f, worldToLightDims.x, 0.0f, worldToLightDims.y)
 	};
 	m_worldDrawUniformBuffer.overwrite(wdu);
 	m_tilesShader.setUniform("viewWidthTi", static_cast<int>(m_viewsizeTi.x));
+	m_coverWithDarknessShader.setUniform("viewWidthUn", static_cast<int>(m_viewsizeUn.x));
 }

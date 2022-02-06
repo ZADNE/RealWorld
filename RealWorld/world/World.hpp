@@ -61,13 +61,12 @@ private:
 
 	int m_seed;
 	glm::uvec2 m_chunkDims;
-	glm::uvec2 m_activeChunksRect = glm::uvec2(6u, 6u);
+	glm::uvec2 m_activeChunksRect = glm::uvec2(32u, 32u);
 	RE::Surface m_ws = RE::Surface({RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
 
 	void initVAOs();
-	void initConstantUniforms();
 	void initUniformBuffers();
 
 	void updateUniformsAfterWorldResize();

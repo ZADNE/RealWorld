@@ -1,10 +1,6 @@
 ﻿#pragma once
 #include <string_view>
 
-const int LOC_SET = 5;
-
-const int LOC_WORLD_TEXTURE = 2;
-
 //Chunk generator \|/
 const int LOC_TILES_SELECTOR = 1;
 const int LOC_TILES0_TEXTURE = 2;

@@ -16,7 +16,7 @@
 
 class Player {
 public:
-	Player(const RE::InputManager& inputManager, World& world, FurnitureManager& furnitureManager, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
+	Player(const RE::InputManager& inputManager, World& world, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
 	~Player();
 
 	void adoptPlayerData(const PlayerData& pd);
@@ -41,8 +41,8 @@ public:
 	void draw();
 private:
 	float m_acceleration = 1.0f;
-	float m_maxSpeed = 30.0f;
-	float m_jumpSpeed = 15.0f;
+	float m_maxSpeed = 10.0f;
+	float m_jumpSpeed = 10.0f;
 
 	RE::SpriteBatch& m_spriteBatch;
 

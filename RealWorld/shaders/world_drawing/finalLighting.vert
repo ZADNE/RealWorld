@@ -4,11 +4,6 @@ layout(location = 2) in vec2 UV;
 
 out vec2 fragUV;
 
-layout(std140, binding = 0) uniform WorldDrawUniforms {
-	mat4 viewsizePxMat;
-	mat4 viewsizeLightingBcMat;
-};
-
 layout(location = 3) uniform vec2 offset;//pos % BLOCK_SIZE
 
 void main() {

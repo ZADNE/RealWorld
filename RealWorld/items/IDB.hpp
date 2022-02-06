@@ -51,8 +51,7 @@ enum class I_TYPE : uint32_t {
 	WALL,
 	PICKAXE,//Mines blocks
 	HAMMER,//Mines walls
-	CHISEL,
-	FURNITURE
+	CHISEL
 };
 
 #pragma warning(push)

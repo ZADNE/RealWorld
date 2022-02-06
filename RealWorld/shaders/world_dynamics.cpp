@@ -11,5 +11,6 @@ std::string_view setWithUpdate_vert =
 std::string_view setWithUpdate_frag =
 #include "external/hash.glsl"
 #include "common/tileConstants.glsl"
+#include "common/textureUnits.glsl"
 #include "world_dynamics/setWithUpdate.frag"
 ;

@@ -32,13 +32,9 @@ void ChunkGenerator::setTargetWorld(int seed, glm::uvec2 chunkDims) {
 	updateUniformsAfterSetTarget();
 
 	//Bind new textures to texture units
-	TEX_UNIT_CHUNK_TILES0.setActive();
-	m_genSurf[1].bindTexture(0);
-	TEX_UNIT_CHUNK_TILES1.setActive();
-	m_genSurf[0].bindTexture(0);
-	TEX_UNIT_CHUNK_MATERIAL.setActive();
-	m_genSurf[0].bindTexture(1);
-	TEX_UNIT_VOLATILE.setActive();
+	m_genSurf[1].bindTexture(TEX_UNIT_CHUNK_TILES0, 0);
+	m_genSurf[0].bindTexture(TEX_UNIT_CHUNK_TILES1, 0);
+	m_genSurf[0].bindTexture(TEX_UNIT_CHUNK_MATERIAL, 1);
 
 	//Update VBO to new chunk size
 	setVBOToWholeChunk();
@@ -78,12 +74,6 @@ void ChunkGenerator::initShaders() {
 	m_chunkUniformBuffer.connectToShaderProgram(m_basicTerrainShader, 0u);
 	m_chunkUniformBuffer.connectToShaderProgram(m_cellularAutomatonShader, 0u);
 	m_chunkUniformBuffer.connectToShaderProgram(m_selectVariationShader, 0u);
-
-	m_selectVariationShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_CHUNK_TILES1);
-
-	m_cellularAutomatonShader.setUniform(LOC_TILES0_TEXTURE, TEX_UNIT_CHUNK_TILES0);
-	m_cellularAutomatonShader.setUniform(LOC_TILES1_TEXTURE, TEX_UNIT_CHUNK_TILES1);
-	m_cellularAutomatonShader.setUniform(LOC_MATERIAL_TEXTURE, TEX_UNIT_CHUNK_MATERIAL);
 }
 
 void ChunkGenerator::initVAO() {

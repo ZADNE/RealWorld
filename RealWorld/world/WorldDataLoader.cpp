@@ -10,16 +10,14 @@
 #include <RealEngine/external/lodepng/lodepng.hpp>
 #include <RealEngine/main/Error.hpp>
 
-#include <RealWorld/furniture/FDB.hpp>
-
-template<class T> 
-void writeBinary(std::ofstream& file, const T& x){
-	file.write(reinterpret_cast<const char *>(&x), sizeof(x));
+template<class T>
+void writeBinary(std::ofstream& file, const T& x) {
+	file.write(reinterpret_cast<const char*>(&x), sizeof(x));
 }
 
 template<class T>
-void readBinary(std::ifstream& file, T& x){
-	file.read(reinterpret_cast<char *>(&x), sizeof(x));
+void readBinary(std::ifstream& file, T& x) {
+	file.read(reinterpret_cast<char*>(&x), sizeof(x));
 }
 
 std::string WorldDataLoader::m_saveFolder = "saves";
@@ -30,12 +28,12 @@ bool WorldDataLoader::loadWorldData(WorldData& data, const std::string& worldNam
 	unsigned int ticks = SDL_GetTicks();
 	std::string pathToFolder = m_saveFolder + "/" + worldName + "/";
 	data.path = pathToFolder;
-	
+
 	try {
 		loadInfo(data.wi, pathToFolder);
 		loadPlayer(data.pd, pathToFolder);
-		loadFurniture(data.fc, pathToFolder);
-	} catch (...) {
+	}
+	catch (...) {
 		return false;
 	}
 
@@ -53,8 +51,8 @@ bool WorldDataLoader::saveWorldData(const WorldData& data, const std::string& wo
 	try {
 		saveInfo(data.wi, pathToFolder);
 		savePlayer(data.pd, pathToFolder);
-		saveFurniture(data.fc, pathToFolder);
-	} catch (...) {
+	}
+	catch (...) {
 		return false;
 	}
 
@@ -62,7 +60,7 @@ bool WorldDataLoader::saveWorldData(const WorldData& data, const std::string& wo
 	return true;
 }
 
-bool WorldDataLoader::deleteWorld(const std::string& worldName){
+bool WorldDataLoader::deleteWorld(const std::string& worldName) {
 	if (std::filesystem::remove_all(m_saveFolder + "/" + worldName) > 0) {
 		return true;
 	} else {
@@ -78,7 +76,7 @@ void WorldDataLoader::getSavedWorlds(std::vector<std::string>& names) {
 	}
 }
 
-void WorldDataLoader::loadInfo(WorldInfo& wi, const std::string& path){
+void WorldDataLoader::loadInfo(WorldInfo& wi, const std::string& path) {
 	std::ifstream i(path + WORLD_INFO_FILENAME);
 	nlohmann::json j;
 	i >> j;
@@ -90,7 +88,7 @@ void WorldDataLoader::loadInfo(WorldInfo& wi, const std::string& path){
 	if (wi.chunkDims.x <= 0 || wi.chunkDims.y <= 0) throw std::exception();
 }
 
-void WorldDataLoader::loadPlayer(PlayerData& pd, const std::string& path){
+void WorldDataLoader::loadPlayer(PlayerData& pd, const std::string& path) {
 	std::ifstream stream(path + "player_state.rst", std::ios::binary);
 	if (stream.fail()) {
 		perror((path + "player_state.rst").c_str());
@@ -108,7 +106,7 @@ void WorldDataLoader::loadPlayer(PlayerData& pd, const std::string& path){
 	loadInventoryData(pd.id, path);
 }
 
-void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& path){
+void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& path) {
 	std::ifstream stream(path + "player_inventory.rin", std::ios::binary);
 	if (stream.fail()) {
 		perror((path + "player_inventory.rin").c_str());
@@ -119,7 +117,7 @@ void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& pa
 	stream.seekg(0, std::ios::end);
 	auto fileSize = stream.tellg();
 	stream.seekg(0, std::ios::beg);
-	
+
 	if ((size_t)fileSize < sizeof(newSize)) throw std::exception{};
 	readBinary(stream, newSize);
 
@@ -136,41 +134,7 @@ void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& pa
 	}
 }
 
-void WorldDataLoader::loadFurniture(FurnitureCollection& fc, const std::string& path){
-	std::ifstream stream(path + "furniture_register.rfr", std::ios::binary);
-	if (stream.fail()) {
-		perror((path + "furniture_register.rfr").c_str());
-		throw std::exception{};
-	}
-
-	const unsigned int entrySize = sizeof(glm::ivec2) + sizeof(unsigned int);
-
-	stream.seekg(0, std::ios::end);
-	auto streamSize = stream.tellg();
-	stream.seekg(0, std::ios::beg);
-	streamSize -= stream.tellg();
-
-	glm::ivec2 pos = glm::ivec2(0, 0);
-	unsigned int totalIndex = 0;
-	for (unsigned int i = 0u; i < streamSize; i += entrySize) {
-		readBinary(stream, pos);
-		readBinary(stream, totalIndex);
-		switch (FDB::getType(totalIndex)) {
-		case F_TYPE::STATIC:
-			fc.f0.emplace_back(pos, totalIndex); break;
-		case F_TYPE::CHEST:
-			fc.f1.emplace_back(FStatic{ pos, totalIndex }); break;
-		case F_TYPE::CRAFTING_STATION:
-			fc.f2.emplace_back(FStatic{ pos, totalIndex }); break;
-		case F_TYPE::FURNACE:
-			fc.f3.emplace_back(FStatic{ pos, totalIndex }); break;
-		case F_TYPE::LIGHT_SOURCE:
-			fc.f4.emplace_back(FStatic{ pos, totalIndex }); break;
-		}
-	}
-}
-
-void WorldDataLoader::saveInfo(const WorldInfo& wi, const std::string& path){
+void WorldDataLoader::saveInfo(const WorldInfo& wi, const std::string& path) {
 	nlohmann::json j = {
 		{"world", {
 			{"name", wi.worldName},
@@ -184,7 +148,7 @@ void WorldDataLoader::saveInfo(const WorldInfo& wi, const std::string& path){
 	o.close();
 }
 
-void WorldDataLoader::savePlayer(const PlayerData& pd, const std::string& path){
+void WorldDataLoader::savePlayer(const PlayerData& pd, const std::string& path) {
 	std::ofstream stream(path + "player_state.rst", std::ios::binary | std::ios::trunc);
 	if (stream.fail()) {
 		perror((path + "player_state.rst").c_str());
@@ -195,7 +159,7 @@ void WorldDataLoader::savePlayer(const PlayerData& pd, const std::string& path){
 	saveInventoryData(pd.id, path);
 }
 
-void WorldDataLoader::saveInventoryData(const InventoryData& id, const std::string& path){
+void WorldDataLoader::saveInventoryData(const InventoryData& id, const std::string& path) {
 	std::ofstream stream(path + "player_inventory.rin", std::ios::binary | std::ios::trunc);
 	if (stream.fail()) {
 		perror(path.c_str());
@@ -209,43 +173,5 @@ void WorldDataLoader::saveInventoryData(const InventoryData& id, const std::stri
 			Item item = id.items[x][y];
 			writeBinary(stream, item);
 		}
-	}
-}
-
-void WorldDataLoader::saveFurniture(const FurnitureCollection& fc, const std::string& path){
-	std::ofstream stream(path + "furniture_register.rfr", std::ios::binary);
-	if (stream.fail()) {
-		perror((path + "furniture_register.rfr").c_str());
-		throw std::exception{};
-	}
-	for (auto& fur: fc.f0) {
-		glm::ivec2 pos = fur.getBotLeft();
-		writeBinary(stream, pos);
-		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
-		writeBinary(stream, totalIndex);
-	}
-	for (auto& fur : fc.f1) {
-		glm::ivec2 pos = fur.getBotLeft();
-		writeBinary(stream, pos);
-		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
-		writeBinary(stream, totalIndex);
-	}
-	for (auto& fur : fc.f2) {
-		glm::ivec2 pos = fur.getBotLeft();
-		writeBinary(stream, pos);
-		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
-		writeBinary(stream, totalIndex);
-	}
-	for (auto& fur : fc.f3) {
-		glm::ivec2 pos = fur.getBotLeft();
-		writeBinary(stream, pos);
-		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
-		writeBinary(stream, totalIndex);
-	}
-	for (auto& fur : fc.f4) {
-		glm::ivec2 pos = fur.getBotLeft();
-		writeBinary(stream, pos);
-		unsigned int totalIndex = (unsigned int)fur.getTotalIndex();
-		writeBinary(stream, totalIndex);
 	}
 }

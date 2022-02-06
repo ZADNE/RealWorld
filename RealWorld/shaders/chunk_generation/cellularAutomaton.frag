@@ -2,8 +2,8 @@ R""(
 layout(location = 0) out uvec4 result;
 
 layout(location = 1) uniform uint tilesSelector;
-layout(location = 2) uniform usampler2D tilesTexture[2];
-layout(location = 4) uniform usampler2D materialTexture;
+layout(binding = TEX_UNIT_CHUNK_TILES0) uniform usampler2D tilesTexture[2];
+layout(binding = TEX_UNIT_CHUNK_MATERIAL) uniform usampler2D materialTexture;
 
 layout(location = 33) uniform uint low;
 layout(location = 34) uniform uint high;

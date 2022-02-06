@@ -9,7 +9,7 @@ layout(std140, binding = 0) uniform GlobalMatrices{
 };
 
 void main() {
-	gl_Position.xyzw = viewMatrix * vec4(position, 0.0, 1.0);
+	gl_Position = viewMatrix * vec4(position, 0.0, 1.0);
 	fragUV = UV;
 }
 

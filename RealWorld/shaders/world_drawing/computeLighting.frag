@@ -1,14 +1,13 @@
 R""(
 layout(location = 2) out vec4 colour;
 
-layout(location = 100) uniform sampler2D diaphragm;
-layout(location = 101) uniform sampler2D lighting;
+layout(binding = TEX_UNIT_DIAPHRAGM) uniform sampler2D diaphragm;
+layout(binding = TEX_UNIT_LIGHTING) uniform sampler2D lighting;
 
 //User defined constants
 const float DIRECTIONS = 256.0;
-const float MAX_RANGE = 30.0;
 
-const float MIDDLE_RANGE = MAX_RANGE * 0.6;
+const float MIDDLE_RANGE = LIGHT_MAX_RANGEUn * 0.6;
 const float PI2 = 6.28318530718;
 const float PI_FRACTION = PI2 / DIRECTIONS;
 
@@ -30,8 +29,8 @@ void main() {
 	for (vec3 dir = vec3(0.0, 1.0, 0.5); dir.x < DIRECTIONS; dir += 2.0) {
 		vec3 d = dir * PI_FRACTION;
 		vec4 color[2] = vec4[2](vec4(0.0), vec4(0.0));
-		ray(MAX_RANGE, MIDDLE_RANGE, d[0], color[0], center);
-		ray(MAX_RANGE, MIDDLE_RANGE, d[1], color[1], center);
+		ray(LIGHT_MAX_RANGEUn, MIDDLE_RANGE, d[0], color[0], center);
+		ray(LIGHT_MAX_RANGEUn, MIDDLE_RANGE, d[1], color[1], center);
 		color[0] += color[1];
 		ray(MIDDLE_RANGE, 0.0, d[2], color[0], center);
 		final += color[0];

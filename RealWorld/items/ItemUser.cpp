@@ -5,9 +5,8 @@
 #include <RealWorld/world/physics/position_conversions.hpp>
 
 
-ItemUser::ItemUser(World& world, FurnitureManager& furnitureManager, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
+ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
 	m_world(world),
-	m_furnitureManager(furnitureManager),
 	m_inv(inventory),
 	m_operatorsHitbox(operatorsHitbox),
 	m_spriteBatch(spriteBatch),
@@ -41,9 +40,6 @@ void ItemUser::chooseSlot(int slot) {
 	}
 	m_chosenSlot = slot;
 	m_item = &m_inv[m_chosenSlot][0];
-	if (IDB::g(m_item->ID).type == I_TYPE::FURNITURE) {
-		checkBuildFurniture();
-	}
 }
 
 void ItemUser::step(const glm::ivec2& relCursorPos) {
@@ -58,13 +54,6 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 		case I_TYPE::EMPTY:
 			break;
 		case I_TYPE::PICKAXE:
-			//Dismantling furniture
-			if (m_using[ItemUse::MAIN] == 1 && //If just clicked
-				rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= pickaxeMetadata[im.typeIndex].range) {//If the operator stands close enough
-				auto fur = m_furnitureManager.destroy(m_UCTileBc);
-				m_itemOnGroundManager.add(fur.second * iTILE_SIZE, Item(FDB::getItemID(fur.first), 1));
-			}
-
 			//Mining blocks
 			if (m_UCTileBc == m_UCTileBcP) {//Still mining same tile
 				if (pickaxeMetadata[im.typeIndex].strength >= TDB::gb(m_UCBlock).hardness//If the pickaxe is strong enough to mine it
@@ -112,8 +101,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			break;
 		case I_TYPE::BLOCK:
 			if (m_UCBlock == BLOCK::AIR//If there already is not a block
-				&& rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= m_buildingRange//If the operator stands close enough
-				&& !m_furnitureManager.build(FStatic{m_UCTileBc, 0u}, false).isError()) {//If there is not any furniture
+				&& rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= m_buildingRange) {//If the operator stands close enough
 				if (!m_operatorsHitbox.overlapsBlockwise(m_relCursorPos)) {//If not inside operator
 					m_world.set(chunk::SET_TYPES::BLOCK, m_UCTileBc, im.typeIndex);
 					m_UCBlock = (BLOCK)im.typeIndex;
@@ -130,15 +118,6 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 				m_UCWall = (WALL)im.typeIndex;
 				--(*m_item);
 				m_inv.wasChanged();
-			}
-			break;
-		case I_TYPE::FURNITURE:
-			if (rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx + (FDB::getDims((size_t)im.typeIndex) - glm::ivec2{1, 1}) * iTILE_SIZE / 2) <= m_buildingRange) {//If the operator stands close enough
-				FIndex findex = m_furnitureManager.build(FStatic{m_UCTileBc, (size_t)im.typeIndex});//Try to build
-				if (findex.getError() == BuildError::NO_ERROR) {//Successfully built
-					--(*m_item);
-					m_inv.wasChanged();
-				}
 			}
 			break;
 		}
@@ -166,23 +145,6 @@ void ItemUser::draw() {
 			m_spriteBatch.addSubimage(m_miningBlockTex.get(), glm::vec2(m_UCTilePx), 10, glm::vec2(m_neededToMineWall / TDB::gw(m_UCWall).toughness * 9.0f, 0.0f));
 		}
 	}
-	if (im.type == I_TYPE::FURNITURE && m_canBuildFurniture) {
-		m_spriteBatch.addSubimage(FDB::getTexture(im.typeIndex).get(), glm::vec2(m_UCTilePx - iTILE_SIZE / 2), 10, m_furBlueprint[m_canBuildFurniture], glm::vec2(0.0f, FDB::getSprite(im.typeIndex)));
-	}
-}
-
-void ItemUser::checkBuildFurniture() {
-	ItemMetadata im = IDB::g(m_item->ID);
-	if (rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx + (FDB::getDims((size_t)im.typeIndex) - glm::ivec2{1, 1}) * iTILE_SIZE / 2) <= m_buildingRange) {//If the operator stands close enough
-		FIndex findex = m_furnitureManager.build(FStatic{m_UCTileBc, (size_t)im.typeIndex}, false);//Try to build
-		if (findex.getError() == BuildError::NO_ERROR) {
-			m_canBuildFurniture = 2;//Can build
-		} else {
-			m_canBuildFurniture = 1;//Bad placement/occupied
-		}
-	} else {
-		m_canBuildFurniture = 0;//Too far
-	}
 }
 
 void ItemUser::reloadTarget() {
@@ -195,8 +157,4 @@ void ItemUser::reloadTarget() {
 	m_UCTilePx = bcToPx(m_UCTileBc) + iTILE_SIZE / 2;
 	m_UCBlock = (BLOCK)m_world.get(chunk::BLOCK_VALUES::BLOCK, m_UCTileBc);
 	m_UCWall = (WALL)m_world.get(chunk::BLOCK_VALUES::WALL, m_UCTileBc);
-
-	if (m_UCTileBc != m_UCTileBcP && IDB::g(m_item->ID).type == I_TYPE::FURNITURE) {
-		checkBuildFurniture();
-	}
 }

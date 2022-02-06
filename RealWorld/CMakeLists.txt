@@ -1,5 +1,4 @@
-﻿add_subdirectory(furniture)
-add_subdirectory(items)
+﻿add_subdirectory(items)
 add_subdirectory(main)
 add_subdirectory(rendering)
 add_subdirectory(shaders)

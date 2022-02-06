@@ -10,13 +10,12 @@
 #include <RealWorld/items/IDB.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemOnGroundManager.hpp>
-#include <RealWorld/furniture/FurnitureManager.hpp>
 
 enum ItemUse { MAIN, ALTERNATIVE, NUMBER_OF_USES };
 
 class ItemUser {
 public:
-	ItemUser(World& world, FurnitureManager& furnitureManager, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
+	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
 	~ItemUser();
 
 	void beginUse(ItemUse use);
@@ -28,7 +27,6 @@ public:
 	void draw();
 private:
 	World& m_world;
-	FurnitureManager& m_furnitureManager;
 	Inventory& m_inv;
 	Hitbox& m_operatorsHitbox;
 	ItemOnGroundManager& m_itemOnGroundManager;

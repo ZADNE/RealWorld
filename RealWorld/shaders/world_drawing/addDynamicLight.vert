@@ -7,11 +7,6 @@ layout(location = 3) in float lightCone;
 out vec4 vert_light;
 out vec4 vert_diaphragm;
 
-layout(std140, binding = 0) uniform WorldDrawUniforms {
-	mat4 viewsizeMatPx;
-	mat4 viewsizeLightingMatTi;
-};
-
 layout(location = 3) uniform vec2 botLeftTi;
 uniform vec2 perPixelIncrementTi;
 uniform float yInversion;
@@ -38,7 +33,7 @@ float lightPower(in vec2 subTileNorm, in vec2 tileNorm){
 void main() {
 	vec2 basePosTi = vec2(basePosPx.x,  yInversion - basePosPx.y) * perPixelIncrementTi;
 	vec2 posTi = basePosTi - botLeftTi + POS_OFFSETS[gl_InstanceID];
-	gl_Position = viewsizeLightingMatTi * vec4(posTi, 0.0, 1.0);
+	gl_Position = viewsizeLightingUnMat * vec4(posTi, 0.0, 1.0);
 	
 	vec2 subTileNorm = fract(basePosTi + vec2(0.5, 0.5));
 	

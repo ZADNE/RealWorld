@@ -9,7 +9,6 @@
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/WorldDrawer.hpp>
 #include <RealWorld/world/physics/Player.hpp>
-#include <RealWorld/furniture/FurnitureManager.hpp>
 #include <RealWorld/items/InventoryDrawer.hpp>
 #include <RealWorld/items/CraftingDrawer.hpp>
 #include <RealWorld/items/ItemOnGroundManager.hpp>
@@ -53,7 +52,6 @@ private:
 	//Gameplay
 	World m_world;
 	WorldDrawer m_worldDrawer;
-	FurnitureManager m_furnitureManager;
 	Player m_player;
 	InventoryDrawer m_inventoryDrawer;
 	CraftingDrawer m_craftingDrawer;

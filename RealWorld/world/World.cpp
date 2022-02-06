@@ -12,7 +12,6 @@
 
 World::World() {
 	initVAOs();
-	initConstantUniforms();
 	initUniformBuffers();
 }
 
@@ -26,9 +25,7 @@ glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, c
 	m_ws.resize(m_chunkDims * m_activeChunksRect, 1);
 	m_worldName = name;
 
-	TEX_UNIT_WORLD_TEXTURE.setActive();
-	m_ws.bindTexture();
-	TEX_UNIT_VOLATILE.setActive();
+	m_ws.bindTexture(TEX_UNIT_WORLD_TEXTURE);
 
 	m_chunkHandler.setTarget(m_seed, m_chunkDims, m_activeChunksRect, wd.path, &m_ws);
 
@@ -126,10 +123,6 @@ void World::initVAOs() {
 
 	m_setWithUpdateVAO.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
 	m_setWithUpdateVAO.connectAttributeToBindingPoint(ATTR_SET_AROUND, vboBindingPoint);
-}
-
-void World::initConstantUniforms() {
-	m_setWithUpdateShader.setUniform(LOC_WORLD_TEXTURE, TEX_UNIT_WORLD_TEXTURE);
 }
 
 void World::initUniformBuffers() {

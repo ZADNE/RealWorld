@@ -4,7 +4,7 @@
 
 #include <RealEngine/external/lodepng/lodepng.hpp>
 
-std::vector<unsigned char> ChunkLoader::loadChunk(const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims){
+std::vector<unsigned char> ChunkLoader::loadChunk(const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims) {
 	std::vector<unsigned char> bytes;
 
 	glm::uvec2 realDims;
@@ -18,14 +18,17 @@ std::vector<unsigned char> ChunkLoader::loadChunk(const std::string& folderPath,
 	return bytes;
 }
 
-void ChunkLoader::saveChunk(const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims, const std::vector<unsigned char>& data){
+void ChunkLoader::saveChunk(const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims, const std::vector<unsigned char>& data) {
 	std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);
 
+#ifndef _DEBUG
 	unsigned int error = lodepng::encode(fullPath, data, chunkDims.x, chunkDims.y, LodePNGColorType::LCT_RGBA, 8u);
 
 	if (error) throw std::runtime_error("Error encoding or saving chunk " + fullPath);
+#endif // ! _DEBUG
+
 }
 
-std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos){
+std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos) {
 	return "chunk_" + std::to_string(chunkPos.x) + "x" + std::to_string(chunkPos.y) + ".chunk";
 }
