@@ -57,14 +57,14 @@ public:
 	int getNumberOfChunksLoaded();
 
 	//Tile getters
-	uchar get(chunk::BLOCK_VALUES type, const glm::ivec2& posBc);
-	uchar getMax(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc);
-	uchar getMin(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc);
+	uchar get(TILE_VALUE type, const glm::ivec2& posTi);
+	uchar getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+	uchar getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 	//Tile setters
-	void set(chunk::BLOCK_VALUES type, const glm::ivec2& posBc, uchar index);
+	void set(TILE_VALUE type, const glm::ivec2& posTi, uchar index);
 
-	bool exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc, uchar index);
-	bool exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc, uchar index);
+	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi, uchar index);
+	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi, uchar index);
 
 	/**
 	 * @brief Performs beginStep operation on the chunk handler.
@@ -76,10 +76,10 @@ public:
 
 	/**
 	 * @brief Forces activation of chunks that overlap given rectangular area
-	 * @param botLeftBc Bottom left corner of the rectangular area
-	 * @param topRightBc Top right corner of the rectangular area
+	 * @param botLeftTi Bottom left corner of the rectangular area
+	 * @param topRightTi Top right corner of the rectangular area
 	*/
-	void forceActivationOfChunks(const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc);
+	void forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 private:
 	glm::ivec2 chunkPosToTexturePos(glm::ivec2 posCh) const;
 	glm::ivec2 chunkPosToActiveChunkPos(glm::ivec2 posCh) const;
@@ -124,7 +124,7 @@ private:
 	 * @return Activated chunk
 	*/
 	Chunk* getChunk(glm::ivec2 posCh);
-	uchar getUnsafe(chunk::BLOCK_VALUES type, const glm::ivec2& posBc);
+	uchar getUnsafe(TILE_VALUE type, const glm::ivec2& posTi);
 	void saveChunk(Chunk& chunk, glm::ivec2 posCh) const;
 
 	mutable std::unordered_map<glm::ivec2, Chunk> m_chunks;

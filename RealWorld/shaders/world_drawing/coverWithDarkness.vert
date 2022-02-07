@@ -2,7 +2,7 @@ R""(
 layout(location = 0) in vec2 basePosUn;
 layout(location = 2) in vec2 baseUV;
 
-out vec4 fColor;
+flat out vec4 fColor;
 
 layout(std140, binding = 0) uniform ViewportMatrices {
 	mat4 viewMat;

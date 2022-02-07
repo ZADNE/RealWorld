@@ -11,18 +11,13 @@ using uchar = unsigned char;
 using ushort = unsigned short;
 using ulong = unsigned long;
 
-
-namespace chunk {
-
-enum class BLOCK_VALUES : ulong {
+enum class TILE_VALUE : ulong {
 	BLOCK = 0, BLOCK_VAR = 1, WALL = 2, WALL_VAR = 3
 };
 
 enum class SET_TYPES : ulong {
 	BLOCK = 0, /*BLOCK_VAR = 1,*/ WALL = 2/*, WALL_VAR = 3*/
 };
-
-}
 
 /**
  * @brief Represents a rectangular area of tiles.
@@ -63,7 +58,7 @@ public:
 	 * @return The value of the tile.
 	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
-	uchar get(chunk::BLOCK_VALUES type, glm::uvec2 posTi) const;
+	uchar get(TILE_VALUE type, glm::uvec2 posTi) const;
 
 	/**
 	 * @brief Gets a value of a tile inside the chunk.
@@ -75,7 +70,7 @@ public:
 	 * @param posTi Position of the tile, relative to this chunk.
 	 * @return The value of the tile.
 	 */
-	uchar getUnsafe(chunk::BLOCK_VALUES type, glm::uvec2 posTi) const;
+	uchar getUnsafe(TILE_VALUE type, glm::uvec2 posTi) const;
 
 	/**
 	 * @brief Sets a value of a tile inside the chunk.
@@ -88,7 +83,7 @@ public:
 	 * @param value The value to be set.
 	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
-	void set(chunk::BLOCK_VALUES type, glm::uvec2 posTi, uchar value);
+	void set(TILE_VALUE type, glm::uvec2 posTi, uchar value);
 
 	/**
 	 * @brief Sets a value of a tile inside the chunk.
@@ -100,7 +95,7 @@ public:
 	 * @param posTi Position of the tile, relative to this chunk.
 	 * @param value The value to be set.
 	 */
-	void setUnsafe(chunk::BLOCK_VALUES type, glm::uvec2 posTi, uchar value);
+	void setUnsafe(TILE_VALUE type, glm::uvec2 posTi, uchar value);
 
 	/**
 	 * @brief Performs step on the chunk.
@@ -152,7 +147,7 @@ private:
 	 * @param posTi Position
 	 * @return Index to the buffer.
 	 */
-	size_t getIndexToBuffer(chunk::BLOCK_VALUES type, glm::uvec2 posTi) const;
+	size_t getIndexToBuffer(TILE_VALUE type, glm::uvec2 posTi) const;
 
 	std::vector<unsigned char> m_data;				/**< Raw data of the chunk */
 	glm::ivec2 m_chunkPosCh{0, 0};					/**< Position of the chunk, measured in chunk coordinates */

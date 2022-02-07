@@ -64,7 +64,7 @@ private:
 	ItemSprite m_underCursorItemSprite{};
 
 	std::vector<std::vector<Hitbox>> m_hitboxes;
-	Hitbox m_hitboxMainCover{glm::ivec2(0, 0), glm::ivec2(0, 0), glm::ivec2(m_mainSlotDims)};
+	Hitbox m_hitboxMainCover{{0.0f, 0.0f}, {0.0f, 0.0f}, m_mainSlotDims};
 	int m_chosenSlot = 0;//Is signed but never should be negative
 	int m_chosenSlotPrev = 0;//Is signed but never should be negative
 

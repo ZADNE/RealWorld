@@ -7,23 +7,23 @@ Chunk::Chunk(glm::ivec2 chunkPosCh, glm::uvec2 dimsTi, std::vector<unsigned char
 	}
 }
 
-uchar Chunk::get(chunk::BLOCK_VALUES type, glm::uvec2 posTi) const {
+uchar Chunk::get(TILE_VALUE type, glm::uvec2 posTi) const {
 	m_stepsSinceLastOperation = 0;
 	boundsCheck(posTi);
 	return getUnsafe(type, posTi);
 }
 
-uchar Chunk::getUnsafe(chunk::BLOCK_VALUES type, glm::uvec2 posTi) const {
+uchar Chunk::getUnsafe(TILE_VALUE type, glm::uvec2 posTi) const {
 	return m_data[getIndexToBuffer(type, posTi)];
 }
 
-void Chunk::set(chunk::BLOCK_VALUES type, glm::uvec2 posTi, uchar value) {
+void Chunk::set(TILE_VALUE type, glm::uvec2 posTi, uchar value) {
 	boundsCheck(posTi);
 	m_stepsSinceLastOperation = 0;
 	setUnsafe(type, posTi, value);
 }
 
-void Chunk::setUnsafe(chunk::BLOCK_VALUES type, glm::uvec2 posTi, uchar value) {
+void Chunk::setUnsafe(TILE_VALUE type, glm::uvec2 posTi, uchar value) {
 	m_data[getIndexToBuffer(type, posTi)] = value;
 }
 
@@ -48,6 +48,6 @@ void Chunk::boundsCheck(glm::uvec2 posTi) const {
 	}
 }
 
-size_t Chunk::getIndexToBuffer(chunk::BLOCK_VALUES type, glm::uvec2 posTi) const {
+size_t Chunk::getIndexToBuffer(TILE_VALUE type, glm::uvec2 posTi) const {
 	return (posTi.x + ((size_t)m_dimsTi.y - posTi.y - 1ull) * m_dimsTi.x) * 4ull + (ulong)type;
 }

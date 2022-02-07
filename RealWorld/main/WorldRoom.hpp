@@ -12,6 +12,7 @@
 #include <RealWorld/items/InventoryDrawer.hpp>
 #include <RealWorld/items/CraftingDrawer.hpp>
 #include <RealWorld/items/ItemOnGroundManager.hpp>
+#include <RealWorld/KeyBinder.hpp>
 
 class WorldRoom : public RE::Room {
 public:
@@ -27,8 +28,7 @@ private:
 	void drawGUI();
 
 	/**
-	 * @brief Loads a world.
-	 * Previously loaded world is flushed without saving.
+	 * @brief Loads a world. Previously loaded world is flushed without saving.
 	 *
 	 * @param worldName Filename of the world
 	 * @return True if successful, false otherwise. No change is done to current world then.
@@ -36,9 +36,9 @@ private:
 	bool loadWorld(const std::string& worldName);
 
 	/**
-	 * Save current world. Makes no changes to the world.
+	 * @brief Saves the current world. Makes no changes to the world.
 	 *
-	 * \return True if successful, false otherwise.
+	 * @return True if successful, false otherwise.
 	 */
 	bool saveWorld() const;
 

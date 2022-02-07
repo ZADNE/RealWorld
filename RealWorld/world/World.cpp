@@ -27,7 +27,7 @@ glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, c
 
 	m_ws.bindTexture(TEX_UNIT_WORLD_TEXTURE);
 
-	m_chunkHandler.setTarget(m_seed, m_chunkDims, m_activeChunksRect, wd.path, &m_ws);
+	m_chunkManager.setTarget(m_seed, m_chunkDims, m_activeChunksRect, wd.path, &m_ws);
 
 	updateUniformsAfterWorldResize();
 
@@ -41,45 +41,45 @@ void World::gatherWorldData(WorldData& wd) const {
 }
 
 bool World::saveChunks() const {
-	return m_chunkHandler.saveChunks();
+	return m_chunkManager.saveChunks();
 }
 
 int World::getNumberOfChunksLoaded() {
-	return m_chunkHandler.getNumberOfChunksLoaded();
+	return m_chunkManager.getNumberOfChunksLoaded();
 }
 
-void World::forceActivationOfChunks(const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc) {
-	m_chunkHandler.forceActivationOfChunks(botLeftBc, topRightBc);
+void World::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+	m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
 }
 
-uchar World::get(chunk::BLOCK_VALUES type, const glm::ivec2& posBc) {
-	return m_chunkHandler.get(type, posBc);
+uchar World::get(TILE_VALUE type, const glm::ivec2& posTi) {
+	return m_chunkManager.get(type, posTi);
 }
 
-uchar World::getMax(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc) {
-	return m_chunkHandler.getMax(type, botLeftBc, dimBc);
+uchar World::getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi) {
+	return m_chunkManager.getMax(type, botLeftTi, dimsTi);
 }
 
-uchar World::getMax(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc) {
-	return m_chunkHandler.getMax(type, botLeftBc, topRightBc);
+uchar World::getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+	return m_chunkManager.getMax(type, botLeftTi, topRightTi);
 }
 
-uchar World::getMin(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc) {
-	return m_chunkHandler.getMin(type, botLeftBc, dimBc);
+uchar World::getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi) {
+	return m_chunkManager.getMin(type, botLeftTi, dimsTi);
 }
 
-uchar World::getMin(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc) {
-	return m_chunkHandler.getMin(type, botLeftBc, topRightBc);
+uchar World::getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+	return m_chunkManager.getMin(type, botLeftTi, topRightTi);
 }
 
-void World::set(chunk::SET_TYPES type, const glm::ivec2& posBc, uchar index) {
-	m_chunkHandler.set((chunk::BLOCK_VALUES)type, posBc, index);
+void World::set(SET_TYPES type, const glm::ivec2& posTi, uchar index) {
+	m_chunkManager.set((TILE_VALUE)type, posTi, index);
 
 	switch (type) {
-	case chunk::SET_TYPES::BLOCK:
+	case SET_TYPES::BLOCK:
 		glColorMask(true, true, false, false);
 		break;
-	case chunk::SET_TYPES::WALL:
+	case SET_TYPES::WALL:
 		glColorMask(false, false, true, true);
 		break;
 	}
@@ -89,7 +89,7 @@ void World::set(chunk::SET_TYPES type, const glm::ivec2& posBc, uchar index) {
 	m_setWithUpdateVAO.bind();
 
 	m_setWithUpdateShader.setUniform(LOC_SET, (unsigned int)index);
-	m_setWithUpdateShader.setUniform(LOC_POSITION, glm::vec2(static_cast<GLfloat>(posBc.x), static_cast<GLfloat>(posBc.y)));
+	m_setWithUpdateShader.setUniform(LOC_POSITION, glm::vec2(static_cast<GLfloat>(posTi.x), static_cast<GLfloat>(posTi.y)));
 	m_setWithUpdateShader.setUniform(LOC_TIME, ++m_time);
 
 	m_setWithUpdateVAO.renderArrays(RE::Primitive::POINTS, 0, 9);
@@ -101,16 +101,16 @@ void World::set(chunk::SET_TYPES type, const glm::ivec2& posBc, uchar index) {
 	glColorMask(true, true, true, true);
 }
 
-bool World::exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc, uchar index) {
-	return m_chunkHandler.exists(type, botLeftBc, dimBc, index);
+bool World::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi, uchar index) {
+	return m_chunkManager.exists(type, botLeftTi, dimsTi, index);
 }
 
-bool World::exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc, uchar index) {
-	return m_chunkHandler.exists(type, botLeftBc, topRightBc, index);
+bool World::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi, uchar index) {
+	return m_chunkManager.exists(type, botLeftTi, topRightTi, index);
 }
 
 void World::step() {
-	m_chunkHandler.step();
+	m_chunkManager.step();
 }
 
 void World::initVAOs() {

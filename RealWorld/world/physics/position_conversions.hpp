@@ -4,27 +4,21 @@
 #include <RealWorld/metadata.hpp>
 
 /**
- * Converts position in pixels to position in blocks.
- * 
- * \param posPx Position in pixels to convert
- * \return Position in blocks
+ * @brief Converts position in pixels to position in tiles
+ *
+ * @param posPx Position in pixels to convert
+ * @return Position in blocks
  */
-inline glm::ivec2 pxToBc(glm::ivec2 posPx) {
-    div_t x = div(posPx.x, iTILE_SIZE.x);
-    div_t y = div(posPx.y, iTILE_SIZE.y);
-
-    glm::ivec2 r = { x.quot, y.quot };
-	if (x.rem != 0 && posPx.x < 0) r.x--;
-	if (y.rem != 0 && posPx.y < 0) r.y--;
-	return r;
+inline glm::vec2 pxToTi(const glm::vec2& posPx) {
+	return glm::floor(posPx / TILE_SIZE);
 }
 
 /**
- * Converts position in blocks to position in pixels.
+ * @brief Converts position in tiles to position in pixels
  *
- * \param posBc Position in blocks to convert
- * \return Position in pixels
+ * @param posTi Position in tiles to convert
+ * @return Position in pixels
  */
-inline glm::ivec2 bcToPx(glm::ivec2 posBc) {
-	return posBc * iTILE_SIZE;
+inline glm::vec2 tiToPx(const glm::vec2& posTi) {
+	return posTi * TILE_SIZE;
 }

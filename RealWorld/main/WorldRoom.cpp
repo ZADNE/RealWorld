@@ -13,7 +13,7 @@ const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
-	m_player(*input(), m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
+	m_player(m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
 	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
 	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
 	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_player.getMainInventory()) {
@@ -40,6 +40,8 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 		RE::fatalError("Bad transition paramaters to start WorldRoom session");
 	}
 
+	m_worldView.setPosition(m_player.getCenter(), {});
+	m_worldView.update();
 	synchronizer()->setStepsPerSecond(PHYSICS_STEPS_PER_SECOND);
 	synchronizer()->setFramesPerSecondLimit(FPS_LIMIT);
 }
@@ -52,9 +54,16 @@ void WorldRoom::sessionEnd() {
 
 void WorldRoom::step() {
 	//Player BEGIN
+	if (input()->wasPressed(KB(PLAYER_JUMP))) { m_player.jump(); }
+	if (input()->wasPressed(KB(PLAYER_LEFT))) { m_player.walkLeft(true); }
+	if (input()->wasPressed(KB(PLAYER_RIGHT))) { m_player.walkRight(true); }
+	if (input()->wasReleased(KB(PLAYER_LEFT))) { m_player.walkLeft(false); }
+	if (input()->wasReleased(KB(PLAYER_RIGHT))) { m_player.walkRight(false); }
 	m_player.step();
 	//View
-	m_worldView.setPosition(m_player.getPos(), input()->getCursorAbs());
+	glm::vec2 prevViewPos = m_worldView.getPosition();
+
+	m_worldView.setPosition(prevViewPos * 0.875 + m_player.getCenter() * 0.125f, input()->getCursorAbs());
 	m_worldView.update();
 	m_worldViewUnifromBuffer.overwrite(m_worldView.getViewMatrix());
 
@@ -148,9 +157,9 @@ void WorldRoom::drawGUI() {
 
 	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
 
-	glm::ivec2 cursorPos = pxToBc(static_cast<glm::ivec2>(m_player.getPos()));
-	stream << "CursorBc: [" << std::setw(4) << cursorPos.x << ", "
-		<< std::setw(4) << cursorPos.y << "]\n";
+	glm::ivec2 cursorPosTi = pxToTi(m_worldView.getCursorRel());
+	stream << "CursorTi: [" << std::setw(4) << cursorPosTi.x << ", "
+		<< std::setw(4) << cursorPosTi.y << "]\n";
 
 
 	glm::vec2 topLeft = glm::vec2(0.0f, window()->getDims().y);

@@ -57,10 +57,10 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			//Mining blocks
 			if (m_UCTileBc == m_UCTileBcP) {//Still mining same tile
 				if (pickaxeMetadata[im.typeIndex].strength >= TDB::gb(m_UCBlock).hardness//If the pickaxe is strong enough to mine it
-					&& rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= pickaxeMetadata[im.typeIndex].range) {//If the operator stands close enough
+					&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= pickaxeMetadata[im.typeIndex].range) {//If the operator stands close enough
 					m_neededToMineBlock += pickaxeMetadata[im.typeIndex].speed;
 					if (m_neededToMineBlock >= TDB::gb(m_UCBlock).toughness) {//Finished mining
-						m_world.set(chunk::SET_TYPES::BLOCK, m_UCTileBc, (uchar)BLOCK::AIR);
+						m_world.set(SET_TYPES::BLOCK, m_UCTileBc, (uchar)BLOCK::AIR);
 						m_itemOnGroundManager.add(glm::ivec2(m_UCTilePx - iTILE_SIZE / 2), Item(TDB::gb(m_UCBlock).itemID, 1));
 						m_UCBlock = BLOCK::AIR;
 					}
@@ -75,10 +75,10 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			if (m_UCTileBc == m_UCTileBcP) {//Still mining same tile
 				if (m_UCBlock == BLOCK::AIR) {//If there is air in front of the wall
 					if (hammerMetadata[im.typeIndex].strength >= TDB::gw(m_UCWall).hardness//If the hammer is strong enough to mine it
-						&& rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= hammerMetadata[im.typeIndex].range) {//If the operator stands close enough
+						&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= hammerMetadata[im.typeIndex].range) {//If the operator stands close enough
 						m_neededToMineWall += hammerMetadata[im.typeIndex].speed;
 						if (m_neededToMineWall >= TDB::gw(m_UCWall).toughness) {//Finished mining
-							m_world.set(chunk::SET_TYPES::WALL, m_UCTileBc, (uchar)WALL::AIR);
+							m_world.set(SET_TYPES::WALL, m_UCTileBc, (uchar)WALL::AIR);
 							m_itemOnGroundManager.add(glm::ivec2(m_UCTilePx - iTILE_SIZE / 2), Item(TDB::gw(m_UCWall).itemID, 1));
 							m_UCWall = WALL::AIR;
 						}
@@ -101,9 +101,9 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			break;
 		case I_TYPE::BLOCK:
 			if (m_UCBlock == BLOCK::AIR//If there already is not a block
-				&& rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= m_buildingRange) {//If the operator stands close enough
+				&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= m_buildingRange) {//If the operator stands close enough
 				if (!m_operatorsHitbox.overlapsBlockwise(m_relCursorPos)) {//If not inside operator
-					m_world.set(chunk::SET_TYPES::BLOCK, m_UCTileBc, im.typeIndex);
+					m_world.set(SET_TYPES::BLOCK, m_UCTileBc, im.typeIndex);
 					m_UCBlock = (BLOCK)im.typeIndex;
 					--(*m_item);
 					m_inv.wasChanged();
@@ -113,8 +113,8 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 		case I_TYPE::WALL:
 			if (m_UCWall == WALL::AIR//If there already is not a wall
 				&& m_UCBlock == BLOCK::AIR//If there is air on top of the wall
-				&& rmath::distance(m_operatorsHitbox.getPos(), m_UCTilePx) <= m_buildingRange) {//If the operator stands close enough
-				m_world.set(chunk::SET_TYPES::WALL, m_UCTileBc, im.typeIndex);
+				&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= m_buildingRange) {//If the operator stands close enough
+				m_world.set(SET_TYPES::WALL, m_UCTileBc, im.typeIndex);
 				m_UCWall = (WALL)im.typeIndex;
 				--(*m_item);
 				m_inv.wasChanged();
@@ -153,8 +153,8 @@ void ItemUser::reloadTarget() {
 	m_UCBlockP = m_UCBlock;
 	m_UCWallP = m_UCWall;
 
-	m_UCTileBc = pxToBc(m_relCursorPos);
-	m_UCTilePx = bcToPx(m_UCTileBc) + iTILE_SIZE / 2;
-	m_UCBlock = (BLOCK)m_world.get(chunk::BLOCK_VALUES::BLOCK, m_UCTileBc);
-	m_UCWall = (WALL)m_world.get(chunk::BLOCK_VALUES::WALL, m_UCTileBc);
+	m_UCTileBc = pxToTi(m_relCursorPos);
+	m_UCTilePx = tiToPx(m_UCTileBc) + TILE_SIZE / 2.0f;
+	m_UCBlock = (BLOCK)m_world.get(TILE_VALUE::BLOCK, m_UCTileBc);
+	m_UCWall = (WALL)m_world.get(TILE_VALUE::WALL, m_UCTileBc);
 }

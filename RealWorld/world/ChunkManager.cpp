@@ -47,48 +47,48 @@ int ChunkManager::getNumberOfChunksLoaded() {
 	return (int)m_chunks.size();
 }
 
-uchar ChunkManager::get(chunk::BLOCK_VALUES type, const glm::ivec2& posBc) {
-	ivec2_div_t div = floor_div(posBc, m_chunkDims);
+uchar ChunkManager::get(TILE_VALUE type, const glm::ivec2& posTi) {
+	ivec2_div_t div = floor_div(posTi, m_chunkDims);
 	return getChunk(div.quot)->get(type, div.rem);
 }
 
-uchar ChunkManager::getMax(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc) {
+uchar ChunkManager::getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	uchar returnValue = std::numeric_limits<uchar>::min();
 	//Force load of chunks to use unsafe
-	forceActivationOfChunks(botLeftBc, topRightBc);
+	forceActivationOfChunks(botLeftTi, topRightTi);
 	//Search using unsafe
-	for (int j = botLeftBc.y; j <= topRightBc.y; j++) {
-		for (int i = botLeftBc.x; i <= topRightBc.x; i++) {
+	for (int j = botLeftTi.y; j <= topRightTi.y; j++) {
+		for (int i = botLeftTi.x; i <= topRightTi.x; i++) {
 			returnValue = std::max(returnValue, getUnsafe(type, glm::ivec2(i, j)));
 		}
 	}
 	return returnValue;
 }
 
-uchar ChunkManager::getMin(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc) {
+uchar ChunkManager::getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	uchar returnValue = std::numeric_limits<uchar>::max();
 	//Force load of chunks to use unsafe
-	forceActivationOfChunks(botLeftBc, topRightBc);
+	forceActivationOfChunks(botLeftTi, topRightTi);
 	//Search using unsafe
-	for (int j = botLeftBc.y; j <= topRightBc.y; j++) {
-		for (int i = botLeftBc.x; i <= topRightBc.x; i++) {
+	for (int j = botLeftTi.y; j <= topRightTi.y; j++) {
+		for (int i = botLeftTi.x; i <= topRightTi.x; i++) {
 			returnValue = std::min(returnValue, getUnsafe(type, glm::ivec2(i, j)));
 		}
 	}
 	return returnValue;
 }
 
-void ChunkManager::set(chunk::BLOCK_VALUES type, const glm::ivec2& posBc, uchar index) {
-	ivec2_div_t div = floor_div(posBc, m_chunkDims);
+void ChunkManager::set(TILE_VALUE type, const glm::ivec2& posTi, uchar index) {
+	ivec2_div_t div = floor_div(posTi, m_chunkDims);
 	getChunk(div.quot)->set(type, div.rem, index);
 }
 
-bool ChunkManager::exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc, uchar index) {
-	if (get(type, botLeftBc) == index) { return true; }
-	if (get(type, botLeftBc + glm::ivec2(dimBc)) == index) { return true; }
-	for (int j = 0; j < (int)dimBc.y; j++) {
-		for (int i = 0; i < (int)dimBc.x; i++) {
-			if (getUnsafe(type, botLeftBc + glm::ivec2(i, j)) == index) {
+bool ChunkManager::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi, uchar index) {
+	if (get(type, botLeftTi) == index) { return true; }
+	if (get(type, botLeftTi + glm::ivec2(dimsTi)) == index) { return true; }
+	for (int j = 0; j < (int)dimsTi.y; j++) {
+		for (int i = 0; i < (int)dimsTi.x; i++) {
+			if (getUnsafe(type, botLeftTi + glm::ivec2(i, j)) == index) {
 				return true;//Index found
 			}
 		}
@@ -96,11 +96,11 @@ bool ChunkManager::exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc,
 	return false;
 }
 
-bool ChunkManager::exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc, uchar index) {
-	if (get(type, botLeftBc) == index) { return true; }
-	if (get(type, topRightBc) == index) { return true; }
-	for (int j = botLeftBc.y; j <= topRightBc.y; j++) {
-		for (int i = botLeftBc.x; i <= topRightBc.x; i++) {
+bool ChunkManager::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi, uchar index) {
+	if (get(type, botLeftTi) == index) { return true; }
+	if (get(type, topRightTi) == index) { return true; }
+	for (int j = botLeftTi.y; j <= topRightTi.y; j++) {
+		for (int i = botLeftTi.x; i <= topRightTi.x; i++) {
 			if (getUnsafe(type, glm::ivec2(i, j)) == index) {
 				return true;//Index found
 			}
@@ -119,9 +119,9 @@ void ChunkManager::step() {
 	}
 }
 
-void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc) {
-	glm::ivec2 botLeftCh = floor_div(botLeftBc, m_chunkDims).quot;
-	glm::ivec2 topRightCh = floor_div(topRightBc, m_chunkDims).quot;
+void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+	glm::ivec2 botLeftCh = floor_div(botLeftTi, m_chunkDims).quot;
+	glm::ivec2 topRightCh = floor_div(topRightTi, m_chunkDims).quot;
 
 	for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
 		for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
@@ -208,8 +208,8 @@ Chunk* ChunkManager::getChunk(glm::ivec2 posCh) {
 	}
 }
 
-uchar ChunkManager::getUnsafe(chunk::BLOCK_VALUES type, const glm::ivec2& posBc) {
-	ivec2_div_t div = floor_div(posBc, m_chunkDims);
+uchar ChunkManager::getUnsafe(TILE_VALUE type, const glm::ivec2& posTi) {
+	ivec2_div_t div = floor_div(posTi, m_chunkDims);
 	return m_chunks[div.quot].getUnsafe(type, div.rem);
 }
 

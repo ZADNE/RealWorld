@@ -12,7 +12,7 @@
 
 ItemOnGround::ItemOnGround(const glm::ivec2& pos, World& world, const Item& item, float lifetime, Hitbox& targetHitbox, Inventory& targetInventory) :
 	m_tex(RE::RM::getTexture(ITEM_ATLAS_PREFIX + IDB::g(item.ID).textureAtlas)),
-	m_hitbox(pos, m_tex->getSubimageDims(), &world, m_tex->getPivot()),
+	m_hitbox(&world, pos, m_tex->getSubimageDims(), m_tex->getPivot()),
 	m_item(item),
 	m_lifetime(lifetime),
 	m_targetHitbox(&targetHitbox),
@@ -25,7 +25,7 @@ ItemOnGround::~ItemOnGround() {
 }
 
 bool ItemOnGround::step(float decay, float angleDeviation) {
-	glm::vec2 vec = (glm::vec2)(m_targetHitbox->getPos() - m_hitbox.getPos());
+	glm::vec2 vec = (glm::vec2)(m_targetHitbox->getCenter() - m_hitbox.getCenter());
 
 	if (glm::length(vec) < 300.0f) {
 		float temp = std::max(4.0f, glm::length(m_hitbox.getVelocity()));
@@ -35,7 +35,7 @@ bool ItemOnGround::step(float decay, float angleDeviation) {
 
 		float radAngle = atan2(vec.y, vec.x) + angleDeviation;
 
-		m_hitbox.setVelocity(glm::vec2(velocity * std::cos(radAngle), velocity * std::sin(radAngle)));
+		m_hitbox.velocity() = glm::vec2(velocity * std::cos(radAngle), velocity * std::sin(radAngle));
 
 		if (m_hitbox.collidesWith(*m_targetHitbox)) {
 			*m_targetInventory += m_item;
@@ -55,5 +55,5 @@ bool ItemOnGround::step(float decay, float angleDeviation) {
 }
 
 void ItemOnGround::draw(RE::SpriteBatch& spriteBatch) const {
-	spriteBatch.addSubimage(m_tex.get(), m_hitbox.getPos(), 0, glm::vec2(0.0f, IDB::g(m_item.ID).spriteIndex));
+	spriteBatch.addSubimage(m_tex.get(), m_hitbox.getCenter(), 0, glm::vec2(0.0f, IDB::g(m_item.ID).spriteIndex));
 }

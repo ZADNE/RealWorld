@@ -30,19 +30,19 @@ public:
 	/**
 	 * @copydoc ChunkHandler::forceActivationOfChunks
 	*/
-	void forceActivationOfChunks(const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc);
+	void forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
 	//Tile functions
-	uchar get(chunk::BLOCK_VALUES type, const glm::ivec2& posBc);
-	uchar getMax(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc);
-	uchar getMax(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc);
-	uchar getMin(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc);
-	uchar getMin(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc);
+	uchar get(TILE_VALUE type, const glm::ivec2& posTi);
+	uchar getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi);
+	uchar getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+	uchar getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi);
+	uchar getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	void set(chunk::SET_TYPES type, const glm::ivec2& posBc, uchar index);
+	void set(SET_TYPES type, const glm::ivec2& posTi, uchar index);
 
-	bool exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::uvec2& dimBc, uchar index);
-	bool exists(chunk::BLOCK_VALUES type, const glm::ivec2& botLeftBc, const glm::ivec2& topRightBc, uchar index);
+	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi, uchar index);
+	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi, uchar index);
 
 	void step();
 
@@ -85,7 +85,7 @@ private:
 	};
 	RE::UniformBuffer m_worldUniformBuffer{UNIF_BUF_WORLD, true, RE::BufferUsageFlags::DYNAMIC_STORAGE, sizeof(WorldUniforms)};
 
-	ChunkManager m_chunkHandler;
+	ChunkManager m_chunkManager;
 
 	const unsigned int ATTR_SET_AROUND = 1u;
 

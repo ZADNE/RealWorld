@@ -258,7 +258,7 @@ void InventoryDrawer::updateHitboxMesh() {
 	m_hitboxes.clear();//Clearing previous mesh
 	if (m_inv[Connection::PRIMARY]) {//Creating new mesh (if connected)
 		m_hitboxMainCover.setDims(glm::ivec2(m_mainSlotDims + m_paddingSlots) * m_invSize[Connection::PRIMARY]);
-		m_hitboxMainCover.setPosition(m_paddingWindow);
+		m_hitboxMainCover.botLeft() = m_paddingWindow;
 		std::vector<Hitbox> row;
 		for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
 			row.clear();

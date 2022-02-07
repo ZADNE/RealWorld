@@ -9,14 +9,9 @@
 #include <RealWorld/world/physics/position_conversions.hpp>
 
 
-DynamicHitbox::DynamicHitbox(const glm::ivec2& positionPx, const glm::ivec2& dimensionPx, const glm::ivec2& offsetPx/* = glm::ivec2(0, 0)*/) :
-	Hitbox(positionPx, dimensionPx - glm::ivec2(1, 1), offsetPx),
-	m_velocityPx(0) {
-
-}
-
-DynamicHitbox::DynamicHitbox(const glm::ivec2& positionPx, const glm::ivec2& dimensionPx, World* world, const glm::ivec2& offsetPx/* = glm::ivec2(0, 0)*/) :
-	Hitbox(positionPx, dimensionPx - glm::ivec2(1, 1), world, offsetPx),
+DynamicHitbox::DynamicHitbox(World* world, const glm::vec2& botLeftPx, const glm::vec2& dimsPx, const glm::vec2& offsetPx/* = glm::vec2(0.0f)*/) :
+	Hitbox(botLeftPx, dimsPx - glm::vec2(1.0f), offsetPx),
+	p_world(world),
 	m_velocityPx(0) {
 
 }
@@ -25,70 +20,16 @@ DynamicHitbox::~DynamicHitbox() {
 
 }
 
-void DynamicHitbox::setPosition(const glm::ivec2& positionPx) {
-	p_botLeftPx = positionPx - p_offsetPx;
-	m_justChanged = true;
+glm::vec2& DynamicHitbox::velocity() {
+	return m_velocityPx;
 }
 
-void DynamicHitbox::setPositionX(int positionPx) {
-	p_botLeftPx.x = positionPx - p_offsetPx.x;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::setPositionY(int positionPx) {
-	p_botLeftPx.y = positionPx - p_offsetPx.y;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::setVelocity(const glm::vec2& velocityPx) {
-	m_velocityPx = velocityPx;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::setVelocityX(float velocityPx) {
-	m_velocityPx.x = velocityPx;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::setVelocityY(float velocityPx) {
-	m_velocityPx.y = velocityPx;
-	m_justChanged = true;
+const glm::vec2& DynamicHitbox::getVelocity() const {
+	return m_velocityPx;
 }
 
 void DynamicHitbox::setFriction(const glm::vec2& frictionPx) {
 	m_frictionPx = frictionPx;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::addVelocity(const glm::vec2& velocityPx) {
-	m_velocityPx += velocityPx;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::addVelocityX(float velocityPx) {
-	m_velocityPx.x += velocityPx;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::addVelocityY(float velocityPx) {
-	m_velocityPx.y += velocityPx;
-	m_justChanged = true;
-}
-
-void DynamicHitbox::limitVelocity(const glm::vec2& velocityPx) {
-	m_velocityPx = glm::clamp(m_velocityPx, -velocityPx, velocityPx);
-}
-
-void DynamicHitbox::limitVelocityX(float velocityPx) {
-	m_velocityPx.x = std::clamp(m_velocityPx.x, -velocityPx, velocityPx);
-}
-
-void DynamicHitbox::limitVelocityY(float velocityPx) {
-	m_velocityPx.y = std::clamp(m_velocityPx.y, -velocityPx, velocityPx);
-}
-
-glm::vec2 DynamicHitbox::getVelocity() const {
-	return m_velocityPx;
 }
 
 glm::vec2 DynamicHitbox::getFriction() const {
@@ -96,33 +37,72 @@ glm::vec2 DynamicHitbox::getFriction() const {
 }
 
 void DynamicHitbox::step() {
-	//Gravity
-	m_velocityPx += p_world->getGravity();
-	//Friction
-	if (!m_justChanged) {
-		m_velocityPx -= m_frictionPx * glm::sign(m_velocityPx);
+	if (overlapsBlocks(m_velocityPx)) {
+		//Obstacle in the way - have to do precise collision checking
+		glm::vec2 velNorm = glm::normalize(m_velocityPx);//Normalized velocity
+		float velLength = glm::length(m_velocityPx);
+
+		float step = glm::fract(velLength);
+		velLength = glm::floor(velLength);
+
+		//Do precise collision checking in the velocity's direction
+		while (step <= velLength) {
+			if (overlapsBlocks(velNorm * step)) {
+				int stoppedBy;
+				stoppedBy = overlapsBlocks(velNorm * step - glm::vec2(velNorm.x, 0.0f)) ? 1 : 0;
+				m_velocityPx[stoppedBy] = 0.0f;
+				p_botLeftPx[stoppedBy] += velNorm[stoppedBy] * (step - 1.0f);
+
+				//Finish by sliding the other component
+				velNorm[stoppedBy] = 0.0f;
+				int slideBy = stoppedBy ? 0 : 1;
+				while (step <= velLength) {
+					if (overlapsBlocks(velNorm * step)) {
+						m_velocityPx[slideBy] = 0.0f;
+						p_botLeftPx[slideBy] += velNorm[slideBy] * (step - 1.0f);
+						goto collisionCheckingFinished;
+					}
+					step++;
+				}
+				p_botLeftPx[slideBy] += m_velocityPx[slideBy];
+				break;
+			}
+			step++;
+		}
+	} else {
+		//Move without precise collision checking
+		p_botLeftPx += m_velocityPx;
 	}
 
-	glm::ivec2 vel = glm::ivec2(glm::ceil(m_velocityPx));
+collisionCheckingFinished:
+	//Gravity
+	if (!isGrounded()) {
+		m_velocityPx += p_world->getGravity();
+	}
 
-	//Collision checking X
-	if (p_world->getMax(chunk::BLOCK_VALUES::BLOCK,
-		pxToBc(p_botLeftPx + glm::ivec2(vel.x, 0)), pxToBc(p_botLeftPx + glm::ivec2(vel.x, 0) + p_dimensionPx)) > LAST_NONSOLIDBLOCK) {
-		while (p_world->getMax(chunk::BLOCK_VALUES::BLOCK, pxToBc(p_botLeftPx + glm::ivec2(rmath::sign(vel.x), 0)), pxToBc(p_botLeftPx + glm::ivec2(rmath::sign(vel.x), 0) + p_dimensionPx)) <= LAST_NONSOLIDBLOCK) {
-			p_botLeftPx.x += rmath::sign(vel.x);
-		}
+	//Friction
+	if (std::abs(m_velocityPx.x) > m_frictionPx.x) {
+		m_velocityPx.x -= m_frictionPx.x * glm::sign(m_velocityPx.x);
+	} else {
 		m_velocityPx.x = 0.0f;
 	}
-	p_botLeftPx.x += (int)m_velocityPx.x;
+}
 
-	//Collision checking Y
-	if (p_world->getMax(chunk::BLOCK_VALUES::BLOCK, pxToBc(p_botLeftPx + glm::ivec2(0, vel.y)), pxToBc(p_botLeftPx + glm::ivec2(0, vel.y) + p_dimensionPx)) > LAST_NONSOLIDBLOCK) {
-		while (p_world->getMax(chunk::BLOCK_VALUES::BLOCK, pxToBc(p_botLeftPx + glm::ivec2(0, rmath::sign(vel.y))), pxToBc(p_botLeftPx + glm::ivec2(0, rmath::sign(vel.y)) + p_dimensionPx)) <= LAST_NONSOLIDBLOCK) {
-			p_botLeftPx.y += rmath::sign(vel.y);
-		}
-		m_velocityPx.y = 0.0f;
+bool DynamicHitbox::isGrounded() const {
+	return overlapsBlocks(glm::sign(p_world->getGravity()));
+}
+
+bool DynamicHitbox::overlapsBlocks(const glm::vec2& offsetPx) const {
+	glm::ivec2 botLeftTi = glm::ivec2(pxToTi(p_botLeftPx + offsetPx));
+	glm::ivec2 topRightTi = glm::ivec2(pxToTi(p_botLeftPx + offsetPx + p_dimsPx));
+
+	if (p_world->getMax(TILE_VALUE::BLOCK, botLeftTi, topRightTi) > LAST_NONSOLIDBLOCK) {
+		return true;
+	} else {
+		return false;
 	}
-	p_botLeftPx.y += (int)m_velocityPx.y;
+}
 
-	m_justChanged = false;
+glm::uvec2 DynamicHitbox::dimsTi() const {
+	return glm::uvec2(glm::ceil(p_dimsPx / TILE_SIZE));
 }
