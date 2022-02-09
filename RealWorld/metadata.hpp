@@ -17,7 +17,7 @@ const glm::vec2 TILE_SIZE = uTILE_SIZE;
 enum class BLOCK : uint8_t {
 	AIR, STONE, DIRT, GRASS,
 	COLD_STONE, SAND, COLD_DIRT, COLD_GRASS,
-	MUD, MUD_GRASS,
+	MUD, MUD_GRASS, DRY_GRASS,
 
 	TECHBLOCK = 255
 };
@@ -25,5 +25,5 @@ enum class BLOCK : uint8_t {
 enum class WALL : uint8_t {
 	AIR, STONE, DIRT, GRASS,
 	COLD_STONE, SAND, COLD_DIRT, COLD_GRASS,
-	MUD, MUD_GRASS
+	MUD, MUD_GRASS, DRY_GRASS
 };

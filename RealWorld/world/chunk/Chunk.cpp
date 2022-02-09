@@ -1,4 +1,4 @@
-﻿#include <RealWorld/world/Chunk.hpp>
+﻿#include <RealWorld/world/chunk/Chunk.hpp>
 
 Chunk::Chunk(glm::ivec2 chunkPosCh, glm::uvec2 dimsTi, std::vector<unsigned char> data) :
 	m_chunkPosCh(chunkPosCh), m_dimsTi(dimsTi), m_data(data) {

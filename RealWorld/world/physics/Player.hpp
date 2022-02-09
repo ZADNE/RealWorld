@@ -11,6 +11,11 @@
 #include <RealWorld/items/ItemInstructionDatabase.hpp>
 #include <RealWorld/items/ItemCombinator.hpp>
 
+enum class WALK: int {
+	LEFT = -1,
+	STAY = 0,
+	RIGHT = 1
+};
 
 class Player {
 public:
@@ -21,8 +26,7 @@ public:
 	void gatherPlayerData(PlayerData& pd) const;
 
 	void jump();
-	void walkLeft(bool go);
-	void walkRight(bool go);
+	void walk(WALK dir);
 
 	//Getters
 	glm::vec2 getCenter();
@@ -32,17 +36,16 @@ public:
 	ItemCombinator& getItemCombinator();
 	ItemInstructionDatabase& getIID();
 
-	//Should be called every physics beginStep (not draw beginStep)
-	void step();
+	void step(bool autojump);
 	void endStep(const glm::ivec2& cursorRel);
 
 	void draw();
 private:
-	float m_acceleration = 1.0f;
-	float m_maxSpeed = 10.0f;
-	float m_jumpSpeed = 10.0f;
+	int m_acceleration = 1;
+	int m_maxSpeed = 15;
+	int m_jumpSpeed = 10;
 
-	float m_walkDirection = 0.0f;
+	WALK m_walkDirection = WALK::STAY;
 
 	RE::SpriteBatch& m_spriteBatch;
 

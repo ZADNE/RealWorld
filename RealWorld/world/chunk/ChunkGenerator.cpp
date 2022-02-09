@@ -1,4 +1,4 @@
-﻿#include <RealWorld/world/ChunkGenerator.hpp>
+﻿#include <RealWorld/world/chunk/ChunkGenerator.hpp>
 
 #include <vector>
 

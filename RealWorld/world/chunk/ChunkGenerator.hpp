@@ -5,7 +5,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
-#include <RealWorld/world/Chunk.hpp>
+#include <RealWorld/world/chunk/Chunk.hpp>
 #include <RealWorld/shaders/chunk_generation.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 

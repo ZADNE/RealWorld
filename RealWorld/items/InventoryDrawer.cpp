@@ -214,7 +214,7 @@ void InventoryDrawer::draw() {
 					if (item.isEmpty()) {
 						continue;//Not drawing empty item
 					}
-					pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, y);
+					pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::ivec2(x, y);
 					m_spriteBatch.addSprite(m_invItemSprites[Connection::PRIMARY][x][y], pos, 1);
 				}
 			}
@@ -234,7 +234,7 @@ void InventoryDrawer::draw() {
 		if (m_inv[Connection::PRIMARY]) {
 			for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
 				Item& item = m_inv[Connection::PRIMARY]->m_data.items[x][0];
-				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, 0);
+				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::ivec2(x, 0);
 				//Slot
 				m_spriteBatch.addTexture(m_mainSlotTex.get(), pos, 0);
 				if (item.isEmpty()) {
@@ -263,7 +263,7 @@ void InventoryDrawer::updateHitboxMesh() {
 		for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
 			row.clear();
 			for (int y = 0; y < m_invSize[Connection::PRIMARY].y; y++) {//Creating row
-				row.emplace_back(m_paddingWindow - m_mainSlotDims / 2.0f + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, y), m_mainSlotDims, m_mainSlotDims / 2.0f);
+				row.emplace_back(m_paddingWindow - m_mainSlotDims / 2 + (m_mainSlotDims + m_paddingSlots) * glm::ivec2(x, y), m_mainSlotDims, m_mainSlotDims / 2);
 			}
 			m_hitboxes.emplace_back(row);//Inserting row
 		}
@@ -282,7 +282,7 @@ void InventoryDrawer::updateSurfaceSlots() {
 
 		for (int y = 0; y < m_invSize[Connection::PRIMARY].y; y++) {
 			for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
-				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, y);
+				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::ivec2(x, y);
 				m_spriteBatch.addTexture(m_mainSlotTex.get(), pos, 0);
 			}
 		}
@@ -307,7 +307,7 @@ void InventoryDrawer::updateSurfaceNumbers() {
 
 		for (int y = 0; y < m_invSize[Connection::PRIMARY].y; y++) {
 			for (int x = 0; x < m_invSize[Connection::PRIMARY].x; x++) {
-				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::vec2(x, y);
+				pos = m_paddingWindow + (m_mainSlotDims + m_paddingSlots) * glm::ivec2(x, y);
 				if (m_inv[Connection::PRIMARY]->m_data.items[x][y].amount > 1) {
 					snprintf(amount, 10, "%i", m_inv[Connection::PRIMARY]->m_data.items[x][y].amount);
 					RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(pos.x, pos.y - 40.0f), glm::vec2(1.0f, 1.0f), 2, m_amountColour, RE::HAlign::MIDDLE);

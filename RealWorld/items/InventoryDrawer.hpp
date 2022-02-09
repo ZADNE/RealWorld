@@ -55,16 +55,16 @@ private:
 	glm::vec2 m_windowSize;
 	RE::TexturePtr m_mainSlotTex = RE::RM::getTexture("mainSlot");
 	RE::TexturePtr m_slotIndicatorTex = RE::RM::getTexture("slotIndicator");
-	glm::vec2 m_mainSlotDims = m_mainSlotTex->getSubimageDims();
-	glm::vec2 m_paddingSlots = glm::vec2(8.0f, 8.0f);
-	glm::vec2 m_paddingWindow;//Center of [0;0] slot of main inventory
+	glm::ivec2 m_mainSlotDims = m_mainSlotTex->getSubimageDims();
+	glm::ivec2 m_paddingSlots = glm::vec2(8, 8);
+	glm::ivec2 m_paddingWindow;//Center of [0;0] slot of main inventory
 
 	glm::ivec2 m_absCursorPos;//Absolute position of the cursor in the window
 	Item m_itemUnderCursor{};
 	ItemSprite m_underCursorItemSprite{};
 
 	std::vector<std::vector<Hitbox>> m_hitboxes;
-	Hitbox m_hitboxMainCover{{0.0f, 0.0f}, {0.0f, 0.0f}, m_mainSlotDims};
+	Hitbox m_hitboxMainCover{{0, 0}, {0, 0}, m_mainSlotDims};
 	int m_chosenSlot = 0;//Is signed but never should be negative
 	int m_chosenSlotPrev = 0;//Is signed but never should be negative
 

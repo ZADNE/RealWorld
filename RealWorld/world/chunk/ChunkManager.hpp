@@ -6,53 +6,54 @@
 
 #include <RealEngine/graphics/Surface.hpp>
 
-#include <RealWorld/world/Chunk.hpp>
-#include <RealWorld/world/ChunkGenerator.hpp>
+#include <RealWorld/world/chunk/Chunk.hpp>
+#include <RealWorld/world/chunk/ChunkGenerator.hpp>
 
 /**
- * Handles collection of chunks.
+ * @brief Manages a collection of chunks.
+ * 
  * Allows access to world as if it was a single array.
  */
 class ChunkManager {
 public:
 	/**
-	 * Contructs ChunkManager with default removal threshold of one minute.
+	 * @brief Contructs ChunkManager with default removal threshold of one minute.
 	 */
 	ChunkManager();
 
 	/**
-	 * Calls saveAndFreeAllChunks() and deconstructs the object.
+	 * @brief Calls saveAndFreeAllChunks() and deconstructs the object.
 	 */
 	~ChunkManager();
 
 	/**
-	 * Retargets chunk handler to a new world.
+	 * @brief Retargets chunk handler to a new world.
 	 * Saves and frees all previous chunks.
 	 *
-	 * \param seed Seed of the world.
-	 * \param chunkDims Dimensions of chunks in the world, in blocks
-	 * \param activeChunksRect Dimensions of the active chunks rectangle, in chunks
-	 * \param folderPath Path to folder containing the world.
-	 * \param ws World surface of the world.
+	 * @param seed Seed of the world.
+	 * @param chunkDims Dimensions of chunks in the world, in blocks
+	 * @param activeChunksRect Dimensions of the active chunks rectangle, in chunks
+	 * @param folderPath Path to folder containing the world.
+	 * @param ws World surface of the world.
 	 */
 	void setTarget(int seed, glm::uvec2 chunkDims, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws);
 
 	/**
-	 * Frees memory of all chunks, does not save them.
+	 * @brief Frees memory of all chunks, does not save them.
 	 */
 	void flushChunks();
 
 	/**
-	 * Saves all chunks, keeps them in the memory.
+	 * @brief Saves all chunks, keeps them in the memory.
 	 *
-	 * \return True if successful, false otherwise.
+	 * @return True if successful, false otherwise.
 	 */
 	bool saveChunks() const;
 
 	/**
-	 * Gets the number of chunks held in memory.
+	 * @brief Gets the number of chunks held in memory.
 	 *
-	 * \return The number of chunks held in memory.
+	 * @return The number of chunks held in memory.
 	 */
 	int getNumberOfChunksLoaded();
 

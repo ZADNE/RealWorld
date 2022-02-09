@@ -12,8 +12,6 @@ Player::Player(World& world, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& 
 	m_spriteBatch(spriteBatch),
 	m_itemUser(world, m_mainInventory, m_hitbox, spriteBatch, itemOnGroundManager) {
 
-	m_hitbox.setFriction(glm::vec2(0.8f, 0.0f));
-
 	m_itemCombinator.connectToInventory(&m_mainInventory);
 	m_itemCombinator.connectToIID(&m_instructionDatabase);
 
@@ -34,17 +32,13 @@ void Player::gatherPlayerData(PlayerData& pd) const {
 }
 
 void Player::jump() {
-	if (m_hitbox.isGrounded()) {
+	if (m_hitbox.overlapsBlocks({0, -iTILE_SIZE.y})) {
 		m_hitbox.velocity().y = m_jumpSpeed;
 	}
 }
 
-void Player::walkLeft(bool go) {
-	m_walkDirection += go ? -1.0f : +1.0f;
-}
-
-void Player::walkRight(bool go) {
-	m_walkDirection += go ? 1.0f : -1.0f;
+void Player::walk(WALK dir) {
+	m_walkDirection = dir;
 }
 
 glm::vec2 Player::getCenter() {
@@ -71,18 +65,19 @@ ItemInstructionDatabase& Player::getIID() {
 	return m_instructionDatabase;
 }
 
-void Player::step() {
-	m_hitbox.velocity().x += m_walkDirection * m_acceleration;
-	m_hitbox.velocity().x = glm::clamp(m_hitbox.velocity().x, -m_maxSpeed, m_maxSpeed);
+void Player::step(bool autojump) {
+	auto& vel = m_hitbox.velocity();
 
-	if (m_hitbox.overlapsBlocks({m_hitbox.velocity().x, 0.0f})) {
-		for (float autoJumpBLocks = 1.0f; autoJumpBLocks <= 4.0f; autoJumpBLocks++) {
-			if (!m_hitbox.overlapsBlocks({m_hitbox.velocity().x, autoJumpBLocks * TILE_SIZE.y})) {
-				m_hitbox.botLeft().y += autoJumpBLocks * TILE_SIZE.y;//Autojump
-				break;
-			}
-		}
+	vel.x += static_cast<int>(m_walkDirection) * m_acceleration;
 
+	//Friction
+	if (m_walkDirection == WALK::STAY) {
+		vel.x -= glm::sign(vel.x);
+	}
+	vel.x = glm::clamp(vel.x, -m_maxSpeed, m_maxSpeed);
+
+	if (autojump && m_walkDirection != WALK::STAY && m_hitbox.overlapsBlocks({vel.x * 4, 0})) {
+		jump();//Autojump
 	}
 
 	m_hitbox.step();
@@ -95,6 +90,6 @@ void Player::endStep(const glm::ivec2& cursorRel) {
 }
 
 void Player::draw() {
-	m_spriteBatch.addTexture(m_playerTex.get(), glm::floor(m_hitbox.getBotLeft()), 0);
+	m_spriteBatch.addTexture(m_playerTex.get(), m_hitbox.getBotLeft(), 0);
 	m_itemUser.draw();
 }

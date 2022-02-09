@@ -54,16 +54,17 @@ void WorldRoom::sessionEnd() {
 
 void WorldRoom::step() {
 	//Player BEGIN
-	if (input()->wasPressed(KB(PLAYER_JUMP))) { m_player.jump(); }
-	if (input()->wasPressed(KB(PLAYER_LEFT))) { m_player.walkLeft(true); }
-	if (input()->wasPressed(KB(PLAYER_RIGHT))) { m_player.walkRight(true); }
-	if (input()->wasReleased(KB(PLAYER_LEFT))) { m_player.walkLeft(false); }
-	if (input()->wasReleased(KB(PLAYER_RIGHT))) { m_player.walkRight(false); }
-	m_player.step();
+	if (input()->isDown(KB(PLAYER_JUMP))) { m_player.jump(); }
+	int walkDir = input()->isDown(KB(PLAYER_LEFT)) ? -1 : 0;
+	walkDir += input()->isDown(KB(PLAYER_RIGHT)) ? +1 : 0;
+	m_player.walk(static_cast<WALK>(walkDir));
+	m_player.step(input()->isDown(RE::Key::LShift));
 	//View
 	glm::vec2 prevViewPos = m_worldView.getPosition();
 
-	m_worldView.setPosition(prevViewPos * 0.875 + m_player.getCenter() * 0.125f, input()->getCursorAbs());
+	glm::vec2 targetViewPos = m_player.getCenter() * 0.75f + m_worldView.getCursorRel() * 0.25f;
+
+	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f, input()->getCursorAbs());
 	m_worldView.update();
 	m_worldViewUnifromBuffer.overwrite(m_worldView.getViewMatrix());
 
@@ -74,7 +75,7 @@ void WorldRoom::step() {
 	m_world.step();
 	auto lm = m_worldDrawer.getLightManipulator();
 
-	lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 127u, 0u, 120u}, 0.0f, 1.0f);
+	//lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 255u, 255u}, 0.0f, 1.0f);
 
 	//ItemOnGroundManager
 	m_itemOnGroundManager.step();
@@ -157,9 +158,9 @@ void WorldRoom::drawGUI() {
 
 	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
 
-	glm::ivec2 cursorPosTi = pxToTi(m_worldView.getCursorRel());
-	stream << "CursorTi: [" << std::setw(4) << cursorPosTi.x << ", "
-		<< std::setw(4) << cursorPosTi.y << "]\n";
+	glm::ivec2 cursorPosPx =m_worldView.getCursorRel();
+	stream << "CursorPx: [" << std::setw(4) << cursorPosPx.x << ", "
+		<< std::setw(4) << cursorPosPx.y << "]\n";
 
 
 	glm::vec2 topLeft = glm::vec2(0.0f, window()->getDims().y);

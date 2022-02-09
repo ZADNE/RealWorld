@@ -8,7 +8,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/UniformBuffer.hpp>
 
-#include <RealWorld/world/ChunkManager.hpp>
+#include <RealWorld/world/chunk/ChunkManager.hpp>
 #include <RealWorld/world/WorldData.hpp>
 #include <RealWorld/shaders/world_dynamics.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
@@ -24,7 +24,7 @@ public:
 	//Getters
 	int getNumberOfChunksLoaded();
 
-	glm::vec2 getGravity() { return glm::vec2(0.0f, -0.5f); };
+	int addGravityEveryNSteps() { return 2; };
 	const std::string& getName() { return m_worldName; };
 
 	/**

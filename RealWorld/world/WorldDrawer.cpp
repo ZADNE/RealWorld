@@ -8,7 +8,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/Viewport.hpp>
 
-#include <RealWorld/world/ChunkManager.hpp>
+#include <RealWorld/world/chunk/ChunkManager.hpp>
 #include <RealWorld/metadata.hpp>
 #include <RealWorld/shaders/common.hpp>
 #include <RealWorld/div.hpp>
@@ -51,7 +51,7 @@ void WorldDrawer::setTarget(const glm::ivec2& worldDimTi) {
 	m_worldDimTi = worldDimTi;
 
 	glClearColor(m_backgroundColour.r, m_backgroundColour.g, m_backgroundColour.b, m_backgroundColour.a);
-	m_addDynamicLightShader.setUniform("yInversion", m_worldDimTi.y * TILE_SIZE.y / LIGHT_DOWNSAMPLE);
+	m_addDynamicLightShader.setUniform("yInversionPx", m_worldDimTi.y * TILE_SIZE.y);
 	updatePOUVBuffers();
 }
 
@@ -112,8 +112,8 @@ void WorldDrawer::endStep() {
 	m_arrayLights.bind();
 	m_addDynamicLightShader.use();
 	glBlendFunc(GL_ONE, GL_ONE);
-	glm::vec2 dynLightBotLeftTi = static_cast<glm::vec2>(m_botLeftTi);
-	m_addDynamicLightShader.setUniform(LOC_POSITION, dynLightBotLeftTi);
+	glm::vec2 dynLightBotLeftUn = glm::floor(static_cast<glm::vec2>(m_botLeftTi - iTILE_SIZE / 2) / LIGHT_DOWNSAMPLE);
+	m_addDynamicLightShader.setUniform(LOC_POSITION, dynLightBotLeftUn);
 	m_arrayLights.renderArrays(POINTS, 0, static_cast<GLsizei>(m_dynamicLights.size()), 4);
 	glTextureBarrier();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -210,9 +210,9 @@ void WorldDrawer::updatePOUVBuffers() {
 	//Compute light rectangle
 	i = VERTICES_POUV_COMPUTELIGHT_RECT;
 	glm::vec2 computeLightTopRight = glm::vec2(m_viewsizeUn) + glm::vec2(LIGHT_MAX_RANGEUn + 1);
-	vertices[i++].setPosition(LIGHT_MAX_RANGEUn, LIGHT_MAX_RANGEUn);
-	vertices[i++].setPosition(computeLightTopRight.x, LIGHT_MAX_RANGEUn);
-	vertices[i++].setPosition(LIGHT_MAX_RANGEUn, computeLightTopRight.y);
+	vertices[i++].setPosition(LIGHT_MAX_RANGEUn - 1, LIGHT_MAX_RANGEUn - 1);
+	vertices[i++].setPosition(computeLightTopRight.x, LIGHT_MAX_RANGEUn - 1);
+	vertices[i++].setPosition(LIGHT_MAX_RANGEUn - 1, computeLightTopRight.y);
 	vertices[i++].setPosition(computeLightTopRight.x, computeLightTopRight.y);
 
 	//Normalized rectangle
@@ -246,7 +246,6 @@ void WorldDrawer::initShaders() {
 	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_minimapShader, 0u);
 	updateUniformsAfterViewResize();
 
-	m_addDynamicLightShader.setUniform("perPixelIncrementTi", 1.0f / TILE_SIZE);
 	m_worldToLightsShader.setUniform(LOC_WORLD_TO_LIGHT_DIAPHRAGMS, glm::vec3(0.9f, 0.8f, 0.6f));
 }
 

@@ -9,7 +9,7 @@
 #include <RealWorld/world/physics/position_conversions.hpp>
 
 
-Hitbox::Hitbox(const glm::vec2& botLeftPx, const glm::vec2& dimsPx, const glm::vec2& centerOffsetPx/* = glm::vec2(0.0f)*/) :
+Hitbox::Hitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& centerOffsetPx/* = glm::ivec2(0.0f)*/) :
 	p_botLeftPx(botLeftPx),
 	p_dimsPx(dimsPx),
 	p_centerOffsetPx(centerOffsetPx) {
@@ -20,19 +20,19 @@ Hitbox::~Hitbox() {
 
 }
 
-glm::vec2& Hitbox::botLeft() {
+glm::ivec2& Hitbox::botLeft() {
 	return p_botLeftPx;
 }
 
-const glm::vec2& Hitbox::getBotLeft() const {
+const glm::ivec2& Hitbox::getBotLeft() const {
 	return p_botLeftPx;
 }
 
-void Hitbox::setDims(const glm::vec2& dimensionPx) {
+void Hitbox::setDims(const glm::ivec2& dimensionPx) {
 	p_dimsPx = dimensionPx;
 }
 
-glm::vec2 Hitbox::getCenter() const {
+glm::ivec2 Hitbox::getCenter() const {
 	return p_botLeftPx + p_centerOffsetPx;
 }
 
@@ -44,7 +44,7 @@ bool Hitbox::collidesWith(Hitbox& otherHitbox) const {
 	return false;
 }
 
-bool Hitbox::overlaps(const glm::vec2& pointPx) const {
+bool Hitbox::overlaps(const glm::ivec2& pointPx) const {
 	if (p_botLeftPx.x <= pointPx.x && (p_botLeftPx.x + p_dimsPx.x) >= pointPx.x &&
 		p_botLeftPx.y <= pointPx.y && (p_botLeftPx.y + p_dimsPx.y) >= pointPx.y) {
 		return true;
@@ -52,10 +52,10 @@ bool Hitbox::overlaps(const glm::vec2& pointPx) const {
 	return false;
 }
 
-bool Hitbox::overlapsBlockwise(const glm::vec2& pointPx) const {
-	glm::vec2 botLeftTi = pxToTi(p_botLeftPx);
-	glm::vec2 topRightTi = pxToTi(p_botLeftPx + p_dimsPx);
-	glm::vec2 pointTi = pxToTi(pointPx);
+bool Hitbox::overlapsBlockwise(const glm::ivec2& pointPx) const {
+	glm::ivec2 botLeftTi = pxToTi(p_botLeftPx);
+	glm::ivec2 topRightTi = pxToTi(p_botLeftPx + p_dimsPx);
+	glm::ivec2 pointTi = pxToTi(pointPx);
 
 	if (botLeftTi.x <= pointTi.x && topRightTi.x >= pointTi.x &&
 		botLeftTi.y <= pointTi.y && topRightTi.y >= pointTi.y) {

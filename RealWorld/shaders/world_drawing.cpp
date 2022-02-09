@@ -39,6 +39,7 @@ std::string_view worldToLight_frag =
 ;
 
 std::string_view addDynamicLight_vert =
+#include "common/tileConstants.glsl"
 #include "world_drawing/WorldDrawUniforms.glsl"
 #include "world_drawing/addDynamicLight.vert"
 ;

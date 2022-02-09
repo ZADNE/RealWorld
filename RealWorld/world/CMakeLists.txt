@@ -1,11 +1,8 @@
-﻿add_subdirectory(physics)
+﻿add_subdirectory(chunk)
+add_subdirectory(physics)
 
 target_sources(${PROJECT_NAME} PRIVATE 
 	DynamicLight.hpp		
-	Chunk.hpp				Chunk.cpp
-	ChunkGenerator.hpp		ChunkGenerator.cpp
-	ChunkLoader.hpp			ChunkLoader.cpp
-	ChunkManager.hpp		ChunkManager.cpp
 	LightManipulator.hpp	LightManipulator.cpp
 	TDB.hpp					TDB.cpp
 	World.hpp				World.cpp
