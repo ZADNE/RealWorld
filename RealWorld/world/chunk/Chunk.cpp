@@ -1,8 +1,8 @@
 ﻿#include <RealWorld/world/chunk/Chunk.hpp>
 
-Chunk::Chunk(glm::ivec2 chunkPosCh, glm::uvec2 dimsTi, std::vector<unsigned char> data) :
-	m_chunkPosCh(chunkPosCh), m_dimsTi(dimsTi), m_data(data) {
-	if (data.size() < ((size_t)dimsTi.x * dimsTi.y * 4ull)) {
+Chunk::Chunk(glm::ivec2 chunkPosCh, std::vector<unsigned char> data) :
+	m_chunkPosCh(chunkPosCh), m_data(data) {
+	if (data.size() < (static_cast<size_t>(CHUNK_SIZE.x) * CHUNK_SIZE.y * 4ull)) {
 		throw std::exception();
 	}
 }
@@ -43,11 +43,11 @@ void Chunk::setActive(bool active) {
 }
 
 void Chunk::boundsCheck(glm::uvec2 posTi) const {
-	if (posTi.x >= m_dimsTi.x || posTi.y >= m_dimsTi.y) {
-		throw std::out_of_range("Tried to get tile " + glm::to_string(posTi) + " which is outside of the requested chunk: " + glm::to_string(m_dimsTi));
+	if (posTi.x >= CHUNK_SIZE.x || posTi.y >= CHUNK_SIZE.y) {
+		throw std::out_of_range("Tried to get tile " + glm::to_string(posTi) + " which is outside of the requested chunk: " + glm::to_string(m_chunkPosCh));
 	}
 }
 
 size_t Chunk::getIndexToBuffer(TILE_VALUE type, glm::uvec2 posTi) const {
-	return (posTi.x + ((size_t)m_dimsTi.y - posTi.y - 1ull) * m_dimsTi.x) * 4ull + (ulong)type;
+	return (static_cast<size_t>(posTi.y) * CHUNK_SIZE.x + posTi.x) * 4ull + (ulong)type;
 }

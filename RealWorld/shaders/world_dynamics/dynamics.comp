@@ -1,0 +1,12 @@
+R""(
+const uint DYN_CHUNK_SIZE = 32;
+
+layout(local_size_x = DYN_CHUNK_SIZE, local_size_y = DYN_CHUNK_SIZE, local_size_z = 1) in;
+
+layout(binding = IMG_UNIT_WORLD, rgba8ui) uniform restrict uimage2D world;
+
+void main(){
+	imageStore(world, ivec2(gl_GlobalInvocationID.xy / 2), uvec4(1, 0, 0, 0));
+}
+
+)""

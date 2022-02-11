@@ -3,46 +3,59 @@
 
 #include <RealEngine/graphics/ShaderProgram.hpp>
 #include <RealEngine/graphics/Surface.hpp>
-#include <RealEngine/graphics/VertexArray.hpp>
 
 #include <RealWorld/world/chunk/Chunk.hpp>
 #include <RealWorld/shaders/chunk_generation.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 
 /**
- * Generates new chunks.
+ * @brief Generates new chunks.
  */
 class ChunkGenerator {
 public:
+	/**
+	 * @brief Width of the padding around the generated chunk. 
+	 *
+	 * Avoids errors at the edges of generated chunks.
+	*/
+	const int BORDER_WIDTH = 8;
 
 	/**
-	 * Contructs new chunk generator, initializes world-independent members.
+	 * @brief Size of the area that is generated for each chunk
+	 * 
+	 * It is bigger than the actual chunk because it contains the padding around.
+	 * 
+	 * @see BORDER_WIDTH
+	*/
+	const glm::ivec2 GEN_CHUNK_SIZE = CHUNK_SIZE + 2 * BORDER_WIDTH;
+
+	/**
+	 * @brief Contructs new chunk generator, initializes world-independent members.
 	 */
 	ChunkGenerator();
 
 	/**
-	 * Decontructs chunk generator, frees all memory.
+	 * @brief Decontructs chunk generator, frees all memory.
 	 */
 	~ChunkGenerator();
 
 	/**
-	 * Prepares generator to generate chunks for given world
+	 * @brief Sets the seed that controls how the generated chunk look
 	 *
-	 * \param seed Seed of the world
-	 * \param chunkDimsTi Chunk dimensions of the world
+	 * @param seed Seed of the world
 	 */
-	void setTargetWorld(int seed, glm::uvec2 chunkDimsTi);
+	void setSeed(int seed);
 
 	/**
-	 * Generates single chunk. The pixels are stored to given texture at given position
+	 * @brief Generates single chunk. The pixels are stored to given texture at given position
 	 * and also returned as a Chunk.
 	 *
-	 * \param posCh Position of the chunk (measured in chunks)
-	 * \param uploadTexture Name of texture that will receive the generated chunk
-	 * \param uploadOffset Offset within uploadTexture where the pixels will be copied
-	 * \return Newly generated chunk
+	 * @param posCh Position of the chunk (measured in chunks)
+	 * @param destinationTexture The texture that will receive the generated chunk
+	 * @param destinationOffset Offset within destinationTexture where the texels/tiles will be copied
+	 * @return Newly generated chunk
 	 */
-	Chunk generateChunk(glm::ivec2 posCh, GLuint uploadTexture, glm::ivec2 uploadOffset);
+	Chunk generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset);
 
 private:
 	using enum RE::BufferType;
@@ -50,40 +63,22 @@ private:
 	using enum RE::BufferAccessFrequency;
 	using enum RE::BufferAccessNature;
 	using enum RE::BufferUsageFlags;
-	using enum RE::VertexComponentCount;
-	using enum RE::VertexComponentType;
-	using enum RE::Primitive;
-
 	struct ChunkUniforms {
-		glm::mat4 chunkGenMatrix;
-		glm::vec2 chunkOffsetTi;
-		glm::vec2 chunkDimsTi;
-		glm::vec2 chunkBorders;
-		float seed;
+		glm::ivec2 chunkOffsetTi;
+		int seed;
 	};
 	RE::UniformBuffer m_chunkUniformBuffer{UNIF_BUF_CHUNKGEN, true, RE::BufferUsageFlags::DYNAMIC_STORAGE, sizeof(ChunkUniforms)};
-
-	void initShaders();
-	void initVAO();
-	void setVBOToWholeChunk();
-	void updateUniformsAfterSetTarget();
 
 	//Actual generation functions
 	void generateBasicTerrain();
 	void cellularAutomaton();
 	void selectVariations();
 
-	RE::VertexArray m_VAO;
-	RE::Buffer<ARRAY, IMMUTABLE> m_VBO{sizeof(RE::VertexPO) * 4, DYNAMIC_STORAGE};
+	RE::ShaderProgram m_basicTerrainShader = RE::ShaderProgram{{.comp = basicTerrain_comp}};
+	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.comp = cellularAutomaton_comp}};
+	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.comp = selectVariation_comp}};
 
-	RE::ShaderProgram m_basicTerrainShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = basicTerrain_frag}};
-	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = cellularAutomaton_frag}};
-	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = selectVariation_frag}};
-
-	std::array<RE::Surface, 2> m_genSurf = {
-		RE::Surface{{RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false},
-		RE::Surface{{RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false}
-	};
-	glm::vec2 m_chunkDimsTi;
+	RE::Surface m_tilesGenSurf{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, false, false};
+	RE::Texture m_materialGenTex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}};
 	int m_seed = 0;
 };

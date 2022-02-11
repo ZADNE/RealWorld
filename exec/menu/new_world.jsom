@@ -22,19 +22,9 @@
 		"text": "Seed",
 		"pos_rel": [ 0.0, -0.05 ]
 	},
-	"chunk_width": {
-		"templates": [ "seed" ],
-		"text": "Chunk width; default = 128",
-		"pos_rel": [ 0.0, -0.05 ]
-	},
-	"chunk_height": {
-		"templates": [ "chunk_width" ],
-		"text": "Chunk height; default = 128",
-		"pos_rel": [ 0.0, -0.05 ]
-	},
 	"generate": {
 		"type": "button",
-		"templates": [ "chunk_height" ],
+		"templates": [ "seed" ],
 		"text": "Generate new world!",
 		"pos_rel": [ 0.0, -0.05 ],
 		"on_release": 1

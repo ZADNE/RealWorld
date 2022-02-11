@@ -18,14 +18,18 @@
  */
 class World {
 public:
+	const unsigned int CHUNK_SIZETi = 128;
+	const unsigned int DYN_CHUNK_SIZETi = 32;
+
 	World();
 	~World();
 
-	//Getters
-	int getNumberOfChunksLoaded();
+	/**
+	 * @copydoc ChunkHandler::getNumberOfChunksLoaded
+	*/
+	size_t getNumberOfChunksLoaded();
 
 	int addGravityEveryNSteps() { return 2; };
-	const std::string& getName() { return m_worldName; };
 
 	/**
 	 * @copydoc ChunkHandler::forceActivationOfChunks
@@ -59,15 +63,11 @@ private:
 	using enum RE::VertexComponentType;
 	using enum RE::Primitive;
 
-	int m_seed;
-	glm::uvec2 m_chunkDims;
-	glm::uvec2 m_activeChunksRect = glm::uvec2(32u, 32u);
+	int m_seed = 0;
+	glm::uvec2 m_activeChunksRect{32u, 32u};
 	RE::Surface m_ws = RE::Surface({RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
-
-	void initVAOs();
-	void initUniformBuffers();
 
 	void updateUniformsAfterWorldResize();
 
@@ -78,6 +78,7 @@ private:
 	};
 	float m_time = 17.0f;
 	RE::ShaderProgram m_setWithUpdateShader = RE::ShaderProgram{{.vert = setWithUpdate_vert, .frag = setWithUpdate_frag}};
+	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{{.comp = dynamics_comp}};
 
 	struct WorldUniforms {
 		glm::mat4 worldMatrix;

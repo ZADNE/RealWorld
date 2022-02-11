@@ -12,8 +12,8 @@ void main() {
 	float diaSum = 0.0;
 	vec4 lightSum = vec4(0.0);
 	
-	for (float y = -LIGHT_DOWNSAMPLE * 0.5; y < LIGHT_DOWNSAMPLE * 0.5; y++){
-		for (float x = -LIGHT_DOWNSAMPLE * 0.5; x < LIGHT_DOWNSAMPLE * 0.5; x++){
+	for (float y = -LIGHT_DOWNSAMPLE; y < 0.0; y++){
+		for (float x = -LIGHT_DOWNSAMPLE; x < 0.0; x++){
 			uvec4 tile = texelFetch(worldTexture, ivec2(
 				mod(botLeftTi + gl_FragCoord.xy * LIGHT_DOWNSAMPLE + vec2(x, y), vec2(textureSize(worldTexture, 0)))), 0);
 			bvec2 isAir = equal(tile.rb, AIR);

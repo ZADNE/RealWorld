@@ -11,6 +11,14 @@ using uchar = unsigned char;
 using ushort = unsigned short;
 using ulong = unsigned long;
 
+/**
+ * @brief Dimensions of a chunk, in tiles
+ * 
+ * All chunks have these dimensions
+*/
+const glm::ivec2 CHUNK_SIZE = glm::ivec2(128, 128);
+
+
 enum class TILE_VALUE : ulong {
 	BLOCK = 0, BLOCK_VAR = 1, WALL = 2, WALL_VAR = 3
 };
@@ -36,11 +44,10 @@ public:
 	 * @brief Contructs new chunk.
 	 *
 	 * @param chunkPosCh Position of the chunk, in chunk coordinates.
-	 * @param dimsTi Dimensions of the chunk, in tiles.
 	 * @param data Raw data of the chunk, size should be dimsTi.x * dimsTi.y * 4
 	 * @throws std::exception If data does not hold enough bytes.
 	 */
-	Chunk(glm::ivec2 chunkPosCh, glm::uvec2 dimsTi, std::vector<unsigned char> data);
+	Chunk(glm::ivec2 chunkPosCh, std::vector<unsigned char> data);
 
 	/**
 	 * @brief Destroys the chunk, frees its data.
@@ -151,7 +158,6 @@ private:
 
 	std::vector<unsigned char> m_data;				/**< Raw data of the chunk */
 	glm::ivec2 m_chunkPosCh{0, 0};					/**< Position of the chunk, measured in chunk coordinates */
-	glm::uvec2 m_dimsTi{0u, 0u};					/**< Dimensions of the chunk, measured in tiles */
 	mutable ulong m_stepsSinceLastOperation = 0ul;	/**< Steps since last read/write operation inside this chunk */
 
 	/**

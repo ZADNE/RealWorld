@@ -20,16 +20,15 @@ ChunkManager::~ChunkManager() {
 	flushChunks();
 }
 
-void ChunkManager::setTarget(int seed, glm::uvec2 chunkDims, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws) {
+void ChunkManager::setTarget(int seed, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws) {
 	flushChunks();
-	m_chunkDims = chunkDims;
 	m_folderPath = folderPath;
-	m_chunkGen.setTargetWorld(seed, chunkDims);
+	m_chunkGen.setSeed(seed);
 	m_ws = ws;
 	m_wsSize = static_cast<glm::ivec2>(m_ws->getDims());
 	m_activeChunksRect = static_cast<glm::ivec2>(activeChunksRect);
 	m_activeChunks.clear();
-	m_activeChunks.resize((size_t)m_activeChunksRect.x * m_activeChunksRect.y, nullptr);
+	m_activeChunks.resize(static_cast<size_t>(m_activeChunksRect.x) * m_activeChunksRect.y, nullptr);
 }
 
 void ChunkManager::flushChunks() {
@@ -43,12 +42,12 @@ bool ChunkManager::saveChunks() const {
 	return true;
 }
 
-int ChunkManager::getNumberOfChunksLoaded() {
-	return (int)m_chunks.size();
+size_t ChunkManager::getNumberOfChunksLoaded() {
+	return m_chunks.size();
 }
 
 uchar ChunkManager::get(TILE_VALUE type, const glm::ivec2& posTi) {
-	ivec2_div_t div = floor_div(posTi, m_chunkDims);
+	ivec2_div_t div = floor_div(posTi, CHUNK_SIZE);
 	return getChunk(div.quot)->get(type, div.rem);
 }
 
@@ -79,7 +78,7 @@ uchar ChunkManager::getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const g
 }
 
 void ChunkManager::set(TILE_VALUE type, const glm::ivec2& posTi, uchar index) {
-	ivec2_div_t div = floor_div(posTi, m_chunkDims);
+	ivec2_div_t div = floor_div(posTi, CHUNK_SIZE);
 	getChunk(div.quot)->set(type, div.rem, index);
 }
 
@@ -120,8 +119,8 @@ void ChunkManager::step() {
 }
 
 void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
-	glm::ivec2 botLeftCh = floor_div(botLeftTi, m_chunkDims).quot;
-	glm::ivec2 topRightCh = floor_div(topRightTi, m_chunkDims).quot;
+	glm::ivec2 botLeftCh = floor_div(botLeftTi, CHUNK_SIZE).quot;
+	glm::ivec2 topRightCh = floor_div(topRightTi, CHUNK_SIZE).quot;
 
 	for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
 		for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
@@ -131,13 +130,11 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 }
 
 glm::ivec2 ChunkManager::chunkPosToTexturePos(glm::ivec2 posCh) const {
-	glm::ivec2 origin = glm::ivec2(0, m_wsSize.y - m_chunkDims.y);
-	return origin + floor_div(posCh, m_activeChunksRect).rem * m_chunkDims * glm::ivec2{1, -1};
+	return floor_div(posCh, m_activeChunksRect).rem * CHUNK_SIZE;
 }
 
 glm::ivec2 ChunkManager::chunkPosToActiveChunkPos(glm::ivec2 posCh) const {
-	glm::ivec2 origin = glm::ivec2(0, m_activeChunksRect.y - 1);
-	return origin + floor_div(posCh, m_activeChunksRect).rem * glm::ivec2{1, -1};
+	return floor_div(posCh, m_activeChunksRect).rem;
 }
 
 Chunk*& ChunkManager::getActiveChunk(glm::ivec2 posCh) {
@@ -170,13 +167,13 @@ void ChunkManager::downloadChunk(Chunk* chunk, glm::ivec2 posCh) const {
 	glm::ivec2 texturePos = chunkPosToTexturePos(posCh);
 	m_ws->setTarget();
 	//Download data -> CPU stall -> Pixel Buffer Object todo
-	glReadPixels(texturePos.x, texturePos.y, m_chunkDims.x, m_chunkDims.y, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, chunk->data().data());
+	glReadnPixels(texturePos.x, texturePos.y, CHUNK_SIZE.x, CHUNK_SIZE.y, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, static_cast<GLsizei>(chunk->data().size()), chunk->data().data());
 	m_ws->resetTarget();
 }
 
 void ChunkManager::uploadChunk(Chunk* chunk, glm::ivec2 posCh) const {
 	glm::ivec2 texturePos = chunkPosToTexturePos(posCh);
-	glTextureSubImage2D(m_ws->getTextureID(), 0, texturePos.x, texturePos.y, m_chunkDims.x, m_chunkDims.y, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, chunk->data().data());
+	m_ws->getTexture().setTexelsWithinImage(0, texturePos, CHUNK_SIZE, chunk->data().data());
 }
 
 Chunk* ChunkManager::getChunk(glm::ivec2 posCh) {
@@ -193,23 +190,23 @@ Chunk* ChunkManager::getChunk(glm::ivec2 posCh) {
 	//Chunk is not in the memory
 
 	try {//Try to load the chunk from file
-		std::vector<unsigned char> data = ChunkLoader::loadChunk(m_folderPath, posCh, m_chunkDims);
+		std::vector<unsigned char> data = ChunkLoader::loadChunk(m_folderPath, posCh, CHUNK_SIZE);
 		//No exception was thrown, chunk has been loaded
-		auto pair = m_chunks.insert(std::make_pair(posCh, Chunk{posCh, m_chunkDims, std::move(data)}));
+		auto pair = m_chunks.insert(std::make_pair(posCh, Chunk{posCh, std::move(data)}));
 		activateChunkAtPos(&(pair.first->second), posCh, true);
 		return &(pair.first->second);
 	}
 	catch (...) {
 		//Chunk is not on the disk, it has to be generated
 		deactivateChunkAtPos(posCh);//Deactivate previous chunk because the texture will get overwritten
-		auto pair = m_chunks.insert(std::make_pair(posCh, m_chunkGen.generateChunk(posCh, m_ws->getTextureID(), chunkPosToTexturePos(posCh))));
-		activateChunkAtPos(&(pair.first->second), posCh, true);//Generator draws to the texture upload is not needed
+		auto pair = m_chunks.insert(std::make_pair(posCh, m_chunkGen.generateChunk(posCh, m_ws->getTexture(), chunkPosToTexturePos(posCh))));
+		activateChunkAtPos(&(pair.first->second), posCh, false);//Generator draws to the texture upload is not needed
 		return &(pair.first->second);
 	}
 }
 
 uchar ChunkManager::getUnsafe(TILE_VALUE type, const glm::ivec2& posTi) {
-	ivec2_div_t div = floor_div(posTi, m_chunkDims);
+	ivec2_div_t div = floor_div(posTi, CHUNK_SIZE);
 	return m_chunks[div.quot].getUnsafe(type, div.rem);
 }
 
@@ -218,5 +215,5 @@ void ChunkManager::saveChunk(Chunk& chunk, glm::ivec2 posCh) const {
 		//Active chunk, has to be downloaded
 		downloadChunk(&chunk, posCh);
 	}
-	ChunkLoader::saveChunk(m_folderPath, posCh, m_chunkDims, chunk.data());
+	ChunkLoader::saveChunk(m_folderPath, posCh, CHUNK_SIZE, chunk.data());
 }

@@ -7,12 +7,18 @@
 #include <RealWorld/world/TDB.hpp>
 #include <RealWorld/world/physics/Player.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>
+#include <RealWorld/rendering/ImageUnits.hpp>
 #include <RealWorld/shaders/world_drawing.hpp>
 
-
 World::World() {
-	initVAOs();
-	initUniformBuffers();
+	GLuint vboBindingPoint = 0u;
+	m_setWithUpdateVAO.setBindingPoint(vboBindingPoint, m_setWithUpdateVBO, 0u, sizeof(VertexSetWithUpdate));
+	m_setWithUpdateVAO.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexSetWithUpdate, position));
+	m_setWithUpdateVAO.setAttribute(ATTR_SET_AROUND, X, UNSIGNED_INT, offsetof(VertexSetWithUpdate, setAround), false);
+	m_setWithUpdateVAO.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
+	m_setWithUpdateVAO.connectAttributeToBindingPoint(ATTR_SET_AROUND, vboBindingPoint);
+
+	m_worldUniformBuffer.connectToShaderProgram(m_setWithUpdateShader, 0u);
 }
 
 World::~World() {
@@ -21,13 +27,13 @@ World::~World() {
 
 glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, const glm::vec2& windowDims) {
 	m_seed = wd.wi.seed;
-	m_chunkDims = wd.wi.chunkDims;
-	m_ws.resize(m_chunkDims * m_activeChunksRect, 1);
+	m_ws.resize(glm::uvec2(CHUNK_SIZE) * m_activeChunksRect, 1);
 	m_worldName = name;
 
-	m_ws.bindTexture(TEX_UNIT_WORLD_TEXTURE);
+	m_ws.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
+	m_ws.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
 
-	m_chunkManager.setTarget(m_seed, m_chunkDims, m_activeChunksRect, wd.path, &m_ws);
+	m_chunkManager.setTarget(m_seed, m_activeChunksRect, wd.path, &m_ws);
 
 	updateUniformsAfterWorldResize();
 
@@ -35,7 +41,6 @@ glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, c
 }
 
 void World::gatherWorldData(WorldData& wd) const {
-	wd.wi.chunkDims = m_chunkDims;
 	wd.wi.seed = m_seed;
 	wd.wi.worldName = m_worldName;
 }
@@ -44,7 +49,7 @@ bool World::saveChunks() const {
 	return m_chunkManager.saveChunks();
 }
 
-int World::getNumberOfChunksLoaded() {
+size_t World::getNumberOfChunksLoaded() {
 	return m_chunkManager.getNumberOfChunksLoaded();
 }
 
@@ -89,7 +94,7 @@ void World::set(SET_TYPES type, const glm::ivec2& posTi, uchar index) {
 	m_setWithUpdateVAO.bind();
 
 	m_setWithUpdateShader.setUniform(LOC_SET, (unsigned int)index);
-	m_setWithUpdateShader.setUniform(LOC_POSITION, glm::vec2(static_cast<GLfloat>(posTi.x), static_cast<GLfloat>(posTi.y)));
+	m_setWithUpdateShader.setUniform(LOC_POSITION, glm::vec2(posTi));
 	m_setWithUpdateShader.setUniform(LOC_TIME, ++m_time);
 
 	m_setWithUpdateVAO.renderArrays(RE::Primitive::POINTS, 0, 9);
@@ -111,22 +116,7 @@ bool World::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec
 
 void World::step() {
 	m_chunkManager.step();
-}
-
-void World::initVAOs() {
-	//Set with var update
-	GLuint vboBindingPoint = 0u;
-	m_setWithUpdateVAO.setBindingPoint(vboBindingPoint, m_setWithUpdateVBO, 0u, sizeof(VertexSetWithUpdate));
-
-	m_setWithUpdateVAO.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexSetWithUpdate, position));
-	m_setWithUpdateVAO.setAttribute(ATTR_SET_AROUND, X, UNSIGNED_INT, offsetof(VertexSetWithUpdate, setAround), false);
-
-	m_setWithUpdateVAO.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
-	m_setWithUpdateVAO.connectAttributeToBindingPoint(ATTR_SET_AROUND, vboBindingPoint);
-}
-
-void World::initUniformBuffers() {
-	m_worldUniformBuffer.connectToShaderProgram(m_setWithUpdateShader, 0u);
+	//m_dynamicsShader.dispatchCompute({(m_activeChunksRect * CHUNK_SIZE) / DYN_CHUNK_SIZETi, 1u});
 }
 
 void World::updateUniformsAfterWorldResize() {

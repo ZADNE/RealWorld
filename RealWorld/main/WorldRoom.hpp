@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <memory>
 
 #include <RealEngine/main/Room.hpp>
 #include <RealEngine/graphics/View.hpp>

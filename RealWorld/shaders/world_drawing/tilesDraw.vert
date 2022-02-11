@@ -18,12 +18,11 @@ uniform int viewWidthTi;
 void main() {
 	vec2 posTi = basePosTi + vec2(gl_InstanceID % viewWidthTi, gl_InstanceID / viewWidthTi);
 	
-	vec2 globalWorldPosTi = posTi + floor(realPosPx / TILEPx) + baseUV * vec2(-1.0, 1.0) - vec2(0.0, 1.0);
+	vec2 globalWorldPosTi = posTi + floor(realPosPx / TILEPx) - baseUV;
 
 	vec2 worldTexSize = vec2(textureSize(worldTexture, 0));
 	
 	vec2 localWorldPosTi = mod(globalWorldPosTi, worldTexSize);
-	localWorldPosTi.y = worldTexSize.y - localWorldPosTi.y - 1;
 	
 	vec4 tile = vec4(texelFetch(worldTexture, ivec2(localWorldPosTi), 0));
 	

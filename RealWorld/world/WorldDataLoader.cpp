@@ -82,10 +82,6 @@ void WorldDataLoader::loadInfo(WorldInfo& wi, const std::string& path) {
 	i >> j;
 	wi.worldName = j["world"]["name"].get<std::string>();
 	wi.seed = j["world"]["seed"].get<int>();
-	auto vec = j["world"]["chunk_dims"].get<std::vector<unsigned int>>();
-	if (vec.size() != 2) throw std::exception();
-	wi.chunkDims.x = vec[0]; wi.chunkDims.y = vec[1];
-	if (wi.chunkDims.x <= 0 || wi.chunkDims.y <= 0) throw std::exception();
 }
 
 void WorldDataLoader::loadPlayer(PlayerData& pd, const std::string& path) {
@@ -138,8 +134,7 @@ void WorldDataLoader::saveInfo(const WorldInfo& wi, const std::string& path) {
 	nlohmann::json j = {
 		{"world", {
 			{"name", wi.worldName},
-			{"seed", wi.seed},
-			{"chunk_dims", { wi.chunkDims.x, wi.chunkDims.y }}
+			{"seed", wi.seed}
 		}}
 	};
 

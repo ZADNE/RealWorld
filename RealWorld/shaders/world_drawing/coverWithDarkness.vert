@@ -18,7 +18,7 @@ void main() {
 	gl_Position = viewMat * vec4(posUn * TILEPx * LIGHT_DOWNSAMPLE - offsetPx, 0.0, 1.0);
 	
 	fColor = texelFetch(lightTexture,
-				ivec2(posUn.x + LIGHT_MAX_RANGEUn, textureSize(lightTexture, 0).y - posUn.y - 1 - LIGHT_MAX_RANGEUn), 0);
+				ivec2(posUn + LIGHT_MAX_RANGEUn), 0);
 }
 
 )""

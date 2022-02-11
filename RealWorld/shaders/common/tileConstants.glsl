@@ -1,22 +1,26 @@
 R""(
-const float TILEPx = 		4.0;
+const float TILEPx = 			4.0;
+
+const ivec2 CHUNK_SIZE = 		{128, 128};
+
+const ivec2 GEN_BORDER_WIDTH = 	{8, 8};
 
 const float LIGHT_MAX_RANGEUn = 30;
-const float LIGHT_DOWNSAMPLE = 4;
+const float LIGHT_DOWNSAMPLE = 	4;
 
-const uvec2 AIR = 			{0, 0};
-const uvec2 STONE = 		{1, 1};
-const uvec2 DIRT = 			{2, 2};
-const uvec2 GRASS = 		{3, 3};
-const uvec2 COLD_STONE = 	{4, 4};
-const uvec2 SAND = 			{5, 5};
-const uvec2 COLD_DIRT = 	{6, 6};
-const uvec2 COLD_GRASS = 	{7, 7};
-const uvec2 MUD = 			{8, 8};
-const uvec2 MUD_GRASS = 	{9, 9};
-const uvec2 DRY_GRASS = 	{10, 10};
+const uvec2 AIR = 				{0, 0};
+const uvec2 STONE = 			{1, 1};
+const uvec2 DIRT = 				{2, 2};
+const uvec2 GRASS = 			{3, 3};
+const uvec2 COLD_STONE = 		{4, 4};
+const uvec2 SAND = 				{5, 5};
+const uvec2 COLD_DIRT = 		{6, 6};
+const uvec2 COLD_GRASS = 		{7, 7};
+const uvec2 MUD = 				{8, 8};
+const uvec2 MUD_GRASS = 		{9, 9};
+const uvec2 DRY_GRASS = 		{10, 10};
 
-const uvec2 LAST_FLUID = 	{1, 1};
+const uvec2 LAST_FLUID = 		{1, 1};
 
 const uvec2 STONE_TILES[] = {
 	STONE,

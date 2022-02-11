@@ -92,8 +92,6 @@ void MainMenuRoom::mainMenuCallback(const std::string& button) {
 		m_menu.setState(2.0f);
 		*m_menu.getController<RGUI::TextField>("name")->getTextFieldString() = "";
 		*m_menu.getController<RGUI::TextField>("seed")->getTextFieldString() = "";
-		*m_menu.getController<RGUI::TextField>("chunk_width")->getTextFieldString() = "";
-		*m_menu.getController<RGUI::TextField>("chunk_height")->getTextFieldString() = "";
 	} else if (button == "load_world") {
 		buildSavesButtons();
 		m_menu.setState(3.0f);
@@ -109,16 +107,6 @@ void MainMenuRoom::newWorldCallback(const std::string& button) {
 		auto name = *m_menu.getController<RGUI::TextField>("name")->getTextFieldString();
 		if (name == "") throw std::exception{};
 		int seed = std::stoi(*m_menu.getController<RGUI::TextField>("seed")->getTextFieldString());
-		unsigned width = 128;
-		unsigned height = 128;
-		try {
-			width = std::stoul(*m_menu.getController<RGUI::TextField>("chunk_width")->getTextFieldString());
-		}
-		catch (...) {}
-		try {
-			height = std::stoul(*m_menu.getController<RGUI::TextField>("chunk_height")->getTextFieldString());
-		}
-		catch (...) {}
 
 
 		WorldCreator creator;

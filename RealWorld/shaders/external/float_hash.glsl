@@ -1,5 +1,5 @@
 R""(
-//License in file: hash-License.txt
+//License in file: float_hash-License.txt
 //  1 out, 1 in...
 float hash11(float p){
     p = fract(p * .1031);

@@ -40,8 +40,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 		RE::fatalError("Bad transition paramaters to start WorldRoom session");
 	}
 
-	m_worldView.setPosition(m_player.getCenter(), {});
-	m_worldView.update();
+	m_worldView.setPosition(m_player.getCenter());
 	synchronizer()->setStepsPerSecond(PHYSICS_STEPS_PER_SECOND);
 	synchronizer()->setFramesPerSecondLimit(FPS_LIMIT);
 }
@@ -64,8 +63,8 @@ void WorldRoom::step() {
 
 	glm::vec2 targetViewPos = m_player.getCenter() * 0.75f + m_worldView.getCursorRel() * 0.25f;
 
-	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f, input()->getCursorAbs());
-	m_worldView.update();
+	m_worldView.setCursorAbs(input()->getCursorAbs());
+	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f);
 	m_worldViewUnifromBuffer.overwrite(m_worldView.getViewMatrix());
 
 	m_worldDrawer.beginStep(m_worldView.getBotLeft(), m_world);
@@ -140,7 +139,6 @@ void WorldRoom::render(double interpolationFactor) {
 void WorldRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
 	window()->resize(newDims, isPermanent);
 	m_worldView.resizeView(newDims);
-	m_worldView.update();
 	m_worldDrawer.resizeView(newDims);
 	m_inventoryDrawer.resizeWindow(newDims);
 	m_craftingDrawer.resizeWindow(newDims);
@@ -158,8 +156,8 @@ void WorldRoom::drawGUI() {
 
 	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
 
-	glm::ivec2 cursorPosPx =m_worldView.getCursorRel();
-	stream << "CursorPx: [" << std::setw(4) << cursorPosPx.x << ", "
+	glm::ivec2 cursorPosPx = pxToTi(m_player.getCenter());
+	stream << "CursorTi: [" << std::setw(4) << cursorPosPx.x << ", "
 		<< std::setw(4) << cursorPosPx.y << "]\n";
 
 

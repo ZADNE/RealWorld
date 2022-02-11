@@ -1,0 +1,36 @@
+R""(
+#line 3
+layout(	local_size_x = 1,
+		local_size_y = 1,
+		local_size_z = 1
+) in;
+
+layout(binding = IMG_UNIT_GEN_TILES, rgba8ui) uniform restrict uimage2D tilesImage;
+
+const ivec2 offsets[] = {
+				{-1, +2},	{+0, +2},	{+1, +2},
+	{-2, +1}, 	{-1, +1}, 	{+0, +1}, 	{+1, +1},	{+2, +1},
+	{-2, +0}, 	{-1, +0}, 				{+1, +0},	{+2, +0},
+	{-2, -1}, 	{-1, -1}, 	{+0, -1}, 	{+1, -1}, 	{+2, -1},
+				{-1, -2},	{+0, -2},	{+1, -2}
+};
+	
+void main() {
+	ivec2 pTi = ivec2(gl_WorkGroupID.xy);
+	uvec2 block_wall = imageLoad(tilesImage, pTi).rb;
+	
+	ivec2 inner = ivec2(0);
+	for (int i = 0; i < offsets.length(); i++){
+		inner |= ivec2(equal(imageLoad(tilesImage, pTi + offsets[i]).rb, AIR));
+	}
+	
+	vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
+	uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
+	
+	uvec2 variation = uvec2(hash22(vec2(chunkOffsetTi + pTi)) * variationRange) + variationOffset;
+	
+	imageStore(tilesImage, ivec2(gl_WorkGroupID.xy), uvec4(block_wall.x, variation.x, block_wall.y, variation.y));
+
+}
+
+)""

@@ -8,7 +8,6 @@ out vec4 vert_light;
 out vec4 vert_diaphragm;
 
 layout(location = 3) uniform vec2 botLeftUn;
-uniform float yInversionPx;
 
 const vec2 POS_OFFSETS[4] = vec2[4](
 	vec2(-0.5, -0.5),
@@ -30,7 +29,7 @@ float lightPower(in vec2 subTileNorm, in vec2 tileNorm){
 }
 
 void main() {
-	vec2 basePosUn = vec2(basePosPx.x,  yInversionPx - basePosPx.y) * (1.0 / TILEPx / LIGHT_DOWNSAMPLE);
+	vec2 basePosUn = basePosPx * (1.0 / TILEPx / LIGHT_DOWNSAMPLE);
 	vec2 posUn = basePosUn - botLeftUn + POS_OFFSETS[gl_InstanceID];
 	gl_Position = viewsizeLightingUnMat * vec4(posUn, 0.0, 1.0);
 	

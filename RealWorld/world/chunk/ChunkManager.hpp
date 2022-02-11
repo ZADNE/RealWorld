@@ -28,15 +28,15 @@ public:
 
 	/**
 	 * @brief Retargets chunk handler to a new world.
-	 * Saves and frees all previous chunks.
+	 * 
+	 * Saves and frees all chunks of the previous world.
 	 *
-	 * @param seed Seed of the world.
-	 * @param chunkDims Dimensions of chunks in the world, in blocks
-	 * @param activeChunksRect Dimensions of the active chunks rectangle, in chunks
+	 * @param seed Seed of the new world.
+	 * @param activeChunksRect Dimensions of the wrold's active chunks rectangle, in chunks
 	 * @param folderPath Path to folder containing the world.
 	 * @param ws World surface of the world.
 	 */
-	void setTarget(int seed, glm::uvec2 chunkDims, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws);
+	void setTarget(int seed, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws);
 
 	/**
 	 * @brief Frees memory of all chunks, does not save them.
@@ -55,7 +55,7 @@ public:
 	 *
 	 * @return The number of chunks held in memory.
 	 */
-	int getNumberOfChunksLoaded();
+	size_t getNumberOfChunksLoaded();
 
 	//Tile getters
 	uchar get(TILE_VALUE type, const glm::ivec2& posTi);
@@ -129,7 +129,6 @@ private:
 	void saveChunk(Chunk& chunk, glm::ivec2 posCh) const;
 
 	mutable std::unordered_map<glm::ivec2, Chunk> m_chunks;
-	glm::ivec2 m_chunkDims = glm::ivec2(0, 0);
 	glm::ivec2 m_activeChunksRect;
 	std::vector<Chunk*> m_activeChunks;
 

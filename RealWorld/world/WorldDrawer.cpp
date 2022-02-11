@@ -29,14 +29,14 @@ const int LIGHT_MAX_RANGETi = LIGHT_MAX_RANGEUn * LIGHT_DOWNSAMPLE;
 
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {
 	reloadViewSize(viewSizePx);
-	m_SurLighting.resize({m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
+	m_surLighting.resize({m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
 
 	//Bind textures to texture units
 	m_blockAtlasTex->bind(TEX_UNIT_BLOCK_ATLAS);
 	m_wallAtlasTex->bind(TEX_UNIT_WALL_ATLAS);
-	m_SurLighting.bindTexture(TEX_UNIT_DIAPHRAGM, 0);
-	m_SurLighting.bindTexture(TEX_UNIT_LIGHTING, 1);
-	m_SurLighting.bindTexture(TEX_UNIT_LIGHT_FINISHED, 2);
+	m_surLighting.getTexture(0).bind(TEX_UNIT_DIAPHRAGM);
+	m_surLighting.getTexture(1).bind(TEX_UNIT_LIGHTING);
+	m_surLighting.getTexture(2).bind(TEX_UNIT_LIGHT_FINISHED);
 
 	initShaders();
 	initVAOs();
@@ -51,7 +51,6 @@ void WorldDrawer::setTarget(const glm::ivec2& worldDimTi) {
 	m_worldDimTi = worldDimTi;
 
 	glClearColor(m_backgroundColour.r, m_backgroundColour.g, m_backgroundColour.b, m_backgroundColour.a);
-	m_addDynamicLightShader.setUniform("yInversionPx", m_worldDimTi.y * TILE_SIZE.y);
 	updatePOUVBuffers();
 }
 
@@ -60,10 +59,10 @@ void WorldDrawer::resizeView(const glm::uvec2& newViewSizePx) {
 	updateUniformsAfterViewResize();
 	updatePOUVBuffers();
 
-	m_SurLighting.resize({m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
-	m_SurLighting.bindTexture(TEX_UNIT_DIAPHRAGM, 0);
-	m_SurLighting.bindTexture(TEX_UNIT_LIGHTING, 1);
-	m_SurLighting.bindTexture(TEX_UNIT_LIGHT_FINISHED, 2);
+	m_surLighting.resize({m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
+	m_surLighting.getTexture(0).bind(TEX_UNIT_DIAPHRAGM);
+	m_surLighting.getTexture(1).bind(TEX_UNIT_LIGHTING);
+	m_surLighting.getTexture(2).bind(TEX_UNIT_LIGHT_FINISHED);
 }
 
 LightManipulator WorldDrawer::getLightManipulator() {
@@ -73,32 +72,26 @@ LightManipulator WorldDrawer::getLightManipulator() {
 void WorldDrawer::beginStep(const glm::vec2& botLeftPx, World& world) {
 	m_currentTime++;
 	m_botLeftPx = botLeftPx;
-	m_botLeftTi = glm::floor(botLeftPx / TILE_SIZE);
+	m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILE_SIZE)) - glm::ivec2(LIGHT_MAX_RANGETi);
 	//Force activation of chunks
-	glm::ivec2 chunkHandlerBotleft = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi);
-	world.forceActivationOfChunks(chunkHandlerBotleft, chunkHandlerBotleft
-		+ static_cast<glm::ivec2>(m_viewsizeUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u) * LIGHT_DOWNSAMPLE);
+	world.forceActivationOfChunks(m_botLeftTi, m_botLeftTi + glm::ivec2(m_viewsizeTi) + glm::ivec2(LIGHT_MAX_RANGETi * 2));
 
-	m_botLeftTi += glm::ivec2(-LIGHT_MAX_RANGETi, LIGHT_MAX_RANGETi);
-	glm::vec2 worldToLightPos = static_cast<glm::vec2>(m_botLeftTi) / LIGHT_DOWNSAMPLE;
-	m_botLeftTi.y = m_worldDimTi.y - m_botLeftTi.y - m_viewsizeTi.y;
-
-	worldToLightPos = glm::floor(worldToLightPos) * LIGHT_DOWNSAMPLE;
-	worldToLightPos.y = m_worldDimTi.y - worldToLightPos.y - m_viewsizeTi.y;
 
 	//Process world texture to diaphragm and light
-	m_SurLighting.setTarget();
+	m_surLighting.setTarget();
 	glDisable(GL_BLEND);
 	m_arrayPOUV.bind();
 	m_worldToLightsShader.use();
-	m_worldToLightsShader.setUniform(LOC_POSITION, worldToLightPos);
+	glm::vec2 botLeftUn = static_cast<glm::vec2>(m_botLeftTi) / LIGHT_DOWNSAMPLE;
+	botLeftUn = glm::floor(botLeftUn) * LIGHT_DOWNSAMPLE;
+	m_worldToLightsShader.setUniform(LOC_POSITION, botLeftUn);
 	float f = /*rmath::clamp(sin(m_currentTime / m_dayLength), (10.0f/256.0f), 1.0f)*/1.0f;
 	m_worldToLightsShader.setUniform(LOC_WORLD_TO_LIGHT_DAYLIGHT, glm::vec4(0.0f, 0.0f, 0.0f, f * 0.1f));
 	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_WORLDTOLIGHT_RECT, 4);
 	m_worldToLightsShader.unuse();
 	m_arrayPOUV.unbind();
 	glEnable(GL_BLEND);
-	m_SurLighting.resetTarget();
+	m_surLighting.resetTarget();
 
 	//Clear dynamic lights
 	m_bufferDynamicLights.invalidate();
@@ -108,7 +101,7 @@ void WorldDrawer::beginStep(const glm::vec2& botLeftPx, World& world) {
 void WorldDrawer::endStep() {
 	//Dynamic lights
 	m_bufferDynamicLights.redefine(m_dynamicLights);
-	m_SurLighting.setTarget();
+	m_surLighting.setTarget();
 	m_arrayLights.bind();
 	m_addDynamicLightShader.use();
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -128,7 +121,7 @@ void WorldDrawer::endStep() {
 	m_computeLightingShader.unuse();
 	m_arrayPOUV.unbind();
 	glEnable(GL_BLEND);
-	m_SurLighting.resetTarget();
+	m_surLighting.resetTarget();
 }
 
 void WorldDrawer::drawTiles() {
@@ -217,20 +210,20 @@ void WorldDrawer::updatePOUVBuffers() {
 
 	//Normalized rectangle
 	i = VERTICES_POUV_NORM_RECT;
-	vertices[i++] = {0.0f, 0.0f, 0.0f, 1.0f};
-	vertices[i++] = {1.0f, 0.0f, 1.0f, 1.0f};
-	vertices[i++] = {0.0f, 1.0f, 0.0f, 0.0f};
-	vertices[i++] = {1.0f, 1.0f, 1.0f, 0.0f};
+	vertices[i++] = {0.0f, 0.0f, 0.0f, 0.0f};
+	vertices[i++] = {1.0f, 0.0f, 1.0f, 0.0f};
+	vertices[i++] = {0.0f, 1.0f, 0.0f, 1.0f};
+	vertices[i++] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	//Minimap rectangle
 	float scale = std::min(m_viewsizePx.x / m_worldDimTi.x, m_viewsizePx.y / m_worldDimTi.y) * 0.5f;
-	const glm::vec2 middle = m_viewsizePx / 2.0f;
-	const glm::vec2 world = m_worldDimTi;
+	const glm::vec2 middle = m_viewsizePx * 0.5f;
+	const glm::vec2 world = glm::vec2(m_worldDimTi) * scale;
 	i = VERTICES_POUV_MINIMAP_RECT;
-	vertices[i++] = {{middle.x - world.x * scale, middle.y + world.y * scale}, {0.0f, 0.0f}};
-	vertices[i++] = {{middle.x + world.x * scale, middle.y + world.y * scale}, {1.0f, 0.0f}};
-	vertices[i++] = {{middle.x - world.x * scale, middle.y - world.y * scale}, {0.0f, 1.0f}};
-	vertices[i++] = {{middle.x + world.x * scale, middle.y - world.y * scale}, {1.0f, 1.0f}};
+	vertices[i++] = {{middle.x - world.x, middle.y - world.y}, {0.0f, 0.0f}};
+	vertices[i++] = {{middle.x + world.x, middle.y - world.y}, {1.0f, 0.0f}};
+	vertices[i++] = {{middle.x - world.x, middle.y + world.y}, {0.0f, 1.0f}};
+	vertices[i++] = {{middle.x + world.x, middle.y + world.y}, {1.0f, 1.0f}};
 
 	m_bufferPOUV.overwrite(0, sizeof(vertices), vertices);
 }

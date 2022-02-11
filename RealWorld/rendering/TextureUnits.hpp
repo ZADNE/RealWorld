@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include <RealEngine/graphics/texture/TextureUnit.hpp>
-
+#include <RealEngine/graphics/textures/TextureUnit.hpp>
 
 /**
  * @brief 0: volatile unit, used by sprite batches, font batches etc.; MUST STAY ACTIVE BY DEFAULT
@@ -21,10 +20,3 @@ const RE::TextureUnit TEX_UNIT_DIAPHRAGM = {4};
 const RE::TextureUnit TEX_UNIT_LIGHTING = {5};
 //6: worldDrawer: finished (diaphragm and lighting combined)
 const RE::TextureUnit TEX_UNIT_LIGHT_FINISHED = {6};
-
-//7: chunkGenerator: first tiles unit used for pingponging
-const RE::TextureUnit TEX_UNIT_CHUNK_TILES0 = {7};
-//8: chunkGenerator: second tiles unit used for pingponging
-const RE::TextureUnit TEX_UNIT_CHUNK_TILES1 = {8};
-//9: chunkGenerator: material
-const RE::TextureUnit TEX_UNIT_CHUNK_MATERIAL = {9};
