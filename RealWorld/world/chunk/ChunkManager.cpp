@@ -10,6 +10,8 @@
 #include <RealWorld/div.hpp>
 
 
+#include <chrono>
+
 
 ChunkManager::ChunkManager() :
 	m_chunkRemovalThreshold(PHYSICS_STEPS_PER_SECOND * 60) {
@@ -122,9 +124,20 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 	glm::ivec2 botLeftCh = floor_div(botLeftTi, CHUNK_SIZE).quot;
 	glm::ivec2 topRightCh = floor_div(topRightTi, CHUNK_SIZE).quot;
 
+	static int N = -7;
+	static std::chrono::nanoseconds sum = std::chrono::nanoseconds::zero();
+	auto start = std::chrono::steady_clock::now();
 	for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
 		for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
 			getChunk(glm::ivec2(x, y));
+		}
+	}
+	auto dur = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+	if (dur > std::chrono::microseconds{500}) {
+		N++;
+		if (N > 0) {
+			sum += dur;
+			std::cout << std::chrono::duration_cast<std::chrono::microseconds>(sum / N) << "\n\n";
 		}
 	}
 }
@@ -188,7 +201,6 @@ Chunk* ChunkManager::getChunk(glm::ivec2 posCh) {
 	}
 
 	//Chunk is not in the memory
-
 	try {//Try to load the chunk from file
 		std::vector<unsigned char> data = ChunkLoader::loadChunk(m_folderPath, posCh, CHUNK_SIZE);
 		//No exception was thrown, chunk has been loaded

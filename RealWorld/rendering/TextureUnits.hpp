@@ -20,3 +20,6 @@ const RE::TextureUnit TEX_UNIT_DIAPHRAGM = {4};
 const RE::TextureUnit TEX_UNIT_LIGHTING = {5};
 //6: worldDrawer: finished (diaphragm and lighting combined)
 const RE::TextureUnit TEX_UNIT_LIGHT_FINISHED = {6};
+
+const RE::TextureUnit TEX_UNIT_GEN_TILES[] = {{7}, {8}};
+const RE::TextureUnit TEX_UNIT_GEN_MATERIAL = {9};

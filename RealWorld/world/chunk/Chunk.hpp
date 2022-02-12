@@ -13,7 +13,7 @@ using ulong = unsigned long;
 
 /**
  * @brief Dimensions of a chunk, in tiles
- * 
+ *
  * All chunks have these dimensions
 */
 const glm::ivec2 CHUNK_SIZE = glm::ivec2(128, 128);
@@ -47,7 +47,7 @@ public:
 	 * @param data Raw data of the chunk, size should be dimsTi.x * dimsTi.y * 4
 	 * @throws std::exception If data does not hold enough bytes.
 	 */
-	Chunk(glm::ivec2 chunkPosCh, std::vector<unsigned char> data);
+	Chunk(const glm::ivec2& chunkPosCh, std::vector<unsigned char> data);
 
 	/**
 	 * @brief Destroys the chunk, frees its data.
@@ -65,7 +65,7 @@ public:
 	 * @return The value of the tile.
 	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
-	uchar get(TILE_VALUE type, glm::uvec2 posTi) const;
+	uchar get(TILE_VALUE type, const glm::uvec2& posTi) const;
 
 	/**
 	 * @brief Gets a value of a tile inside the chunk.
@@ -77,7 +77,7 @@ public:
 	 * @param posTi Position of the tile, relative to this chunk.
 	 * @return The value of the tile.
 	 */
-	uchar getUnsafe(TILE_VALUE type, glm::uvec2 posTi) const;
+	uchar getUnsafe(TILE_VALUE type, const glm::uvec2& posTi) const;
 
 	/**
 	 * @brief Sets a value of a tile inside the chunk.
@@ -90,7 +90,7 @@ public:
 	 * @param value The value to be set.
 	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
-	void set(TILE_VALUE type, glm::uvec2 posTi, uchar value);
+	void set(TILE_VALUE type, const glm::uvec2& posTi, uchar value);
 
 	/**
 	 * @brief Sets a value of a tile inside the chunk.
@@ -102,7 +102,7 @@ public:
 	 * @param posTi Position of the tile, relative to this chunk.
 	 * @param value The value to be set.
 	 */
-	void setUnsafe(TILE_VALUE type, glm::uvec2 posTi, uchar value);
+	void setUnsafe(TILE_VALUE type, const glm::uvec2& posTi, uchar value);
 
 	/**
 	 * @brief Performs step on the chunk.
@@ -143,7 +143,7 @@ private:
 	 * @param posTi The position to check.
 	 * @throws std::out_of_range When position is outside of this chunk.
 	 */
-	void boundsCheck(glm::uvec2 posTi) const;
+	void boundsCheck(const glm::uvec2& posTi) const;
 
 	/**
 	 * @brief Calculates the index of a value of a tile to the internal vector.
@@ -154,7 +154,7 @@ private:
 	 * @param posTi Position
 	 * @return Index to the buffer.
 	 */
-	size_t getIndexToBuffer(TILE_VALUE type, glm::uvec2 posTi) const;
+	size_t getIndexToBuffer(TILE_VALUE type, const glm::uvec2& posTi) const;
 
 	std::vector<unsigned char> m_data;				/**< Raw data of the chunk */
 	glm::ivec2 m_chunkPosCh{0, 0};					/**< Position of the chunk, measured in chunk coordinates */

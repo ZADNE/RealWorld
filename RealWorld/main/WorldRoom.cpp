@@ -5,7 +5,7 @@
 
 
 #ifdef _DEBUG
-const unsigned int FPS_LIMIT = 150u;
+const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 #else
 const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 #endif // _DEBUG

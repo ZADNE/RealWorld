@@ -1,11 +1,11 @@
 R""(
 #line 3
-layout(	local_size_x = 1,
-		local_size_y = 1,
+layout(	local_size_x = GEN_CS_GROUP_SIZE,
+		local_size_y = GEN_CS_GROUP_SIZE,
 		local_size_z = 1
 ) in;
 
-layout(binding = IMG_UNIT_GEN_TILES, rgba8ui) uniform restrict writeonly uimage2D tilesImage;
+layout(binding = IMG_UNIT_GEN_TILES0, rgba8ui) uniform restrict writeonly uimage2D tilesImage;
 layout(binding = IMG_UNIT_GEN_MATERIAL, rgba8ui) uniform restrict writeonly uimage2D materialImage;
 
 const float PI = 3.14159265359;
@@ -87,7 +87,7 @@ float horizonProximityFactor(float horizon, float y, float width, float low, flo
 }
 
 void main(){
-	ivec2 pTi = chunkOffsetTi + ivec2(gl_WorkGroupID.xy) - GEN_BORDER_WIDTH;
+	ivec2 pTi = chunkOffsetTi + ivec2(gl_GlobalInvocationID.xy) - GEN_BORDER_WIDTH;
 	vec2 pPx = vec2(pTi) * TILEPx;
 	
 	float age = age(pPx, seed);
@@ -111,8 +111,9 @@ void main(){
 	material.a = 0;																//A = unused yet
 	
 	
-	imageStore(materialImage, ivec2(gl_WorkGroupID.xy), material);
-	imageStore(tilesImage, ivec2(gl_WorkGroupID.xy), occupied ? material : uvec4(AIR.r, material.gba));
+	imageStore(materialImage, ivec2(gl_GlobalInvocationID.xy), material);
+	uvec4 tile = occupied ? material : uvec4(AIR.r, material.gba);
+	imageStore(tilesImage, ivec2(gl_GlobalInvocationID.xy), tile);
 }
 
 )""

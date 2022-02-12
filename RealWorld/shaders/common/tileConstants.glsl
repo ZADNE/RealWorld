@@ -3,8 +3,6 @@ const float TILEPx = 			4.0;
 
 const ivec2 CHUNK_SIZE = 		{128, 128};
 
-const ivec2 GEN_BORDER_WIDTH = 	{8, 8};
-
 const float LIGHT_MAX_RANGEUn = 30;
 const float LIGHT_DOWNSAMPLE = 	4;
 

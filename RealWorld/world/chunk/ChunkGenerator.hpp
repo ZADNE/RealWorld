@@ -3,18 +3,21 @@
 
 #include <RealEngine/graphics/ShaderProgram.hpp>
 #include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/graphics/VertexArray.hpp>
 
 #include <RealWorld/world/chunk/Chunk.hpp>
 #include <RealWorld/shaders/chunk_generation.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 
+#define GEN_USE_COMP
+
 /**
- * @brief Generates new chunks.
+ * Generates new chunks.
  */
 class ChunkGenerator {
 public:
 	/**
-	 * @brief Width of the padding around the generated chunk. 
+	 * @brief Width of the padding around the generated chunk.
 	 *
 	 * Avoids errors at the edges of generated chunks.
 	*/
@@ -22,9 +25,9 @@ public:
 
 	/**
 	 * @brief Size of the area that is generated for each chunk
-	 * 
+	 *
 	 * It is bigger than the actual chunk because it contains the padding around.
-	 * 
+	 *
 	 * @see BORDER_WIDTH
 	*/
 	const glm::ivec2 GEN_CHUNK_SIZE = CHUNK_SIZE + 2 * BORDER_WIDTH;
@@ -40,7 +43,7 @@ public:
 	~ChunkGenerator();
 
 	/**
-	 * @brief Sets the seed that controls how the generated chunk look
+	 * @brief Sets the seed that controls how the generated chunks look
 	 *
 	 * @param seed Seed of the world
 	 */
@@ -63,6 +66,9 @@ private:
 	using enum RE::BufferAccessFrequency;
 	using enum RE::BufferAccessNature;
 	using enum RE::BufferUsageFlags;
+	using enum RE::VertexComponentCount;
+	using enum RE::VertexComponentType;
+	using enum RE::Primitive;
 	struct ChunkUniforms {
 		glm::ivec2 chunkOffsetTi;
 		int seed;
@@ -74,11 +80,25 @@ private:
 	void cellularAutomaton();
 	void selectVariations();
 
+
+#ifdef GEN_USE_COMP
 	RE::ShaderProgram m_basicTerrainShader = RE::ShaderProgram{{.comp = basicTerrain_comp}};
 	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.comp = cellularAutomaton_comp}};
 	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.comp = selectVariation_comp}};
 
-	RE::Surface m_tilesGenSurf{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, false, false};
+	std::array<RE::Surface, 1> m_genSurf = {RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, false, false}};
+	RE::Texture m_tiles1Tex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}};
 	RE::Texture m_materialGenTex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}};
+#else
+	RE::VertexArray m_VAO;
+	RE::ShaderProgram m_basicTerrainShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = basicTerrain_frag}};
+	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = cellularAutomaton_frag}};
+	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = selectVariation_frag}};
+
+	std::array<RE::Surface, 2> m_genSurf = {
+		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 2, true, false},
+		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, true, false}
+	};
+#endif
 	int m_seed = 0;
 };

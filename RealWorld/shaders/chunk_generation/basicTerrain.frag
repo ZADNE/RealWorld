@@ -1,5 +1,5 @@
 R""(
-in vec2 posTi;
+in vec2 inChunkPosTi;
 
 layout(location = 0) out uvec4 result;
 layout(location = 1) out uvec4 material;
@@ -83,7 +83,7 @@ float horizonProximityFactor(float horizon, float y, float width, float low, flo
 }
 
 void main(){
-	vec2 pPx = floor(posTi) * TILEPx;
+	vec2 pPx = (chunkOffsetTi + floor(inChunkPosTi)) * TILEPx;
 	
 	float age = age(pPx, seed);
 	vec2 biomeClimate = biomeClimate(pPx.x, seed);

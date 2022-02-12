@@ -9,4 +9,8 @@ const int TEX_UNIT_DIAPHRAGM =		4;
 const int TEX_UNIT_LIGHTING =		5;
 const int TEX_UNIT_LIGHT_FINISHED =	6;
 
+const int TEX_UNIT_GEN_TILES0 =		7;
+const int TEX_UNIT_GEN_TILES1 =		8;
+const int TEX_UNIT_GEN_MATERIAL =	9;
+
 )""
