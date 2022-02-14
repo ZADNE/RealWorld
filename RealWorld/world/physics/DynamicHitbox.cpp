@@ -64,7 +64,7 @@ bool DynamicHitbox::overlapsBlocks(const glm::ivec2& offsetPx) const {
 	glm::ivec2 botLeftTi = pxToTi(p_botLeftPx + offsetPx);
 	glm::ivec2 topRightTi = pxToTi(p_botLeftPx + offsetPx + p_dimsPx);
 
-	if (p_world->getMax(TILE_VALUE::BLOCK, botLeftTi, topRightTi) > LAST_NONSOLIDBLOCK) {
+	if (p_world->getMax(TILE_VALUE::BLOCK, botLeftTi, topRightTi) > LAST_NON_SOLID_BLOCK) {
 		return true;
 	} else {
 		return false;

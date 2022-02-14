@@ -9,7 +9,7 @@
 #include <RealEngine/graphics/Viewport.hpp>
 
 #include <RealWorld/world/chunk/ChunkManager.hpp>
-#include <RealWorld/metadata.hpp>
+#include <RealWorld/constants/light.hpp>
 #include <RealWorld/shaders/common.hpp>
 #include <RealWorld/div.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>
@@ -21,10 +21,6 @@ const GLint VERTICES_POUV_MINIMAP_RECT = 12;
 
 const GLuint ATTR_DIR = 2u;
 const GLuint ATTR_CONE = 3u;
-
-const int LIGHT_DOWNSAMPLE = 4;
-const int LIGHT_MAX_RANGEUn = 30;
-const int LIGHT_MAX_RANGETi = LIGHT_MAX_RANGEUn * LIGHT_DOWNSAMPLE;
 
 
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {

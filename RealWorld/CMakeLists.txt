@@ -1,4 +1,5 @@
-﻿add_subdirectory(items)
+﻿add_subdirectory(constants)
+add_subdirectory(items)
 add_subdirectory(main)
 add_subdirectory(rendering)
 add_subdirectory(shaders)
@@ -8,5 +9,4 @@ target_sources(${PROJECT_NAME} PRIVATE
 	div.hpp					
 	KeyBinder.hpp			
 	LanguageManager.hpp		
-	metadata.hpp			
 )

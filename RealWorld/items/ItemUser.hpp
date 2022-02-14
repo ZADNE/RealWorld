@@ -4,7 +4,6 @@
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
 
-#include <RealWorld/metadata.hpp>
 #include <RealWorld/world/TDB.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/IDB.hpp>

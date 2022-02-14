@@ -7,25 +7,11 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/ext.hpp>
 
+#include <RealWorld/constants/chunk.hpp>
+
 using uchar = unsigned char;
 using ushort = unsigned short;
 using ulong = unsigned long;
-
-/**
- * @brief Dimensions of a chunk, in tiles
- *
- * All chunks have these dimensions
-*/
-const glm::ivec2 CHUNK_SIZE = glm::ivec2(128, 128);
-
-
-enum class TILE_VALUE : ulong {
-	BLOCK = 0, BLOCK_VAR = 1, WALL = 2, WALL_VAR = 3
-};
-
-enum class SET_TYPES : ulong {
-	BLOCK = 0, /*BLOCK_VAR = 1,*/ WALL = 2/*, WALL_VAR = 3*/
-};
 
 /**
  * @brief Represents a rectangular area of tiles.

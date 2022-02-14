@@ -98,7 +98,7 @@ void ChunkGenerator::cellularAutomaton() {
 			m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 		#endif
 		}
-	};
+		};
 	auto doublePass = [pass](const glm::ivec2& firstThresholds, const glm::ivec2& secondThresholds, size_t passes) {
 		for (size_t i = 0; i < passes; i++) {
 			pass(firstThresholds, 1);
@@ -123,7 +123,7 @@ void ChunkGenerator::cellularAutomaton() {
 	m_genSurf[0].setTargetTextures(stt);
 #endif
 	assert(cycleN == BORDER_WIDTH);
-}
+	}
 
 void ChunkGenerator::selectVariations() {
 #ifdef GEN_USE_COMP

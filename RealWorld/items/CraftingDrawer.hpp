@@ -11,7 +11,6 @@
 
 #include <RealWorld/items/ItemSprite.hpp>
 #include <RealWorld/shaders/common.hpp>
-#include <RealWorld/metadata.hpp>
 
 class ItemCombinator;
 class ItemInstruction;

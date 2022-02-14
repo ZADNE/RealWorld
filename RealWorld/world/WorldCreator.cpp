@@ -1,6 +1,5 @@
 ﻿#include <RealWorld/world/WorldCreator.hpp>
 
-#include <RealWorld/metadata.hpp>
 #include <RealWorld/world/chunk/Chunk.hpp>
 
 WorldData WorldCreator::createWorld(std::string worldName, int seed) {

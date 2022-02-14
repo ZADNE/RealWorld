@@ -19,11 +19,21 @@ enum class BLOCK : uint8_t {
 	COLD_STONE, SAND, COLD_DIRT, COLD_GRASS,
 	MUD, MUD_GRASS, DRY_GRASS,
 
+	LAST_NON_SOLID = AIR,
 	TECHBLOCK = 255
 };
+const unsigned int LAST_NON_SOLID_BLOCK = static_cast<unsigned int>(BLOCK::LAST_NON_SOLID);
 
 enum class WALL : uint8_t {
 	AIR, STONE, DIRT, GRASS,
 	COLD_STONE, SAND, COLD_DIRT, COLD_GRASS,
 	MUD, MUD_GRASS, DRY_GRASS
+};
+
+enum class TILE_VALUE : unsigned long {
+	BLOCK = 0, BLOCK_VAR = 1, WALL = 2, WALL_VAR = 3
+};
+
+enum class SET_TYPES : unsigned long {
+	BLOCK = 0, /*BLOCK_VAR = 1,*/ WALL = 2/*, WALL_VAR = 3*/
 };

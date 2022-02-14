@@ -10,7 +10,6 @@
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/graphics/Font.hpp>
 
-#include <RealWorld//metadata.hpp>
 #include <RealWorld/shaders/common.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemUser.hpp>

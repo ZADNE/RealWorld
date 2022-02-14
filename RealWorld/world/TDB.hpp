@@ -1,11 +1,8 @@
 ﻿#pragma once
 #include <vector>
 
-#include <RealWorld/metadata.hpp>
 #include <RealWorld/items/IDB.hpp>
-
-
-const unsigned int LAST_NONSOLIDBLOCK = 0;
+#include <RealWorld/constants/tile.hpp>
 
 
 struct BlockMetadata {

@@ -3,9 +3,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include <SDL2/SDL_timer.h>
-
-#include <RealWorld/metadata.hpp>
 #include <RealWorld/world/chunk/ChunkLoader.hpp>
 #include <RealWorld/div.hpp>
 

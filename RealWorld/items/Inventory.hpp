@@ -5,7 +5,6 @@
 
 #include <RealWorld/items/InventoryData.hpp>
 #include <RealWorld/items/InventoryDrawer.hpp>
-#include <RealWorld/metadata.hpp>
 
 class InventoryDrawer;
 class ItemCombinator;

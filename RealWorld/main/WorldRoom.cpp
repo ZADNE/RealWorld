@@ -11,7 +11,7 @@ const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 #endif // _DEBUG
 
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
-	m_world(),
+	m_world(window()->getDims()),
 	m_worldDrawer(window()->getDims()),
 	m_player(m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
 	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),

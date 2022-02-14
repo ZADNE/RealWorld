@@ -14,14 +14,11 @@
 #include <RealWorld/rendering/Vertex.hpp>
 
 /**
- * Represents world as a grid of tiles.
+ * Represents world as an endless grid of tiles.
  */
 class World {
 public:
-	const unsigned int CHUNK_SIZETi = 128;
-	const unsigned int DYN_CHUNK_SIZETi = 32;
-
-	World();
+	World(const glm::ivec2& viewDims);
 	~World();
 
 	/**
@@ -64,7 +61,7 @@ private:
 	using enum RE::Primitive;
 
 	int m_seed = 0;
-	glm::uvec2 m_activeChunksRect{32u, 32u};
+	glm::uvec2 m_activeChunksRect{16u, 16u};
 	RE::Surface m_ws = RE::Surface({RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
@@ -78,7 +75,7 @@ private:
 	};
 	float m_time = 17.0f;
 	RE::ShaderProgram m_setWithUpdateShader = RE::ShaderProgram{{.vert = setWithUpdate_vert, .frag = setWithUpdate_frag}};
-	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{{.comp = dynamics_comp}};
+	RE::ShaderProgram m_dynamicsShader;
 
 	struct WorldUniforms {
 		glm::mat4 worldMatrix;

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <glm/vec2.hpp>
 
-#include <RealWorld/metadata.hpp>
+#include <RealWorld/constants/tile.hpp>
 
 /**
  * @brief Converts position in pixels to position in tiles

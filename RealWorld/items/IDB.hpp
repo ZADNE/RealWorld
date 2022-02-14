@@ -3,8 +3,6 @@
 #include <vector>
 #include <cmath>
 
-#include <RealWorld/metadata.hpp>
-
 const std::string ITEM_ATLAS_PREFIX = "itemAtlas";
 
 enum class I_ID : uint16_t {

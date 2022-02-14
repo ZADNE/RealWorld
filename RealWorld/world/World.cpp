@@ -10,7 +10,14 @@
 #include <RealWorld/rendering/ImageUnits.hpp>
 #include <RealWorld/shaders/world_drawing.hpp>
 
-World::World() {
+std::string viewDimsToDynamicsGroupSize(const glm::ivec2& viewDims) {
+
+
+	return "const int GROUP_SIZE_X = 5;";
+}
+
+World::World(const glm::ivec2& viewDims) :
+	m_dynamicsShader({.comp = {viewDimsToDynamicsGroupSize(viewDims), dynamics_comp}}) {
 	GLuint vboBindingPoint = 0u;
 	m_setWithUpdateVAO.setBindingPoint(vboBindingPoint, m_setWithUpdateVBO, 0u, sizeof(VertexSetWithUpdate));
 	m_setWithUpdateVAO.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexSetWithUpdate, position));
@@ -116,7 +123,10 @@ bool World::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec
 
 void World::step() {
 	m_chunkManager.step();
-	//m_dynamicsShader.dispatchCompute({(m_activeChunksRect * CHUNK_SIZE) / DYN_CHUNK_SIZETi, 1u});
+	/*m_dynamicsShader.dispatchCompute({1u, 1u, 1u}, true);
+	m_dynamicsShader.dispatchCompute({1u, 1u, 1u}, true);
+	m_dynamicsShader.dispatchCompute({1u, 1u, 1u}, true);
+	m_dynamicsShader.dispatchCompute({1u, 1u, 1u}, true);*/
 }
 
 void World::updateUniformsAfterWorldResize() {
