@@ -32,21 +32,21 @@ void main() {
 		//Check neighbors
 		int neighborsN = 0;
 		for (int i = 0; i < NEIGHBORHOOD.length(); i++){
-			neighborsN += int(texelFetch(tilesTexture[read], pTi + NEIGHBORHOOD[i], 0).x != AIR.x);
+			neighborsN += int(texelFetch(tilesTexture[read], pTi + NEIGHBORHOOD[i], 0).BLOCK_TYPE != AIR.BLOCK_TYPE);
 		}
 		
-		if (previous.r == AIR.x){
+		if (previous.r == AIR.BLOCK){
 			if (neighborsN > thresholds[HIGH]){
 				//Surrounded air -> promote to material
 				uvec4 material = texelFetch(materialTexture, pTi, 0);
-				imageStore(tilesImage[write], pTi, uvec4(material.r, previous.gba));
+				imageStore(tilesImage[write], pTi, uvec4(material.BLOCK_TYPE, previous.gba));
 			} else {
 				imageStore(tilesImage[write], pTi, previous);
 			}
 		} else {
 			if (neighborsN < thresholds[LOW]){
 				//Lonely solid -> reduce to air
-				imageStore(tilesImage[write], pTi, uvec4(AIR.r, previous.gba));
+				imageStore(tilesImage[write], pTi, uvec4(AIR.BLOCK_TYPE, previous.gba));
 			} else {
 				imageStore(tilesImage[write], pTi, previous);
 			}

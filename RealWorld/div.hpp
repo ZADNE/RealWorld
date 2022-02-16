@@ -17,7 +17,7 @@ struct ivec2_div_t {
 	glm::ivec2 rem;
 };
 
-inline ivec2_div_t floor_div(glm::ivec2 a, glm::ivec2 b) {
+inline ivec2_div_t floor_div(const glm::ivec2& a, const glm::ivec2& b) {
 	assert(b.x > 0 && b.y > 0);
 	ivec2_div_t r;
 	div_t x = div(a.x, b.x);
@@ -36,7 +36,7 @@ inline ivec2_div_t floor_div(glm::ivec2 a, glm::ivec2 b) {
 }
 
 
-inline glm::ivec2 floor_modulo(glm::ivec2 a, glm::ivec2 b) {
+inline glm::ivec2 floor_modulo(const glm::ivec2& a, const glm::ivec2& b) {
 	assert(b.x > 0 && b.y > 0);
 	glm::ivec2 r = a % b;
 	if (a.x < 0) r.x += b.x;

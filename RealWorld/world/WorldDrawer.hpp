@@ -7,11 +7,11 @@
 #include <RealEngine/graphics/VertexArray.hpp>
 
 #include <RealWorld/shaders/world_drawing.hpp>
-#include <RealWorld/world/World.hpp>
 #include <RealWorld/world/DynamicLight.hpp>
 #include <RealWorld/world/LightManipulator.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
+
 
 class WorldDrawer {
 	friend class LightManipulator;
@@ -25,8 +25,14 @@ public:
 	//For adding and removing lights
 	LightManipulator getLightManipulator();
 
+	struct ViewEnvelope {
+		glm::vec2 botLeftTi;
+		glm::vec2 topRightTi;
+	};
+	ViewEnvelope setPosition(const glm::vec2& botLeftPx);
+
 	//All dynamic lights must be added each between beginStep() and endStep()
-	void beginStep(const glm::vec2& botLeftPx, World& world);
+	void beginStep();
 	//All dynamic lights must be added each between beginStep() and endStep()
 	void endStep();
 
@@ -69,9 +75,9 @@ private:
 	glm::vec2 m_botLeftPx;//Bottom-left corner of the view
 	glm::ivec2 m_botLeftTi;//Bottom-left corner of the view in blocks
 
-	glm::vec2 m_viewsizePx;
-	glm::uvec2 m_viewsizeTi;
-	glm::uvec2 m_viewsizeUn;//Units that overlap the view
+	glm::vec2 m_viewDimsPx;
+	glm::uvec2 m_viewDimsTi;
+	glm::uvec2 m_viewDimsUn;//Units that overlap the view
 
 	glm::ivec2 m_worldDimTi;
 

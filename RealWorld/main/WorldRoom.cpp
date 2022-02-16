@@ -5,13 +5,13 @@
 
 
 #ifdef _DEBUG
-const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
+const unsigned int FPS_LIMIT = 150u;
 #else
 const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 #endif // _DEBUG
 
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
-	m_world(window()->getDims()),
+	m_world(),
 	m_worldDrawer(window()->getDims()),
 	m_player(m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
 	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
@@ -67,12 +67,16 @@ void WorldRoom::step() {
 	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f);
 	m_worldViewUnifromBuffer.overwrite(m_worldView.getViewMatrix());
 
-	m_worldDrawer.beginStep(m_worldView.getBotLeft(), m_world);
+	auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
+	m_world.step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
+	m_worldDrawer.beginStep();
 	//Player END
 	m_player.endStep((glm::ivec2)m_worldView.getCursorRel());
-	//World BEGIN STEP
-	m_world.step();
 	auto lm = m_worldDrawer.getLightManipulator();
+
+	if (input()->wasPressed(RE::Key::LMB)) {
+		m_world.set(SET_TARGET::WALL, SET_SHAPE::SQUARE, 2.0f, pxToTi(m_worldView.getCursorRel()), glm::uvec2(BLOCK::WATER, 0));
+	}
 
 	//lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 255u, 255u}, 0.0f, 1.0f);
 
@@ -156,7 +160,7 @@ void WorldRoom::drawGUI() {
 
 	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
 
-	glm::ivec2 cursorPosPx = pxToTi(m_player.getCenter());
+	glm::ivec2 cursorPosPx = pxToTi(m_worldView.getCursorRel());
 	stream << "CursorTi: [" << std::setw(4) << cursorPosPx.x << ", "
 		<< std::setw(4) << cursorPosPx.y << "]\n";
 

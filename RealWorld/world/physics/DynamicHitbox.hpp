@@ -8,8 +8,8 @@ public:
 	DynamicHitbox(World* world, const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& offsetPx = glm::ivec2(0));
 	~DynamicHitbox();
 
-	glm::ivec2& velocity();
-	const glm::ivec2& getVelocity() const;
+	glm::vec2& velocity();
+	const glm::vec2& getVelocity() const;
 
 	void step();
 
@@ -20,7 +20,5 @@ private:
 	World* p_world = nullptr;
 
 	//Basic physics variables
-	glm::ivec2 m_velocityPx = glm::ivec2(0);
-
-	int m_gravityCounter = 0;
+	glm::vec2 m_velocityPx = glm::vec2(0);
 };

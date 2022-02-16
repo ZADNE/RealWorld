@@ -60,7 +60,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 					&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= pickaxeMetadata[im.typeIndex].range) {//If the operator stands close enough
 					m_neededToMineBlock += pickaxeMetadata[im.typeIndex].speed;
 					if (m_neededToMineBlock >= TDB::gb(m_UCBlock).toughness) {//Finished mining
-						m_world.set(SET_TYPES::BLOCK, m_UCTileBc, (uchar)BLOCK::AIR);
+						m_world.set(SET_TARGET::BLOCK, SET_SHAPE::SQUARE, 1.0f, m_UCTileBc, glm::uvec2(BLOCK::AIR, 0));
 						m_itemOnGroundManager.add(glm::ivec2(m_UCTilePx - iTILE_SIZE / 2), Item(TDB::gb(m_UCBlock).itemID, 1));
 						m_UCBlock = BLOCK::AIR;
 					}
@@ -78,7 +78,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 						&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= hammerMetadata[im.typeIndex].range) {//If the operator stands close enough
 						m_neededToMineWall += hammerMetadata[im.typeIndex].speed;
 						if (m_neededToMineWall >= TDB::gw(m_UCWall).toughness) {//Finished mining
-							m_world.set(SET_TYPES::WALL, m_UCTileBc, (uchar)WALL::AIR);
+							m_world.set(SET_TARGET::WALL, SET_SHAPE::SQUARE, 1.0f, m_UCTileBc, glm::uvec2(WALL::AIR, 0));
 							m_itemOnGroundManager.add(glm::ivec2(m_UCTilePx - iTILE_SIZE / 2), Item(TDB::gw(m_UCWall).itemID, 1));
 							m_UCWall = WALL::AIR;
 						}
@@ -103,7 +103,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			if (m_UCBlock == BLOCK::AIR//If there already is not a block
 				&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= m_buildingRange) {//If the operator stands close enough
 				if (!m_operatorsHitbox.overlapsBlockwise(m_relCursorPos)) {//If not inside operator
-					m_world.set(SET_TYPES::BLOCK, m_UCTileBc, im.typeIndex);
+					m_world.set(SET_TARGET::BLOCK, SET_SHAPE::SQUARE, 1.0f, m_UCTileBc, glm::uvec2(im.typeIndex, 0));
 					m_UCBlock = (BLOCK)im.typeIndex;
 					--(*m_item);
 					m_inv.wasChanged();
@@ -114,7 +114,7 @@ void ItemUser::step(const glm::ivec2& relCursorPos) {
 			if (m_UCWall == WALL::AIR//If there already is not a wall
 				&& m_UCBlock == BLOCK::AIR//If there is air on top of the wall
 				&& rmath::distance(m_operatorsHitbox.getCenter(), m_UCTilePx) <= m_buildingRange) {//If the operator stands close enough
-				m_world.set(SET_TYPES::WALL, m_UCTileBc, im.typeIndex);
+				m_world.set(SET_TARGET::WALL, SET_SHAPE::SQUARE, 1.0f, m_UCTileBc, glm::uvec2(im.typeIndex, 0));
 				m_UCWall = (WALL)im.typeIndex;
 				--(*m_item);
 				m_inv.wasChanged();

@@ -50,27 +50,27 @@ void main() {
 	uvec4 prev = texelFetch(worldTexture, posBc, 0);
 	
 	bool settingThis = fragSetAround == 0;
-	bvec2 settingBlockHere = bvec2(ivec2(settingThis, settingThis) * ivec2(set != AIR));
+	bvec2 settingBlockHere = bvec2(ivec2(settingThis, settingThis) * ivec2(set != AIR.xz));
 	
 	uvec4 block_wall = settingThis ? uvec4(set, prev.g, set, prev.a) : prev;
 	uvec2 varSet = uvec2(hash23(vec3(posBc, time)) * 4.0) * 47;
 	block_wall.ga = mix((block_wall.ga / 47) * 47, varSet, settingBlockHere);
 	
 	//Fetching surrounds
-	uvec2 toptop = 	uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(0, -1)).rb, AIR)) << 7;
-	uvec2 topright = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(1, -1)).rb, AIR)) << 6;
-	uvec2 midright = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(1, 0)).rb, AIR)) << 5;
-	uvec2 botright = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(1, 1)).rb, AIR)) << 4;
-	uvec2 botbot = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(0, 1)).rb, AIR)) << 3;
-	uvec2 botleft = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(-1, 1)).rb, AIR)) << 2;
-	uvec2 midleft = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(-1, 0)).rb, AIR)) << 1;
-	uvec2 topleft = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(-1, -1)).rb, AIR));
+	uvec2 toptop = 	uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(0, -1)).rb, AIR.xz)) << 7;
+	uvec2 topright = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(1, -1)).rb, AIR.xz)) << 6;
+	uvec2 midright = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(1, 0)).rb, AIR.xz)) << 5;
+	uvec2 botright = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(1, 1)).rb, AIR.xz)) << 4;
+	uvec2 botbot = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(0, 1)).rb, AIR.xz)) << 3;
+	uvec2 botleft = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(-1, 1)).rb, AIR.xz)) << 2;
+	uvec2 midleft = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(-1, 0)).rb, AIR.xz)) << 1;
+	uvec2 topleft = uvec2(notEqual(worldTexelFetchModulo(posBc + ivec2(-1, -1)).rb, AIR.xz));
 	
 	
 	uvec2 varIndex = toptop | topright | midright | botright | botbot | botleft | midleft | topleft;
 	
 	//Adding or removing?
-	varIndex = (set == AIR) ? (varIndex & uvec2(~fragSetAround, ~fragSetAround)) : (varIndex | uvec2(fragSetAround, fragSetAround));
+	varIndex = (set == AIR.xz) ? (varIndex & uvec2(~fragSetAround, ~fragSetAround)) : (varIndex | uvec2(fragSetAround, fragSetAround));
 	
 	result = block_wall + uvec4(0, variations[varIndex.x], 0, variations[varIndex.y]);
 }

@@ -41,9 +41,9 @@ public:
 
 	void draw();
 private:
-	int m_acceleration = 1;
-	int m_maxSpeed = 15;
-	int m_jumpSpeed = 10;
+	float m_acceleration = 0.5f;
+	float m_maxSpeed = 6.0f;
+	float m_jumpSpeed = 6.0f;
 
 	WALK m_walkDirection = WALK::STAY;
 

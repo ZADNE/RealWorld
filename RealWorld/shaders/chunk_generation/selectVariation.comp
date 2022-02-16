@@ -18,11 +18,11 @@ const ivec2 OFFSETS[] = {
 	
 void main() {
 	ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-	uvec2 block_wall = texelFetch(tilesTexture, pTi, 0).rb;
+	uvec2 block_wall = texelFetch(tilesTexture, pTi, 0).TILE_TYPE;
 	
 	ivec2 inner = ivec2(0);
 	for (int i = 0; i < OFFSETS.length(); i++){
-		inner |= ivec2(equal(texelFetch(tilesTexture, pTi + OFFSETS[i], 0).rb, AIR));
+		inner |= ivec2(equal(texelFetch(tilesTexture, pTi + OFFSETS[i], 0).TILE_TYPE, AIR.TILE_TYPE));
 	}
 	
 	vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));

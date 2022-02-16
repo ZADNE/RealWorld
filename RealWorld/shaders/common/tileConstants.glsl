@@ -6,26 +6,46 @@ const ivec2 CHUNK_SIZE = 		{128, 128};
 const float LIGHT_MAX_RANGEUn = 30;
 const float LIGHT_DOWNSAMPLE = 	4;
 
-const uvec2 AIR = 				{0, 0};
-const uvec2 STONE = 			{1, 1};
-const uvec2 DIRT = 				{2, 2};
-const uvec2 GRASS = 			{3, 3};
-const uvec2 COLD_STONE = 		{4, 4};
-const uvec2 SAND = 				{5, 5};
-const uvec2 COLD_DIRT = 		{6, 6};
-const uvec2 COLD_GRASS = 		{7, 7};
-const uvec2 MUD = 				{8, 8};
-const uvec2 MUD_GRASS = 		{9, 9};
-const uvec2 DRY_GRASS = 		{10, 10};
+#define TILE xyzw
+#define TILE_TYPE xz
+#define BLOCK xy
+#define BLOCK_TYPE x
+#define BLOCK_VAR y
+#define WALL zw
+#define WALL_TYPE z
+#define WALL_VAR w
 
-const uvec2 LAST_FLUID = 		{1, 1};
+#define TL TILE
+#define TL_T TILE_TYPE
+#define BL BLOCK
+#define BL_T BLOCK_TYPE
+#define BL_V BLOCK_VAR
+#define WL WALL
+#define WL_T WALL_TYPE
+#define WL_V WALL_VAR
 
-const uvec2 STONE_TILES[] = {
+
+const uvec4 AIR = 				{	0,	0,	0,	0};
+const uvec4 WATER = 			{	1,	0,	1,	0};
+const uvec4 STONE = 			{	2,	0,	2,	0};
+const uvec4 DIRT = 				{	3,	0,	3,	0};
+const uvec4 GRASS = 			{	4,	0,	4,	0};
+const uvec4 COLD_STONE = 		{	5,	0,	5,	0};
+const uvec4 SAND = 				{	6,	0,	6,	0};
+const uvec4 COLD_DIRT = 		{	7,	0,	7,	0};
+const uvec4 COLD_GRASS = 		{	8,	0,	8,	0};
+const uvec4 MUD = 				{	9,	0,	9,	0};
+const uvec4 MUD_GRASS = 		{	10,	0,	10,	0};
+const uvec4 DRY_GRASS = 		{	11,	0,	11,	0};
+
+const uvec4 LAST_FLUID = 		WATER;
+
+const uvec4 STONE_TILES[] = {
 	STONE,
 	COLD_STONE
 };
 
-const uvec2 SURFACE_TILES[3][3] = {
+const uvec4 SURFACE_TILES[3][3] = {
 //humidity>	|low				|normal				|high				temperature \/
 	{		COLD_STONE,			COLD_DIRT,			COLD_GRASS	},		//-low
 	{		DIRT,				GRASS,				MUD			},		//-normal

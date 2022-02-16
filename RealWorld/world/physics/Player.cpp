@@ -68,7 +68,7 @@ ItemInstructionDatabase& Player::getIID() {
 void Player::step(bool autojump) {
 	auto& vel = m_hitbox.velocity();
 
-	vel.x += static_cast<int>(m_walkDirection) * m_acceleration;
+	vel.x += static_cast<float>(m_walkDirection) * m_acceleration;
 
 	//Friction
 	if (m_walkDirection == WALK::STAY) {

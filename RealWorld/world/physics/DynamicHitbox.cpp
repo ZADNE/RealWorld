@@ -20,40 +20,37 @@ DynamicHitbox::~DynamicHitbox() {
 
 }
 
-glm::ivec2& DynamicHitbox::velocity() {
+glm::vec2& DynamicHitbox::velocity() {
 	return m_velocityPx;
 }
 
-const glm::ivec2& DynamicHitbox::getVelocity() const {
+const glm::vec2& DynamicHitbox::getVelocity() const {
 	return m_velocityPx;
 }
 
 void DynamicHitbox::step() {
 	//Gravity
 	if (!isGrounded()) {
-		m_gravityCounter++;
-		if (!(m_gravityCounter % p_world->addGravityEveryNSteps())) {
-			m_velocityPx.y -= 1;
-		}
+		m_velocityPx.y -= p_world->gravity();
 	}
 
-	if (overlapsBlocks({m_velocityPx.x, 0})) {
-		int velSign = rmath::sign(m_velocityPx.x);
+	if (overlapsBlocks({static_cast<int>(m_velocityPx.x), 0})) {
+		int velSign = static_cast<int>(glm::sign(m_velocityPx.x));
 		while (!overlapsBlocks({velSign, 0})) {
 			p_botLeftPx.x += velSign;
 		}
-		m_velocityPx.x = 0;
+		m_velocityPx.x = 0.0f;
 	}
-	p_botLeftPx.x += m_velocityPx.x;
+	p_botLeftPx.x += static_cast<int>(m_velocityPx.x);
 
-	if (overlapsBlocks({0, m_velocityPx.y})) {
-		int velSign = rmath::sign(m_velocityPx.y);
+	if (overlapsBlocks({0, static_cast<int>(m_velocityPx.y)})) {
+		int velSign = static_cast<int>(glm::sign(m_velocityPx.y));
 		while (!overlapsBlocks({0, velSign})) {
 			p_botLeftPx.y += velSign;
 		}
-		m_velocityPx.y = 0;
+		m_velocityPx.y = 0.0f;
 	}
-	p_botLeftPx.y += m_velocityPx.y;
+	p_botLeftPx.y += static_cast<int>(m_velocityPx.y);
 }
 
 bool DynamicHitbox::isGrounded() const {
@@ -64,7 +61,7 @@ bool DynamicHitbox::overlapsBlocks(const glm::ivec2& offsetPx) const {
 	glm::ivec2 botLeftTi = pxToTi(p_botLeftPx + offsetPx);
 	glm::ivec2 topRightTi = pxToTi(p_botLeftPx + offsetPx + p_dimsPx);
 
-	if (p_world->getMax(TILE_VALUE::BLOCK, botLeftTi, topRightTi) > LAST_NON_SOLID_BLOCK) {
+	if (p_world->getMax(TILE_VALUE::BLOCK, botLeftTi, topRightTi) > LAST_FLUID) {
 		return true;
 	} else {
 		return false;

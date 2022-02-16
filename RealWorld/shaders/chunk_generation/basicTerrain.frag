@@ -1,4 +1,5 @@
 R""(
+#line 3
 in vec2 inChunkPosTi;
 
 layout(location = 0) out uvec4 result;
@@ -68,14 +69,14 @@ float solidity(vec2 posPx, float age, float seed){
 
 uvec2 stoneTile(vec2 posPx, float age, float seed){
 	float dither = hash13(vec3(posPx, seed)) * 0.3 - 0.15;
-	return STONE_TILES[int(clamp(age + dither, 0.0, 0.9999) * STONE_TILES.length())];
+	return STONE_TILES[int(clamp(age + dither, 0.0, 0.9999) * STONE_TILES.length())].TILE_TYPE;
 }
 
 uvec2 surfacePxle(vec2 posPx, vec2 biomeClimate, float seed){
 	vec2 climateDither = hash23(vec3(posPx, seed)) * 0.1 - vec2(0.05);
 	vec2 climate = clamp(biomeClimate + climateDither, vec2(0.0), vec2(0.9999));
 	ivec2 indices = ivec2(vec2(SURFACE_TILES.length(), SURFACE_TILES[0].length()) * climate);
-	return SURFACE_TILES[indices.x][indices.y];
+	return SURFACE_TILES[indices.x][indices.y].TILE_TYPE;
 }
 
 float horizonProximityFactor(float horizon, float y, float width, float low, float high){
@@ -100,10 +101,10 @@ void main(){
 	float solidityShifter = belowHorizon ? horizonProximityFactor(horizon.x, pPx.y, 400.0, 0.0, 0.2) : -10.0;
 	bool occupied = (solidity + solidityShifter) > 0.5;
 	
-	material.rb = belowHorizon ? (belowSoil ? stoneTile : surfacePxle) : AIR;	//RB = block & wall type
-	material.g = 8;// + uint((1.0 - age) * 6.01);								//G = number of CA cycles
-	material.a = 0;																//A = unused yet
-	result = occupied ? material : uvec4(AIR.r, material.gba);
+	material.TL_T = belowHorizon ? (belowSoil ? stoneTile : surfacePxle) : AIR.TL_T;//RB = block & wall type
+	material.g = 8;// + uint((1.0 - age) * 6.01);									//G = number of CA cycles
+	material.a = 0;																	//A = unused yet
+	result = occupied ? material : uvec4(AIR.BL_T, material.gba);
 }
 
 )""

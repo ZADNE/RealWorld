@@ -16,7 +16,7 @@ void main() {
 		for (float x = -LIGHT_DOWNSAMPLE; x < 0.0; x++){
 			uvec4 tile = texelFetch(worldTexture, ivec2(
 				mod(botLeftTi + gl_FragCoord.xy * LIGHT_DOWNSAMPLE + vec2(x, y), vec2(textureSize(worldTexture, 0)))), 0);
-			bvec2 isAir = equal(tile.rb, AIR);
+			bvec2 isAir = equal(tile.rb, AIR.xz);
 			if (isAir.x){//If there is air-block
 				if (isAir.y){//If there is air-wall
 					diaSum += diaphragms.x;

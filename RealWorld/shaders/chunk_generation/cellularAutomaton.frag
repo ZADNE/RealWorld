@@ -28,7 +28,7 @@ void main() {
 	uvec2 neighborsN = uvec2(0, 0);
 	for (int i = 0; i < offsets.length(); i++){
 		uvec4 neighbor = texelFetch(tilesTexture[read], pos + offsets[i], 0);
-		neighborsN += mix(uvec2(0, 0), uvec2(1, 1), notEqual(neighbor.rb, AIR));
+		neighborsN += mix(uvec2(0, 0), uvec2(1, 1), notEqual(neighbor.rb, AIR.xz));
 	}
 	
 	if (previous.g > 0){//If there are more cycles to be done on this tile
