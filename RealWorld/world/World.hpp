@@ -1,10 +1,8 @@
 ﻿#pragma once
 #include <string>
 
-#include <RealEngine/graphics/VertexArray.hpp>
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/graphics/Surface.hpp>
-#include <RealEngine/graphics/UniformBuffer.hpp>
 
 #include <RealWorld/world/chunk/ChunkManager.hpp>
 #include <RealWorld/world/WorldData.hpp>
@@ -65,41 +63,11 @@ private:
 
 	std::string m_worldName;
 
-	void updateUniformsAfterWorldResize();
-
-	//Set with update
-	RE::VertexArray m_setWithUpdateVAO;
-	RE::Buffer<ARRAY> m_setWithUpdateVBO{
-		sizeof(SET_WITH_UPDATE_VERTICES), NO_FLAGS, SET_WITH_UPDATE_VERTICES
-	};
-	RE::ShaderProgram m_setWithUpdateShader = RE::ShaderProgram{{.vert = setWithUpdate_vert, .frag = setWithUpdate_frag}};
 	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{{.comp = dynamics_comp}};
 	RE::ShaderProgram m_modifyShader = RE::ShaderProgram{{.comp = modify_comp}};
 
-	std::array<glm::ivec2, 4> m_dynamicsOrder = {glm::ivec2{0, 0}, glm::ivec2{1, 0}, glm::ivec2{0, 1}, glm::ivec2{1, 1}};
+	std::array<glm::ivec2, 4> m_dynamicsUpdateOrder = {glm::ivec2{0, 0}, glm::ivec2{1, 0}, glm::ivec2{0, 1}, glm::ivec2{1, 1}};
 	uint32_t m_rngState;
 
-	struct WorldUniforms {
-		glm::mat4 worldMatrix;
-		glm::vec2 worldSize;
-	};
-	RE::UniformBuffer m_worldUniformBuffer{UNIF_BUF_WORLD, true, RE::BufferUsageFlags::DYNAMIC_STORAGE, sizeof(WorldUniforms)};
-
 	ChunkManager m_chunkManager;
-
-	const unsigned int ATTR_SET_AROUND = 1u;
-
-	struct VertexSetWithUpdate {
-		VertexSetWithUpdate(const glm::vec2& position, unsigned int setAround) :
-			position(position), setAround(setAround) {}
-
-		glm::vec2 position;
-		unsigned int setAround;//bitfield informing about blocks added/removed around this block
-	};
-
-	inline static const VertexSetWithUpdate SET_WITH_UPDATE_VERTICES[9] = {
-		{{-1.0f, -1.0f}, 16}, {{-1.0f, 0.0f}, 32}, {{-1.0f, 1.0f}, 64},
-		{{0.0f, -1.0f}, 8},  {{0.0f, 0.0f}, 0},  {{0.0f, 1.0f}, 128},
-		{{1.0f, -1.0f}, 4},  {{1.0f, 0.0f}, 2},  {{1.0f, 1.0f}, 1}
-	};
 };

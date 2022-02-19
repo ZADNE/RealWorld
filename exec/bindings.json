@@ -15,9 +15,15 @@
     "SLOT6": "K7",
     "SLOT7": "K8",
     "SLOT8": "K9",
-    "SLOT9": "K0",
-    "USEPRIMARY": "LMB",
-    "USESECONDARY": "RMB"
+    "SLOT9": "K0"
+  },
+  "ITEMUSER": {
+    "USE_PRIMARY": "LMB",
+    "USE_SECONDARY": "RMB",
+    "SWITCH_SHAPE": "MMB",
+    "HOLD_TO_RESIZE": "LCtrl",
+    "WIDEN": "UMW",
+    "SHRINK": "DMW"
   },
   "CRAFT": {
     "ONE": "LMB",
@@ -29,7 +35,8 @@
   "PLAYER": {
     "JUMP": "Space",
     "LEFT": "A",
-    "RIGHT": "D"
+    "RIGHT": "D",
+    "AUTOJUMP": "LShift"
   },
   "DEBUG": {
     "ENDGAME": "Escape",

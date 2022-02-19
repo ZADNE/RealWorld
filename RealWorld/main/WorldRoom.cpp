@@ -13,16 +13,23 @@ const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
-	m_player(m_world, RE::SpriteBatch::std(), m_itemOnGroundManager),
+	m_player(m_world, RE::SpriteBatch::std()),
+	m_playerInventory({10, 4}),
+	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_playerInventory),
+	m_itemUser(m_world, m_playerInventory, m_player.getHitbox(), RE::SpriteBatch::std(), m_itemOnGroundManager),
 	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
-	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
-	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_player.getMainInventory()) {
+	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont) {
+
+
+
+	m_itemCombinator.connectToInventory(&m_playerInventory);
+	m_itemCombinator.connectToIID(&m_instructionDatabase);
 
 	//Drawers
-	m_inventoryDrawer.connectToInventory(&m_player.getMainInventory(), Connection::PRIMARY);
-	m_inventoryDrawer.connectToItemUser(&m_player.getItemUser());
+	m_inventoryDrawer.connectToInventory(&m_playerInventory, Connection::PRIMARY);
+	m_inventoryDrawer.connectToItemUser(&m_itemUser);
 
-	m_craftingDrawer.connectToItemCombinator(&m_player.getItemCombinator());
+	m_craftingDrawer.connectToItemCombinator(&m_itemCombinator);
 }
 
 WorldRoom::~WorldRoom() {
@@ -40,9 +47,12 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 		RE::fatalError("Bad transition paramaters to start WorldRoom session");
 	}
 
-	m_worldView.setPosition(m_player.getCenter());
+	m_worldView.setPosition(glm::vec2(m_player.getHitbox().getCenter()));
 	synchronizer()->setStepsPerSecond(PHYSICS_STEPS_PER_SECOND);
 	synchronizer()->setFramesPerSecondLimit(FPS_LIMIT);
+
+	Item toInsert{I_ID::B_STONE, 1};
+	m_playerInventory.insert(toInsert);
 }
 
 void WorldRoom::sessionEnd() {
@@ -57,11 +67,11 @@ void WorldRoom::step() {
 	int walkDir = input()->isDown(KB(PLAYER_LEFT)) ? -1 : 0;
 	walkDir += input()->isDown(KB(PLAYER_RIGHT)) ? +1 : 0;
 	m_player.walk(static_cast<WALK>(walkDir));
-	m_player.step(input()->isDown(RE::Key::LShift));
+	m_player.step(input()->isDown(KB(PLAYER_AUTOJUMP)));
 	//View
 	glm::vec2 prevViewPos = m_worldView.getPosition();
 
-	glm::vec2 targetViewPos = m_player.getCenter() * 0.75f + m_worldView.getCursorRel() * 0.25f;
+	glm::vec2 targetViewPos = glm::vec2(m_player.getHitbox().getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
 
 	m_worldView.setCursorAbs(input()->getCursorAbs());
 	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f);
@@ -70,13 +80,13 @@ void WorldRoom::step() {
 	auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
 	m_world.step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
 	m_worldDrawer.beginStep();
-	//Player END
-	m_player.endStep((glm::ivec2)m_worldView.getCursorRel());
-	auto lm = m_worldDrawer.getLightManipulator();
 
-	if (input()->wasPressed(RE::Key::LMB)) {
-		m_world.set(SET_TARGET::WALL, SET_SHAPE::SQUARE, 2.0f, pxToTi(m_worldView.getCursorRel()), glm::uvec2(BLOCK::WATER, 0));
-	}
+	bool itemUse[2];
+	itemUse[ItemUser::PRIMARY_USE] = input()->isDown(KB(ITEMUSER_USE_PRIMARY)) != 0 && !m_inventoryDrawer.isOpen();
+	itemUse[ItemUser::SECONDARY_USE] = input()->isDown(KB(ITEMUSER_USE_SECONDARY)) != 0 && !m_inventoryDrawer.isOpen();
+	m_itemUser.step(itemUse, m_worldView.getCursorRel());
+
+	auto lm = m_worldDrawer.getLightManipulator();
 
 	//lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 255u, 255u}, 0.0f, 1.0f);
 
@@ -96,9 +106,14 @@ void WorldRoom::step() {
 		if (input()->wasPressed(KB(CRAFT_ROLL_LEFT))) { m_craftingDrawer.roll(-(int)input()->wasPressed(KB(CRAFT_ROLL_LEFT))); }
 		if (input()->wasPressed(KB(CRAFT_CANCEL))) { m_craftingDrawer.cancel(); }
 	} else { //CLOSED INVENTORY
+		if (input()->isDown(KB(ITEMUSER_HOLD_TO_RESIZE))) {
+			if (input()->wasPressed(KB(ITEMUSER_WIDEN))) { m_itemUser.resizeShape(0.5f); }
+			if (input()->wasPressed(KB(ITEMUSER_SHRINK))) { m_itemUser.resizeShape(-0.5f); }
+		} else {
+			if (input()->wasPressed(KB(INV_RIGHTSLOT))) { m_inventoryDrawer.chooseSlot(Choose::RIGHT, input()->wasPressed(KB(INV_RIGHTSLOT))); }
+			if (input()->wasPressed(KB(INV_LEFTSLOT))) { m_inventoryDrawer.chooseSlot(Choose::LEFT, input()->wasPressed(KB(INV_LEFTSLOT))); }
+		}
 		if (input()->wasPressed(KB(INV_PREVSLOT))) { m_inventoryDrawer.chooseSlot(Choose::PREV, 0); }
-		if (input()->wasPressed(KB(INV_RIGHTSLOT))) { m_inventoryDrawer.chooseSlot(Choose::RIGHT, input()->wasPressed(KB(INV_RIGHTSLOT))); }
-		if (input()->wasPressed(KB(INV_LEFTSLOT))) { m_inventoryDrawer.chooseSlot(Choose::LEFT, input()->wasPressed(KB(INV_LEFTSLOT))); }
 		if (input()->wasPressed(KB(INV_SLOT0))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 0); }
 		if (input()->wasPressed(KB(INV_SLOT1))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 1); }
 		if (input()->wasPressed(KB(INV_SLOT2))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 2); }
@@ -110,10 +125,7 @@ void WorldRoom::step() {
 		if (input()->wasPressed(KB(INV_SLOT8))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 8); }
 		if (input()->wasPressed(KB(INV_SLOT9))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 9); }
 
-		if (input()->wasPressed(KB(INV_USEPRIMARY))) { m_player.getItemUser().beginUse(ItemUse::MAIN); }
-		if (input()->wasReleased(KB(INV_USEPRIMARY))) { m_player.getItemUser().endUse(ItemUse::MAIN); }
-		if (input()->wasPressed(KB(INV_USESECONDARY))) { m_player.getItemUser().beginUse(ItemUse::ALTERNATIVE); }
-		if (input()->wasReleased(KB(INV_USESECONDARY))) { m_player.getItemUser().endUse(ItemUse::ALTERNATIVE); }
+		if (input()->wasPressed(KB(ITEMUSER_SWITCH_SHAPE))) { m_itemUser.switchShape(); }
 	}
 	m_worldDrawer.endStep();
 	//TEMP or DEBUG
@@ -186,6 +198,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
 	auto worldTextureSize = m_world.adoptWorldData(wd, worldName, window()->getDims());
 	m_player.adoptPlayerData(wd.pd);
+	m_playerInventory.adoptInventoryData(wd.pd.id);
 
 	m_worldDrawer.setTarget(worldTextureSize);
 	return true;
@@ -195,6 +208,7 @@ bool WorldRoom::saveWorld() const {
 	WorldData wd;
 	m_world.gatherWorldData(wd);
 	m_player.gatherPlayerData(wd.pd);
+	m_playerInventory.gatherInventoryData(wd.pd.id);
 	if (!WorldDataLoader::saveWorldData(wd, wd.wi.worldName)) return false;
 	return m_world.saveChunks();
 }

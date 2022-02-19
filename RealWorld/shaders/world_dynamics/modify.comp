@@ -9,16 +9,15 @@ layout(location = LOC_GLOBAL_OFFSET) uniform ivec2 centerTi;
 layout(location = LOC_MODIFY_TARGET) uniform uint target;
 layout(location = LOC_MODIFY_SHAPE) uniform uint shape;
 layout(location = LOC_MODIFY_DIAMETER) uniform float diameter;
-layout(location = LOC_MODIFY_TILE) uniform uvec2 tile;
+layout(location = LOC_MODIFY_TILE) uniform uvec2 toSet;
+
+const uint SET_BLOCK = 0;
+const uint SET_WALL = 2;
 
 const uint SQUARE = 0;
 const uint DISC = 1;
 
-uint invocHash(){
-	uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
-	return globalIndex;
-}
-uint randomState = invocHash();
+uint randomState = gl_LocalInvocationIndex;
 
 //Xorshift algorithm by George Marsaglia
 uint random(){
@@ -29,25 +28,42 @@ uint random(){
 }
 
 void main(){
-	ivec2 offset = ivec2(gl_GlobalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy) / 2;
+	ivec2 offset = ivec2(gl_LocalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy) / 2;
+	
+	//Construct the shape
 	switch (shape){
 		case SQUARE:
 		if (abs(offset.x) > diameter || abs(offset.y) > diameter){
-			return;
+			return;//Outside of the shape
 		}
 		break;
 		case DISC:
 		if (dot(offset, offset) > diameter * diameter){
-			return;
+			return;//Outside of the shape
 		}
 		break;
 	}
+	
+	//Modify the tile
 	ivec2 posIm = imPos(centerTi + offset);
 	uvec4 tile = tileLoadIm(posIm);
-	if (tile.BL_T == AIR.BL_T){
-		tile.BL = uvec2(WATER.BL_T, random() & 1);
-		tileStoreIm(posIm, tile);
+	switch (target){
+		case SET_BLOCK:
+		if ((toSet.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
+			return;
+		}
+		tile.BL = toSet;
+		break;
+		case SET_WALL:
+		if ((toSet.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T)){
+			return;
+		}
+		tile.WL = toSet;
+		break;
 	}
+	
+	//Store the modified tile
+	tileStoreIm(posIm, tile);
 }
 
 )""

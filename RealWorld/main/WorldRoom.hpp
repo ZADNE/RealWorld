@@ -8,9 +8,13 @@
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/WorldDrawer.hpp>
 #include <RealWorld/world/physics/Player.hpp>
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/items/ItemOnGroundManager.hpp>
+#include <RealWorld/items/ItemUser.hpp>
+#include <RealWorld/items/ItemInstructionDatabase.hpp>
+#include <RealWorld/items/ItemCombinator.hpp>
 #include <RealWorld/items/InventoryDrawer.hpp>
 #include <RealWorld/items/CraftingDrawer.hpp>
-#include <RealWorld/items/ItemOnGroundManager.hpp>
 #include <RealWorld/KeyBinder.hpp>
 
 class WorldRoom : public RE::Room {
@@ -52,7 +56,11 @@ private:
 	World m_world;
 	WorldDrawer m_worldDrawer;
 	Player m_player;
+	Inventory m_playerInventory;
+	ItemOnGroundManager m_itemOnGroundManager;
+	ItemUser m_itemUser;
+	ItemInstructionDatabase m_instructionDatabase;
+	ItemCombinator m_itemCombinator;
 	InventoryDrawer m_inventoryDrawer;
 	CraftingDrawer m_craftingDrawer;
-	ItemOnGroundManager m_itemOnGroundManager;
 };

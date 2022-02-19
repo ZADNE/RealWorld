@@ -56,14 +56,6 @@ void InventoryDrawer::connectToItemUser(ItemUser* itemUser) {
 
 void InventoryDrawer::switchState() {
 	if (m_itemUnderCursor.isEmpty()) {//Not holding anything in hand
-		if (!m_opened) {//If going to open
-			if (m_itemUser) {
-				//Ending all uses
-				for (int i = 0; i < ItemUse::NUMBER_OF_USES; i++) {
-					m_itemUser->endUse((ItemUse)i);
-				}
-			}
-		}
 		m_opened = !m_opened;
 	}
 }
