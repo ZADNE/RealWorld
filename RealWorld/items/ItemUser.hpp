@@ -36,7 +36,7 @@ private:
 	int m_chosenSlot = 0;
 
 	SET_SHAPE m_shape = SET_SHAPE::DISC;
-	float m_diameter = 3.0f;
+	float m_diameter = 1.0f;
 
 	// <  -1: steps not using
 	// == -1: just stopped using

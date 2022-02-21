@@ -55,7 +55,7 @@ void main(){
 		tile.BL = toSet;
 		break;
 		case SET_WALL:
-		if ((toSet.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T)){
+		if ((toSet.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == (tile.BL_T == AIR.BL_T)){
 			return;
 		}
 		tile.WL = toSet;

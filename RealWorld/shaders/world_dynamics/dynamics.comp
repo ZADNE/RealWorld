@@ -45,12 +45,12 @@ int randomStateToDirection1D(){
 	return bool(randomState & 1) ? +1 : -1;
 }
 
-void boilingWaterDynamics(uvec4 water, ivec2 waterPosIm){
+void acidDynamics(uvec4 water, ivec2 waterPosIm){
 	ivec2 velocity = extractVelocity(water.y);
 	uvec4 tileBelow = tileLoadIm(waterPosIm + ivec2(+0, -1));
 	if (tileBelow.BL_T == AIR.BL_T){
-		velocity.y -= 1;
-		velocity.x -= sign(velocity.x);
+		velocity.y -= 1;//bool(random() & 3) ? 0 : 1;
+		velocity.x -= sign(velocity.x);//bool(random() & 3) ? 0 : sign(velocity.x);
 	} else {
 		velocity.x += int(velocity.x == 0) * randomStateToDirection1D() * 5;//Shake my direction
 	}
@@ -84,11 +84,12 @@ void waterDynamics(uvec4 water, ivec2 waterPosIm){
 		imPos(waterPosIm + ivec2(leaningSide, -1))
 	};
 	//Fetch surroundings
-	for(int i = 0; i < surroundings.length(); ++i){
+	int shift = bool(random() & 7) ? 1 : surroundings.length();
+	for(int i = 0; i < shift; ++i){
 		surroundings[i] = tileLoadIm(surrPosIm[i]);
 	}
 	//Look for a swap
-	for(int i = 0; i < surroundings.length(); ++i){
+	for(int i = 0; i < shift; ++i){
 		if (surroundings[i].BL_T == AIR.BL_T){//If can swap
 			tileStoreIm(surrPosIm[i], uvec4(water.BL, surroundings[i].WL));
 			tileStoreIm(waterPosIm, uvec4(AIR.BL, water.WL));
@@ -96,10 +97,11 @@ void waterDynamics(uvec4 water, ivec2 waterPosIm){
 		}
 	}
 	//Could not swap - change the leaning side
-	water.BL_V ^= 1;
-	tileStoreIm(waterPosIm, water);
+	if (shift != 1){
+		water.BL_V ^= 1;
+		tileStoreIm(waterPosIm, water);
+	}
 }
-
 
 void main(){
 	const ivec2 invocOffset = globalOffset
@@ -115,8 +117,10 @@ void main(){
 			/*tile.yw++;
 			tile.yw = tile.yw % 16;
 			tileStoreIm(posIm, tile);*/
-			if (tile.BLOCK_TYPE == WATER.BLOCK_TYPE){
-				waterDynamics(tile, posIm);
+			switch (tile.BLOCK_TYPE){
+				case WATER_BL:
+				case LAVA_BL: waterDynamics(tile, posIm); break;
+				case ACID_BL: acidDynamics(tile, posIm); break;
 			}
 		}
 		groupMemoryBarrier();

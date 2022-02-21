@@ -32,7 +32,7 @@ public:
 private:
 	float m_acceleration = 0.5f;
 	float m_maxSpeed = 6.0f;
-	float m_jumpSpeed = 6.0f;
+	float m_jumpSpeed = 7.0f;
 
 	WALK m_walkDirection = WALK::STAY;
 

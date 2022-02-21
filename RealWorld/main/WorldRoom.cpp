@@ -51,8 +51,12 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	synchronizer()->setStepsPerSecond(PHYSICS_STEPS_PER_SECOND);
 	synchronizer()->setFramesPerSecondLimit(FPS_LIMIT);
 
-	Item toInsert{I_ID::B_STONE, 1};
+	Item toInsert{I_ID::B_WATER, 1};
 	m_playerInventory.insert(toInsert);
+	Item toInsert2{I_ID::B_LAVA, 1};
+	m_playerInventory.insert(toInsert2);
+	Item toInsert3{I_ID::W_DRY_GRASS, 1};
+	m_playerInventory.insert(toInsert3);
 }
 
 void WorldRoom::sessionEnd() {

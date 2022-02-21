@@ -24,21 +24,49 @@ const float LIGHT_DOWNSAMPLE = 	4;
 #define WL_T WALL_TYPE
 #define WL_V WALL_VAR
 
+const uint AIR_BL = 			0;
+const uint WATER_BL = 			1;
+const uint LAVA_BL = 			2;
+const uint ACID_BL = 			3;
+const uint STONE_BL = 			4;
+const uint DIRT_BL = 			5;
+const uint GRASS_BL = 			6;
+const uint COLD_STONE_BL = 		7;
+const uint SAND_BL = 			8;
+const uint COLD_DIRT_BL = 		9;
+const uint COLD_GRASS_BL = 		10;
+const uint MUD_BL = 			11;
+const uint MUD_GRASS_BL = 		12;
+const uint DRY_GRASS_BL = 		13;
 
-const uvec4 AIR = 				{	0,	0,	0,	0};
-const uvec4 WATER = 			{	1,	0,	1,	0};
-const uvec4 STONE = 			{	2,	0,	2,	0};
-const uvec4 DIRT = 				{	3,	0,	3,	0};
-const uvec4 GRASS = 			{	4,	0,	4,	0};
-const uvec4 COLD_STONE = 		{	5,	0,	5,	0};
-const uvec4 SAND = 				{	6,	0,	6,	0};
-const uvec4 COLD_DIRT = 		{	7,	0,	7,	0};
-const uvec4 COLD_GRASS = 		{	8,	0,	8,	0};
-const uvec4 MUD = 				{	9,	0,	9,	0};
-const uvec4 MUD_GRASS = 		{	10,	0,	10,	0};
-const uvec4 DRY_GRASS = 		{	11,	0,	11,	0};
+const uint AIR_WL = 			0;
+const uint STONE_WL = 			1;
+const uint DIRT_WL = 			2;
+const uint GRASS_WL = 			3;
+const uint COLD_STONE_WL = 		4;
+const uint SAND_WL = 			5;
+const uint COLD_DIRT_WL = 		6;
+const uint COLD_GRASS_WL = 		7;
+const uint MUD_WL = 			8;
+const uint MUD_GRASS_WL = 		9;
+const uint DRY_GRASS_WL = 		10;
 
-const uvec4 LAST_FLUID = 		WATER;
+const uvec4 AIR = 				{	AIR_BL,			0,	AIR_WL,			0};
+const uvec2 WATER = 			{	WATER_BL,		0};
+const uvec2 LAVA = 				{	LAVA_BL,		0};
+const uvec2 ACID = 				{	ACID_BL,		0};
+const uvec4 STONE = 			{	STONE_BL,		0,	STONE_WL,		0};
+const uvec4 DIRT = 				{	DIRT_BL,		0,	DIRT_WL,		0};
+const uvec4 GRASS = 			{	GRASS_BL,		0,	GRASS_WL,		0};
+const uvec4 COLD_STONE = 		{	COLD_STONE_BL,	0,	COLD_STONE_WL,	0};
+const uvec4 SAND = 				{	SAND_BL,		0,	SAND_WL,		0};
+const uvec4 COLD_DIRT = 		{	COLD_DIRT_BL,	0,	COLD_DIRT_WL,	0};
+const uvec4 COLD_GRASS = 		{	COLD_GRASS_BL,	0,	COLD_GRASS_WL,	0};
+const uvec4 MUD = 				{	MUD_BL,			0,	MUD_WL,		0};
+const uvec4 MUD_GRASS = 		{	MUD_GRASS_BL,	0,	MUD_GRASS_WL,	0};
+const uvec4 DRY_GRASS = 		{	DRY_GRASS_BL,	0,	DRY_GRASS_WL,	0};
+
+const uvec2 LAST_FLUID = 		ACID;
 
 const uvec4 STONE_TILES[] = {
 	STONE,
