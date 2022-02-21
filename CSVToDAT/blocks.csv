@@ -1,0 +1,31 @@
+enum, DTB_TYPE, ushort
+furniture, 256
+item, 512
+block, 768
+wall, 1024
+
+//			database version
+DTB_TYPE,	ushort
+block,		100
+
+
+//			Hardness, 	Toughness, 	item ID
+skip,		int,    	float, 		ushort
+0,			10000,		80.0,		0,		"Air"
+1,			100,		80.0,		1,		"Stone Block"
+2,			100,		40.0,		2,		"Dirt Block"
+3,			100,		40.0,		2,		"Grass Block"
+4,			10000,		40.0,		0,		"BEDROCK"
+5,			100,		40.0,		0,		"Leaves"
+6,			10000,		40.0,		0,		"TECHBLOCK"
+7,			100,		80.0,		4,		"Coal"
+8,			100,		40.0,		5,		"Hematite"
+9,			100,		80.0,		6,		"Bauxite"
+10,			100,		40.0,		7,		"Copper Ore"
+11,			100,		80.0,		8,		"Cassiterite"
+12,			100,		40.0,		9,		"Gold Ore"
+13,			100,		80.0,		10,		"Spodumene"
+14,			100,		40.0,		11,		"Quartz Sandstone"
+15,			100,		40.0,		12,		"Brick"
+16,			100,		60.0,		13,		"Raw Wood"
+17,			100,		30.0,		14,		"Wooden Planks"
