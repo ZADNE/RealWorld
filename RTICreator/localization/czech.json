@@ -1,0 +1,59 @@
+{
+	"LANGUAGE":{
+		"selfname": "čeština",
+		"error_exp": "<CHYBI_VYRAZ>"
+	},
+	"MMENU":{
+		"LOAD_TEXTURE": "Načíst texturu",
+		"SELECT_TEXTURE": "Vyberte texturu, ke které chcete vytvořit rti soubor",
+		"TEXTURE_FILTERS": "PNG soubory (*.png)\u0000*.png\u0000Jakékoliv soubory (*.*)\u0000*.*\u0000",
+
+		"OVERLAP": "Přesah (pro pochopení balení textury)",
+
+		"SAVE_AS": "Uložit jako...",
+		"SAVE_AS_EXPLORER": "Zadejte název souboru",
+		"SAVE": "Uložit"
+	},
+	"RTI":{
+		"FORMAT_TYPE": "Typ",
+		"NORMALIZED": "Normalizovaný",
+		"INTEGRAL": "Integralní",
+		
+		"FORMAT_SIGN": "Znaménko",
+		"UNSIGNED": "Bez (pouze kladné)",
+		"SIGNED": "S (kladné i záporné)",
+
+		"MIN_FILTER": "Zmenšovací filtr",
+		"MIN_NEAREST": "Obraz: Nejbližší, Mipmapy: Nepoužity",
+		"MIN_LINEAR": "Obraz: Lineární, Mipmapy: Nepoužity",
+		"NEAREST_MIPMAP_NEAREST": "Obraz: Nejbližší, Mipmapy: Nejbližší",
+		"NEAREST_MIPMAP_LINEAR": "Obraz: Nejbližší, Mipmapy: Lineární",
+		"LINEAR_MIPMAP_NEAREST": "Obraz: Lineární, Mipmapy: Nejbližší",
+		"LINEAR_MIPMAP_LINEAR": "Obraz: Lineární, Mipmapy: Lineární",
+
+		"MAG_FILTER": "Magnifying filter",
+		"MAG_NEAREST": "Nejbližší",
+		"MAG_LINEAR": "Lineární",
+
+		"WRAP_STYLE_X": "Balení osy X",
+		"WRAP_STYLE_Y": "Balení osy Y",
+		"CLAMP_TO_EDGE": "Sevřít k hraně",
+		"CLAMP_TO_BORDER": "Sevřít do konstanty",
+		"REPEAT_NORMALLY": "Opakovat normálně",
+		"REPEAT_MIRRORED": "Opakovat zrcadleně",
+
+		"BORDER_COLOUR": "Konstatní barva",
+
+
+
+		"N_SUBIMAGES": "Počet snímků",
+		"N_SPRITES": "Počet animací",
+
+		"SUBIMAGE_DIMS": "Rozměry snímků",
+		"SUBIMAGE_PIVOT": "Osa snímků",
+
+		"X_COMPONENT": "Rozměr X",
+		"Y_COMPONENT": "Rozměr Y",
+		"CENTER": "Vycentrovat"
+	}
+}

@@ -1,0 +1,59 @@
+{
+	"LANGUAGE":{
+		"selfname": "english",
+		"error_exp": "<ERROR_EXP>"
+	},
+	"MMENU":{
+		"LOAD_TEXTURE": "Load a texture",
+		"SELECT_TEXTURE": "Select a texture for which you want to set parameters",
+		"TEXTURE_FILTERS": "PNG Files (*.png)\u0000*.png\u0000Any Files (*.*)\u0000*.*\u0000",
+
+		"OVERLAP": "Overlap (to understand wrapping of the texture)",
+
+		"SAVE_AS": "Save as...",
+		"SAVE_AS_EXPLORER": "Choose a name for the file",
+		"SAVE": "Save"
+	},
+	"RTI":{
+		"FORMAT_TYPE": "Type",
+		"NORMALIZED": "Normalized",
+		"INTEGRAL": "Integral",
+		
+		"FORMAT_SIGN": "Sign",
+		"UNSIGNED": "Unsigned",
+		"SIGNED": "Signed",
+
+		"MIN_FILTER": "Minifying filter",
+		"MIN_NEAREST": "Image: Nearest, Mipmaps: Unused",
+		"MIN_LINEAR": "Image: Linear, Mipmaps: Unused",
+		"NEAREST_MIPMAP_NEAREST": "Image: Nearest, Mipmaps: Nearest",
+		"NEAREST_MIPMAP_LINEAR": "Image: Nearest, Mipmaps: Linear",
+		"LINEAR_MIPMAP_NEAREST": "Image: Linear, Mipmaps: Nearest",
+		"LINEAR_MIPMAP_LINEAR": "Image: Linear, Mipmaps: Linear",
+
+		"MAG_FILTER": "Magnifying filter",
+		"MAG_NEAREST": "Nearest",
+		"MAG_LINEAR": "Linear",
+
+		"WRAP_STYLE_X": "Wrap Style X",
+		"WRAP_STYLE_Y": "Wrap Style Y",
+		"CLAMP_TO_EDGE": "Clamp to edge",
+		"CLAMP_TO_BORDER": "Clamp to border",
+		"REPEAT_NORMALLY": "Repeat normally",
+		"REPEAT_MIRRORED": "Repeat mirrored",
+
+		"BORDER_COLOUR": "Border colour",
+
+
+
+		"N_SUBIMAGES": "Number of subimages",
+		"N_SPRITES": "Number of sprites",
+
+		"SUBIMAGE_DIMS": "Dimensions of subimages",
+		"SUBIMAGE_PIVOT": "Pivot of subimages",
+
+		"X_COMPONENT": "X component",
+		"Y_COMPONENT": "Y component",
+		"CENTER": "Center"
+	}
+}

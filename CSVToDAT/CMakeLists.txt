@@ -1,3 +1,3 @@
 ﻿target_sources(CSVToDAT PRIVATE 
-							CSVToDAT.cpp			
+							CSVToDAT.cpp
 )

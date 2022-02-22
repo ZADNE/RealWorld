@@ -45,6 +45,41 @@ int randomStateToDirection1D(){
 	return bool(randomState & 1) ? +1 : -1;
 }
 
+uint FLUIDITY[] = {
+	0,
+	64,
+	1
+};
+
+void fluidDynamics(uvec4 fluid, ivec2 waterPosIm){
+	uvec4 surroundings[3];
+	int leaningSide = bool(fluid.BL_V & 1) ? 1 : -1;
+	//Compute surroundings positions
+	ivec2 surrPosIm[3] = {
+		imPos(waterPosIm + ivec2(+0, -1)),
+		imPos(waterPosIm + ivec2(leaningSide, 0)),
+		imPos(waterPosIm + ivec2(leaningSide, -1))
+	};
+	//Fetch surroundings
+	int shift = bool((random() & 63) > FLUIDITY[fluid.BL_T]) ? 1 : surroundings.length();
+	for(int i = 0; i < shift; ++i){
+		surroundings[i] = tileLoadIm(surrPosIm[i]);
+	}
+	//Look for a swap
+	for(int i = 0; i < shift; ++i){
+		if (surroundings[i].BL_T == AIR.BL_T){//If can swap
+			tileStoreIm(surrPosIm[i], uvec4(fluid.BL, surroundings[i].WL));
+			tileStoreIm(waterPosIm, uvec4(AIR.BL, fluid.WL));
+			return;
+		}
+	}
+	//Could not swap - change the leaning side
+	if (shift != 1){
+		fluid.BL_V ^= 1;
+		tileStoreIm(waterPosIm, fluid);
+	}
+}
+
 void acidDynamics(uvec4 water, ivec2 waterPosIm){
 	ivec2 velocity = extractVelocity(water.y);
 	uvec4 tileBelow = tileLoadIm(waterPosIm + ivec2(+0, -1));
@@ -74,35 +109,6 @@ void acidDynamics(uvec4 water, ivec2 waterPosIm){
 	}
 }
 
-void waterDynamics(uvec4 water, ivec2 waterPosIm){
-	uvec4 surroundings[3];
-	int leaningSide = bool(water.BL_V & 1) ? 1 : -1;
-	//Compute surroundings positions
-	ivec2 surrPosIm[3] = {
-		imPos(waterPosIm + ivec2(+0, -1)),
-		imPos(waterPosIm + ivec2(leaningSide, 0)),
-		imPos(waterPosIm + ivec2(leaningSide, -1))
-	};
-	//Fetch surroundings
-	int shift = bool(random() & 7) ? 1 : surroundings.length();
-	for(int i = 0; i < shift; ++i){
-		surroundings[i] = tileLoadIm(surrPosIm[i]);
-	}
-	//Look for a swap
-	for(int i = 0; i < shift; ++i){
-		if (surroundings[i].BL_T == AIR.BL_T){//If can swap
-			tileStoreIm(surrPosIm[i], uvec4(water.BL, surroundings[i].WL));
-			tileStoreIm(waterPosIm, uvec4(AIR.BL, water.WL));
-			return;
-		}
-	}
-	//Could not swap - change the leaning side
-	if (shift != 1){
-		water.BL_V ^= 1;
-		tileStoreIm(waterPosIm, water);
-	}
-}
-
 void main(){
 	const ivec2 invocOffset = globalOffset
 					+ ivec2(gl_WorkGroupID.xy) * CHUNK_SIZE
@@ -119,7 +125,7 @@ void main(){
 			tileStoreIm(posIm, tile);*/
 			switch (tile.BLOCK_TYPE){
 				case WATER_BL:
-				case LAVA_BL: waterDynamics(tile, posIm); break;
+				case LAVA_BL: fluidDynamics(tile, posIm); break;
 				case ACID_BL: acidDynamics(tile, posIm); break;
 			}
 		}

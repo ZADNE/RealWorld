@@ -1,0 +1,127 @@
+{
+	"head": {
+		"include": [ "templates.jsom" ]
+	},
+	"format_type_desc": {
+		"templates": [ "MAIN_MENU" ],
+		"type": "plain_text",
+		"text": "RTI->FORMAT_TYPE",
+		"pos_rel": [ 0.85, 0.0 ]
+	},
+	"format_type": {
+		"templates": [ "format_type_desc" ],
+		"type": "closed_list",
+		"closed_list_list": [ "RTI->NORMALIZED", "RTI->INTEGRAL" ],
+		"closed_list_chosen": 0,
+		"pos": [ 0, -27 ],
+		"on_release": 2
+	},
+	"format_sign_desc": {
+		"templates": [ "format_type" ],
+		"type": "plain_text",
+		"text": "RTI->FORMAT_SIGN",
+		"pos": [ 0, -55 ]
+	},
+	"format_sign": {
+		"templates": [ "format_sign_desc" ],
+		"type": "closed_list",
+		"closed_list_list": [ "RTI->UNSIGNED", "RTI->SIGNED" ],
+		"closed_list_chosen": 0,
+		"pos": [ 0, -27 ],
+		"on_release": 2
+	},
+	"min_filter_desc": {
+		"templates": [ "format_sign" ],
+		"type": "plain_text",
+		"text": "RTI->MIN_FILTER",
+		"pos": [ 0, -55 ]
+	},
+	"min_filter": {
+		"templates": [ "min_filter_desc" ],
+		"type": "closed_list",
+		"closed_list_list": [
+				"RTI->MIN_NEAREST", "RTI->MIN_LINEAR",
+				"RTI->NEAREST_MIPMAP_NEAREST", "RTI->NEAREST_MIPMAP_LINEAR",
+				"RTI->LINEAR_MIPMAP_NEAREST", "RTI->LINEAR_MIPMAP_LINEAR" ],
+		"closed_list_chosen": 0,
+		"pos": [ 0, -27 ],
+		"on_release": 3
+	},
+	"mag_filter_desc": {
+		"templates": [ "min_filter" ],
+		"type": "plain_text",
+		"text": "RTI->MAG_FILTER",
+		"pos": [ 0, -55 ]
+	},
+	"mag_filter": {
+		"templates": [ "mag_filter_desc" ],
+		"type": "closed_list",
+		"closed_list_list": [ "RTI->MAG_NEAREST", "RTI->MAG_LINEAR" ],
+		"closed_list_chosen": 0,
+		"pos": [ 0, -27 ],
+		"on_release": 4
+	},
+	"wrap_style_x_desc": {
+		"templates": [ "mag_filter" ],
+		"type": "plain_text",
+		"text": "RTI->WRAP_STYLE_X",
+		"pos": [ 0, -55 ]
+	},
+	"wrap_style_x": {
+		"templates": [ "wrap_style_x_desc" ],
+		"type": "closed_list",
+		"closed_list_list": [
+				"RTI->CLAMP_TO_EDGE", "RTI->CLAMP_TO_BORDER",
+				"RTI->REPEAT_NORMALLY", "RTI->REPEAT_MIRRORED" ],
+		"closed_list_chosen": 0,
+		"pos": [ 0, -27 ],
+		"on_release": 5
+	},
+	"wrap_style_y_desc": {
+		"templates": [ "wrap_style_x" ],
+		"type": "plain_text",
+		"text": "RTI->WRAP_STYLE_Y",
+		"pos": [ 0, -55 ]
+	},
+	"wrap_style_y": {
+		"templates": [ "wrap_style_y_desc" ],
+		"type": "closed_list",
+		"closed_list_list": [
+				"RTI->CLAMP_TO_EDGE", "RTI->CLAMP_TO_BORDER",
+				"RTI->REPEAT_NORMALLY", "RTI->REPEAT_MIRRORED" ],
+		"closed_list_chosen": 0,
+		"pos": [ 0, -27 ],
+		"on_release": 6
+	},
+	"border_desc": {
+		"templates": [ "wrap_style_y" ],
+		"type": "plain_text",
+		"text": "RTI->BORDER_COLOUR",
+		"pos": [ 0, -55 ]
+	},
+	"border_R": {
+		"templates": [ "border_desc" ],
+		"type": "slider",
+		"slider_bounds": [ 0, 255 ],
+		"slider_steps": 256,
+		"slider_decimals": 0,
+		"slider_default_portion": 1.0,
+		"pos": [ 0, -27 ],
+		"on_release": 7
+	},
+	"border_G": {
+		"templates": [ "border_R" ],
+		"slider_default_portion": 0.07843137254,
+		"pos": [ 0, -27 ]
+	},
+	"border_B": {
+		"templates": [ "border_G" ],
+		"slider_default_portion": 0.57647058823,
+		"pos": [ 0, -27 ]
+	},
+	"border_A": {
+		"templates": [ "border_B" ],
+		"slider_default_portion": 1.0,
+		"pos": [ 0, -27 ]
+	}
+}

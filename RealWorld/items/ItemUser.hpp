@@ -2,7 +2,6 @@
 #include <glm/vec2.hpp>
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
-#include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/world/TDB.hpp>
 #include <RealWorld/world/World.hpp>
@@ -45,6 +44,4 @@ private:
 	// == +1: just started using
 	int m_using[2] = {-1, -1};
 	Item* m_item = nullptr;
-
-	RE::TexturePtr m_miningBlockTex = RE::RM::getTexture("miningBlock");
 };

@@ -67,7 +67,7 @@ private:
 	void initShaders();
 	void updateUniformsAfterViewResize();
 
-	RE::Surface m_surLighting{{RE::TextureFlags::RGBA_NU_NEAR_NEAR_EDGE}, false, false};
+	RE::Surface m_surLighting{{RE::TextureFlags::RGBA_NU_NEAR_LIN_EDGE}, false, false};
 	//0 texture (diaphragm):			R = diaphragm of the tile; G = direction of the light; B = width of light cone; A = unused yet
 	//1 texture (lights):				RGB = colour of the light; A = strength of the light
 	//2 texture (finished lighting):	RGBA = drawn to screen
