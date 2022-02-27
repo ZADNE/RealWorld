@@ -17,6 +17,7 @@ std::string_view basicTerrain_frag =
 #include "common/tileConstants.glsl"
 #include "chunk_generation/columnValues.glsl"
 #include "chunk_generation/ChunkUniforms.glsl"
+#include "chunk_generation/basicTerrain.glsl"
 #include "chunk_generation/basicTerrain.frag"
 ;
 
@@ -41,6 +42,7 @@ std::string_view basicTerrain_comp =
 #include "chunk_generation/genSettings.glsl"
 #include "chunk_generation/columnValues.glsl"
 #include "chunk_generation/ChunkUniforms.glsl"
+#include "chunk_generation/basicTerrain.glsl"
 #include "chunk_generation/basicTerrain.comp"
 ;
 
