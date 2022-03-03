@@ -73,19 +73,31 @@ const uvec4 STONE_TILES[] = {
 	COLD_STONE
 };
 
-const uvec4 SURFACE_TILES[3][3] = {
-//humidity>	|low				|normal				|high				temperature \/
-	{		COLD_STONE,			COLD_DIRT,			COLD_GRASS	},		//-low
-	{		DIRT,				GRASS,				MUD			},		//-normal
-	{		SAND,				DRY_GRASS,			MUD_GRASS	}		//-high
+struct Biome {
+	uvec4 tiles;
+	vec2 elevation;//x = fixed, y = random
+	vec2 roughness;//x = fixed, y = slope-variable
+	vec2 surfaceWidth;//x = fixed, y = slope-variable
 };
 
-//x = elevation, y = roughness, z = derivation-variable surface layer width, w = base surface layer width
-const vec4 BIOME_PARAMS[3][3] = {
-//humidity>	|low						|normal						|high						temperature \/
-	{		{2000., 600., 40., 200.},	{800., 300., 120., 120.},	{700., 250., 80., 80.}	},	//-low
-	{		{640., 96., 160., 120.},	{640., 96., 200., 160.},	{640., 96., 200., 200.}	},	//-normal
-	{		{500., 0., 60., 400.},		{640., 96., 100., 160.},	{640., 120., 240., 280.}}	//-high
+//							tile			elevation		roughness		surfaceWidth
+const Biome MOUNTAINS = 	{COLD_STONE,	{1000., 2000.}, {400., 250.}, 	{800., 200.}};
+const Biome TUNDRA = 		{COLD_DIRT,		{0., 1000.}, 	{0., 250.}, 	{50., 250.}};
+const Biome TAIGA = 		{COLD_GRASS,	{500., 1200.}, 	{0., 150.}, 	{50., 200.}};
+
+const Biome DIRTLAND = 		{DIRT,			{0., 1000.}, 	{100., 150.},	{50., 200.}};
+const Biome GRASSLAND = 	{GRASS,			{0., 800.}, 	{100., 200.}, 	{50., 200.}};
+const Biome SWAMP = 		{MUD,			{-1500., 400.}, {0., 100.}, 	{500., 100.}};
+
+const Biome DESERT = 		{SAND,			{0., 500.}, 	{0., 0.}, 		{600., 100.}};
+const Biome SAVANNA = 		{DRY_GRASS,		{250., 800.}, 	{100., 100.}, 	{200., 200.}};
+const Biome RAINFOREST = 	{MUD_GRASS,		{250., 1000.}, 	{150., 160.}, 	{240., 280.}};
+
+const Biome BIOMES[3][3] = {
+//humidity>	|low			|normal			|high			temperature \/
+	{		MOUNTAINS,		TUNDRA,			TAIGA		},	//-low
+	{		DIRTLAND,		GRASSLAND,		SWAMP		},	//-normal
+	{		DESERT,			SAVANNA,		RAINFOREST	}	//-high
 };
 
 )""

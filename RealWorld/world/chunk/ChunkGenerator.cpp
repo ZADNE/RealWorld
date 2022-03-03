@@ -121,7 +121,7 @@ void ChunkGenerator::cellularAutomaton() {
 	m_genSurf[0].setTarget();
 	m_genSurf[0].setTargetTextures(stt);
 #endif
-	assert(cycleN == BORDER_WIDTH);
+	assert(cycleN <= BORDER_WIDTH);
 }
 
 void ChunkGenerator::selectVariations() {
