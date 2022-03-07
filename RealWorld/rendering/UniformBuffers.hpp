@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <RealEngine/graphics/UniformBuffer.hpp>
+#include <RealEngine/graphics/buffers/UniformBuffer.hpp>
 
 //const GLuint UNIF_BUF_WORLD = 1u;
 

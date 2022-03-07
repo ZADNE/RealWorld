@@ -174,7 +174,7 @@ void WorldRoom::drawGUI() {
 
 	stream << "Max FT: " << std::chrono::duration_cast<std::chrono::microseconds>(synchronizer()->getMaxFrameTime()).count() << " us" << '\n';
 
-	stream << "Chunks: " << m_world.getNumberOfChunksLoaded() << '\n';
+	stream << "RAM chunks: " << m_world.getNumberOfInactiveChunks() << '\n';
 
 	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
 

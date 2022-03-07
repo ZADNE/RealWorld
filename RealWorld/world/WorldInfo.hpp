@@ -2,6 +2,6 @@
 #include <glm/vec2.hpp>
 
 struct WorldInfo {
-	int seed;
+	int seed = 0;
 	std::string worldName;
 };

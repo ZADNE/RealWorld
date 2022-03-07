@@ -11,7 +11,7 @@
 
 /**
  * @brief Manages a collection of chunks.
- * 
+ *
  * Allows access to world as if it was a single array.
  */
 class ChunkManager {
@@ -28,7 +28,7 @@ public:
 
 	/**
 	 * @brief Retargets chunk handler to a new world.
-	 * 
+	 *
 	 * Saves and frees all chunks of the previous world.
 	 *
 	 * @param seed Seed of the new world.
@@ -51,21 +51,11 @@ public:
 	bool saveChunks() const;
 
 	/**
-	 * @brief Gets the number of chunks held in memory.
+	 * @brief Gets the number of inactive chunks held in memory.
 	 *
 	 * @return The number of chunks held in memory.
 	 */
-	size_t getNumberOfChunksLoaded();
-
-	//Tile getters
-	uchar get(TILE_VALUE type, const glm::ivec2& posTi);
-	uchar getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
-	uchar getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
-	//Tile setters
-	void set(TILE_VALUE type, const glm::ivec2& posTi, uchar index);
-
-	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi, uchar index);
-	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi, uchar index);
+	size_t getNumberOfInactiveChunks();
 
 	/**
 	 * @brief Performs beginStep operation on the chunk handler.
@@ -84,7 +74,6 @@ public:
 private:
 	glm::ivec2 chunkPosToTexturePos(glm::ivec2 posCh) const;
 	glm::ivec2 chunkPosToActiveChunkPos(glm::ivec2 posCh) const;
-	Chunk*& getActiveChunk(glm::ivec2 posCh);
 
 	/**
 	 * @brief Activates the chunk at given position.
@@ -92,49 +81,40 @@ private:
 	 * @param chunk The chunk to be activated. Must not be nullptr
 	 * @param posCh Position of the chunk
 	*/
-	void activateChunkAtPos(Chunk* chunk, glm::ivec2 posCh, bool uploadRequired);
+	void activateChunk(const glm::ivec2& posCh);
 
 	/**
 	 * @brief Deactivates the chunk at given position.
+	 *
+	 * Deactivated chunk is placed to inactive chunks storage.
 	 * Does nothing if there is no active chunk at the position.
-	 * @param posCh Position of the chunk
+	 * @param posCh Position of the chunk, measured in chunks
 	*/
-	void deactivateChunkAtPos(glm::ivec2 posCh);
+	void deactivateChunk(const glm::ivec2& posCh);
 
 	/**
-	 * @brief Downloads data from texture to the chunk's data
-	 * @param chunk Chunk to receive the data
-	 * @param posCh Position of the chunk
+	 * @brief Downloads a chunk from world texture to CPU memory
+	 * @param activePosTi In-texture position of the chunk, measured in tiles/pixels
+	 * @return The tiles of the chunk
 	*/
-	void downloadChunk(Chunk* chunk, glm::ivec2 posCh) const;
+	std::vector<unsigned char> downloadChunk(const glm::ivec2& activePosTi) const;
 
 	/**
-	 * @brief Uploads data from chunk to texture
-	 * @param chunk Chunk to upload the data from
+	 * @brief Uploads tiles from a chunk to the world texture
+	 * @param chunk Tiles to upload
 	 * @param posCh Position of the chunk
 	*/
-	void uploadChunk(Chunk* chunk, glm::ivec2 posCh) const;
+	void uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;
 
-	/**
-	 * @brief Gets chunk at given position
-	 *
-	 * The chunk is loaded from respective file or generated if required.
-	 *
-	 *
-	 * @param posCh Position of the chunk
-	 * @return Activated chunk
-	*/
-	Chunk* getChunk(glm::ivec2 posCh);
-	uchar getUnsafe(TILE_VALUE type, const glm::ivec2& posTi);
 	void saveChunk(Chunk& chunk, glm::ivec2 posCh) const;
 
-	mutable std::unordered_map<glm::ivec2, Chunk> m_chunks;
-	glm::ivec2 m_activeChunksRect;
-	std::vector<Chunk*> m_activeChunks;
+	mutable std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
+	glm::ivec2 m_activeChunksRect{0, 0};
+	std::vector<glm::ivec2> m_activeChunks;
+	static inline const glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
 
 	std::string m_folderPath;
 	ulong m_chunkRemovalThreshold;
 	ChunkGenerator m_chunkGen;
 	RE::Surface* m_ws = nullptr;
-	glm::ivec2 m_wsSize;
 };

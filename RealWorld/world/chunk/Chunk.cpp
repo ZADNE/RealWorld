@@ -28,18 +28,11 @@ void Chunk::setUnsafe(TILE_VALUE type, const glm::uvec2& posTi, uchar value) {
 }
 
 ulong Chunk::step() const {
-	return m_active ? m_stepsSinceLastOperation : ++m_stepsSinceLastOperation;
+	return ++m_stepsSinceLastOperation;
 }
 
 std::vector<unsigned char>& Chunk::data() {
 	return m_data;
-}
-
-void Chunk::setActive(bool active) {
-	m_active = active;
-	if (active) {
-		m_stepsSinceLastOperation = 0ul;
-	}
 }
 
 void Chunk::boundsCheck(const glm::uvec2& posTi) const {

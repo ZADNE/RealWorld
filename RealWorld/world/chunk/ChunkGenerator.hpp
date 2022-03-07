@@ -5,9 +5,9 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
-#include <RealWorld/world/chunk/Chunk.hpp>
 #include <RealWorld/shaders/chunk_generation.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
+#include <RealWorld/constants/chunk.hpp>
 
 #define GEN_USE_COMP
 
@@ -50,15 +50,13 @@ public:
 	void setSeed(int seed);
 
 	/**
-	 * @brief Generates single chunk. The pixels are stored to given texture at given position
-	 * and also returned as a Chunk.
+	 * @brief Generates a chunk. The pixels are stored to given texture at given position.
 	 *
 	 * @param posCh Position of the chunk (measured in chunks)
 	 * @param destinationTexture The texture that will receive the generated chunk
 	 * @param destinationOffset Offset within destinationTexture where the texels/tiles will be copied
-	 * @return Newly generated chunk
 	 */
-	Chunk generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset);
+	void generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset);
 
 private:
 	using enum RE::BufferType;
@@ -86,8 +84,10 @@ private:
 	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.comp = cellularAutomaton_comp}};
 	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.comp = selectVariation_comp}};
 
-	std::array<RE::Surface, 1> m_genSurf = {RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, false, false}};
-	RE::Texture m_tiles1Tex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}};
+	std::array<RE::Texture, 2> m_tilesTex = {
+		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}},
+		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}}
+	};
 	RE::Texture m_materialGenTex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}};
 #else
 	RE::VertexArray m_VAO;

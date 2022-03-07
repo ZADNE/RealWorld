@@ -19,20 +19,21 @@ const int GEN_CS_GROUP_SIZE = 16;
 ChunkGenerator::ChunkGenerator() {
 	m_chunkUniformBuffer.connectToShaderProgram(m_basicTerrainShader, 0u);
 	m_chunkUniformBuffer.connectToShaderProgram(m_selectVariationShader, 0u);
-	m_genSurf[0].getTexture().bind(TEX_UNIT_GEN_TILES[0]);
 
 #ifdef GEN_USE_COMP
-	m_tiles1Tex.bind(TEX_UNIT_GEN_TILES[1]);
+	m_tilesTex[0].bind(TEX_UNIT_GEN_TILES[0]);
+	m_tilesTex[1].bind(TEX_UNIT_GEN_TILES[1]);
 	m_materialGenTex.bind(TEX_UNIT_GEN_MATERIAL);
 
-	m_genSurf[0].getTexture().bindImage(IMG_UNIT_GEN_TILES[0], 0, RE::ImageAccess::READ_WRITE);
-	m_tiles1Tex.bindImage(IMG_UNIT_GEN_TILES[1], 0, RE::ImageAccess::READ_WRITE);
+	m_tilesTex[0].bindImage(IMG_UNIT_GEN_TILES[0], 0, RE::ImageAccess::READ_WRITE);
+	m_tilesTex[1].bindImage(IMG_UNIT_GEN_TILES[1], 0, RE::ImageAccess::READ_WRITE);
 	m_materialGenTex.bindImage(IMG_UNIT_GEN_MATERIAL, 0, RE::ImageAccess::READ_WRITE);
 #else
 	m_chunkUniformBuffer.connectToShaderProgram(m_cellularAutomatonShader, 0u);
 
-	m_genSurf[0].getTexture(1).bind(TEX_UNIT_GEN_MATERIAL);
+	m_genSurf[0].getTexture(0).bind(TEX_UNIT_GEN_TILES[0]);
 	m_genSurf[1].getTexture(0).bind(TEX_UNIT_GEN_TILES[1]);
+	m_genSurf[0].getTexture(1).bind(TEX_UNIT_GEN_MATERIAL);
 #endif
 }
 
@@ -45,13 +46,14 @@ void ChunkGenerator::setSeed(int seed) {
 	m_chunkUniformBuffer.overwrite(offsetof(ChunkUniforms, seed), sizeof(seed), &seed);
 }
 
-Chunk ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
+void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
 	//Update chunk offset within the uniform buffer
 	glm::ivec2 offsetTi = posCh * CHUNK_SIZE;
 	m_chunkUniformBuffer.overwrite(offsetof(ChunkUniforms, chunkOffsetTi), sizeof(offsetTi), &offsetTi);
-	m_genSurf[0].setTarget();//Bind framebuffer now (slightly reduces later pixel download time)
+
 #ifndef GEN_USE_COMP
 	m_VAO.bind();
+	m_genSurf[0].setTarget();
 #endif
 
 	//Actual generation
@@ -60,19 +62,13 @@ Chunk ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& 
 	selectVariations();
 
 
-#ifndef GEN_USE_COMP
-	m_VAO.unbind();
-#endif
-
-	std::vector<unsigned char> data;
-	data.resize(static_cast<size_t>(CHUNK_SIZE.x) * CHUNK_SIZE.y * 4ull);
-	//Download data -> CPU stall -> Pixel Buffer Object todo
-	glReadnPixels(BORDER_WIDTH, BORDER_WIDTH, CHUNK_SIZE.x, CHUNK_SIZE.y, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, static_cast<GLsizei>(data.size()), data.data());
-
-	m_genSurf[0].getTexture().copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, CHUNK_SIZE);
-
+#ifdef GEN_USE_COMP
+	m_tilesTex[0].copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, CHUNK_SIZE);
+#else
 	m_genSurf[0].resetTarget();
-	return Chunk(posCh, data);
+	m_VAO.unbind();
+	m_genSurf[0].getTexture().copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, CHUNK_SIZE);
+#endif
 }
 
 void ChunkGenerator::generateBasicTerrain() {
@@ -121,7 +117,7 @@ void ChunkGenerator::cellularAutomaton() {
 	m_genSurf[0].setTarget();
 	m_genSurf[0].setTargetTextures(stt);
 #endif
-	assert(cycleN <= BORDER_WIDTH);
+	assert(static_cast<int>(cycleN) <= BORDER_WIDTH);
 }
 
 void ChunkGenerator::selectVariations() {

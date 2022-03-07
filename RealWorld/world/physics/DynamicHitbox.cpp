@@ -32,6 +32,7 @@ void DynamicHitbox::step() {
 	//Gravity
 	if (!isGrounded()) {
 		m_velocityPx.y -= p_world->gravity();
+		m_velocityPx.y = glm::max(m_velocityPx.y, -12.0f);
 	}
 
 	if (overlapsBlocks({static_cast<int>(m_velocityPx.x), 0})) {
@@ -61,9 +62,5 @@ bool DynamicHitbox::overlapsBlocks(const glm::ivec2& offsetPx) const {
 	glm::ivec2 botLeftTi = pxToTi(p_botLeftPx + offsetPx);
 	glm::ivec2 topRightTi = pxToTi(p_botLeftPx + offsetPx + p_dimsPx);
 
-	if (p_world->getMax(TILE_VALUE::BLOCK, botLeftTi, topRightTi) > LAST_FLUID) {
-		return true;
-	} else {
-		return false;
-	}
+	return false;
 }

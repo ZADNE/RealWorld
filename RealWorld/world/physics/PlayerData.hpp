@@ -4,6 +4,6 @@
 #include <RealWorld/items/InventoryData.hpp>
 
 struct PlayerData {
-	glm::ivec2 pos;
+	glm::ivec2 pos{};
 	InventoryData id;
 };

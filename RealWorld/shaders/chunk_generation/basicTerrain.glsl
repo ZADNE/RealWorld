@@ -64,16 +64,25 @@ vec2 horizon(float xPx, Biome biome, float seed){
 	return vec2(top, top - surfaceLayer);
 }
 
-const float CAVE_WIDTH_FACTOR = 0.16;
 
 float solidity(vec2 posPx, float age, float seed){
-	vec2 sn = vec2(0.0, 10.0);
-	sn.x = hash13(vec3(posPx, seed));
+	const float CAVE_WIDTH_FACTOR = 0.2;
+	const float DOME_WIDTH_FACTOR = 0.8;
+	
 	vec2 p = vec2(posPx * (1.0 / 1536.0));
+	vec2 solidity = vec2(10.0, 0.0);
 	for (float level = 1.0; level <= 1.5; level += 0.5){
-		sn.y = min(abs(snoise(p * level, seed)) / level, sn.y);
+		solidity.x = min(abs(snoise(p * level, seed)) / level, solidity.x);
 	}
-	return mix(sn.x, sn.y / CAVE_WIDTH_FACTOR, 0.9);
+	
+	for (float level = 1.0; level <= 4.0; level *= 2.0){
+		solidity.y += abs(snoise(p * level, seed)) / level;
+	}
+	solidity /= vec2(CAVE_WIDTH_FACTOR, DOME_WIDTH_FACTOR);
+	
+	vec2 solidity_weight = mix(vec2(solidity.x, 0.85), vec2(solidity.y, 0.92), age);
+	
+	return mix(hash13(vec3(posPx, seed)), solidity_weight[0], solidity_weight[1]);
 }
 
 uvec2 stoneTile(vec2 posPx, float age, float seed){

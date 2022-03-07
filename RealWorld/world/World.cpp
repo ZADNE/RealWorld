@@ -57,28 +57,8 @@ bool World::saveChunks() const {
 	return m_chunkManager.saveChunks();
 }
 
-size_t World::getNumberOfChunksLoaded() {
-	return m_chunkManager.getNumberOfChunksLoaded();
-}
-
-uchar World::get(TILE_VALUE type, const glm::ivec2& posTi) {
-	return m_chunkManager.get(type, posTi);
-}
-
-uchar World::getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi) {
-	return m_chunkManager.getMax(type, botLeftTi, dimsTi);
-}
-
-uchar World::getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
-	return m_chunkManager.getMax(type, botLeftTi, topRightTi);
-}
-
-uchar World::getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi) {
-	return m_chunkManager.getMin(type, botLeftTi, dimsTi);
-}
-
-uchar World::getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
-	return m_chunkManager.getMin(type, botLeftTi, topRightTi);
+size_t World::getNumberOfInactiveChunks() {
+	return m_chunkManager.getNumberOfInactiveChunks();
 }
 
 void World::set(SET_TARGET target, SET_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
@@ -88,14 +68,6 @@ void World::set(SET_TARGET target, SET_SHAPE shape, float diameter, const glm::i
 	m_modifyShader.setUniform(LOC_MODIFY_DIAMETER, diameter);
 	m_modifyShader.setUniform(LOC_MODIFY_TILE, tile);
 	m_modifyShader.dispatchCompute({1, 1, 1}, true);
-}
-
-bool World::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi, uchar index) {
-	return m_chunkManager.exists(type, botLeftTi, dimsTi, index);
-}
-
-bool World::exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi, uchar index) {
-	return m_chunkManager.exists(type, botLeftTi, topRightTi, index);
 }
 
 void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {

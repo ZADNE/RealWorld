@@ -24,23 +24,13 @@ public:
 	~World();
 
 	/**
-	 * @copydoc ChunkHandler::getNumberOfChunksLoaded
+	 * @copydoc ChunkHandler::getNumberOfInactiveChunks
 	*/
-	size_t getNumberOfChunksLoaded();
+	size_t getNumberOfInactiveChunks();
 
 	float gravity() { return 0.1875f; };
 
-	//Tile functions
-	uchar get(TILE_VALUE type, const glm::ivec2& posTi);
-	uchar getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi);
-	uchar getMax(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
-	uchar getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi);
-	uchar getMin(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
-
 	void set(SET_TARGET target, SET_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile);
-
-	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::uvec2& dimsTi, uchar index);
-	bool exists(TILE_VALUE type, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi, uchar index);
 
 	void step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 

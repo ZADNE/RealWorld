@@ -107,19 +107,6 @@ public:
 	 * @return Raw data inside a vector.
 	 */
 	std::vector<unsigned char>& data();
-
-	/**
-	 * @brief Sets whether the chunk is active or not.
-	*/
-	void setActive(bool active);
-
-	/**
-	 * @brief Tells whether the chunk is active.
-	 *
-	 * If it is active, it means that its data is inside the world texture.
-	 * @return True if it is active, false otherwise.
-	*/
-	bool isActive() const { return m_active; }
 private:
 	/**
 	 * @brief Checks whether given position is within bound of the chunk.
@@ -145,10 +132,4 @@ private:
 	std::vector<unsigned char> m_data;				/**< Raw data of the chunk */
 	glm::ivec2 m_chunkPosCh{0, 0};					/**< Position of the chunk, measured in chunk coordinates */
 	mutable ulong m_stepsSinceLastOperation = 0ul;	/**< Steps since last read/write operation inside this chunk */
-
-	/**
-	 * If the chunk is active, it means that its data are in the world texture.
-	 * The actual data upload/download is not done by the chunk.
-	*/
-	bool m_active = true;
 };
