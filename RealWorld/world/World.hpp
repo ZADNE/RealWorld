@@ -54,6 +54,7 @@ private:
 	std::string m_worldName;
 
 	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{{.comp = dynamics_comp}};
+	RE::ShaderProgram m_transformShader = RE::ShaderProgram{{.comp = transform_comp}};
 	RE::ShaderProgram m_modifyShader = RE::ShaderProgram{{.comp = modify_comp}};
 
 	std::array<glm::ivec2, 4> m_dynamicsUpdateOrder = {glm::ivec2{0, 0}, glm::ivec2{1, 0}, glm::ivec2{0, 1}, glm::ivec2{1, 1}};

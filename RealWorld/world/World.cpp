@@ -1,11 +1,5 @@
 ﻿#include <RealWorld/world/World.hpp>
 
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <RealEngine/main/Error.hpp>
-
-#include <RealWorld/world/TDB.hpp>
-#include <RealWorld/world/physics/Player.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>
 #include <RealWorld/rendering/ImageUnits.hpp>
 #include <RealWorld/shaders/world_drawing.hpp>
@@ -74,15 +68,7 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	//Chunk manager
 	m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
 	m_chunkManager.step();
-	/*static int i = 0;
-	i++;
-	if ((i % 50) == 0) {
-		permuteOrder(m_rngState, m_dynamicsOrder);
-	}*/
-	//World dynamics
-	static int i = 0;
-	i++;
-	//if ((i % 100) != 0) { return; }
+	//Tile dynamics
 	glm::ivec2 botLeftCh = floor_div(botLeftTi, CHUNK_SIZE).quot;
 	glm::ivec2 topRightCh = floor_div(topRightTi, CHUNK_SIZE).quot;
 	m_dynamicsShader.use();
@@ -101,4 +87,9 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
 	m_dynamicsShader.unuse();
+	//Tile transform
+	static int i = 0;
+	//if ((i++ % 1000) != 0) { return; }
+	m_transformShader.setUniform(LOC_TIME_HASH, m_rngState);
+	m_transformShader.dispatchCompute({m_activeChunksRect, 1u}, true);
 }
