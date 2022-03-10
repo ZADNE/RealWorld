@@ -16,26 +16,28 @@ ChunkManager::ChunkManager() :
 }
 
 ChunkManager::~ChunkManager() {
-	flushChunks();
+
 }
 
 void ChunkManager::setTarget(int seed, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws) {
-	flushChunks();
 	m_folderPath = folderPath;
 	m_chunkGen.setSeed(seed);
 	m_ws = ws;
 	m_activeChunksRect = static_cast<glm::ivec2>(activeChunksRect);
 	m_activeChunks.clear();
 	m_activeChunks.resize(static_cast<size_t>(m_activeChunksRect.x) * m_activeChunksRect.y, NO_ACTIVE_CHUNK);
-}
-
-void ChunkManager::flushChunks() {
 	m_inactiveChunks.clear();
 }
 
 bool ChunkManager::saveChunks() const {
 	for (auto& pair : m_inactiveChunks) {
-		saveChunk(pair.second, pair.first);
+		saveChunk(pair.second.data(), pair.first);
+	}
+	for (auto& posCh: m_activeChunks) {
+		if (posCh != NO_ACTIVE_CHUNK) {
+			auto activePosTi = chunkPosToTexturePos(posCh);
+			saveChunk(downloadChunk(activePosTi), posCh);
+		}
 	}
 	return true;
 }
@@ -48,7 +50,7 @@ void ChunkManager::step() {
 	for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {
 		if (it->second.step() >= m_chunkRemovalThreshold) {
 			deactivateChunk(it->first);
-			saveChunk(it->second, it->first);
+			saveChunk(it->second.data(), it->first);
 			it = m_inactiveChunks.erase(it);
 		} else { it++; }
 	}
@@ -142,6 +144,6 @@ void ChunkManager::uploadChunk(const std::vector<unsigned char>& chunk, glm::ive
 	m_ws->getTexture().setTexelsWithinImage(0, texturePos, CHUNK_SIZE, chunk.data());
 }
 
-void ChunkManager::saveChunk(Chunk& chunk, glm::ivec2 posCh) const {
-	ChunkLoader::saveChunk(m_folderPath, posCh, CHUNK_SIZE, chunk.data());
+void ChunkManager::saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
+	ChunkLoader::saveChunk(m_folderPath, posCh, CHUNK_SIZE, chunk);
 }

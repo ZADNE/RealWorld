@@ -88,6 +88,7 @@ void ChunkGenerator::cellularAutomaton() {
 		for (size_t i = 0; i < passes; i++) {
 			m_cellularAutomatonShader.setUniform(LOC_CYCLE_N, cycleN++);
 		#ifdef GEN_USE_COMP
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 			m_cellularAutomatonShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
 		#else
 			m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
@@ -122,6 +123,7 @@ void ChunkGenerator::cellularAutomaton() {
 
 void ChunkGenerator::selectVariations() {
 #ifdef GEN_USE_COMP
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	m_selectVariationShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 #else
 	m_selectVariationShader.use();

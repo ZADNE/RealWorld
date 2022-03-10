@@ -32,7 +32,6 @@ void DynamicHitbox::step() {
 	//Gravity
 	if (!isGrounded()) {
 		m_velocityPx.y -= p_world->gravity();
-		m_velocityPx.y = glm::max(m_velocityPx.y, -12.0f);
 	}
 
 	if (overlapsBlocks({static_cast<int>(m_velocityPx.x), 0})) {

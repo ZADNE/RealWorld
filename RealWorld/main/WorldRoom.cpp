@@ -13,7 +13,7 @@ const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
-	m_player(m_world, RE::SpriteBatch::std()),
+	m_player(RE::SpriteBatch::std()),
 	m_playerInventory({10, 4}),
 	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_playerInventory),
 	m_itemUser(m_world, m_playerInventory, m_player.getHitbox(), RE::SpriteBatch::std(), m_itemOnGroundManager),
@@ -62,18 +62,14 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 }
 
 void WorldRoom::sessionEnd() {
-#ifdef SAVE_WORLD_ON_EXIT
-	saveWorld();
-#endif // SAVE_WORLD_ON_EXIT
+	//saveWorld();
 }
 
 void WorldRoom::step() {
 	//Player BEGIN
-	if (input()->isDown(KB(PLAYER_JUMP))) { m_player.jump(); }
 	int walkDir = input()->isDown(KB(PLAYER_LEFT)) ? -1 : 0;
 	walkDir += input()->isDown(KB(PLAYER_RIGHT)) ? +1 : 0;
-	m_player.walk(static_cast<WALK>(walkDir));
-	m_player.step(input()->isDown(KB(PLAYER_AUTOJUMP)));
+	m_player.step(static_cast<WALK>(walkDir), input()->isDown(KB(PLAYER_JUMP)), input()->isDown(KB(PLAYER_AUTOJUMP)));
 	//View
 	glm::vec2 prevViewPos = m_worldView.getPosition();
 
@@ -81,7 +77,7 @@ void WorldRoom::step() {
 
 	m_worldView.setCursorAbs(input()->getCursorAbs());
 	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f);
-	m_worldViewUnifromBuffer.overwrite(m_worldView.getViewMatrix());
+	m_worldViewUnifromBuffer.overwrite(0u, m_worldView.getViewMatrix());
 
 	auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
 	m_world.step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);

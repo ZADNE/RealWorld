@@ -7,7 +7,7 @@
 std::string_view chunkGen_vert =
 #include "common/tileConstants.glsl"
 #include "chunk_generation/genSettings.glsl"
-#include "chunk_generation/ChunkUniforms.glsl"
+#include "chunk_generation/ChunkUBO.glsl"
 #include "chunk_generation/chunkGen.vert"
 ;
 
@@ -16,7 +16,7 @@ std::string_view basicTerrain_frag =
 #include "external/snoise.glsl"
 #include "common/tileConstants.glsl"
 #include "chunk_generation/columnValues.glsl"
-#include "chunk_generation/ChunkUniforms.glsl"
+#include "chunk_generation/ChunkUBO.glsl"
 #include "chunk_generation/basicTerrain.glsl"
 #include "chunk_generation/basicTerrain.frag"
 ;
@@ -41,7 +41,7 @@ std::string_view basicTerrain_comp =
 #include "common/imageUnits.glsl"
 #include "chunk_generation/genSettings.glsl"
 #include "chunk_generation/columnValues.glsl"
-#include "chunk_generation/ChunkUniforms.glsl"
+#include "chunk_generation/ChunkUBO.glsl"
 #include "chunk_generation/basicTerrain.glsl"
 #include "chunk_generation/basicTerrain.comp"
 ;
@@ -60,6 +60,6 @@ std::string_view selectVariation_comp =
 #include "common/imageUnits.glsl"
 #include "common/textureUnits.glsl"
 #include "chunk_generation/genSettings.glsl"
-#include "chunk_generation/ChunkUniforms.glsl"
+#include "chunk_generation/ChunkUBO.glsl"
 #include "chunk_generation/selectVariation.comp"
 ;

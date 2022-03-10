@@ -71,7 +71,7 @@ private:
 		glm::ivec2 chunkOffsetTi;
 		int seed;
 	};
-	RE::UniformBuffer m_chunkUniformBuffer{UNIF_BUF_CHUNKGEN, true, RE::BufferUsageFlags::DYNAMIC_STORAGE, sizeof(ChunkUniforms)};
+	RE::UniformBuffer m_chunkUniformBuffer{UNIF_BUF_CHUNKGEN, true, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	//Actual generation functions
 	void generateBasicTerrain();

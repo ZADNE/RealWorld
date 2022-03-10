@@ -30,3 +30,12 @@ std::string_view dynamics_comp =
 #include "world_dynamics/tileLoadStore.glsl"
 #include "world_dynamics/dynamics.comp"
 ;
+
+std::string_view playerDynamics_comp =
+#include "common/tileConstants.glsl"
+#include "common/imageUnits.glsl"
+#include "world_dynamics/tileLoad.glsl"
+#include "world_dynamics/playerMovementUBO.glsl"
+#include "world_dynamics/playerHitboxSSBO.glsl"
+#include "world_dynamics/playerDynamics.comp"
+;

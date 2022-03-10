@@ -20,3 +20,5 @@ const int LOC_TIME_HASH = 1;
 const int LOC_UPDATE_ORDER = 2;
 
 extern std::string_view dynamics_comp;
+
+extern std::string_view playerDynamics_comp;

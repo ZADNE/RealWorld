@@ -7,7 +7,7 @@
 std::string_view tilesDraw_vert =
 #include "common/tileConstants.glsl"
 #include "common/textureUnits.glsl"
-#include "world_drawing/WorldDrawUniforms.glsl"
+#include "world_drawing/WorldDrawUBO.glsl"
 #include "world_drawing/tilesDraw.vert"
 ;
 
@@ -22,7 +22,7 @@ std::string_view coverWithDarkness_vert =
 ;
 
 std::string_view PT_vert =
-#include "world_drawing/WorldDrawUniforms.glsl"
+#include "world_drawing/WorldDrawUBO.glsl"
 #include "world_drawing/PT.vert"
 ;
 
@@ -40,7 +40,7 @@ std::string_view worldToLight_frag =
 
 std::string_view addDynamicLight_vert =
 #include "common/tileConstants.glsl"
-#include "world_drawing/WorldDrawUniforms.glsl"
+#include "world_drawing/WorldDrawUBO.glsl"
 #include "world_drawing/addDynamicLight.vert"
 ;
 

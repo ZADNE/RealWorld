@@ -106,7 +106,7 @@ private:
 		glm::mat4 viewsizePxMat;
 		glm::mat4 viewsizeLightingUnMat;
 	};
-	RE::UniformBuffer m_worldDrawUniformBuffer{UNIF_BUF_WORLDDRAWER, true, DYNAMIC_STORAGE, sizeof(WorldDrawUniforms)};
+	RE::UniformBuffer m_worldDrawUniformBuffer{UNIF_BUF_WORLDDRAWER, true, sizeof(WorldDrawUniforms), DYNAMIC_STORAGE};
 
 	//Lighting global
 	float m_dayLength = 200.0f;

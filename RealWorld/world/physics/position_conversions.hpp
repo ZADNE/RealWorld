@@ -10,7 +10,7 @@
  * @return Position in blocks
  */
 inline glm::vec2 pxToTi(const glm::vec2& posPx) {
-	return glm::floor(posPx / TILE_SIZE);
+	return glm::floor(posPx / TILEPx);
 }
 
 /**
@@ -20,5 +20,5 @@ inline glm::vec2 pxToTi(const glm::vec2& posPx) {
  * @return Position in pixels
  */
 inline glm::vec2 tiToPx(const glm::vec2& posTi) {
-	return posTi * TILE_SIZE;
+	return posTi * TILEPx;
 }

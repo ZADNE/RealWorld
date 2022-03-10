@@ -47,7 +47,7 @@ private:
 
 	//View
 	RE::View m_worldView{window()->getDims()};
-	RE::UniformBuffer m_worldViewUnifromBuffer{RE::UNIF_BUF_VIEWPORT_MATRIX, false, RE::BufferUsageFlags::DYNAMIC_STORAGE, sizeof(glm::mat4)};
+	RE::UniformBuffer m_worldViewUnifromBuffer{RE::UNIF_BUF_VIEWPORT_MATRIX, false, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	//Standard drawing
 	RE::FontSeed m_inventoryFont{"arial", 24, 32, 350};

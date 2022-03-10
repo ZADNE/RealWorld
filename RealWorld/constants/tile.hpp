@@ -9,9 +9,9 @@ const int PHYSICS_STEPS_PER_SECOND = 100;
 /**
  * @brief Dimensions of a tile, in pixels
 */
-const glm::uvec2 uTILE_SIZE = glm::uvec2(4u, 4u);
-const glm::ivec2 iTILE_SIZE = uTILE_SIZE;
-const glm::vec2 TILE_SIZE = uTILE_SIZE;
+const glm::uvec2 uTILEPx = glm::uvec2(4u, 4u);
+const glm::ivec2 iTILEPx = uTILEPx;
+const glm::vec2 TILEPx = uTILEPx;
 
 
 enum class BLOCK : uint8_t {

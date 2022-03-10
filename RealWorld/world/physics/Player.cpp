@@ -5,11 +5,13 @@
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/items/ItemCombinator.hpp>
 
-Player::Player(World& world, RE::SpriteBatch& spriteBatch) :
+Player::Player(RE::SpriteBatch& spriteBatch) :
 	m_health(100.0f),
-	m_hitbox(&world, {0, 0}, {28, 40}, {14, 20}),
+	m_hitbox({0, 0}, {28, 40}, {14, 20}),
 	m_spriteBatch(spriteBatch) {
-
+	m_movementUBO.connectToShaderProgram(m_playerDynamicsShader, 0u);
+	
+	m_hitboxSSBO.connectToShaderProgram(m_playerDynamicsShader, 0u);
 }
 
 Player::~Player() {
@@ -18,42 +20,28 @@ Player::~Player() {
 
 void Player::adoptPlayerData(const PlayerData& pd) {
 	m_hitbox.botLeft() = pd.pos;
+	m_hitboxSSBO.overwrite(offsetof(PlayerHitboxSSBO, botLeftPx), glm::vec2(pd.pos));
 }
 
 void Player::gatherPlayerData(PlayerData& pd) const {
 	pd.pos = m_hitbox.getBotLeft();
 }
 
-void Player::jump() {
-	if (m_hitbox.overlapsBlocks({0, -iTILE_SIZE.y})) {
-		m_hitbox.velocity().y = m_jumpSpeed;
-	}
-}
-
-void Player::walk(WALK dir) {
-	m_walkDirection = dir;
-}
-
-DynamicHitbox& Player::getHitbox() {
+Hitbox& Player::getHitbox() {
 	return m_hitbox;
 }
 
-void Player::step(bool autojump) {
-	auto& vel = m_hitbox.velocity();
+void Player::step(WALK dir, bool jump, bool autojump) {
+	const auto* hitboxSSBO = m_hitboxSSBO.map<PlayerHitboxSSBO>(offsetof(PlayerHitboxSSBO, botLeftPx), sizeof(PlayerHitboxSSBO), READ);
+	m_hitbox.botLeft() = hitboxSSBO->botLeftPx;
+	m_hitboxSSBO.unmap();
 
-	vel.x += static_cast<float>(m_walkDirection) * m_acceleration;
-
-	//Friction
-	if (m_walkDirection == WALK::STAY) {
-		vel.x -= glm::sign(vel.x);
-	}
-	vel.x = glm::clamp(vel.x, -m_maxSpeed, m_maxSpeed);
-
-	if (autojump && m_walkDirection != WALK::STAY && m_hitbox.overlapsBlocks({vel.x * 4, 0})) {
-		jump();//Autojump
-	}
-
-	m_hitbox.step();
+	PlayerMovementUBO movement {
+		.walkDirection = glm::sign(static_cast<float>(dir)),
+		.jump_autojump = glm::vec2(jump, autojump)
+	};
+	m_movementUBO.overwrite(offsetof(PlayerMovementUBO, walkDirection), sizeof(float) + sizeof(glm::vec2), &movement.walkDirection);
+	m_playerDynamicsShader.dispatchCompute({1, 1, 1}, true);
 }
 
 void Player::draw() {

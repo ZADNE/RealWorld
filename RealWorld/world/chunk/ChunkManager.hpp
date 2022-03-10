@@ -39,11 +39,6 @@ public:
 	void setTarget(int seed, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws);
 
 	/**
-	 * @brief Frees memory of all chunks, does not save them.
-	 */
-	void flushChunks();
-
-	/**
 	 * @brief Saves all chunks, keeps them in the memory.
 	 *
 	 * @return True if successful, false otherwise.
@@ -106,7 +101,7 @@ private:
 	*/
 	void uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;
 
-	void saveChunk(Chunk& chunk, glm::ivec2 posCh) const;
+	void saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;
 
 	mutable std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
 	glm::ivec2 m_activeChunksRect{0, 0};
