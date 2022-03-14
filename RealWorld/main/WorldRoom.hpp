@@ -17,6 +17,9 @@
 #include <RealWorld/items/CraftingDrawer.hpp>
 #include <RealWorld/KeyBinder.hpp>
 
+/**
+ * @brief Is the room that holds all gameplay-related objects.
+*/
 class WorldRoom : public RE::Room {
 public:
 	WorldRoom(RE::CommandLineArguments args);

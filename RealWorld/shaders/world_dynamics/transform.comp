@@ -9,8 +9,6 @@ layout(	local_size_x = TRANSFORM_GROUP_SIZE,
 		local_size_z = 1
 ) in;
 
-layout(location = LOC_TIME_HASH) uniform uint timeHash;
-
 uint invocHash(){
 	uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
 	return globalIndex ^ timeHash;
@@ -25,33 +23,55 @@ uint random(){
 	return randomState;
 }
 
+uvec2 random2(){
+	return uvec2(random(), random());
+}
+
 const ivec2 OFFSETS[] = {
-	{-1, +0},
-	{+0, -1},
-	{+1, +0},
-	{+0, +1}
+				{-1, +2},	{+0, +2},	{+1, +2},
+	{-2, +1}, 	{-1, +1}, 	{+0, +1}, 	{+1, +1},	{+2, +1},
+	{-2, +0}, 	{-1, +0}, 				{+1, +0},	{+2, +0},
+	{-2, -1}, 	{-1, -1}, 	{+0, -1}, 	{+1, -1}, 	{+2, -1},
+				{-1, -2},	{+0, -2},	{+1, -2}
 };
 
 void main(){
 	ivec2 centerTi = ivec2(gl_GlobalInvocationID.xy) * INVOC_DISPLACEMENT
 					+ (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
-					
+	//Load neighbors
 	uvec4 tile = tileLoadIm(centerTi);
-	uvec4 neighbors[4];
+	uvec4 neighbors[OFFSETS.length()];
 	for(int i = 0; i < neighbors.length(); ++i){
 		neighbors[i] = tileLoad(centerTi + OFFSETS[i]);
 	}
-	
-	if (tile.BLOCK_TYPE == DIRT.BLOCK_TYPE && tile.BLOCK_VAR >= 12){
-		bool nextToGrass = false;
-		for(int i = 0; i < neighbors.length(); ++i){
-			nextToGrass = nextToGrass ||  (neighbors[i].BLOCK_TYPE == GRASS.BLOCK_TYPE);
-		}
-		if (nextToGrass){
-			tile.BLOCK_TYPE = GRASS.BLOCK_TYPE;
-			tileStoreIm(centerTi, tile);
-		}
+	//Analyze neighbors
+	bool nextToGrass = false;
+	bvec2 borderTile = bvec2(false, false);
+	for(int i = 0; i < neighbors.length(); ++i){
+		nextToGrass = nextToGrass || (neighbors[i].BLOCK_TYPE == GRASS.BLOCK_TYPE);
+		borderTile = borderTile || lessThanEqual(neighbors[i].TILE_TYPE, uvec2(LAST_FLUID, AIR_WL));
 	}
+	//Transform the tile
+	switch (tile.BLOCK_TYPE){
+		case DIRT_BL:
+		if (nextToGrass && borderTile.x){
+			tile.BLOCK_TYPE = GRASS.BLOCK_TYPE;
+		} break;
+		case GRASS_BL:
+		if (!borderTile.x){
+			tile.BLOCK_TYPE = DIRT.BLOCK_TYPE;
+		} break;
+	}
+	bvec2 currentlyInner = lessThan(tile.TILE_VAR, uvec2(12));
+	bvec2 isSolid = greaterThan(tile.TILE_TYPE, uvec2(LAST_FLUID, AIR_WL));
+	bvec2 switchToInner = (!borderTile && !currentlyInner) && isSolid;
+	bvec2 switchToOuter = (borderTile && currentlyInner) && isSolid;
+	tile.TILE_VAR =
+		mix(tile.TILE_VAR, uvec2(0), switchToInner || switchToOuter)
+		+ mix(uvec2(0), random2() % 12, switchToInner)
+		+ mix(uvec2(0), random2() % 4 + 12, switchToOuter);
+	//Store the transformed tile
+	tileStoreIm(centerTi, tile);
 }
 
 )""

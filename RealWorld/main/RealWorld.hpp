@@ -4,7 +4,9 @@
 #include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/main/WorldRoom.hpp>
 
-
+/**
+ * @brief Is the main program-class of RealWorld.
+*/
 class RealWorld : public RE::MainProgram {
 public:
 	RealWorld(RE::CommandLineArguments args);

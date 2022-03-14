@@ -5,19 +5,13 @@ layout(	local_size_x = 16,
 		local_size_z = 1
 ) in;
 
-layout(location = LOC_GLOBAL_OFFSET) uniform ivec2 centerTi;
-layout(location = LOC_MODIFY_TARGET) uniform uint target;
-layout(location = LOC_MODIFY_SHAPE) uniform uint shape;
-layout(location = LOC_MODIFY_DIAMETER) uniform float diameter;
-layout(location = LOC_MODIFY_TILE) uniform uvec2 toSet;
-
 const uint SET_BLOCK = 0;
 const uint SET_WALL = 2;
 
 const uint SQUARE = 0;
 const uint DISC = 1;
 
-uint randomState = gl_LocalInvocationIndex;
+uint randomState;
 
 //Xorshift algorithm by George Marsaglia
 uint random(){
@@ -29,39 +23,34 @@ uint random(){
 
 void main(){
 	ivec2 offset = ivec2(gl_LocalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy) / 2;
-	
 	//Construct the shape
-	switch (shape){
+	switch (modifyShape){
 		case SQUARE:
-		if (abs(offset.x) > diameter || abs(offset.y) > diameter){
+		if (abs(offset.x) > modifyDiameter || abs(offset.y) > modifyDiameter){
 			return;//Outside of the shape
 		}
 		break;
 		case DISC:
-		if (dot(offset, offset) > diameter * diameter){
+		if (dot(offset, offset) > modifyDiameter * modifyDiameter){
 			return;//Outside of the shape
 		}
 		break;
 	}
-	
 	//Modify the tile
-	ivec2 posIm = imPos(centerTi + offset);
+	ivec2 posIm = imPos(globalPosTi + offset);
 	uvec4 tile = tileLoadIm(posIm);
-	switch (target){
-		case SET_BLOCK:
-		if ((toSet.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
+	randomState = (posIm.x * posIm.y) ^ timeHash;
+	if (modifyTarget == SET_BLOCK){
+		if ((modifySetValue.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
 			return;
 		}
-		tile.BL = toSet;
-		break;
-		case SET_WALL:
-		if ((toSet.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == (tile.BL_T <= LAST_FLUID)){
+		tile.BL = modifySetValue.y != 256 ? modifySetValue : uvec2(modifySetValue.x, random() % 12);
+	} else {
+		if ((modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == (tile.BL_T <= LAST_FLUID)){
 			return;
 		}
-		tile.WL = toSet;
-		break;
+		tile.WL = modifySetValue.y != 256 ? modifySetValue : uvec2(modifySetValue.x, random() % 12);
 	}
-	
 	//Store the modified tile
 	tileStoreIm(posIm, tile);
 }

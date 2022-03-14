@@ -191,25 +191,25 @@ void WorldDrawer::updatePOUVBuffers() {
 	//World to light rectangle
 	size_t i = VERTICES_POUV_WORLDTOLIGHT_RECT;
 	glm::vec2 worldToLightDims = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn) * 2.0f;
-	vertices[i++].setPosition(0.0f, 0.0f);
-	vertices[i++].setPosition(worldToLightDims.x, 0.0f);
-	vertices[i++].setPosition(0.0f, worldToLightDims.y);
-	vertices[i++].setPosition(worldToLightDims.x, worldToLightDims.y);
+	vertices[i++].position = {0.0f, 0.0f};
+	vertices[i++].position = {worldToLightDims.x, 0.0f};
+	vertices[i++].position = {0.0f, worldToLightDims.y};
+	vertices[i++].position = {worldToLightDims.x, worldToLightDims.y};
 
 	//Compute light rectangle
 	i = VERTICES_POUV_COMPUTELIGHT_RECT;
 	glm::vec2 computeLightTopRight = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn + 1);
-	vertices[i++].setPosition(LIGHT_MAX_RANGEUn - 1, LIGHT_MAX_RANGEUn - 1);
-	vertices[i++].setPosition(computeLightTopRight.x, LIGHT_MAX_RANGEUn - 1);
-	vertices[i++].setPosition(LIGHT_MAX_RANGEUn - 1, computeLightTopRight.y);
-	vertices[i++].setPosition(computeLightTopRight.x, computeLightTopRight.y);
+	vertices[i++].position = {LIGHT_MAX_RANGEUn - 1, LIGHT_MAX_RANGEUn - 1};
+	vertices[i++].position = {computeLightTopRight.x, LIGHT_MAX_RANGEUn - 1};
+	vertices[i++].position = {LIGHT_MAX_RANGEUn - 1, computeLightTopRight.y};
+	vertices[i++].position = {computeLightTopRight.x, computeLightTopRight.y};
 
 	//Normalized rectangle
 	i = VERTICES_POUV_NORM_RECT;
-	vertices[i++] = {0.0f, 0.0f, 0.0f, 0.0f};
-	vertices[i++] = {1.0f, 0.0f, 1.0f, 0.0f};
-	vertices[i++] = {0.0f, 1.0f, 0.0f, 1.0f};
-	vertices[i++] = {1.0f, 1.0f, 1.0f, 1.0f};
+	vertices[i++] = {{0.0f, 0.0f}, {0.0f, 0.0f}};
+	vertices[i++] = {{1.0f, 0.0f}, {1.0f, 0.0f}};
+	vertices[i++] = {{0.0f, 1.0f}, {0.0f, 1.0f}};
+	vertices[i++] = {{1.0f, 1.0f}, {1.0f, 1.0f}};
 
 	//Minimap rectangle
 	float scale = std::min(m_viewDimsPx.x / m_worldDimTi.x, m_viewDimsPx.y / m_worldDimTi.y) * 0.5f;

@@ -8,6 +8,7 @@ const float LIGHT_DOWNSAMPLE = 	4;
 
 #define TILE xyzw
 #define TILE_TYPE xz
+#define TILE_VAR yw
 #define BLOCK xy
 #define BLOCK_TYPE x
 #define BLOCK_VAR y
@@ -17,6 +18,7 @@ const float LIGHT_DOWNSAMPLE = 	4;
 
 #define TL TILE
 #define TL_T TILE_TYPE
+#define TL_V TILE_VAR
 #define BL BLOCK
 #define BL_T BLOCK_TYPE
 #define BL_V BLOCK_VAR

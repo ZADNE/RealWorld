@@ -7,10 +7,6 @@ layout(	local_size_x = DYN_GROUP_SIZE,
 		local_size_z = 1
 ) in;
 
-layout(location = LOC_GLOBAL_OFFSET) uniform ivec2 globalOffset;
-layout(location = LOC_TIME_HASH) uniform uint timeHash;
-layout(location = LOC_UPDATE_ORDER) uniform ivec2 updateOrder[16];
-
 uint invocHash(){
 	uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
 	return globalIndex ^ timeHash;
@@ -110,7 +106,7 @@ void acidDynamics(uvec4 water, ivec2 waterPosIm){
 }
 
 void main(){
-	const ivec2 invocOffset = globalOffset
+	const ivec2 invocOffset = globalPosTi
 					+ ivec2(gl_WorkGroupID.xy) * CHUNK_SIZE
 					+ ivec2(gl_LocalInvocationID.xy) * 4;
 	

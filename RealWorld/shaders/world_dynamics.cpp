@@ -18,7 +18,7 @@ std::string_view setWithUpdate_frag =
 std::string_view modify_comp =
 #include "common/tileConstants.glsl"
 #include "common/imageUnits.glsl"
-#include "world_dynamics/uniforms.glsl"
+#include "world_dynamics/WorldDynamicsUBO.glsl"
 #include "world_dynamics/tileLoadStore.glsl"
 #include "world_dynamics/modify.comp"
 ;
@@ -26,7 +26,7 @@ std::string_view modify_comp =
 std::string_view dynamics_comp =
 #include "common/tileConstants.glsl"
 #include "common/imageUnits.glsl"
-#include "world_dynamics/uniforms.glsl"
+#include "world_dynamics/WorldDynamicsUBO.glsl"
 #include "world_dynamics/tileLoadStore.glsl"
 #include "world_dynamics/dynamics.comp"
 ;
@@ -34,7 +34,7 @@ std::string_view dynamics_comp =
 std::string_view transform_comp =
 #include "common/tileConstants.glsl"
 #include "common/imageUnits.glsl"
-#include "world_dynamics/uniforms.glsl"
+#include "world_dynamics/WorldDynamicsUBO.glsl"
 #include "world_dynamics/tileLoadStore.glsl"
 #include "world_dynamics/transform.comp"
 ;

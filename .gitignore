@@ -2,8 +2,6 @@
 
 exec/RealWorld
 exec/saves/*
-!exec/saves/covfefe
-!exec/saves/menu
 
 CMakeSettings.json
 

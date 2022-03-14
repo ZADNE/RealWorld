@@ -8,6 +8,7 @@
 #include <RealWorld/world/WorldData.hpp>
 #include <RealWorld/shaders/world_dynamics.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
+#include <RealWorld/rendering/UniformBuffers.hpp>
 
 enum class SET_SHAPE : unsigned int {
 	SQUARE,
@@ -39,10 +40,8 @@ public:
 	bool saveChunks() const;
 private:
 	using enum RE::BufferType;
-	using enum RE::BufferStorage;
 	using enum RE::BufferAccessFrequency;
-	using enum RE::BufferAccessNature;
-	using enum RE::BufferUsageFlags;
+	using enum RE::BufferMapUsageFlags;
 	using enum RE::VertexComponentCount;
 	using enum RE::VertexComponentType;
 	using enum RE::Primitive;
@@ -53,11 +52,22 @@ private:
 
 	std::string m_worldName;
 
+	struct WorldDynamicsUBO {
+		glm::ivec2 globalPosTi;
+		glm::uint modifyTarget;
+		glm::uint modifyShape;
+		glm::uvec2 modifySetValue;
+		float modifyDiameter;
+		glm::uint timeHash;
+		glm::ivec4 updateOrder[16];//Only first two components are valid, second two are padding
+	};
+	RE::UniformBuffer m_worldDynamicsUBO{UNIF_BUF_WORLDDYNAMICS, true, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+
 	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{{.comp = dynamics_comp}};
 	RE::ShaderProgram m_transformShader = RE::ShaderProgram{{.comp = transform_comp}};
 	RE::ShaderProgram m_modifyShader = RE::ShaderProgram{{.comp = modify_comp}};
 
-	std::array<glm::ivec2, 4> m_dynamicsUpdateOrder = {glm::ivec2{0, 0}, glm::ivec2{1, 0}, glm::ivec2{0, 1}, glm::ivec2{1, 1}};
+	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
 	uint32_t m_rngState;
 
 	ChunkManager m_chunkManager;

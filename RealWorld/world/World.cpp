@@ -14,7 +14,7 @@ uint32_t xorshift32(uint32_t& state) {
 }
 
 //Fisher–Yates shuffle algorithm
-void permuteOrder(uint32_t& state, std::array<glm::ivec2, 4>& order) {
+void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
 	for (int i = 0; i < order.size() - 1; i++) {
 		int j = i + xorshift32(state) % (order.size() - i);
 		std::swap(order[i], order[j]);
@@ -23,7 +23,9 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec2, 4>& order) {
 
 World::World() :
 	m_rngState(static_cast<uint32_t>(time(nullptr))) {
-
+	m_worldDynamicsUBO.connectToShaderProgram(m_dynamicsShader, 0u);
+	m_worldDynamicsUBO.connectToShaderProgram(m_transformShader, 0u);
+	m_worldDynamicsUBO.connectToShaderProgram(m_modifyShader, 0u);
 }
 
 World::~World() {
@@ -56,11 +58,13 @@ size_t World::getNumberOfInactiveChunks() {
 }
 
 void World::set(SET_TARGET target, SET_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
-	m_modifyShader.setUniform(LOC_GLOBAL_OFFSET, posTi);
-	m_modifyShader.setUniform(LOC_MODIFY_TARGET, static_cast<unsigned int>(target));
-	m_modifyShader.setUniform(LOC_MODIFY_SHAPE, static_cast<unsigned int>(shape));
-	m_modifyShader.setUniform(LOC_MODIFY_DIAMETER, diameter);
-	m_modifyShader.setUniform(LOC_MODIFY_TILE, tile);
+	auto* buffer = m_worldDynamicsUBO.map<WorldDynamicsUBO>(0u, offsetof(WorldDynamicsUBO, timeHash), WRITE | INVALIDATE_RANGE);
+	buffer->globalPosTi = posTi;
+	buffer->modifyTarget = static_cast<glm::uint>(target);
+	buffer->modifyShape = static_cast<glm::uint>(shape);
+	buffer->modifyDiameter = diameter;
+	buffer->modifySetValue = tile;
+	m_worldDynamicsUBO.unmap();
 	m_modifyShader.dispatchCompute({1, 1, 1}, true);
 }
 
@@ -69,27 +73,31 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
 	m_chunkManager.step();
 	//Tile dynamics
+	static int i = 0;
+	//if ((i++ % 50) != 0) { return; }
 	glm::ivec2 botLeftCh = floor_div(botLeftTi, CHUNK_SIZE).quot;
 	glm::ivec2 topRightCh = floor_div(topRightTi, CHUNK_SIZE).quot;
 	m_dynamicsShader.use();
-	glm::ivec2 updateOrder[16];
+	auto* timeHash = m_worldDynamicsUBO.map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
+		sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
+	*timeHash = m_rngState;
+	glm::ivec4* updateOrder = reinterpret_cast<glm::ivec4*>(&timeHash[1]);
 	for (unsigned int i = 0; i < 4; i++) {
 		permuteOrder(m_rngState, m_dynamicsUpdateOrder);
 		std::memcpy(&updateOrder[i * 4], &m_dynamicsUpdateOrder[0], 4 * sizeof(m_dynamicsUpdateOrder[0]));
 	}
-	m_dynamicsShader.setUniform(LOC_UPDATE_ORDER, 16, updateOrder);
-	m_dynamicsShader.setUniform(LOC_TIME_HASH, m_rngState);
+	m_worldDynamicsUBO.unmap();
 	glm::ivec2 dynBotLeftTi = botLeftCh * CHUNK_SIZE + CHUNK_SIZE / 2;
 	permuteOrder(m_rngState, m_dynamicsUpdateOrder);
 	for (int i = 0; i < m_dynamicsUpdateOrder.size(); i++) {
-		m_dynamicsShader.setUniform(LOC_GLOBAL_OFFSET, dynBotLeftTi + m_dynamicsUpdateOrder[i] * CHUNK_SIZE / 2);
-		m_dynamicsShader.dispatchCompute({(topRightCh - botLeftCh), 1u}, false);
+		auto* offset = m_worldDynamicsUBO.map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
+		*offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i].x, m_dynamicsUpdateOrder[i].y) * CHUNK_SIZE / 2;
+		m_worldDynamicsUBO.unmap();
+		m_dynamicsShader.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
 	m_dynamicsShader.unuse();
 	//Tile transform
-	static int i = 0;
 	//if ((i++ % 1000) != 0) { return; }
-	m_transformShader.setUniform(LOC_TIME_HASH, m_rngState);
 	m_transformShader.dispatchCompute({m_activeChunksRect, 1u}, true);
 }

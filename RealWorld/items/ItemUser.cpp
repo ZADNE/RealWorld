@@ -63,10 +63,10 @@ void ItemUser::step(bool use[2], const glm::ivec2& relCursorPosPx) {
 		case I_TYPE::EMPTY:
 			break;
 		case I_TYPE::BLOCK:
-			m_world.set(SET_TARGET::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 0));
+			m_world.set(SET_TARGET::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 256));
 			break;
 		case I_TYPE::WALL:
-			m_world.set(SET_TARGET::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 0));
+			m_world.set(SET_TARGET::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 256));
 			break;
 		}
 	}

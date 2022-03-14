@@ -5,6 +5,9 @@
 #define RE_MENU_KEEP_INFOS
 #include <RealEngine/GUI/Menu.hpp>
 
+/**
+ * @brief Is the room that holds the main menu and related objects.
+*/
 class MainMenuRoom : public RE::Room {
 public:
 	MainMenuRoom(RE::CommandLineArguments args);
