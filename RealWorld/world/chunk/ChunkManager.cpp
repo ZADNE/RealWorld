@@ -73,7 +73,7 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 		N++;
 		if (N > 0) {
 			sum += dur;
-			std::cout << std::chrono::duration_cast<std::chrono::microseconds>(sum / N) << "\n\n";
+			std::cout << std::chrono::duration_cast<std::chrono::microseconds>(sum / N).count() << "\n\n";
 		}
 	}
 }
