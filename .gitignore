@@ -2,6 +2,8 @@
 
 exec/RealWorld
 exec/saves/*
+exec/bindings.json
+exec/settings.json
 
 CMakeSettings.json
 

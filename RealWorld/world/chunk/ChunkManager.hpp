@@ -101,12 +101,28 @@ private:
 	*/
 	void uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;
 
+	/**
+	 * @brief Saves tiles from chunk to disk
+	 * @param chunk Tiles of the chunk. Size must be: CHUNK_SIZE.x * CHUNK_SIZE.y * 4 bytes
+	 * @param posCh Global position of the chunk
+	*/
 	void saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;
 
 	mutable std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
-	glm::ivec2 m_activeChunksRect{0, 0};
-	std::vector<glm::ivec2> m_activeChunks;
+
 	static inline const glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
+	std::vector<glm::ivec2> m_activeChunks;
+
+	using enum RE::TextureChannels; using enum RE::TextureFormat; using enum RE::TextureMinFilter;
+	using enum RE::TextureMagFilter; using enum RE::TextureWrapStyle; using enum RE::TextureBitdepthPerChannel;
+	static inline const RE::TextureFlags RG32_IS_NEAR_NEAR_REP =
+		{RG, INTEGRAL_SIGNED, NEAREST_NO_MIPMAPS, NEAREST, REPEAT_NORMALLY, REPEAT_NORMALLY, BITS_32};
+
+	RE::Texture m_activeChunksTex{RE::Raster{{1, 1}, RG}, {RG32_IS_NEAR_NEAR_REP}};
+
+	glm::ivec2 activeChunksRect() const {
+		return m_activeChunksTex.getTrueDims();
+	}
 
 	std::string m_folderPath;
 	ulong m_chunkRemovalThreshold;

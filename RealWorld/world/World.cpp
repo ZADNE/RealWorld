@@ -17,7 +17,8 @@ uint32_t xorshift32(uint32_t& state) {
 void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
 	for (int i = 0; i < order.size() - 1; i++) {
 		int j = i + xorshift32(state) % (order.size() - i);
-		std::swap(order[i], order[j]);
+		std::swap(order[i].x, order[j].x);
+		std::swap(order[i].y, order[j].y);
 	}
 }
 
@@ -38,6 +39,7 @@ glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, c
 
 	m_worldSurface.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
 	m_worldSurface.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
+	m_worldSurface.getTexture(0).clear(RE::Colour{1, 0, 0, 0});
 
 	m_chunkManager.setTarget(m_seed, m_activeChunksRect, wd.path, &m_worldSurface);
 

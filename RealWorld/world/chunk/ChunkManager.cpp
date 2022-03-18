@@ -23,10 +23,11 @@ void ChunkManager::setTarget(int seed, glm::uvec2 activeChunksRect, std::string 
 	m_folderPath = folderPath;
 	m_chunkGen.setSeed(seed);
 	m_ws = ws;
-	m_activeChunksRect = static_cast<glm::ivec2>(activeChunksRect);
 	m_activeChunks.clear();
-	m_activeChunks.resize(static_cast<size_t>(m_activeChunksRect.x) * m_activeChunksRect.y, NO_ACTIVE_CHUNK);
+	m_activeChunks.resize(static_cast<size_t>(activeChunksRect.x) * activeChunksRect.y, NO_ACTIVE_CHUNK);
 	m_inactiveChunks.clear();
+	m_activeChunksTex = RE::Texture{RE::Raster{activeChunksRect, RG}, {RG32_IS_NEAR_NEAR_REP}};
+	m_activeChunksTex.clear(glm::ivec4(NO_ACTIVE_CHUNK, 0, 0));
 }
 
 bool ChunkManager::saveChunks() const {
@@ -79,17 +80,17 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 }
 
 glm::ivec2 ChunkManager::chunkPosToTexturePos(glm::ivec2 posCh) const {
-	return floor_div(posCh, m_activeChunksRect).rem * CHUNK_SIZE;
+	return floor_div(posCh, activeChunksRect()).rem * CHUNK_SIZE;
 }
 
 glm::ivec2 ChunkManager::chunkPosToActiveChunkPos(glm::ivec2 posCh) const {
-	return floor_div(posCh, m_activeChunksRect).rem;
+	return floor_div(posCh, activeChunksRect()).rem;
 }
 
 void ChunkManager::activateChunk(const glm::ivec2& posCh) {
 	//Check if it is not already active
 	auto activePosCh = chunkPosToActiveChunkPos(posCh);
-	auto& chunk = m_activeChunks[activePosCh.y * m_activeChunksRect.x + activePosCh.x];
+	auto& chunk = m_activeChunks[activePosCh.y * activeChunksRect().x + activePosCh.x];
 	if (chunk == posCh) {
 		return;//The chunk is already active
 	} else {
@@ -120,7 +121,7 @@ void ChunkManager::activateChunk(const glm::ivec2& posCh) {
 
 void ChunkManager::deactivateChunk(const glm::ivec2& posCh) {
 	auto activePosCh = chunkPosToActiveChunkPos(posCh);
-	auto& chunk = m_activeChunks[activePosCh.y * m_activeChunksRect.x + activePosCh.x];
+	auto& chunk = m_activeChunks[activePosCh.y * activeChunksRect().x + activePosCh.x];
 	if (chunk != NO_ACTIVE_CHUNK) {
 		auto tiles = downloadChunk(activePosCh * CHUNK_SIZE);
 		m_inactiveChunks.emplace(chunk, Chunk(chunk, std::move(tiles)));

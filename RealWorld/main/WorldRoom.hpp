@@ -31,6 +31,8 @@ public:
 
 	void resizeWindow(const glm::ivec2& newDims, bool isPermanent);
 private:
+	using enum RealWorldKeyBindings;
+
 	void drawGUI();
 
 	/**

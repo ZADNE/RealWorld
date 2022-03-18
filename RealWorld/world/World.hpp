@@ -48,7 +48,7 @@ private:
 
 	int m_seed = 0;
 	glm::uvec2 m_activeChunksRect{16u, 16u};
-	RE::Surface m_worldSurface = RE::Surface(RE::Raster{glm::uvec2(CHUNK_SIZE) * m_activeChunksRect}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, true, false);
+	RE::Surface m_worldSurface = RE::Surface(RE::Raster{glm::uvec2(CHUNK_SIZE) * m_activeChunksRect}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
 

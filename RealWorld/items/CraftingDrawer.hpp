@@ -74,7 +74,7 @@ private:
 	float m_queueScale = 0.75f;
 	size_t m_maxQueueRows;
 	const ItemInstruction* m_description = nullptr;
-	RE::Surface m_surfaceDescription{{{RE::TextureFlags::RGBA_NU_NEAR_NEAR_EDGE}}};
+	RE::Surface m_surfaceDescription{{{RE::TextureFlags::RGBA8_NU_NEAR_NEAR_EDGE}}};
 	//0 texture: below dynamic sprites
 	//1 texture: above dynamic sprites
 

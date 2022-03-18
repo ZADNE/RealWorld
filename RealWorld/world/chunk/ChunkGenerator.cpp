@@ -92,6 +92,7 @@ void ChunkGenerator::cellularAutomaton() {
 			m_cellularAutomatonShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
 		#else
 			m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
+			glTextureBarrier();
 			m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 		#endif
 		}

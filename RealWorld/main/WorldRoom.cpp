@@ -21,7 +21,6 @@ WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont) {
 
 
-
 	m_itemCombinator.connectToInventory(&m_playerInventory);
 	m_itemCombinator.connectToIID(&m_instructionDatabase);
 
@@ -58,9 +57,9 @@ void WorldRoom::sessionEnd() {
 
 void WorldRoom::step() {
 	//Player BEGIN
-	int walkDir = input()->isDown(KB(PLAYER_LEFT)) ? -1 : 0;
-	walkDir += input()->isDown(KB(PLAYER_RIGHT)) ? +1 : 0;
-	m_player.step(static_cast<WALK>(walkDir), input()->isDown(KB(PLAYER_JUMP)), input()->isDown(KB(PLAYER_AUTOJUMP)));
+	int walkDir = input()->isDown(KB[PLAYER_LEFT]) ? -1 : 0;
+	walkDir += input()->isDown(KB[PLAYER_RIGHT]) ? +1 : 0;
+	m_player.step(static_cast<WALK>(walkDir), input()->isDown(KB[PLAYER_JUMP]), input()->isDown(KB[PLAYER_AUTOJUMP]));
 	//View
 	glm::vec2 prevViewPos = m_worldView.getPosition();
 
@@ -75,8 +74,8 @@ void WorldRoom::step() {
 	m_worldDrawer.beginStep();
 
 	bool itemUse[2];
-	itemUse[ItemUser::PRIMARY_USE] = input()->isDown(KB(ITEMUSER_USE_PRIMARY)) != 0 && !m_inventoryDrawer.isOpen();
-	itemUse[ItemUser::SECONDARY_USE] = input()->isDown(KB(ITEMUSER_USE_SECONDARY)) != 0 && !m_inventoryDrawer.isOpen();
+	itemUse[ItemUser::PRIMARY_USE] = input()->isDown(KB[ITEMUSER_USE_PRIMARY]) != 0 && !m_inventoryDrawer.isOpen();
+	itemUse[ItemUser::SECONDARY_USE] = input()->isDown(KB[ITEMUSER_USE_SECONDARY]) != 0 && !m_inventoryDrawer.isOpen();
 	m_itemUser.step(itemUse, m_worldView.getCursorRel());
 
 	auto lm = m_worldDrawer.getLightManipulator();
@@ -88,47 +87,47 @@ void WorldRoom::step() {
 	//Inventory and CraftingDrawer
 	m_inventoryDrawer.step((glm::ivec2)input()->getCursorAbs());
 	m_craftingDrawer.step((glm::ivec2)input()->getCursorAbs());
-	if (input()->wasPressed(KB(INV_SWITCHSTATE))) { m_inventoryDrawer.switchState(); m_craftingDrawer.switchDraw(); }
+	if (input()->wasPressed(KB[INV_SWITCH_STATE])) { m_inventoryDrawer.switchState(); m_craftingDrawer.switchDraw(); }
 	if (m_inventoryDrawer.isOpen()) {//OPEN INVENTORY
-		if (input()->wasPressed(KB(INV_SWAPCURSOR))) { m_inventoryDrawer.swapUnderCursor(); }
-		if (input()->wasPressed(KB(INV_MOVEPORTION))) { m_inventoryDrawer.movePortion(0.5f); }
+		if (input()->wasPressed(KB[INV_SWAP_CURSOR])) { m_inventoryDrawer.swapUnderCursor(); }
+		if (input()->wasPressed(KB[INV_MOVE_PORTION])) { m_inventoryDrawer.movePortion(0.5f); }
 
-		if (input()->wasPressed(KB(CRAFT_ONE))) { m_craftingDrawer.craft(1u); }
-		if (input()->wasPressed(KB(CRAFT_SOME))) { m_craftingDrawer.craft(5u); }
-		if (input()->wasPressed(KB(CRAFT_ROLL_RIGHT))) { m_craftingDrawer.roll(input()->wasPressed(KB(CRAFT_ROLL_RIGHT))); }
-		if (input()->wasPressed(KB(CRAFT_ROLL_LEFT))) { m_craftingDrawer.roll(-(int)input()->wasPressed(KB(CRAFT_ROLL_LEFT))); }
-		if (input()->wasPressed(KB(CRAFT_CANCEL))) { m_craftingDrawer.cancel(); }
+		if (input()->wasPressed(KB[CRAFT_ONE])) { m_craftingDrawer.craft(1u); }
+		if (input()->wasPressed(KB[CRAFT_SOME])) { m_craftingDrawer.craft(5u); }
+		if (int roll = input()->wasPressed(KB[CRAFT_ROLL_RIGHT])) { m_craftingDrawer.roll(roll); }
+		if (int roll = -input()->wasPressed(KB[CRAFT_ROLL_LEFT])) { m_craftingDrawer.roll(roll); }
+		if (input()->wasPressed(KB[CRAFT_CANCEL])) { m_craftingDrawer.cancel(); }
 	} else { //CLOSED INVENTORY
-		if (input()->isDown(KB(ITEMUSER_HOLD_TO_RESIZE))) {
-			if (input()->wasPressed(KB(ITEMUSER_WIDEN))) { m_itemUser.resizeShape(0.5f); }
-			if (input()->wasPressed(KB(ITEMUSER_SHRINK))) { m_itemUser.resizeShape(-0.5f); }
+		if (input()->isDown(KB[ITEMUSER_HOLD_TO_RESIZE])) {
+			if (input()->wasPressed(KB[ITEMUSER_WIDEN])) { m_itemUser.resizeShape(0.5f); }
+			if (input()->wasPressed(KB[ITEMUSER_SHRINK])) { m_itemUser.resizeShape(-0.5f); }
 		} else {
-			if (input()->wasPressed(KB(INV_RIGHTSLOT))) { m_inventoryDrawer.chooseSlot(Choose::RIGHT, input()->wasPressed(KB(INV_RIGHTSLOT))); }
-			if (input()->wasPressed(KB(INV_LEFTSLOT))) { m_inventoryDrawer.chooseSlot(Choose::LEFT, input()->wasPressed(KB(INV_LEFTSLOT))); }
+			if (input()->wasPressed(KB[INV_RIGHT_SLOT])) { m_inventoryDrawer.chooseSlot(Choose::RIGHT, input()->wasPressed(KB[INV_RIGHT_SLOT])); }
+			if (input()->wasPressed(KB[INV_LEFT_SLOT])) { m_inventoryDrawer.chooseSlot(Choose::LEFT, input()->wasPressed(KB[INV_LEFT_SLOT])); }
 		}
-		if (input()->wasPressed(KB(INV_PREVSLOT))) { m_inventoryDrawer.chooseSlot(Choose::PREV, 0); }
-		if (input()->wasPressed(KB(INV_SLOT0))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 0); }
-		if (input()->wasPressed(KB(INV_SLOT1))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 1); }
-		if (input()->wasPressed(KB(INV_SLOT2))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 2); }
-		if (input()->wasPressed(KB(INV_SLOT3))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 3); }
-		if (input()->wasPressed(KB(INV_SLOT4))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 4); }
-		if (input()->wasPressed(KB(INV_SLOT5))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 5); }
-		if (input()->wasPressed(KB(INV_SLOT6))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 6); }
-		if (input()->wasPressed(KB(INV_SLOT7))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 7); }
-		if (input()->wasPressed(KB(INV_SLOT8))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 8); }
-		if (input()->wasPressed(KB(INV_SLOT9))) { m_inventoryDrawer.chooseSlot(Choose::ABS, 9); }
+		if (input()->wasPressed(KB[INV_PREV_SLOT])) { m_inventoryDrawer.chooseSlot(Choose::PREV, 0); }
+		if (input()->wasPressed(KB[INV_SLOT0])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 0); }
+		if (input()->wasPressed(KB[INV_SLOT1])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 1); }
+		if (input()->wasPressed(KB[INV_SLOT2])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 2); }
+		if (input()->wasPressed(KB[INV_SLOT3])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 3); }
+		if (input()->wasPressed(KB[INV_SLOT4])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 4); }
+		if (input()->wasPressed(KB[INV_SLOT5])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 5); }
+		if (input()->wasPressed(KB[INV_SLOT6])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 6); }
+		if (input()->wasPressed(KB[INV_SLOT7])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 7); }
+		if (input()->wasPressed(KB[INV_SLOT8])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 8); }
+		if (input()->wasPressed(KB[INV_SLOT9])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 9); }
 
-		if (input()->wasPressed(KB(ITEMUSER_SWITCH_SHAPE))) { m_itemUser.switchShape(); }
+		if (input()->wasPressed(KB[ITEMUSER_SWITCH_SHAPE])) { m_itemUser.switchShape(); }
 	}
 	m_worldDrawer.endStep();
 	//TEMP or DEBUG
-	if (input()->wasPressed(KB(DEBUG_WORLDDRAW))) { m_worldDrawer.toggleMinimap(); }
-	if (input()->wasPressed(KB(DEBUG_WORLDDARKNESS))) { m_worldDrawer.toggleDarkness(); }
-	if (input()->wasPressed(KB(DEBUG_ENDGAME))) { program()->scheduleRoomTransition(0, {}); }
+	if (input()->wasPressed(KB[DEBUG_WORLDDRAW])) { m_worldDrawer.toggleMinimap(); }
+	if (input()->wasPressed(KB[DEBUG_WORLDDARKNESS])) { m_worldDrawer.toggleDarkness(); }
+	if (input()->wasPressed(KB[DEBUG_ENDGAME])) { program()->scheduleRoomTransition(0, {}); }
 }
 
 void WorldRoom::render(double interpolationFactor) {
-	m_worldViewUnifromBuffer.bind();//World view matrix
+	m_worldViewUnifromBuffer.bind();
 
 	m_worldDrawer.drawTiles();
 
@@ -140,7 +139,7 @@ void WorldRoom::render(double interpolationFactor) {
 
 	m_worldDrawer.coverWithDarkness();
 
-	RE::Viewport::getWindowMatrixUniformBuffer().bind();//Window view matrix
+	RE::Viewport::getWindowMatrixUniformBuffer().bind();
 
 	drawGUI();
 }
@@ -158,13 +157,9 @@ void WorldRoom::drawGUI() {
 	std::stringstream stream;
 
 	stream << "FPS: " << synchronizer()->getFramesPerSecond() << '\n';
-
 	stream << "Max FT: " << std::chrono::duration_cast<std::chrono::microseconds>(synchronizer()->getMaxFrameTime()).count() << " us" << '\n';
-
 	stream << "RAM chunks: " << m_world.getNumberOfInactiveChunks() << '\n';
-
 	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
-
 	glm::ivec2 cursorPosPx = pxToTi(m_worldView.getCursorRel());
 	stream << "CursorTi: [" << std::setw(4) << cursorPosPx.x << ", "
 		<< std::setw(4) << cursorPosPx.y << "]\n";

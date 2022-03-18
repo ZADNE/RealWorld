@@ -68,7 +68,7 @@ private:
 	int m_chosenSlot = 0;//Is signed but never should be negative
 	int m_chosenSlotPrev = 0;//Is signed but never should be negative
 
-	RE::Surface m_cover{{RE::TextureFlags::RGBA_NU_NEAR_NEAR_EDGE}, true, false};
+	RE::Surface m_cover{{RE::TextureFlags::RGBA8_NU_NEAR_NEAR_EDGE}, true, false};
 	//0 texture: below dynamic sprites
 	//1 texture: above dynamic sprites
 

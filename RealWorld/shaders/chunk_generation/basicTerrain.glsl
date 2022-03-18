@@ -2,8 +2,8 @@ R""(
 #line 3
 
 float age(vec2 posPx, float seed){
-	float age = (snoise(posPx * (1.0 / 8192.0), seed) + 1.0) * 0.5;
-	return clamp(age * 5.0 - 2.0, 0.0, 1.0);//Amplify and clamp
+	float age = snoise(posPx * (1.0 / 8192.0), seed);
+	return clamp(age * 2.0, -0.5, +0.5) + 0.5;//Oversaturate the age
 }
 
 //x = temperature, y = humidity
@@ -66,8 +66,7 @@ vec2 horizon(float xPx, Biome biome, float seed){
 
 
 float solidity(vec2 posPx, float age, float seed){
-	const float CAVE_WIDTH_FACTOR = 0.2;
-	const float DOME_WIDTH_FACTOR = 0.8;
+	const vec2 CAVE_WIDTH_FACTOR = vec2(0.2, 0.8);
 	
 	vec2 p = vec2(posPx * (1.0 / 1536.0));
 	vec2 solidity = vec2(10.0, 0.0);
@@ -78,7 +77,7 @@ float solidity(vec2 posPx, float age, float seed){
 	for (float level = 1.0; level <= 4.0; level *= 2.0){
 		solidity.y += abs(snoise(p * level, seed)) / level;
 	}
-	solidity /= vec2(CAVE_WIDTH_FACTOR, DOME_WIDTH_FACTOR);
+	solidity /= CAVE_WIDTH_FACTOR;
 	
 	vec2 solidity_weight = mix(vec2(solidity.x, 0.85), vec2(solidity.y, 0.92), age);
 	
