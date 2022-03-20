@@ -34,6 +34,7 @@ std::string_view dynamics_comp =
 std::string_view transform_comp =
 #include "common/tileConstants.glsl"
 #include "common/imageUnits.glsl"
+#include "world_dynamics/ActiveChunksSSBO.glsl"
 #include "world_dynamics/WorldDynamicsUBO.glsl"
 #include "world_dynamics/tileLoadStore.glsl"
 #include "world_dynamics/transform.comp"
@@ -46,4 +47,10 @@ std::string_view playerDynamics_comp =
 #include "world_dynamics/playerMovementUBO.glsl"
 #include "world_dynamics/playerHitboxSSBO.glsl"
 #include "world_dynamics/playerDynamics.comp"
+;
+
+std::string_view continuityAnalyzer_comp =
+#include "common/tileConstants.glsl"
+#include "world_dynamics/ActiveChunksSSBO.glsl"
+#include "world_dynamics/continuityAnalyzer.comp"
 ;

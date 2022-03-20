@@ -41,7 +41,7 @@ glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, c
 	m_worldSurface.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
 	m_worldSurface.getTexture(0).clear(RE::Colour{1, 0, 0, 0});
 
-	m_chunkManager.setTarget(m_seed, m_activeChunksRect, wd.path, &m_worldSurface);
+	m_chunkManager.setTarget(m_seed, wd.path, &m_worldSurface);
 
 	return m_worldSurface.getDims();
 }
@@ -74,9 +74,8 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	//Chunk manager
 	m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
 	m_chunkManager.step();
-	//Tile dynamics
-	static int i = 0;
-	//if ((i++ % 50) != 0) { return; }
+
+	//Quick tile dynamics
 	glm::ivec2 botLeftCh = floor_div(botLeftTi, CHUNK_SIZE).quot;
 	glm::ivec2 topRightCh = floor_div(topRightTi, CHUNK_SIZE).quot;
 	m_dynamicsShader.use();
@@ -99,7 +98,7 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
 	m_dynamicsShader.unuse();
-	//Tile transform
-	//if ((i++ % 1000) != 0) { return; }
-	m_transformShader.dispatchCompute({m_activeChunksRect, 1u}, true);
+
+	//Slow tile transformations
+	m_transformShader.dispatchCompute({ACTIVE_CHUNKS_MAX_UPDATES, 1u, 1u}, true);
 }

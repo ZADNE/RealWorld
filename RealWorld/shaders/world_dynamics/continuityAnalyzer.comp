@@ -1,0 +1,13 @@
+R""(
+#line 3
+
+layout(	local_size_x = ACTIVE_CHUNKS_AREA_X,
+		local_size_y = ACTIVE_CHUNKS_AREA_Y,
+		local_size_z = 1
+) in;
+
+void main(){
+	
+}
+
+)""

@@ -47,8 +47,7 @@ private:
 	using enum RE::Primitive;
 
 	int m_seed = 0;
-	glm::uvec2 m_activeChunksRect{16u, 16u};
-	RE::Surface m_worldSurface = RE::Surface(RE::Raster{glm::uvec2(CHUNK_SIZE) * m_activeChunksRect}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, true, false);
+	RE::Surface m_worldSurface = RE::Surface(RE::Raster{CHUNK_SIZE * ACTIVE_CHUNKS_AREA}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
 
@@ -70,5 +69,5 @@ private:
 	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
 	uint32_t m_rngState;
 
-	ChunkManager m_chunkManager;
+	ChunkManager m_chunkManager{m_transformShader, 0u};
 };

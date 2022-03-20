@@ -8,18 +8,20 @@
 
 #include <RealWorld/world/chunk/Chunk.hpp>
 #include <RealWorld/world/chunk/ChunkGenerator.hpp>
+#include <RealWorld/rendering/ShaderStorageBuffers.hpp>
+#include <RealWorld/shaders/world_dynamics.hpp>
 
 /**
  * @brief Manages a collection of chunks.
  *
- * Allows access to world as if it was a single array.
+ * Uploads and downloads chunks from the world texture.
  */
 class ChunkManager {
 public:
 	/**
-	 * @brief Contructs ChunkManager with default removal threshold of one minute.
+	 * @brief Contructs ChunkManager and connects given shader program with active chunks buffer
 	 */
-	ChunkManager();
+	ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex);
 
 	/**
 	 * @brief Calls saveAndFreeAllChunks() and deconstructs the object.
@@ -29,14 +31,13 @@ public:
 	/**
 	 * @brief Retargets chunk handler to a new world.
 	 *
-	 * Saves and frees all chunks of the previous world.
+	 * Frees all chunks of the previous world (does not save them).
 	 *
 	 * @param seed Seed of the new world.
-	 * @param activeChunksRect Dimensions of the wrold's active chunks rectangle, in chunks
-	 * @param folderPath Path to folder containing the world.
-	 * @param ws World surface of the world.
+	 * @param folderPath Path to the folder that contains the new world.
+	 * @param ws World surface that will receive the loaded chunks.
 	 */
-	void setTarget(int seed, glm::uvec2 activeChunksRect, std::string folderPath, RE::Surface* ws);
+	void setTarget(int seed, std::string folderPath, RE::Surface* ws);
 
 	/**
 	 * @brief Saves all chunks, keeps them in the memory.
@@ -75,8 +76,10 @@ private:
 	 * Previous chunk at the position is deactivated.
 	 * @param chunk The chunk to be activated. Must not be nullptr
 	 * @param posCh Position of the chunk
+	 * @return	1 if the chunk has been activated.
+	 *			0 if it already has been active and thus it was not activated.
 	*/
-	void activateChunk(const glm::ivec2& posCh);
+	int activateChunk(const glm::ivec2& posCh);
 
 	/**
 	 * @brief Deactivates the chunk at given position.
@@ -110,22 +113,20 @@ private:
 
 	mutable std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
 
-	static inline const glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
-	std::vector<glm::ivec2> m_activeChunks;
+	const static inline glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
+	std::vector<glm::ivec2> m_activeChunks{ACTIVE_CHUNKS_AREA.x * ACTIVE_CHUNKS_AREA.y};
+	struct ActiveChunksSSBO {
+		glm::ivec2 activeChunksCh[ACTIVE_CHUNKS_AREA_X * ACTIVE_CHUNKS_AREA_Y];
+		glm::ivec2 updateOffsetTi[ACTIVE_CHUNKS_MAX_UPDATES];
+		glm::ivec4 dynamicsGroupSize;
+	};
 
-	using enum RE::TextureChannels; using enum RE::TextureFormat; using enum RE::TextureMinFilter;
-	using enum RE::TextureMagFilter; using enum RE::TextureWrapStyle; using enum RE::TextureBitdepthPerChannel;
-	static inline const RE::TextureFlags RG32_IS_NEAR_NEAR_REP =
-		{RG, INTEGRAL_SIGNED, NEAREST_NO_MIPMAPS, NEAREST, REPEAT_NORMALLY, REPEAT_NORMALLY, BITS_32};
+	using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
+	RE::ShaderStorageBuffer m_activeChunksSSBO{STRG_BUF_ACTIVECHUNKS, true, sizeof(ActiveChunksSSBO), MAP_WRITE};
 
-	RE::Texture m_activeChunksTex{RE::Raster{{1, 1}, RG}, {RG32_IS_NEAR_NEAR_REP}};
-
-	glm::ivec2 activeChunksRect() const {
-		return m_activeChunksTex.getTrueDims();
-	}
+	RE::ShaderProgram m_continuityAnalyzerShader{{.comp = continuityAnalyzer_comp}};
 
 	std::string m_folderPath;
-	ulong m_chunkRemovalThreshold;
 	ChunkGenerator m_chunkGen;
 	RE::Surface* m_ws = nullptr;
 };

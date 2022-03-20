@@ -12,3 +12,5 @@ extern std::string_view dynamics_comp;
 extern std::string_view transform_comp;
 
 extern std::string_view playerDynamics_comp;
+
+extern std::string_view continuityAnalyzer_comp;
