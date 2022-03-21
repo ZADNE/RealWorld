@@ -67,7 +67,7 @@ void WorldRoom::step() {
 
 	m_worldView.setCursorAbs(input()->getCursorAbs());
 	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f);
-	m_worldViewUnifromBuffer.overwrite(0u, m_worldView.getViewMatrix());
+	m_worldViewUBO.overwrite(0u, m_worldView.getViewMatrix());
 
 	auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
 	m_world.step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
@@ -127,7 +127,7 @@ void WorldRoom::step() {
 }
 
 void WorldRoom::render(double interpolationFactor) {
-	m_worldViewUnifromBuffer.bind();
+	m_worldViewUBO.bindIndexed();
 
 	m_worldDrawer.drawTiles();
 
@@ -139,7 +139,7 @@ void WorldRoom::render(double interpolationFactor) {
 
 	m_worldDrawer.coverWithDarkness();
 
-	RE::Viewport::getWindowMatrixUniformBuffer().bind();
+	RE::Viewport::getWindowMatrixUniformBuffer().bindIndexed();
 
 	drawGUI();
 }

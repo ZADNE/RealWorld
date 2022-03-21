@@ -9,6 +9,8 @@
 
 ChunkManager::ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex) {
 	m_activeChunksSSBO.connectToShaderProgram(transformShader, activeChunksInterfaceBlockIndex);
+	m_activeChunksSSBO.connectToShaderProgram(m_continuityAnalyzerShader, 0u);
+	m_activeChunksSSBO.bind<RE::BufferType::DISPATCH_INDIRECT>();
 }
 
 ChunkManager::~ChunkManager() {
@@ -30,11 +32,7 @@ void ChunkManager::setTarget(int seed, std::string folderPath, RE::Surface* ws) 
 	for (glm::ivec2& ch : ssbo->activeChunksCh) {//Clear active chunks
 		ch = NO_ACTIVE_CHUNK;
 	}
-	ssbo->dynamicsGroupSize = glm::ivec4{1, 1, 1, 1};
-
-	for (int i = 0; i < ACTIVE_CHUNKS_MAX_UPDATES; ++i) {//TEMP!!!
-		ssbo->updateOffsetTi[i] = glm::ivec2(i % (ACTIVE_CHUNKS_AREA_X - 1), i / (ACTIVE_CHUNKS_AREA_X - 1)) * CHUNK_SIZE + CHUNK_SIZE / 2;
-	}
+	ssbo->dynamicsGroupSize = glm::ivec4{0, 1, 1, 1};
 	m_activeChunksSSBO.unmap();
 
 	//Clear inactive chunks as they do not belong to this world
@@ -83,7 +81,7 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 	}
 
 	if (activatedChunks > 0) {//If at least one chunk has been activated
-
+		m_continuityAnalyzerShader.dispatchCompute({1, 1, 1}, true);
 	}
 }
 
@@ -101,7 +99,7 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 	auto activeChunkIndex = activePosCh.y * ACTIVE_CHUNKS_AREA.x + activePosCh.x;
 	auto& chunk = m_activeChunks[activeChunkIndex];
 	if (chunk == posCh) {
-		return 0;//The chunk has already been active
+		return 0;//Signal that the chunk has already been active
 	} else {
 		deactivateChunk(posCh);//Deactivate the previous chunk
 		chunk = posCh;//Se the new chunk to occupy the slot
@@ -130,7 +128,7 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 	*ssbo = posCh;
 	m_activeChunksSSBO.unmap();
 
-	//The chunk has been activated
+	//Signal that the chunk has been activated
 	return 1;
 }
 

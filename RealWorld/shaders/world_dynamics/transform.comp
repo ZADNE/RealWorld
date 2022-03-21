@@ -38,12 +38,14 @@ const ivec2 OFFSETS[] = {
 void main(){
 	ivec2 centerTi = updateOffsetTi[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
 					+ (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
+					
 	//Load neighbors
-	uvec4 tile = tileLoadIm(centerTi);
+	uvec4 tile = tileLoad(centerTi);
 	uvec4 neighbors[OFFSETS.length()];
 	for(int i = 0; i < neighbors.length(); ++i){
 		neighbors[i] = tileLoad(centerTi + OFFSETS[i]);
 	}
+	
 	//Analyze neighbors
 	bool nextToGrass = false;
 	bvec2 borderTile = bvec2(false, false);
@@ -51,6 +53,7 @@ void main(){
 		nextToGrass = nextToGrass || (neighbors[i].BLOCK_TYPE == GRASS.BLOCK_TYPE);
 		borderTile = borderTile || lessThanEqual(neighbors[i].TILE_TYPE, uvec2(LAST_FLUID, AIR_WL));
 	}
+	
 	//Transform the tile
 	switch (tile.BLOCK_TYPE){
 		case DIRT_BL:
@@ -70,8 +73,10 @@ void main(){
 		mix(tile.TILE_VAR, uvec2(0), switchToInner || switchToOuter)
 		+ mix(uvec2(0), random2() % 12, switchToInner)
 		+ mix(uvec2(0), random2() % 4 + 12, switchToOuter);
+	
 	//Store the transformed tile
-	tileStoreIm(centerTi, tile);
+	//tile.BL_V = (tile.BL_V == 0) ? 12 : 0;
+	tileStore(centerTi, tile);
 }
 
 )""

@@ -100,5 +100,5 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	m_dynamicsShader.unuse();
 
 	//Slow tile transformations
-	m_transformShader.dispatchCompute({ACTIVE_CHUNKS_MAX_UPDATES, 1u, 1u}, true);
+	m_transformShader.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
 }

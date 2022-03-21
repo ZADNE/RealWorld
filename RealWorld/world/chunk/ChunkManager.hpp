@@ -67,6 +67,13 @@ public:
 	 * @param topRightTi Top right corner of the rectangular area
 	*/
 	void forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+
+	struct ActiveChunksSSBO {
+		glm::ivec2 activeChunksCh[ACTIVE_CHUNKS_AREA_X * ACTIVE_CHUNKS_AREA_Y];
+		glm::ivec2 updateOffsetTi[ACTIVE_CHUNKS_MAX_UPDATES];
+		glm::ivec2 padding;
+		glm::ivec4 dynamicsGroupSize;
+	};
 private:
 	glm::ivec2 chunkPosToTexturePos(glm::ivec2 posCh) const;
 	glm::ivec2 chunkPosToActiveChunkPos(glm::ivec2 posCh) const;
@@ -115,11 +122,6 @@ private:
 
 	const static inline glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
 	std::vector<glm::ivec2> m_activeChunks{ACTIVE_CHUNKS_AREA.x * ACTIVE_CHUNKS_AREA.y};
-	struct ActiveChunksSSBO {
-		glm::ivec2 activeChunksCh[ACTIVE_CHUNKS_AREA_X * ACTIVE_CHUNKS_AREA_Y];
-		glm::ivec2 updateOffsetTi[ACTIVE_CHUNKS_MAX_UPDATES];
-		glm::ivec4 dynamicsGroupSize;
-	};
 
 	using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
 	RE::ShaderStorageBuffer m_activeChunksSSBO{STRG_BUF_ACTIVECHUNKS, true, sizeof(ActiveChunksSSBO), MAP_WRITE};
