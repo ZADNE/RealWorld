@@ -41,10 +41,14 @@ bool WorldDataLoader::loadWorldData(WorldData& data, const std::string& worldNam
 	return true;
 }
 
-bool WorldDataLoader::saveWorldData(const WorldData& data, const std::string& worldName) {
+bool WorldDataLoader::saveWorldData(const WorldData& data, const std::string& worldName, bool creatingNew) {
+	if (worldName == "") return false;
 	unsigned int ticks = SDL_GetTicks();
 	std::string pathToFolder = m_saveFolder + "/" + worldName + "/";
-	if (!std::filesystem::exists(pathToFolder)) {
+	bool alreadyExists = std::filesystem::exists(pathToFolder);
+	if (alreadyExists && creatingNew) return false;
+
+	if (!alreadyExists) {
 		std::filesystem::create_directory(pathToFolder);
 	}
 

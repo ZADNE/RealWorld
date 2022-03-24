@@ -4,12 +4,6 @@
 #include <RealWorld/world/WorldDataLoader.hpp>
 
 
-#ifdef _DEBUG
-const unsigned int FPS_LIMIT = 150u;
-#else
-const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
-#endif // _DEBUG
-
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
@@ -47,8 +41,6 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	}
 
 	m_worldView.setPosition(glm::vec2(m_player.getHitbox().getCenter()));
-	synchronizer()->setStepsPerSecond(PHYSICS_STEPS_PER_SECOND);
-	synchronizer()->setFramesPerSecondLimit(FPS_LIMIT);
 }
 
 void WorldRoom::sessionEnd() {
@@ -144,8 +136,7 @@ void WorldRoom::render(double interpolationFactor) {
 	drawGUI();
 }
 
-void WorldRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
-	window()->resize(newDims, isPermanent);
+void WorldRoom::windowResized(const glm::ivec2& newDims) {
 	m_worldView.resizeView(newDims);
 	m_worldDrawer.resizeView(newDims);
 	m_inventoryDrawer.resizeWindow(newDims);
@@ -197,6 +188,6 @@ bool WorldRoom::saveWorld() const {
 	m_world.gatherWorldData(wd);
 	m_player.gatherPlayerData(wd.pd);
 	m_playerInventory.gatherInventoryData(wd.pd.id);
-	if (!WorldDataLoader::saveWorldData(wd, wd.wi.worldName)) return false;
+	if (!WorldDataLoader::saveWorldData(wd, wd.wi.worldName, false)) return false;
 	return m_world.saveChunks();
 }

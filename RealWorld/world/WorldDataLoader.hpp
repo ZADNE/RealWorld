@@ -13,7 +13,7 @@ public:
 	static bool loadWorldData(WorldData& data, const std::string& worldName);
 
 	//Returns false if saving failed, error is printed in console
-	static bool saveWorldData(const WorldData& data, const std::string& worldName);
+	static bool saveWorldData(const WorldData& data, const std::string& worldName, bool creatingNew);
 
 	static bool deleteWorld(const std::string& worldName);
 

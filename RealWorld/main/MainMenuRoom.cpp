@@ -1,34 +1,62 @@
 ﻿#include <RealWorld/main/MainMenuRoom.hpp>
 
-#include <RealEngine/graphics/View.hpp>
+#include <array>
+#include <iostream>
+
+#include <time.h>
+
+#include <RealEngine/main/MainProgram.hpp>
 
 #include <RealWorld/world/WorldCreator.hpp>
 #include <RealWorld/world/WorldDataLoader.hpp>
 
+const std::array RESOLUTIONS_STRINGS = {
+	"1280x1024",
+	"1360x768",
+	"1366x768",
+	"1440x900",
+	"1600x900",
+	"1680x1050",
+	"1920x1080",
+	"2560x1080",
+	"2560x1440",
+	"3440x1440",
+	"3840x2160"
+};
+
+const std::array<glm::ivec2, RESOLUTIONS_STRINGS.size()> RESOLUTIONS = {
+	glm::ivec2{1280, 1024},
+	glm::ivec2{1360, 768},
+	glm::ivec2{1366, 768},
+	glm::ivec2{1440, 900},
+	glm::ivec2{1600, 900},
+	glm::ivec2{1680, 1050},
+	glm::ivec2{1920, 1080},
+	glm::ivec2{2560, 1080},
+	glm::ivec2{2560, 1440},
+	glm::ivec2{3440, 1440},
+	glm::ivec2{3840, 2160}
+};
+
 
 MainMenuRoom::MainMenuRoom(RE::CommandLineArguments args) {
-	//Menu init
-	std::vector<void (MainMenuRoom::*)(const std::string&)> functions = {
-		&MainMenuRoom::mainMenuCallback,
-		&MainMenuRoom::newWorldCallback,
-		&MainMenuRoom::loadWorldCallback,
-		&MainMenuRoom::deleteWorldCallback
-	};
-	auto error = m_menu.loadMenuFromFile("menu/index.jsom", window()->getDims(), &RE::SpriteBatch::std(), functions);
-	if (error != RGUI::MenuParserError::OK) {
-		RE::fatalError("Failed to load menu files");
+	glm::ivec2 windowSize = window()->getDims();
+	for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
+		if (windowSize == RESOLUTIONS[i]) {
+			m_selectedResolution = i;
+		}
 	}
 }
-
 
 MainMenuRoom::~MainMenuRoom() {
 
 }
 
 void MainMenuRoom::sessionStart(const RE::RoomTransitionParameters& params) {
-	synchronizer()->setFramesPerSecondLimit(50u);
-	//Background color
-	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
+	m_menu = MAIN;
+	WorldDataLoader::getSavedWorlds(m_worlds);
+	m_newWorldName = "";
+	m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
 }
 
 void MainMenuRoom::sessionEnd() {
@@ -36,101 +64,124 @@ void MainMenuRoom::sessionEnd() {
 }
 
 void MainMenuRoom::step() {
-	auto cursorPos = (glm::vec2)input()->getCursorAbs();
-
-	m_menu.step(cursorPos);
-	if (input()->wasPressed(RE::Key::LMB)) {
-		m_menu.onPress(cursorPos);
-	}
-	if (input()->wasReleased(RE::Key::LMB)) {
-		m_menu.onRelease(cursorPos);
-	}
-	if (input()->wasReleased(RE::Key::Escape)) {
-		m_menu.setState(1.0f);
-	}
+	//GUI only room...
 }
 
 void MainMenuRoom::render(double interpolationFactor) {
-	RE::SpriteBatch::std().begin();
-	m_menu.draw();
-	RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
-	RE::SpriteBatch::std().draw();
+	ImGui::SetNextWindowSize(window()->getDims());
+	ImGui::SetNextWindowPos({0.0f, 0.0f});
+	ImGui::PushFont(m_arial16);
+
+	if (ImGui::Begin("Hello, world!", nullptr, ImGuiWindowFlags_NoDecoration)) {
+		ImGui::Indent();
+		ImGui::SetCursorPosY(ImGui::GetFrameHeight());
+		switch (m_menu) {
+		case MAIN: mainMenu(); break;
+		case NEW_WORLD: newWorldMenu(); break;
+		case LOAD_WORLD: loadWorldMenu(); break;
+		case DISPLAY_SETTINGS: displaySettingsMenu(); break;
+		case CONTROLS: controlsMenu(); break;
+		}
+
+		if (m_menu != MAIN) {
+			ImGui::SetCursorPosY(window()->getDims().y - ImGui::GetFrameHeight() * 2.0f);
+			ImGui::Separator();
+			if (ImGui::Button("Return to main menu")) m_menu = MAIN;
+		}
+	}
+	ImGui::PopFont();
+	ImGui::End();
 }
 
-void MainMenuRoom::resizeWindow(const glm::ivec2& newDims, bool isPermanent) {
-	window()->resize(newDims, isPermanent);
+void MainMenuRoom::mainMenu() {
+	ImGui::SetNextItemWidth(400.0f);
+	if (ImGui::Button("Create a new world")) m_menu = NEW_WORLD;
+	if (ImGui::Button("Load a saved world")) m_menu = LOAD_WORLD;
+	if (ImGui::Button("Display settings")) m_menu = DISPLAY_SETTINGS;
+	if (ImGui::Button("Controls")) m_menu = CONTROLS;
+
+	ImGui::SetCursorPosY(window()->getDims().y - ImGui::GetFrameHeight() * 2.0f);
+	ImGui::Separator();
+	if (ImGui::Button("Exit")) program()->scheduleProgramExit();
 }
 
-void MainMenuRoom::buildSavesButtons() {
-	for (auto& name : m_savesButtons) {
-		m_menu.remove(name);
-		m_menu.remove("del_" + name);
-	}
-	m_savesButtons.clear();
+void MainMenuRoom::newWorldMenu() {
+	ImGui::Text("Create a new world");
+	ImGui::Separator();
 
-	std::vector<std::string> names;
-	WorldDataLoader::getSavedWorlds(names);
-	auto mainInfo = m_menu.getInfo("load_world_template");
-	mainInfo.type.set(RGUI::ControllerType::BUTTON);
-	auto delInfo = m_menu.getInfo("delete_world_template");
-	delInfo.type.set(RGUI::ControllerType::BUTTON);
-	for (auto& name : names) {
-		m_savesButtons.push_back(name);
-		mainInfo.text.set(name);
-		m_menu.addController(name, mainInfo);
-		m_menu.addController("del_" + name, delInfo);
-		glm::vec2 windowDims = window()->getDims();
-		glm::vec2 pos = mainInfo.pos.get(); pos.y -= 0.05f * windowDims.y;
-		mainInfo.pos.set(pos);
-		pos = delInfo.pos.get(); pos.y -= 0.05f * windowDims.y;
-		delInfo.pos.set(pos);
-	}
-}
-
-void MainMenuRoom::mainMenuCallback(const std::string& button) {
-	if (button == "new_world") {
-		m_menu.setState(2.0f);
-		*m_menu.getController<RGUI::TextField>("name")->getTextFieldString() = "";
-		*m_menu.getController<RGUI::TextField>("seed")->getTextFieldString() = "";
-	} else if (button == "load_world") {
-		buildSavesButtons();
-		m_menu.setState(3.0f);
-	} else if (button == "exit") {
-		program()->scheduleProgramExit();
-	} else if (button == "return") {
-		m_menu.setState(1.0f);
-	}
-}
-
-void MainMenuRoom::newWorldCallback(const std::string& button) {
-	try {
-		auto name = *m_menu.getController<RGUI::TextField>("name")->getTextFieldString();
-		if (name == "") throw std::exception{};
-		int seed = std::stoi(*m_menu.getController<RGUI::TextField>("seed")->getTextFieldString());
-
-
-		WorldCreator creator;
-		auto wd = creator.createWorld(name, seed);
-		WorldDataLoader::saveWorldData(wd, name);
-		m_menu.setState(1.0f);
-		loadWorld(name);
-	}
-	catch (...) {
-		return;
+	ImGui::Text("Name: "); ImGui::SameLine(); ImGui::InputText("##name", &m_newWorldName);
+	ImGui::Text("Seed: "); ImGui::SameLine(); ImGui::InputInt("##seed", &m_newWorldSeed);
+	if (ImGui::Button("Create the world!")) {
+		auto wd = WorldCreator::createWorld(m_newWorldName, m_newWorldSeed);
+		if (WorldDataLoader::saveWorldData(wd, m_newWorldName, true)) {
+			program()->scheduleRoomTransition(1, {m_newWorldName});
+		}
 	}
 }
 
-void MainMenuRoom::loadWorldCallback(const std::string& button) {
-	loadWorld(button);
-}
+void MainMenuRoom::loadWorldMenu() {
+	ImGui::Text("Choose a saved world to load");
+	ImGui::Separator();
 
-void MainMenuRoom::deleteWorldCallback(const std::string& button) {
-	std::string world = button.substr(4);
-	if (WorldDataLoader::deleteWorld(world)) {
-		buildSavesButtons();
+	ImGui::BeginTable("worldsTable", 2);
+	for (const auto& world : m_worlds) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::Button(world.c_str())) program()->scheduleRoomTransition(1, {world});
+		ImGui::TableNextColumn();
+		if (ImGui::Button(("Delete##" + world).c_str())) {
+			WorldDataLoader::deleteWorld(world);
+			WorldDataLoader::getSavedWorlds(m_worlds);
+		}
+	}
+	ImGui::EndTable();
+
+	if (m_worlds.empty()) {
+		ImGui::Text("No saved worlds...");
 	}
 }
 
-void MainMenuRoom::loadWorld(const std::string& worldName) {
-	program()->scheduleRoomTransition(1, {worldName});
+void MainMenuRoom::displaySettingsMenu() {
+	using namespace std::string_literals;
+	ImGui::Text("Display settings");
+	ImGui::Separator();
+
+	ImGui::TextUnformatted("Fullscreen"); ImGui::SameLine();
+	if (ImGui::ToggleButton("##fullscreen", &m_fullscreen)) {
+		window()->goFullscreen(m_fullscreen, false);
+	}
+
+	if (!m_fullscreen){
+		ImGui::SameLine();
+		ImGui::TextUnformatted("Borderless"); ImGui::SameLine();
+		if (ImGui::ToggleButton("##borderless", &m_borderless)) {
+			window()->goBorderless(m_borderless, false);
+		}
+	}
+
+	ImGui::TextUnformatted("VSync"); ImGui::SameLine();
+	if (ImGui::ToggleButton("##vSync", &m_vSync)) {
+		window()->setVSync(m_vSync, false);
+	}
+	
+	if (ImGui::BeginCombo("##resolution", RESOLUTIONS_STRINGS[m_selectedResolution])) {
+		for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
+			if (ImGui::Selectable(RESOLUTIONS_STRINGS[i], i == m_selectedResolution)) {
+				m_selectedResolution = i;
+				program()->resizeWindow(RESOLUTIONS[i], false);
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	ImGui::NewLine();
+	if (ImGui::Button("Save settings")) {
+		window()->save();
+	}
+}
+
+void MainMenuRoom::controlsMenu() {
+	ImGui::Text("Controls");
+	ImGui::Separator();
+
 }

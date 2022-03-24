@@ -46,7 +46,6 @@ WorldDrawer::~WorldDrawer() {
 void WorldDrawer::setTarget(const glm::ivec2& worldDimTi) {
 	m_worldDimTi = worldDimTi;
 
-	glClearColor(m_backgroundColour.r, m_backgroundColour.g, m_backgroundColour.b, m_backgroundColour.a);
 	updatePOUVBuffers();
 }
 

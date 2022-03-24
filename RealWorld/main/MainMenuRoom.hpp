@@ -2,11 +2,13 @@
 #include <glm/vec2.hpp>
 
 #include <RealEngine/main/Room.hpp>
-#define RE_MENU_KEEP_INFOS
-#include <RealEngine/GUI/Menu.hpp>
+#include <RealEngine/main/Window.hpp>
+
+#include <RealEngine/external/ImGui/imgui.h>
+#include <RealEngine/external/ImGui/imgui_stdlib.h>
 
 /**
- * @brief Is the room that holds the main menu and related objects.
+ * @brief The room that holds the main menu and related objects.
 */
 class MainMenuRoom : public RE::Room {
 public:
@@ -18,18 +20,38 @@ public:
 	virtual void step() override;
 	virtual void render(double interpolationFactor) override;
 
-	void resizeWindow(const glm::ivec2& newDims, bool isPermanent);
+	virtual const DisplaySettings& getDisplaySettings() override {
+		static DisplaySettings settings{
+			.framesPerSecondLimit = 144,
+			.usingImGui = true
+		};
+		return settings;
+	}
 
 private:
-	RGUI::Menu<MainMenuRoom> m_menu{program(), this};
-	std::vector<std::string> m_savesButtons;
+	enum class Menu {
+		MAIN,
+		NEW_WORLD,
+		LOAD_WORLD,
+		DISPLAY_SETTINGS,
+		CONTROLS
+	};
+	using enum Menu;
 
-	void buildSavesButtons();
+	Menu m_menu = MAIN;
+	std::vector<std::string> m_worlds;
+	ImFont* m_arial16 = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 28.0f);
+	std::string m_newWorldName;
+	int m_newWorldSeed = 0;
 
-	void mainMenuCallback(const std::string& button);
-	void newWorldCallback(const std::string& button);
-	void loadWorldCallback(const std::string& button);
-	void deleteWorldCallback(const std::string& button);
+	bool m_fullscreen = window()->isFullscreen();
+	bool m_borderless = window()->isBorderless();
+	bool m_vSync = window()->isVSynced();
+	size_t m_selectedResolution = 0;
 
-	void loadWorld(const std::string& worldName);
+	void mainMenu();
+	void newWorldMenu();
+	void loadWorldMenu();
+	void displaySettingsMenu();
+	void controlsMenu();
 };

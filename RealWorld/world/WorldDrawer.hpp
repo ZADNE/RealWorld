@@ -111,7 +111,6 @@ private:
 	//Lighting global
 	float m_dayLength = 200.0f;
 	float m_currentTime = 50.0f;
-	glm::vec4 m_backgroundColour = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
 
 	//Dynamic lights
 	std::vector<DynamicLight> m_dynamicLights;

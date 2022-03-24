@@ -17,6 +17,14 @@
 #include <RealWorld/items/CraftingDrawer.hpp>
 #include <RealWorld/KeyBinder.hpp>
 
+#ifdef _DEBUG
+const unsigned int FPS_LIMIT = 150u;
+#else
+const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
+#endif // _DEBUG
+
+const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
+
 /**
  * @brief Is the room that holds all gameplay-related objects.
 */
@@ -29,7 +37,16 @@ public:
 	virtual void step() override;
 	virtual void render(double interpolationFactor) override;
 
-	void resizeWindow(const glm::ivec2& newDims, bool isPermanent);
+	virtual const DisplaySettings& getDisplaySettings() override {
+		static DisplaySettings settings{
+			.clearColor = SKY_BLUE,
+			.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
+			.framesPerSecondLimit = FPS_LIMIT
+		};
+		return settings;
+	}
+
+	virtual void windowResized(const glm::ivec2& newDims) override;
 private:
 	using enum RealWorldKeyBindings;
 
