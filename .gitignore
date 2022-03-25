@@ -4,6 +4,7 @@ exec/RealWorld
 exec/saves/*
 exec/bindings.json
 exec/settings.json
+exec/imgui.ini
 
 CMakeSettings.json
 

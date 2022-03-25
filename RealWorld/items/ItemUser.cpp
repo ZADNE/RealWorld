@@ -2,8 +2,6 @@
 
 #include <RealEngine/utility/utility.hpp>
 
-#include <RealWorld/world/physics/position_conversions.hpp>
-
 
 ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
 	m_world(world),

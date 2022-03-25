@@ -5,8 +5,8 @@
  * @brief Represents all key bindings that RealWorld has
 */
 enum class RealWorldKeyBindings {
-	INV_SWITCH_STATE,
-	INV_SWAP_CURSOR,
+	INV_OPEN_CLOSE,
+	INV_MOVE_ALL,
 	INV_MOVE_PORTION,
 	INV_PREV_SLOT,
 	INV_RIGHT_SLOT,
@@ -28,24 +28,56 @@ enum class RealWorldKeyBindings {
 	ITEMUSER_HOLD_TO_RESIZE,
 	ITEMUSER_WIDEN,
 	ITEMUSER_SHRINK,
-	CRAFT_ONE,
-	CRAFT_SOME,
-	CRAFT_ROLL_RIGHT,
-	CRAFT_ROLL_LEFT,
-	CRAFT_CANCEL,
-	PLAYER_JUMP,
+
 	PLAYER_LEFT,
 	PLAYER_RIGHT,
+	PLAYER_JUMP,
 	PLAYER_AUTOJUMP,
-	DEBUG_ENDGAME,
-	DEBUG_WORLDDRAW,
-	DEBUG_WORLDDARKNESS
+
+	QUIT,
+	MINIMAP,
+	SHADOWS
+};
+
+constexpr static std::array KEYBINDER_DESC = {
+	"Open/close",
+	"Take/put all",
+	"Take/put some",
+	"Previous slot",
+	"Left slot",
+	"Right slot",
+	"Slot 1",
+	"Slot 2",
+	"Slot 3",
+	"Slot 4",
+	"Slot 5",
+	"Slot 6",
+	"Slot 7",
+	"Slot 8",
+	"Slot 9",
+	"Slot 10",
+
+	"Primary",
+	"Secondary",
+	"Disc/square",
+	"Hold to resize",
+	"Widen",
+	"Shrink",
+
+	"Walk left",
+	"Walk right",
+	"Jump",
+	"Autojump",
+
+	"Quit",
+	"Draw minimap",
+	"Draw shadows"
 };
 
 /**
  * @brief Default values for key bindings if saved key bidnings could not be loaded
 */
-const static RE::KeyBindingValueList<const RealWorldKeyBindings> KEYBINDER_DEFAULT_LIST = {
+constexpr static RE::KeyBindingValueList<const RealWorldKeyBindings> KEYBINDER_DEFAULT_LIST = {
 	RE::Key::E,
 	RE::Key::LMB,
 	RE::Key::RMB,
@@ -70,15 +102,9 @@ const static RE::KeyBindingValueList<const RealWorldKeyBindings> KEYBINDER_DEFAU
 	RE::Key::UMW,
 	RE::Key::DMW,
 
-	RE::Key::LMB,
-	RE::Key::RMB,
-	RE::Key::DMW,
-	RE::Key::UMW,
-	RE::Key::RMB,
-
-	RE::Key::Space,
 	RE::Key::A,
 	RE::Key::D,
+	RE::Key::Space,
 	RE::Key::LShift,
 
 	RE::Key::Escape,
@@ -86,14 +112,22 @@ const static RE::KeyBindingValueList<const RealWorldKeyBindings> KEYBINDER_DEFAU
 	RE::Key::O
 };
 
-#define KB keybinder()
+static_assert(KEYBINDER_DEFAULT_LIST.size() == magic_enum::enum_count<RealWorldKeyBindings>()
+			&& KEYBINDER_DESC.size() == magic_enum::enum_count<RealWorldKeyBindings>());
 
 /**
  * @brief Global keybinder object for the RealWorld game
- * 
+ *
  * Can also be accessed via abbrevation KB macro. KB = keybinder()
 */
 inline auto& keybinder() {
 	static RE::KeyBinder<RealWorldKeyBindings, KEYBINDER_DEFAULT_LIST> kb{};
 	return kb;
+}
+
+/**
+ * @brief Shortcut for keybinder()[binding]
+*/
+inline RE::Key keybinder(RealWorldKeyBindings binding) {
+	return keybinder()[binding];
 }

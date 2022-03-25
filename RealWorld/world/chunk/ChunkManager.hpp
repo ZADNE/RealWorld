@@ -75,8 +75,6 @@ public:
 		glm::ivec4 dynamicsGroupSize;
 	};
 private:
-	glm::ivec2 chunkPosToTexturePos(glm::ivec2 posCh) const;
-	glm::ivec2 chunkPosToActiveChunkPos(glm::ivec2 posCh) const;
 
 	/**
 	 * @brief Activates the chunk at given position.
@@ -99,10 +97,10 @@ private:
 
 	/**
 	 * @brief Downloads a chunk from world texture to CPU memory
-	 * @param activePosTi In-texture position of the chunk, measured in tiles/pixels
+	 * @param posAt In-texture position of the chunk, measured in tiles/pixels
 	 * @return The tiles of the chunk
 	*/
-	std::vector<unsigned char> downloadChunk(const glm::ivec2& activePosTi) const;
+	std::vector<unsigned char> downloadChunk(const glm::ivec2& posAt) const;
 
 	/**
 	 * @brief Uploads tiles from a chunk to the world texture
@@ -113,7 +111,7 @@ private:
 
 	/**
 	 * @brief Saves tiles from chunk to disk
-	 * @param chunk Tiles of the chunk. Size must be: CHUNK_SIZE.x * CHUNK_SIZE.y * 4 bytes
+	 * @param chunk Tiles of the chunk. Size must be: iCHUNK_SIZE.x * iCHUNK_SIZE.y * 4 bytes
 	 * @param posCh Global position of the chunk
 	*/
 	void saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;

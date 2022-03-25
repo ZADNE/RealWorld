@@ -2,16 +2,17 @@
 #include <cstdint>
 
 #include <glm/vec2.hpp>
+#include <glm/common.hpp>
 
 //Physics steps per second
-const int PHYSICS_STEPS_PER_SECOND = 100;
+constexpr int PHYSICS_STEPS_PER_SECOND = 100;
 
 /**
  * @brief Dimensions of a tile, in pixels
 */
-const glm::uvec2 uTILEPx = glm::uvec2(4u, 4u);
-const glm::ivec2 iTILEPx = uTILEPx;
-const glm::vec2 TILEPx = uTILEPx;
+constexpr glm::uvec2 uTILEPx = glm::uvec2(4u, 4u);
+constexpr glm::ivec2 iTILEPx = uTILEPx;
+constexpr glm::vec2 TILEPx = uTILEPx;
 
 
 enum class BLOCK : uint8_t {
@@ -23,7 +24,7 @@ enum class BLOCK : uint8_t {
 	LAST_FLUID = ACID,
 	TECHBLOCK = 255
 };
-const unsigned int LAST_FLUID = static_cast<unsigned int>(BLOCK::LAST_FLUID);
+constexpr unsigned int LAST_FLUID = static_cast<unsigned int>(BLOCK::LAST_FLUID);
 
 enum class WALL : uint8_t {
 	AIR, STONE, DIRT, GRASS,
@@ -39,3 +40,17 @@ enum class SET_TARGET : unsigned int {
 	BLOCK = static_cast<unsigned int>(TILE_VALUE::BLOCK),
 	WALL = static_cast<unsigned int>(TILE_VALUE::WALL)
 };
+
+/**
+ * @brief Converts a position in pixels to position in tiles
+ */
+inline glm::vec2 pxToTi(const glm::vec2& posPx) {
+	return glm::floor(posPx / TILEPx);
+}
+
+/**
+ * @brief Converts a position in tiles to position in pixels
+ */
+inline glm::vec2 tiToPx(const glm::vec2& posTi) {
+	return posTi * TILEPx;
+}

@@ -6,7 +6,6 @@
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/TDB.hpp>
-#include <RealWorld/world/physics/position_conversions.hpp>
 
 
 DynamicHitbox::DynamicHitbox(World* world, const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& offsetPx/* = glm::ivec2(0)*/) :

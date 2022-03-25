@@ -1,8 +1,6 @@
 ﻿#include <RealWorld/main/WorldRoom.hpp>
 
-#include <RealWorld/world/physics/position_conversions.hpp>
 #include <RealWorld/world/WorldDataLoader.hpp>
-
 
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
@@ -49,9 +47,9 @@ void WorldRoom::sessionEnd() {
 
 void WorldRoom::step() {
 	//Player BEGIN
-	int walkDir = input()->isDown(KB[PLAYER_LEFT]) ? -1 : 0;
-	walkDir += input()->isDown(KB[PLAYER_RIGHT]) ? +1 : 0;
-	m_player.step(static_cast<WALK>(walkDir), input()->isDown(KB[PLAYER_JUMP]), input()->isDown(KB[PLAYER_AUTOJUMP]));
+	int walkDir = keybindDown(PLAYER_LEFT) ? -1 : 0;
+	walkDir += keybindDown(PLAYER_RIGHT) ? +1 : 0;
+	m_player.step(static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
 	//View
 	glm::vec2 prevViewPos = m_worldView.getPosition();
 
@@ -66,8 +64,8 @@ void WorldRoom::step() {
 	m_worldDrawer.beginStep();
 
 	bool itemUse[2];
-	itemUse[ItemUser::PRIMARY_USE] = input()->isDown(KB[ITEMUSER_USE_PRIMARY]) != 0 && !m_inventoryDrawer.isOpen();
-	itemUse[ItemUser::SECONDARY_USE] = input()->isDown(KB[ITEMUSER_USE_SECONDARY]) != 0 && !m_inventoryDrawer.isOpen();
+	itemUse[ItemUser::PRIMARY_USE] = keybindDown(ITEMUSER_USE_PRIMARY) != 0 && !m_inventoryDrawer.isOpen();
+	itemUse[ItemUser::SECONDARY_USE] = keybindDown(ITEMUSER_USE_SECONDARY) != 0 && !m_inventoryDrawer.isOpen();
 	m_itemUser.step(itemUse, m_worldView.getCursorRel());
 
 	auto lm = m_worldDrawer.getLightManipulator();
@@ -79,43 +77,37 @@ void WorldRoom::step() {
 	//Inventory and CraftingDrawer
 	m_inventoryDrawer.step((glm::ivec2)input()->getCursorAbs());
 	m_craftingDrawer.step((glm::ivec2)input()->getCursorAbs());
-	if (input()->wasPressed(KB[INV_SWITCH_STATE])) { m_inventoryDrawer.switchState(); m_craftingDrawer.switchDraw(); }
+	if (keybindPressed(INV_OPEN_CLOSE)) { m_inventoryDrawer.switchState(); m_craftingDrawer.switchDraw(); }
 	if (m_inventoryDrawer.isOpen()) {//OPEN INVENTORY
-		if (input()->wasPressed(KB[INV_SWAP_CURSOR])) { m_inventoryDrawer.swapUnderCursor(); }
-		if (input()->wasPressed(KB[INV_MOVE_PORTION])) { m_inventoryDrawer.movePortion(0.5f); }
-
-		if (input()->wasPressed(KB[CRAFT_ONE])) { m_craftingDrawer.craft(1u); }
-		if (input()->wasPressed(KB[CRAFT_SOME])) { m_craftingDrawer.craft(5u); }
-		if (int roll = input()->wasPressed(KB[CRAFT_ROLL_RIGHT])) { m_craftingDrawer.roll(roll); }
-		if (int roll = -input()->wasPressed(KB[CRAFT_ROLL_LEFT])) { m_craftingDrawer.roll(roll); }
-		if (input()->wasPressed(KB[CRAFT_CANCEL])) { m_craftingDrawer.cancel(); }
+		if (keybindPressed(INV_MOVE_ALL)) { m_inventoryDrawer.swapUnderCursor(); }
+		if (keybindPressed(INV_MOVE_PORTION)) { m_inventoryDrawer.movePortion(0.5f); }
 	} else { //CLOSED INVENTORY
-		if (input()->isDown(KB[ITEMUSER_HOLD_TO_RESIZE])) {
-			if (input()->wasPressed(KB[ITEMUSER_WIDEN])) { m_itemUser.resizeShape(0.5f); }
-			if (input()->wasPressed(KB[ITEMUSER_SHRINK])) { m_itemUser.resizeShape(-0.5f); }
+		if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
+			if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(0.5f); }
+			if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-0.5f); }
 		} else {
-			if (input()->wasPressed(KB[INV_RIGHT_SLOT])) { m_inventoryDrawer.chooseSlot(Choose::RIGHT, input()->wasPressed(KB[INV_RIGHT_SLOT])); }
-			if (input()->wasPressed(KB[INV_LEFT_SLOT])) { m_inventoryDrawer.chooseSlot(Choose::LEFT, input()->wasPressed(KB[INV_LEFT_SLOT])); }
+			if (keybindPressed(INV_RIGHT_SLOT)) { m_inventoryDrawer.chooseSlot(Choose::RIGHT, keybindPressed(INV_RIGHT_SLOT)); }
+			if (keybindPressed(INV_LEFT_SLOT)) { m_inventoryDrawer.chooseSlot(Choose::LEFT, keybindPressed(INV_LEFT_SLOT)); }
 		}
-		if (input()->wasPressed(KB[INV_PREV_SLOT])) { m_inventoryDrawer.chooseSlot(Choose::PREV, 0); }
-		if (input()->wasPressed(KB[INV_SLOT0])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 0); }
-		if (input()->wasPressed(KB[INV_SLOT1])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 1); }
-		if (input()->wasPressed(KB[INV_SLOT2])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 2); }
-		if (input()->wasPressed(KB[INV_SLOT3])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 3); }
-		if (input()->wasPressed(KB[INV_SLOT4])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 4); }
-		if (input()->wasPressed(KB[INV_SLOT5])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 5); }
-		if (input()->wasPressed(KB[INV_SLOT6])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 6); }
-		if (input()->wasPressed(KB[INV_SLOT7])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 7); }
-		if (input()->wasPressed(KB[INV_SLOT8])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 8); }
-		if (input()->wasPressed(KB[INV_SLOT9])) { m_inventoryDrawer.chooseSlot(Choose::ABS, 9); }
+		if (keybindPressed(INV_PREV_SLOT)) { m_inventoryDrawer.chooseSlot(Choose::PREV, 0); }
+		if (keybindPressed(INV_SLOT0)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 0); }
+		if (keybindPressed(INV_SLOT1)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 1); }
+		if (keybindPressed(INV_SLOT2)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 2); }
+		if (keybindPressed(INV_SLOT3)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 3); }
+		if (keybindPressed(INV_SLOT4)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 4); }
+		if (keybindPressed(INV_SLOT5)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 5); }
+		if (keybindPressed(INV_SLOT6)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 6); }
+		if (keybindPressed(INV_SLOT7)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 7); }
+		if (keybindPressed(INV_SLOT8)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 8); }
+		if (keybindPressed(INV_SLOT9)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 9); }
 
-		if (input()->wasPressed(KB[ITEMUSER_SWITCH_SHAPE])) { m_itemUser.switchShape(); }
+		if (keybindPressed(ITEMUSER_SWITCH_SHAPE)) { m_itemUser.switchShape(); }
 	}
 	m_worldDrawer.endStep();
 	//TEMP or DEBUG
-	if (input()->wasPressed(KB[DEBUG_WORLDDRAW])) { m_worldDrawer.toggleMinimap(); }
-	if (input()->wasPressed(KB[DEBUG_WORLDDARKNESS])) { m_worldDrawer.toggleDarkness(); }
-	if (input()->wasPressed(KB[DEBUG_ENDGAME])) { program()->scheduleRoomTransition(0, {}); }
+	if (keybindPressed(MINIMAP)) { m_worldDrawer.toggleMinimap(); }
+	if (keybindPressed(SHADOWS)) { m_worldDrawer.toggleDarkness(); }
+	if (keybindPressed(QUIT)) { program()->scheduleRoomTransition(0, {}); }
 }
 
 void WorldRoom::render(double interpolationFactor) {

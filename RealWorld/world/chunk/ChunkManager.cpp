@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include <RealWorld/world/chunk/ChunkLoader.hpp>
-#include <RealWorld/div.hpp>
 
 
 ChunkManager::ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex) {
@@ -48,8 +47,7 @@ bool ChunkManager::saveChunks() const {
 	//Save all active chunks (they have to be downloaded)
 	for (auto& posCh : m_activeChunks) {
 		if (posCh != NO_ACTIVE_CHUNK) {
-			auto activePosTi = chunkPosToTexturePos(posCh);
-			saveChunk(downloadChunk(activePosTi), posCh);
+			saveChunk(downloadChunk(chToAt(posCh)), posCh);
 		}
 	}
 	return true;
@@ -69,8 +67,8 @@ void ChunkManager::step() {
 }
 
 void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
-	glm::ivec2 botLeftCh = floor_div(botLeftTi, CHUNK_SIZE).quot;
-	glm::ivec2 topRightCh = floor_div(topRightTi, CHUNK_SIZE).quot;
+	glm::ivec2 botLeftCh = tiToCh(botLeftTi);
+	glm::ivec2 topRightCh = tiToCh(topRightTi);
 
 	//Activate all chunks that at least partially overlap the area
 	int activatedChunks = 0;
@@ -85,19 +83,10 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 	}
 }
 
-glm::ivec2 ChunkManager::chunkPosToTexturePos(glm::ivec2 posCh) const {
-	return floor_div(posCh, ACTIVE_CHUNKS_AREA).rem * CHUNK_SIZE;
-}
-
-glm::ivec2 ChunkManager::chunkPosToActiveChunkPos(glm::ivec2 posCh) const {
-	return floor_div(posCh, ACTIVE_CHUNKS_AREA).rem;
-}
-
 int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 	//Check if it is not already active
-	auto activePosCh = chunkPosToActiveChunkPos(posCh);
-	auto activeChunkIndex = activePosCh.y * ACTIVE_CHUNKS_AREA.x + activePosCh.x;
-	auto& chunk = m_activeChunks[activeChunkIndex];
+	auto acIndex = acToIndex(chToAc(posCh));
+	auto& chunk = m_activeChunks[acIndex];
 	if (chunk == posCh) {
 		return 0;//Signal that the chunk has already been active
 	} else {
@@ -112,19 +101,19 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 		m_inactiveChunks.erase(it);//Remove the chunk from inactive chunks
 	} else {
 		try {//Try to load the chunk from its file
-			std::vector<unsigned char> tiles = ChunkLoader::loadChunk(m_folderPath, posCh, CHUNK_SIZE);
+			std::vector<unsigned char> tiles = ChunkLoader::loadChunk(m_folderPath, posCh, iCHUNK_SIZE);
 			//No exception was thrown, chunk has been loaded
 			uploadChunk(tiles, posCh);
 		}
 		catch (...) {
 			//Chunk is not on the disk, it has to be generated
-			m_chunkGen.generateChunk(posCh, m_ws->getTexture(), chunkPosToTexturePos(posCh));
+			m_chunkGen.generateChunk(posCh, m_ws->getTexture(), chToAt(posCh));
 		}
 	}
 
 	//The chunk has been uploaded to the world texture
 	//Its position also has to be updated in the active chunks buffer
-	auto* ssbo = m_activeChunksSSBO.map<glm::ivec2>(activeChunkIndex * sizeof(glm::ivec2), sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
+	auto* ssbo = m_activeChunksSSBO.map<glm::ivec2>(acIndex * sizeof(glm::ivec2), sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
 	*ssbo = posCh;
 	m_activeChunksSSBO.unmap();
 
@@ -134,26 +123,26 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 
 void ChunkManager::deactivateChunk(const glm::ivec2& posCh) {
 	//Get the chunk that is to be deactivated
-	auto activePosCh = chunkPosToActiveChunkPos(posCh);
-	auto& chunk = m_activeChunks[activePosCh.y * ACTIVE_CHUNKS_AREA.x + activePosCh.x];
+	auto posAc = chToAc(posCh);
+	auto& chunk = m_activeChunks[acToIndex(posAc)];
 
 	//It there is a chunk
 	if (chunk != NO_ACTIVE_CHUNK) {
-		auto tiles = downloadChunk(activePosCh * CHUNK_SIZE);//Dwonload the chunk
+		auto tiles = downloadChunk(chToTi(posAc));//Download the chunk
 		m_inactiveChunks.emplace(chunk, Chunk(chunk, std::move(tiles)));//Place it among the inactive chunks
 		chunk = NO_ACTIVE_CHUNK;//Mark the position to hold no chunk
 	}
 }
 
-std::vector<unsigned char> ChunkManager::downloadChunk(const glm::ivec2& activePosTi) const {
+std::vector<unsigned char> ChunkManager::downloadChunk(const glm::ivec2& posAt) const {
 	//Allocate memory for the data
 	std::vector<unsigned char> tiles;
-	tiles.resize(CHUNK_SIZE.x * CHUNK_SIZE.y * 4);
+	tiles.resize(iCHUNK_SIZE.x * iCHUNK_SIZE.y * 4);
 
 	//Bind the framebuffer
 	m_ws->setTarget();
 	//Data download (CPU stall -> Pixel Buffer Object todo...)
-	glReadnPixels(activePosTi.x, activePosTi.y, CHUNK_SIZE.x, CHUNK_SIZE.y,
+	glReadnPixels(posAt.x, posAt.y, iCHUNK_SIZE.x, iCHUNK_SIZE.y,
 		GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, static_cast<GLsizei>(tiles.size()), tiles.data());
 	m_ws->resetTarget();
 
@@ -161,10 +150,9 @@ std::vector<unsigned char> ChunkManager::downloadChunk(const glm::ivec2& activeP
 }
 
 void ChunkManager::uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
-	glm::ivec2 texturePos = chunkPosToTexturePos(posCh);
-	m_ws->getTexture().setTexelsWithinImage(0, texturePos, CHUNK_SIZE, chunk.data());
+	m_ws->getTexture().setTexelsWithinImage(0, chToAt(posCh), iCHUNK_SIZE, chunk.data());
 }
 
 void ChunkManager::saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
-	ChunkLoader::saveChunk(m_folderPath, posCh, CHUNK_SIZE, chunk);
+	ChunkLoader::saveChunk(m_folderPath, posCh, iCHUNK_SIZE, chunk);
 }

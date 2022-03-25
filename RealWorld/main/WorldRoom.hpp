@@ -1,6 +1,6 @@
 ﻿#pragma once
+#include <RealWorld/main/Room.hpp>
 
-#include <RealEngine/main/Room.hpp>
 #include <RealEngine/graphics/View.hpp>
 #include <RealEngine/graphics/Viewport.hpp>
 #include <RealEngine/resources/FontCache.hpp>
@@ -15,7 +15,6 @@
 #include <RealWorld/items/ItemCombinator.hpp>
 #include <RealWorld/items/InventoryDrawer.hpp>
 #include <RealWorld/items/CraftingDrawer.hpp>
-#include <RealWorld/KeyBinder.hpp>
 
 #ifdef _DEBUG
 const unsigned int FPS_LIMIT = 150u;
@@ -28,7 +27,7 @@ const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.9047058823
 /**
  * @brief Is the room that holds all gameplay-related objects.
 */
-class WorldRoom : public RE::Room {
+class WorldRoom : public Room {
 public:
 	WorldRoom(RE::CommandLineArguments args);
 	~WorldRoom();
@@ -48,7 +47,6 @@ public:
 
 	virtual void windowResized(const glm::ivec2& newDims) override;
 private:
-	using enum RealWorldKeyBindings;
 
 	void drawGUI();
 

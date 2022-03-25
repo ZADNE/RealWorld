@@ -8,9 +8,8 @@
 #include <RealEngine/graphics/Vertex.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
 
-#include <RealWorld/world//TDB.hpp>
+#include <RealWorld/world/TDB.hpp>
 #include <RealWorld/items/Item.hpp>
-#include <RealWorld/div.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>
 #include <RealWorld/rendering/ImageUnits.hpp>
 
@@ -48,7 +47,7 @@ void ChunkGenerator::setSeed(int seed) {
 
 void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
 	//Update chunk offset within the uniform buffer
-	glm::ivec2 offsetTi = posCh * CHUNK_SIZE;
+	glm::ivec2 offsetTi = posCh * iCHUNK_SIZE;
 	m_chunkUniformBuffer.overwrite(offsetof(ChunkUniforms, chunkOffsetTi), sizeof(offsetTi), &offsetTi);
 
 #ifndef GEN_USE_COMP
@@ -63,11 +62,11 @@ void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& d
 
 
 #ifdef GEN_USE_COMP
-	m_tilesTex[0].copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, CHUNK_SIZE);
+	m_tilesTex[0].copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 #else
 	m_genSurf[0].resetTarget();
 	m_VAO.unbind();
-	m_genSurf[0].getTexture().copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, CHUNK_SIZE);
+	m_genSurf[0].getTexture().copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 #endif
 }
 

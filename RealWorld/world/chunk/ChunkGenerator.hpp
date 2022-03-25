@@ -30,7 +30,7 @@ public:
 	 *
 	 * @see BORDER_WIDTH
 	*/
-	const glm::ivec2 GEN_CHUNK_SIZE = CHUNK_SIZE + 2 * BORDER_WIDTH;
+	const glm::ivec2 GEN_CHUNK_SIZE = iCHUNK_SIZE + 2 * BORDER_WIDTH;
 
 	/**
 	 * @brief Contructs new chunk generator, initializes world-independent members.
@@ -96,8 +96,8 @@ private:
 	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = selectVariation_frag}};
 
 	std::array<RE::Surface, 2> m_genSurf = {
-		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 2, true, false},
-		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, true, false}
+		RE::Surface{{GEN_iCHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 2, true, false},
+		RE::Surface{{GEN_iCHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, true, false}
 	};
 #endif
 	int m_seed = 0;

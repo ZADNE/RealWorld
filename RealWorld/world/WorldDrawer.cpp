@@ -11,7 +11,6 @@
 #include <RealWorld/world/chunk/ChunkManager.hpp>
 #include <RealWorld/constants/light.hpp>
 #include <RealWorld/shaders/common.hpp>
-#include <RealWorld/div.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>
 
 const GLint VERTICES_POUV_WORLDTOLIGHT_RECT = 0;

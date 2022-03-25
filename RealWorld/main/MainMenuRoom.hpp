@@ -1,16 +1,15 @@
 ﻿#pragma once
-#include <glm/vec2.hpp>
+#include <RealWorld/main/Room.hpp>
 
-#include <RealEngine/main/Room.hpp>
-#include <RealEngine/main/Window.hpp>
+#include <glm/vec2.hpp>
 
 #include <RealEngine/external/ImGui/imgui.h>
 #include <RealEngine/external/ImGui/imgui_stdlib.h>
 
 /**
- * @brief The room that holds the main menu and related objects.
+ * @brief The room that holds the main menu and some related objects.
 */
-class MainMenuRoom : public RE::Room {
+class MainMenuRoom : public Room {
 public:
 	MainMenuRoom(RE::CommandLineArguments args);
 	~MainMenuRoom();
@@ -44,6 +43,7 @@ private:
 	std::string m_newWorldName;
 	int m_newWorldSeed = 0;
 
+	bool m_unsavedChanges = false;
 	bool m_fullscreen = window()->isFullscreen();
 	bool m_borderless = window()->isBorderless();
 	bool m_vSync = window()->isVSynced();

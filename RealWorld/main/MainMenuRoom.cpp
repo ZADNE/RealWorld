@@ -1,14 +1,20 @@
 ﻿#include <RealWorld/main/MainMenuRoom.hpp>
 
+#include <time.h>
+
 #include <array>
 #include <iostream>
 
-#include <time.h>
-
-#include <RealEngine/main/MainProgram.hpp>
-
 #include <RealWorld/world/WorldCreator.hpp>
 #include <RealWorld/world/WorldDataLoader.hpp>
+
+//Lil' helper func
+void controlsCategoryHeader(const char* header) {
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Separator(); ImGui::TableNextColumn(); ImGui::Separator(); ImGui::TableNextColumn(); ImGui::Separator(); ImGui::TableNextColumn();
+	ImGui::TextUnformatted(header);
+	ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn();
+}
 
 const std::array RESOLUTIONS_STRINGS = {
 	"1280x1024",
@@ -72,7 +78,7 @@ void MainMenuRoom::render(double interpolationFactor) {
 	ImGui::SetNextWindowPos({0.0f, 0.0f});
 	ImGui::PushFont(m_arial16);
 
-	if (ImGui::Begin("Hello, world!", nullptr, ImGuiWindowFlags_NoDecoration)) {
+	if (ImGui::Begin("##wholeMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
 		ImGui::Indent();
 		ImGui::SetCursorPosY(ImGui::GetFrameHeight());
 		switch (m_menu) {
@@ -86,7 +92,7 @@ void MainMenuRoom::render(double interpolationFactor) {
 		if (m_menu != MAIN) {
 			ImGui::SetCursorPosY(window()->getDims().y - ImGui::GetFrameHeight() * 2.0f);
 			ImGui::Separator();
-			if (ImGui::Button("Return to main menu")) m_menu = MAIN;
+			if (ImGui::Button("Return to main menu") || keybindReleased(QUIT)) m_menu = MAIN;
 		}
 	}
 	ImGui::PopFont();
@@ -102,15 +108,15 @@ void MainMenuRoom::mainMenu() {
 
 	ImGui::SetCursorPosY(window()->getDims().y - ImGui::GetFrameHeight() * 2.0f);
 	ImGui::Separator();
-	if (ImGui::Button("Exit")) program()->scheduleProgramExit();
+	if (ImGui::Button("Exit") || keybindPressed(QUIT)) program()->scheduleProgramExit();
 }
 
 void MainMenuRoom::newWorldMenu() {
-	ImGui::Text("Create a new world");
+	ImGui::TextUnformatted("Create a new world");
 	ImGui::Separator();
 
-	ImGui::Text("Name: "); ImGui::SameLine(); ImGui::InputText("##name", &m_newWorldName);
-	ImGui::Text("Seed: "); ImGui::SameLine(); ImGui::InputInt("##seed", &m_newWorldSeed);
+	ImGui::TextUnformatted("Name: "); ImGui::SameLine(); ImGui::InputText("##name", &m_newWorldName);
+	ImGui::TextUnformatted("Seed: "); ImGui::SameLine(); ImGui::InputInt("##seed", &m_newWorldSeed);
 	if (ImGui::Button("Create the world!")) {
 		auto wd = WorldCreator::createWorld(m_newWorldName, m_newWorldSeed);
 		if (WorldDataLoader::saveWorldData(wd, m_newWorldName, true)) {
@@ -120,10 +126,10 @@ void MainMenuRoom::newWorldMenu() {
 }
 
 void MainMenuRoom::loadWorldMenu() {
-	ImGui::Text("Choose a saved world to load");
+	ImGui::TextUnformatted("Choose a saved world to load");
 	ImGui::Separator();
 
-	ImGui::BeginTable("worldsTable", 2);
+	ImGui::BeginTable("##worldsTable", 2);
 	for (const auto& world : m_worlds) {
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
@@ -142,46 +148,82 @@ void MainMenuRoom::loadWorldMenu() {
 }
 
 void MainMenuRoom::displaySettingsMenu() {
-	using namespace std::string_literals;
-	ImGui::Text("Display settings");
+	ImGui::TextUnformatted("Display settings");
 	ImGui::Separator();
 
 	ImGui::TextUnformatted("Fullscreen"); ImGui::SameLine();
 	if (ImGui::ToggleButton("##fullscreen", &m_fullscreen)) {
 		window()->goFullscreen(m_fullscreen, false);
+		m_unsavedChanges = true;
 	}
 
-	if (!m_fullscreen){
+	if (!m_fullscreen) {
 		ImGui::SameLine();
 		ImGui::TextUnformatted("Borderless"); ImGui::SameLine();
 		if (ImGui::ToggleButton("##borderless", &m_borderless)) {
 			window()->goBorderless(m_borderless, false);
+			m_unsavedChanges = true;
 		}
 	}
 
 	ImGui::TextUnformatted("VSync"); ImGui::SameLine();
 	if (ImGui::ToggleButton("##vSync", &m_vSync)) {
 		window()->setVSync(m_vSync, false);
+		m_unsavedChanges = true;
 	}
-	
+
+	ImGui::TextUnformatted("Resolution"); ImGui::SameLine();
 	if (ImGui::BeginCombo("##resolution", RESOLUTIONS_STRINGS[m_selectedResolution])) {
 		for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
 			if (ImGui::Selectable(RESOLUTIONS_STRINGS[i], i == m_selectedResolution)) {
 				m_selectedResolution = i;
 				program()->resizeWindow(RESOLUTIONS[i], false);
+				m_unsavedChanges = true;
 			}
 		}
 		ImGui::EndCombo();
 	}
 
 	ImGui::NewLine();
-	if (ImGui::Button("Save settings")) {
+	if (m_unsavedChanges && ImGui::Button("Save changes")) {
 		window()->save();
+		m_unsavedChanges = false;
 	}
 }
 
 void MainMenuRoom::controlsMenu() {
-	ImGui::Text("Controls");
+	ImGui::TextUnformatted("Controls");
 	ImGui::Separator();
 
+	ImGui::BeginTable("##controlsTable", 3,
+		ImGuiTableFlags_ScrollY, {0.0f, window()->getDims().y - ImGui::GetFrameHeight() * 4.125f});
+	for (size_t i = 0; i < magic_enum::enum_count<RealWorldKeyBindings>(); i++) {
+		ImGui::PushID(static_cast<int>(i));
+		switch (static_cast<RealWorldKeyBindings>(i)) {
+		case INV_OPEN_CLOSE: controlsCategoryHeader("Inventory"); break;
+		case ITEMUSER_USE_PRIMARY: controlsCategoryHeader("Item usage"); break;
+		case PLAYER_LEFT: controlsCategoryHeader("Player movement"); break;
+		case QUIT: controlsCategoryHeader("Other"); break;
+		}
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		ImGui::TextUnformatted(KEYBINDER_DESC[i]);
+		ImGui::TableNextColumn();
+
+		RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
+		if (ImGui::Button(RE::keyToString(keybinder(binding)).data())) {
+			keybinder().listenChangeBinding(binding);
+		}
+
+		if (keybinder(binding) != KEYBINDER_DEFAULT_LIST[i]) {
+			ImGui::TableNextColumn();
+			if (ImGui::Button("Reset")) {
+				keybinder().resetBinding(static_cast<RealWorldKeyBindings>(i));
+			}
+		}
+		ImGui::PopID();
+	}
+	ImGui::EndTable();
 }
