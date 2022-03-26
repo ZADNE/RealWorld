@@ -5,8 +5,16 @@
 #include <array>
 #include <iostream>
 
+#include <glm/common.hpp>
+
 #include <RealWorld/world/WorldCreator.hpp>
 #include <RealWorld/world/WorldDataLoader.hpp>
+
+const char* KEYBIND_NOTICE = "Press a key to change the keybind.\nOr press Delete to cancel.";
+
+glm::vec2 KEYBIND_NOTICE_SIZE() {
+	return ImGui::CalcTextSize(KEYBIND_NOTICE);
+}
 
 //Lil' helper func
 void controlsCategoryHeader(const char* header) {
@@ -95,8 +103,12 @@ void MainMenuRoom::render(double interpolationFactor) {
 			if (ImGui::Button("Return to main menu") || keybindReleased(QUIT)) m_menu = MAIN;
 		}
 	}
-	ImGui::PopFont();
 	ImGui::End();
+	ImGui::PopFont();
+}
+
+void MainMenuRoom::keybindCallback(RE::Key newKey) {
+	m_drawKeybindListeningPopup = false;
 }
 
 void MainMenuRoom::mainMenu() {
@@ -173,6 +185,7 @@ void MainMenuRoom::displaySettingsMenu() {
 	}
 
 	ImGui::TextUnformatted("Resolution"); ImGui::SameLine();
+	ImGui::SetNextItemWidth(window()->getDims().x * 0.125f);
 	if (ImGui::BeginCombo("##resolution", RESOLUTIONS_STRINGS[m_selectedResolution])) {
 		for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
 			if (ImGui::Selectable(RESOLUTIONS_STRINGS[i], i == m_selectedResolution)) {
@@ -214,7 +227,8 @@ void MainMenuRoom::controlsMenu() {
 
 		RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
 		if (ImGui::Button(RE::keyToString(keybinder(binding)).data())) {
-			keybinder().listenChangeBinding(binding);
+			keybinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(binding, *this);
+			m_drawKeybindListeningPopup = true;
 		}
 
 		if (keybinder(binding) != KEYBINDER_DEFAULT_LIST[i]) {
@@ -225,5 +239,18 @@ void MainMenuRoom::controlsMenu() {
 		}
 		ImGui::PopID();
 	}
+
+	if (m_drawKeybindListeningPopup) {
+		glm::vec2 display = window()->getDims();
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::SetNextWindowContentSize(KEYBIND_NOTICE_SIZE());
+		ImGui::SetNextWindowPos(display * 0.5f - KEYBIND_NOTICE_SIZE() * 0.5f);
+		if (ImGui::Begin("##listening", nullptr, ImGuiWindowFlags_NoDecoration)) {
+			ImGui::TextUnformatted(KEYBIND_NOTICE);
+		}
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
 	ImGui::EndTable();
 }
