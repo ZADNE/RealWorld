@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include <RealEngine/main/Room.hpp>
-#include <RealEngine/main/MainProgram.hpp>
+#include <RealEngine/main/room/Room.hpp>
 
 #include <RealWorld/main/KeyBinder.hpp>
 

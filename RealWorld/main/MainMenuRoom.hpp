@@ -19,8 +19,8 @@ public:
 	virtual void step() override;
 	virtual void render(double interpolationFactor) override;
 
-	virtual const DisplaySettings& getDisplaySettings() override {
-		static DisplaySettings settings{
+	virtual const RE::RoomDisplaySettings& getDisplaySettings() override {
+		static RE::RoomDisplaySettings settings{
 			.framesPerSecondLimit = 144,
 			.usingImGui = true
 		};

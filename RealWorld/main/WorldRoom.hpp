@@ -36,8 +36,8 @@ public:
 	virtual void step() override;
 	virtual void render(double interpolationFactor) override;
 
-	virtual const DisplaySettings& getDisplaySettings() override {
-		static DisplaySettings settings{
+	virtual const RE::RoomDisplaySettings& getDisplaySettings() override {
+		static RE::RoomDisplaySettings settings{
 			.clearColor = SKY_BLUE,
 			.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
 			.framesPerSecondLimit = FPS_LIMIT
