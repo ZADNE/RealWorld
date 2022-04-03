@@ -215,44 +215,45 @@ void MainMenuRoom::drawTexture() {
 	std::vector<RE::VertexPOCO> vertices;
 	glm::vec2 subimageSprite = m_texture->getSubimagesSpritesCount();
 	vertices.reserve((size_t)(subimageSprite.x * subimageSprite.y) * 4u);
-	RE::Colour border{0, 255u, 0u, 255u};
+	RE::Colour colour{0, 255u, 0u, 255u};
 	auto subimageDims = m_texture->getSubimageDims();
 	//Subimages
 	for (float x = 1.0f; x < subimageSprite.x; ++x) {
 		glm::vec2 coord = botLeft + glm::vec2(x, 0.0f) * subimageDims;
-		vertices.emplace_back(coord, border);
-		vertices.emplace_back(coord + glm::vec2(0.0f, texDims.y), border);
+		vertices.emplace_back(coord, colour);
+		vertices.emplace_back(coord + glm::vec2(0.0f, texDims.y), colour);
 	}
 	for (float y = 1.0f; y < subimageSprite.y; ++y) {
 		glm::vec2 coord = botLeft + glm::vec2(0.0f, y) * subimageDims;
-		vertices.emplace_back(coord, border);
-		vertices.emplace_back(coord + glm::vec2(texDims.x, 0.0f), border);
+		vertices.emplace_back(coord, colour);
+		vertices.emplace_back(coord + glm::vec2(texDims.x, 0.0f), colour);
 	}
 	if (vertices.size() > 0u) {
 		gb.addPrimitives(RE::PRIM::LINES, 0u, vertices.size(), vertices.data(), false);
 		vertices.clear();
 	}
-	//Origins
-	border = {0u, 0u, 255u, 255u};
-	glm::vec2 origin = m_texture->getPivot();
-	glm::vec2 off = glm::vec2((subimageDims.x + subimageDims.y) * 0.05f);
+	//Pivots
+	colour = {0u, 0u, 255u, 255u};
+	glm::vec2 pivotOffset = m_texture->getPivot();
+	float pivotMarkRadius = glm::min(subimageDims.x, subimageDims.y) * 0.5f;
 	for (float x = 0.0f; x < m_texture->getSubimagesSpritesCount().x; ++x) {
-		for (float y = 0.0f; y < (size_t)m_texture->getSubimagesSpritesCount().y; ++y) {
-			glm::vec2 coord = botLeft + glm::vec2(x, y) * subimageDims + origin;
-			vertices.emplace_back(coord + glm::vec2(off.x, off.y), border);
-			vertices.emplace_back(coord + glm::vec2(-off.x, -off.y), border);
-			vertices.emplace_back(coord + glm::vec2(off.x, -off.y), border);
-			vertices.emplace_back(coord + glm::vec2(-off.x, off.y), border);
+		for (float y = 0.0f; y < m_texture->getSubimagesSpritesCount().y; ++y) {
+			glm::vec2 pivotPos = botLeft + glm::vec2(x, y) * subimageDims + pivotOffset;
+			vertices.emplace_back(pivotPos + glm::vec2(pivotMarkRadius, pivotMarkRadius), colour);
+			vertices.emplace_back(pivotPos + glm::vec2(-pivotMarkRadius, -pivotMarkRadius), colour);
+			vertices.emplace_back(pivotPos + glm::vec2(pivotMarkRadius, -pivotMarkRadius), colour);
+			vertices.emplace_back(pivotPos + glm::vec2(-pivotMarkRadius, pivotMarkRadius), colour);
 		}
 	}
+
 	gb.addPrimitives(RE::PRIM::LINES, 0u, vertices.size(), vertices.data(), false);
 	vertices.clear();
 	//Whole image
-	border = {255u, 0u, 0u, 255u};
-	vertices.emplace_back(botLeft, border);
-	vertices.emplace_back(botLeft + glm::vec2(texDims.x, 0.0f), border);
-	vertices.emplace_back(botLeft + glm::vec2(texDims.x, texDims.y), border);
-	vertices.emplace_back(botLeft + glm::vec2(0.0f, texDims.y), border);
+	colour = {255u, 0u, 0u, 255u};
+	vertices.emplace_back(botLeft, colour);
+	vertices.emplace_back(botLeft + glm::vec2(texDims.x, 0.0f), colour);
+	vertices.emplace_back(botLeft + glm::vec2(texDims.x, texDims.y), colour);
+	vertices.emplace_back(botLeft + glm::vec2(0.0f, texDims.y), colour);
 	gb.addPrimitives(RE::PRIM::LINE_LOOP, 0u, vertices.size(), vertices.data());
 
 	gb.end();

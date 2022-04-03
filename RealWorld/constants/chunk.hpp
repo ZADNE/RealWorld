@@ -43,7 +43,7 @@ inline glm::ivec2 chToTi(const glm::ivec2& posCh) {
 }
 
 /**
- * @brief Converts a position in chunks to its form equivalent
+ * @brief Converts a position in chunks to its active form equivalent
 */
 inline glm::ivec2 chToAc(const glm::ivec2& posCh) {
 	constexpr glm::ivec2 ACTIVE_CHUNKS_AREA_BITS = ACTIVE_CHUNKS_AREA - 1;

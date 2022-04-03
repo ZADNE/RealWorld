@@ -47,14 +47,14 @@ uint FLUIDITY[] = {
 	1
 };
 
-void fluidDynamics(uvec4 fluid, ivec2 waterPosIm){
+void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
 	uvec4 surroundings[3];
 	int leaningSide = bool(fluid.BL_V & 1) ? 1 : -1;
 	//Compute surroundings positions
 	ivec2 surrPosIm[3] = {
-		imPos(waterPosIm + ivec2(+0, -1)),
-		imPos(waterPosIm + ivec2(leaningSide, 0)),
-		imPos(waterPosIm + ivec2(leaningSide, -1))
+		imPos(posIm + ivec2(+0, -1)),
+		imPos(posIm + ivec2(leaningSide, 0)),
+		imPos(posIm + ivec2(leaningSide, -1))
 	};
 	//Fetch surroundings
 	int shift = bool((random() & 63) > FLUIDITY[fluid.BL_T]) ? 1 : surroundings.length();
@@ -65,20 +65,20 @@ void fluidDynamics(uvec4 fluid, ivec2 waterPosIm){
 	for(int i = 0; i < shift; ++i){
 		if (surroundings[i].BL_T == AIR.BL_T){//If can swap
 			tileStoreIm(surrPosIm[i], uvec4(fluid.BL, surroundings[i].WL));
-			tileStoreIm(waterPosIm, uvec4(AIR.BL, fluid.WL));
+			tileStoreIm(posIm, uvec4(AIR.BL, fluid.WL));
 			return;
 		}
 	}
 	//Could not swap - change the leaning side
 	if (shift != 1){
 		fluid.BL_V ^= 1;
-		tileStoreIm(waterPosIm, fluid);
+		tileStoreIm(posIm, fluid);
 	}
 }
 
-void acidDynamics(uvec4 water, ivec2 waterPosIm){
+void velocityFluidDynamics(uvec4 water, ivec2 posIm){
 	ivec2 velocity = extractVelocity(water.y);
-	uvec4 tileBelow = tileLoadIm(waterPosIm + ivec2(+0, -1));
+	uvec4 tileBelow = tileLoadIm(posIm + ivec2(+0, -1));
 	if (tileBelow.BL_T == AIR.BL_T){
 		velocity.y -= 1;//bool(random() & 3) ? 0 : 1;
 		velocity.x -= sign(velocity.x);//bool(random() & 3) ? 0 : sign(velocity.x);
@@ -88,20 +88,20 @@ void acidDynamics(uvec4 water, ivec2 waterPosIm){
 	ivec2 shift = ivec2(greaterThan(abs(velocity), ivec2(random() % 7, random() % 7))) * sign(velocity);
 	
 	if (shift != ivec2(0, 0)){//If the particle should shift
-		ivec2 neighborIm = imPos(waterPosIm + shift);
+		ivec2 neighborIm = imPos(posIm + shift);
 		uvec4 neighbor = tileLoadIm(neighborIm);
 		if (neighbor.BL_T == AIR.BL_T){//Can move
-			tileStoreIm(waterPosIm, uvec4(AIR.BL, water.WL));
+			tileStoreIm(posIm, uvec4(AIR.BL, water.WL));
 			tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
 		} else if (neighbor.BL_T == WATER.BL_T){//Collision with another water particle
-			tileStoreIm(waterPosIm, uvec4(neighbor.BL_T, neighbor.y, water.WL));//Swap velocities
+			tileStoreIm(posIm, uvec4(neighbor.BL_T, neighbor.y, water.WL));//Swap velocities
 			tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
 		} else {//Collision with solid block
 			ivec2 newVelocity = abs(velocity.yx) * ivec2(equal(shift, ivec2(0, 0))) * randomStateToDirection1D();
-			tileStoreIm(waterPosIm, uvec4(water.BL_T, constructVelocity(newVelocity), water.WL));
+			tileStoreIm(posIm, uvec4(water.BL_T, constructVelocity(newVelocity), water.WL));
 		}
 	} else {//Do not shift the particle, only add gravity
-		tileStoreIm(waterPosIm, uvec4(water.BL_T, constructVelocity(velocity), water.WL));
+		tileStoreIm(posIm, uvec4(water.BL_T, constructVelocity(velocity), water.WL));
 	}
 }
 
@@ -121,8 +121,8 @@ void main(){
 			tileStoreIm(posIm, tile);*/
 			switch (tile.BLOCK_TYPE){
 				case WATER_BL:
-				case LAVA_BL: fluidDynamics(tile, posIm); break;
-				case ACID_BL: acidDynamics(tile, posIm); break;
+				case LAVA_BL: leaningFluidDynamics(tile, posIm); break;
+				case ACID_BL: velocityFluidDynamics(tile, posIm); break;
 			}
 		}
 		groupMemoryBarrier();
