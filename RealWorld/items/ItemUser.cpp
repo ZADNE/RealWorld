@@ -25,7 +25,7 @@ void ItemUser::resizeShape(float change) {
 	m_diameter = glm::clamp(m_diameter + change, 0.5f, 7.5f);
 }
 
-void ItemUser::chooseSlot(int slot) {
+void ItemUser::selectSlot(int slot) {
 	m_chosenSlot = slot;
 	m_item = &m_inv[m_chosenSlot][0];
 }

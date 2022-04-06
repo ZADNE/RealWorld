@@ -21,7 +21,7 @@ public:
 	void resizeShape(float change);
 
 	//Does not check if the slot is inside the inventory!
-	void chooseSlot(int slot);
+	void selectSlot(int slot);
 
 	void step(bool use[2], const glm::ivec2& relCursorPosPx);
 	void draw();

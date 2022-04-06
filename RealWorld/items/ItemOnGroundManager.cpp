@@ -9,7 +9,7 @@ ItemOnGroundManager::ItemOnGroundManager(RE::SpriteBatch& spriteBatch, World& wo
 	m_spriteBatch(spriteBatch),
 	m_world(world),
 	m_playerHitbox(playerHitbox),
-	m_playerInventory(playerInventory) {
+	m_playerInv(playerInventory) {
 
 }
 
@@ -23,7 +23,7 @@ void ItemOnGroundManager::add(ItemOnGround& itemOG) {
 
 void ItemOnGroundManager::add(const glm::ivec2& pos, const Item& item) {
 	if (item.isEmpty()) { return; }
-	m_itemsOG.emplace_back(pos, m_world, item, m_defaultLifetime, m_playerHitbox, m_playerInventory);
+	m_itemsOG.emplace_back(pos, m_world, item, m_defaultLifetime, m_playerHitbox, m_playerInv);
 }
 
 ulong ItemOnGroundManager::getNumberOfItemsOG() {

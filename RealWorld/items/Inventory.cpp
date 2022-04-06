@@ -4,25 +4,17 @@
 
 #include <RealEngine/main/Error.hpp>
 
-#include <RealWorld/items/InventoryDrawer.hpp>
 #include <RealWorld/items/ItemCombinator.hpp>
 
 
-Inventory::Inventory(const glm::ivec2& size) {
-	m_data.size = size;
-	//Creating row
-	std::vector<Item> row;
-	row.resize(size.y);
-	//Inserting rows
-	for (int x = 0; x < size.x; x++) {
-		m_data.items.push_back(row);
-	}
+Inventory::Inventory(const glm::ivec2& size) : InventoryData{size} {
+
 }
 
 Inventory::~Inventory() {
 	//Disconnecting connected objects (to avoid dangling pointers)
-	if (m_inventoryDrawer) {
-		m_inventoryDrawer->connectToInventory(nullptr, m_invDrawerConnection);
+	if (m_UI) {
+		m_UI->connectToInventory(nullptr, m_UIConnection);
 	}
 	if (m_itemCombinator) {
 		m_itemCombinator->connectToInventory(nullptr);
@@ -30,20 +22,20 @@ Inventory::~Inventory() {
 }
 
 void Inventory::resize(const glm::ivec2& newSize) {
-	m_data.resize(newSize);
+	InventoryData::resize(newSize);
 
 	//Notifying connected objects about the change
-	if (m_inventoryDrawer) {//If connected to any
-		m_inventoryDrawer->reloadEverything();
+	if (m_UI) {//If connected to any
+		m_UI->reload();
 	}
 	if (m_itemCombinator) {//If connected to any
 		m_itemCombinator->reload();
 	}
 }
 
-void Inventory::connectToDrawer(InventoryDrawer* inventoryDrawer, Connection connection) {
-	m_inventoryDrawer = inventoryDrawer;
-	m_invDrawerConnection = connection;
+void Inventory::connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection) {
+	m_UI = inventoryDrawer;
+	m_UIConnection = connection;
 }
 
 void Inventory::connectToItemCombinator(ItemCombinator* itemCombinator) {
@@ -53,14 +45,14 @@ void Inventory::connectToItemCombinator(ItemCombinator* itemCombinator) {
 bool Inventory::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
 	if (item.amount <= 0) { return true; }
 	int target = item.amount - (int)(std::ceil((float)item.amount * portion));
-	for (int y = startSlot.y; y < m_data.size.y; y++) {
-		for (int x = startSlot.x; x < m_data.size.x; x++) {
-			m_data.items[x][y].insert(item, portion);
+	for (int y = startSlot.y; y < p_size.y; y++) {
+		for (int x = startSlot.x; x < p_size.x; x++) {
+			(*this)[x][y].insert(item, portion);
 			if (item.amount == target) {
 				if (reload) { wasChanged(); }
 				return true;
 			}
-			m_data.items[x][y].merge(item, portion);
+			(*this)[x][y].merge(item, portion);
 			if (item.amount == target) {
 				if (reload) { wasChanged(); }
 				return true;
@@ -75,9 +67,9 @@ bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& sta
 	if (item.amount <= 0) { return true; }
 	int target = item.amount - (int)((float)item.amount * portion);
 	//Filling already existing stacks
-	for (int y = startSlot.y; y < m_data.size.y; y++) {
-		for (int x = startSlot.x; x < m_data.size.x; x++) {
-			m_data.items[x][y].merge(item, portion);
+	for (int y = startSlot.y; y < p_size.y; y++) {
+		for (int x = startSlot.x; x < p_size.x; x++) {
+			(*this)[x][y].merge(item, portion);
 			if (item.amount == target) {
 				if (reload) { wasChanged(); }
 				return true;
@@ -85,9 +77,9 @@ bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& sta
 		}
 	}
 	//Creating new stacks
-	for (int y = startSlot.y; y < m_data.size.y; y++) {
-		for (int x = startSlot.x; x < m_data.size.x; x++) {
-			m_data.items[x][y].insert(item, portion);
+	for (int y = startSlot.y; y < p_size.y; y++) {
+		for (int x = startSlot.x; x < p_size.x; x++) {
+			(*this)[x][y].insert(item, portion);
 			if (item.amount == target) {
 				if (reload) { wasChanged(); }
 				return true;
@@ -101,9 +93,9 @@ bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& sta
 int Inventory::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
 	if (item.amount <= 0) { return 0; }
 	int leftToRemove = item.amount;
-	for (int y = startSlot.y; y < m_data.size.y; y++) {
-		for (int x = startSlot.x; x < m_data.size.x; x++) {
-			Item& slotItem = m_data.items[x][y];
+	for (int y = startSlot.y; y < p_size.y; y++) {
+		for (int x = startSlot.x; x < p_size.x; x++) {
+			Item& slotItem = (*this)[x][y];
 			if (slotItem == item) {//If this is the desired item
 				int removed = std::min(slotItem.amount, item.amount);
 				slotItem -= removed;
@@ -120,8 +112,8 @@ int Inventory::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ive
 }
 
 void Inventory::wasChanged() const {
-	if (m_inventoryDrawer) {//If connected to any
-		m_inventoryDrawer->reloadEverything();
+	if (m_UI) {//If connected to any
+		m_UI->reload();
 	}
 	if (m_itemCombinator) {//If connected to any
 		m_itemCombinator->reload();
@@ -129,12 +121,14 @@ void Inventory::wasChanged() const {
 }
 
 void Inventory::adoptInventoryData(const InventoryData& id) {
-	m_data = id;
+	p_size = id.p_size;
+	p_items = id.p_items;
 	wasChanged();
 }
 
 void Inventory::gatherInventoryData(InventoryData& id) const {
-	id = m_data;
+	id.p_size = p_size;
+	id.p_items = p_items;
 }
 
 void Inventory::operator+=(Item& item) {

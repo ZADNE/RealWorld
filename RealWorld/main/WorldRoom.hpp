@@ -13,7 +13,7 @@
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/items/ItemInstructionDatabase.hpp>
 #include <RealWorld/items/ItemCombinator.hpp>
-#include <RealWorld/items/InventoryDrawer.hpp>
+#include <RealWorld/items/InventoryUI.hpp>
 #include <RealWorld/items/CraftingDrawer.hpp>
 
 #ifdef _DEBUG
@@ -76,11 +76,11 @@ private:
 	World m_world;
 	WorldDrawer m_worldDrawer;
 	Player m_player;
-	Inventory m_playerInventory;
+	Inventory m_playerInv;
 	ItemOnGroundManager m_itemOnGroundManager;
 	ItemUser m_itemUser;
 	ItemInstructionDatabase m_instructionDatabase;
 	ItemCombinator m_itemCombinator;
-	InventoryDrawer m_inventoryDrawer;
+	InventoryUI m_invUI;
 	CraftingDrawer m_craftingDrawer;
 };

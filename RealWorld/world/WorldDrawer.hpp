@@ -72,7 +72,7 @@ private:
 	//1 texture (lights):				RGB = colour of the light; A = strength of the light
 	//2 texture (finished lighting):	RGBA = drawn to screen
 
-	glm::vec2 m_botLeftPx;//Bottom-left corner of the view
+	glm::vec2 m_invBotLeftPx;//Bottom-left corner of the view
 	glm::ivec2 m_botLeftTi;//Bottom-left corner of the view in blocks
 
 	glm::vec2 m_viewDimsPx;

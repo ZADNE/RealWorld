@@ -126,11 +126,8 @@ void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& pa
 	//All checks passed, loading inventory
 	id.resize(newSize);
 
-	for (int x = 0; x < id.size.x; x++) {
-		for (int y = 0; y < id.size.y; y++) {
-			Item& item = id.items[x][y];
-			readBinary(stream, item);
-		}
+	for (int i = 0; i < id.slotCount(); ++i) {
+		readBinary(stream, id(i));
 	}
 }
 
@@ -165,12 +162,9 @@ void WorldDataLoader::saveInventoryData(const InventoryData& id, const std::stri
 		throw std::exception{};
 	}
 
-	writeBinary(stream, id.size);
+	writeBinary(stream, id.getSize());
 
-	for (int x = 0; x < id.size.x; x++) {
-		for (int y = 0; y < id.size.y; y++) {
-			Item item = id.items[x][y];
-			writeBinary(stream, item);
-		}
+	for (int i = 0; i < id.slotCount(); ++i) {
+		writeBinary(stream, id(i));
 	}
 }

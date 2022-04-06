@@ -24,7 +24,7 @@ private:
 	RE::SpriteBatch& m_spriteBatch;
 	World& m_world;
 	Hitbox& m_playerHitbox;
-	Inventory& m_playerInventory;
+	Inventory& m_playerInv;
 	std::vector<ItemOnGround> m_itemsOG;
 	float m_decay = 1.0f;
 	float m_defaultLifetime = 4000.0f;

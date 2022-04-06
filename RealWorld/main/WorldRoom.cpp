@@ -6,19 +6,19 @@ WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
 	m_worldDrawer(window()->getDims()),
 	m_player(RE::SpriteBatch::std()),
-	m_playerInventory({10, 4}),
-	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_playerInventory),
-	m_itemUser(m_world, m_playerInventory, m_player.getHitbox(), RE::SpriteBatch::std(), m_itemOnGroundManager),
-	m_inventoryDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
+	m_playerInv({10, 4}),
+	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_playerInv),
+	m_itemUser(m_world, m_playerInv, m_player.getHitbox(), RE::SpriteBatch::std(), m_itemOnGroundManager),
+	m_invUI(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
 	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont) {
 
 
-	m_itemCombinator.connectToInventory(&m_playerInventory);
+	m_itemCombinator.connectToInventory(&m_playerInv);
 	m_itemCombinator.connectToIID(&m_instructionDatabase);
 
 	//Drawers
-	m_inventoryDrawer.connectToInventory(&m_playerInventory, Connection::PRIMARY);
-	m_inventoryDrawer.connectToItemUser(&m_itemUser);
+	m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
+	m_invUI.connectToItemUser(&m_itemUser);
 
 	m_craftingDrawer.connectToItemCombinator(&m_itemCombinator);
 }
@@ -39,6 +39,9 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	}
 
 	m_worldView.setPosition(glm::vec2(m_player.getHitbox().getCenter()));
+
+	Item k{I_ID::B_DIRT, 2};
+	m_playerInv.insert(k);
 }
 
 void WorldRoom::sessionEnd() {
@@ -46,7 +49,8 @@ void WorldRoom::sessionEnd() {
 }
 
 void WorldRoom::step() {
-	//Player BEGIN
+	using enum InventoryUI::SelectionManner;
+
 	int walkDir = keybindDown(PLAYER_LEFT) ? -1 : 0;
 	walkDir += keybindDown(PLAYER_RIGHT) ? +1 : 0;
 	m_player.step(static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
@@ -64,8 +68,8 @@ void WorldRoom::step() {
 	m_worldDrawer.beginStep();
 
 	bool itemUse[2];
-	itemUse[ItemUser::PRIMARY_USE] = keybindDown(ITEMUSER_USE_PRIMARY) != 0 && !m_inventoryDrawer.isOpen();
-	itemUse[ItemUser::SECONDARY_USE] = keybindDown(ITEMUSER_USE_SECONDARY) != 0 && !m_inventoryDrawer.isOpen();
+	itemUse[ItemUser::PRIMARY_USE] = keybindDown(ITEMUSER_USE_PRIMARY) != 0 && !m_invUI.isOpen();
+	itemUse[ItemUser::SECONDARY_USE] = keybindDown(ITEMUSER_USE_SECONDARY) != 0 && !m_invUI.isOpen();
 	m_itemUser.step(itemUse, m_worldView.getCursorRel());
 
 	auto lm = m_worldDrawer.getLightManipulator();
@@ -75,32 +79,26 @@ void WorldRoom::step() {
 	//ItemOnGroundManager
 	m_itemOnGroundManager.step();
 	//Inventory and CraftingDrawer
-	m_inventoryDrawer.step((glm::ivec2)input()->getCursorAbs());
+	m_invUI.step();
 	m_craftingDrawer.step((glm::ivec2)input()->getCursorAbs());
-	if (keybindPressed(INV_OPEN_CLOSE)) { m_inventoryDrawer.switchState(); m_craftingDrawer.switchDraw(); }
-	if (m_inventoryDrawer.isOpen()) {//OPEN INVENTORY
-		if (keybindPressed(INV_MOVE_ALL)) { m_inventoryDrawer.swapUnderCursor(); }
-		if (keybindPressed(INV_MOVE_PORTION)) { m_inventoryDrawer.movePortion(0.5f); }
+	if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); m_craftingDrawer.switchDraw(); }
+	if (m_invUI.isOpen()) {//OPEN INVENTORY
+		if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(input()->getCursorAbs()); }
+		if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(input()->getCursorAbs(), 0.5f); }
 	} else { //CLOSED INVENTORY
 		if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
 			if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(0.5f); }
 			if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-0.5f); }
 		} else {
-			if (keybindPressed(INV_RIGHT_SLOT)) { m_inventoryDrawer.chooseSlot(Choose::RIGHT, keybindPressed(INV_RIGHT_SLOT)); }
-			if (keybindPressed(INV_LEFT_SLOT)) { m_inventoryDrawer.chooseSlot(Choose::LEFT, keybindPressed(INV_LEFT_SLOT)); }
+			if (keybindPressed(INV_RIGHT_SLOT)) { m_invUI.selectSlot(RIGHT, keybindPressed(INV_RIGHT_SLOT)); }
+			if (keybindPressed(INV_LEFT_SLOT)) { m_invUI.selectSlot(LEFT, keybindPressed(INV_LEFT_SLOT)); }
 		}
-		if (keybindPressed(INV_PREV_SLOT)) { m_inventoryDrawer.chooseSlot(Choose::PREV, 0); }
-		if (keybindPressed(INV_SLOT0)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 0); }
-		if (keybindPressed(INV_SLOT1)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 1); }
-		if (keybindPressed(INV_SLOT2)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 2); }
-		if (keybindPressed(INV_SLOT3)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 3); }
-		if (keybindPressed(INV_SLOT4)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 4); }
-		if (keybindPressed(INV_SLOT5)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 5); }
-		if (keybindPressed(INV_SLOT6)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 6); }
-		if (keybindPressed(INV_SLOT7)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 7); }
-		if (keybindPressed(INV_SLOT8)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 8); }
-		if (keybindPressed(INV_SLOT9)) { m_inventoryDrawer.chooseSlot(Choose::ABS, 9); }
+		if (keybindPressed(INV_PREV_SLOT)) { m_invUI.selectSlot(PREV, 0); }
 
+		constexpr int SLOT0_INT = static_cast<int>(INV_SLOT0);
+		for (int i = 0; i < 10; ++i) {
+			if (keybindPressed(static_cast<RealWorldKeyBindings>(SLOT0_INT + i))) { m_invUI.selectSlot(ABS, i); }
+		}
 		if (keybindPressed(ITEMUSER_SWITCH_SHAPE)) { m_itemUser.switchShape(); }
 	}
 	m_worldDrawer.endStep();
@@ -131,7 +129,7 @@ void WorldRoom::render(double interpolationFactor) {
 void WorldRoom::windowResized(const glm::ivec2& newDims) {
 	m_worldView.resizeView(newDims);
 	m_worldDrawer.resizeView(newDims);
-	m_inventoryDrawer.resizeWindow(newDims);
+	m_invUI.windowResized(newDims);
 	m_craftingDrawer.resizeWindow(newDims);
 }
 
@@ -149,11 +147,11 @@ void WorldRoom::drawGUI() {
 
 
 	glm::vec2 topLeft = glm::vec2(0.0f, window()->getDims().y);
-	RE::Colour tint{200, 0, 0, 255};
+	RE::Colour tint{255, 255, 255, 255};
 	auto font = RE::RM::getFont(m_inventoryFont);
 	font->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
 
-	m_inventoryDrawer.draw();
+	m_invUI.draw(input()->getCursorAbs());
 	m_craftingDrawer.draw();
 
 	RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
@@ -169,7 +167,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
 	auto worldTextureSize = m_world.adoptWorldData(wd, worldName, window()->getDims());
 	m_player.adoptPlayerData(wd.pd);
-	m_playerInventory.adoptInventoryData(wd.pd.id);
+	m_playerInv.adoptInventoryData(wd.pd.id);
 
 	m_worldDrawer.setTarget(worldTextureSize);
 	return true;
@@ -179,7 +177,7 @@ bool WorldRoom::saveWorld() const {
 	WorldData wd;
 	m_world.gatherWorldData(wd);
 	m_player.gatherPlayerData(wd.pd);
-	m_playerInventory.gatherInventoryData(wd.pd.id);
+	m_playerInv.gatherInventoryData(wd.pd.id);
 	if (!WorldDataLoader::saveWorldData(wd, wd.wi.worldName, false)) return false;
 	return m_world.saveChunks();
 }

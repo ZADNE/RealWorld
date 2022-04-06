@@ -64,7 +64,7 @@ LightManipulator WorldDrawer::getLightManipulator() {
 }
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
-	m_botLeftPx = botLeftPx;
+	m_invBotLeftPx = botLeftPx;
 	m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx)) - glm::ivec2(LIGHT_MAX_RANGETi);
 	return ViewEnvelope{.botLeftTi = m_botLeftTi, .topRightTi = m_botLeftTi + glm::ivec2(m_viewDimsTi) + glm::ivec2(LIGHT_MAX_RANGETi) * 2};
 }
@@ -121,7 +121,7 @@ void WorldDrawer::endStep() {
 void WorldDrawer::drawTiles() {
 	m_arrayPOUV.bind();
 	m_tilesShader.use();
-	m_tilesShader.setUniform(LOC_POSITION, m_botLeftPx);
+	m_tilesShader.setUniform(LOC_POSITION, m_invBotLeftPx);
 	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsTi.x * m_viewDimsTi.y);
 	m_tilesShader.unuse();
 	m_arrayPOUV.unbind();
@@ -131,7 +131,7 @@ void WorldDrawer::coverWithDarkness() {
 	if (m_drawDarkness) {
 		m_arrayPOUV.bind();
 		m_coverWithDarknessShader.use();
-		m_coverWithDarknessShader.setUniform(LOC_POSITION, glm::mod(m_botLeftPx, TILEPx * LIGHT_DOWNSAMPLE));
+		m_coverWithDarknessShader.setUniform(LOC_POSITION, glm::mod(m_invBotLeftPx, TILEPx * LIGHT_DOWNSAMPLE));
 		m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsUn.x * m_viewDimsUn.y);
 		m_coverWithDarknessShader.unuse();
 		m_arrayPOUV.unbind();

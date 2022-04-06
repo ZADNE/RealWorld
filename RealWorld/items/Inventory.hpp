@@ -1,16 +1,13 @@
 ﻿#pragma once
 #include <vector>
 
-#include <glm/vec2.hpp>
-
 #include <RealWorld/items/InventoryData.hpp>
-#include <RealWorld/items/InventoryDrawer.hpp>
+#include <RealWorld/items/InventoryUI.hpp>
 
-class InventoryDrawer;
 class ItemCombinator;
 
-class Inventory {
-	friend class InventoryDrawer;
+class Inventory: public InventoryData {
+	friend class InventoryUI;
 	friend class ItemCombinator;
 public:
 	Inventory(const glm::ivec2& size);
@@ -19,7 +16,6 @@ public:
 	//Contents of removed slots are lost
 	void resize(const glm::ivec2& newSize);
 
-	glm::ivec2 getSize() const { return m_data.size; }
 	//Inputs item, creating new stacks
 	//Returns true if all the intended items have been inserted, false if not (inventory is full)
 	bool insert(Item& item, float portion = 1.0f, const glm::ivec2& startSlot = glm::ivec2(0, 0), bool reload = true);
@@ -41,28 +37,16 @@ public:
 	//remove(item, glm::ivec2(0, 0));
 	int operator-= (const Item& item);
 
-	class Proxy {
-	public:
-		Proxy(std::vector<Item>* vector) : vector(vector) { }
-
-		Item& operator[](int y) {
-			return (*vector)[y];
-		}
-	private:
-		std::vector<Item>* vector;
-	};
-
-	Proxy operator[](int x) {
-		return Proxy(&m_data.items[x]);
+	InventoryData::Proxy operator[](int x) {
+		return InventoryData::Proxy(*this, x);
 	}
 private:
-	//Should only be called from InventoryDrawer::connectToInventory()
-	void connectToDrawer(InventoryDrawer* inventoryDrawer, Connection connection);
+	//Should only be called from InventoryUI::connectToInventory()
+	void connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection);
 	//Should only be called from ItemCombinator::connectToInventory()
 	void connectToItemCombinator(ItemCombinator* itemCombinator);
 
-	InventoryDrawer* m_inventoryDrawer = nullptr;
-	Connection m_invDrawerConnection;//Defines how it is connected to the drawer
+	InventoryUI* m_UI = nullptr;
+	InventoryUI::Connection m_UIConnection;//Defines the type of connection to UI
 	ItemCombinator* m_itemCombinator = nullptr;
-	InventoryData m_data;
 };

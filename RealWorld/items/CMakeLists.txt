@@ -3,7 +3,7 @@
 	IDB.hpp					IDB.cpp
 	Inventory.hpp			Inventory.cpp
 	InventoryData.hpp		
-	InventoryDrawer.hpp		InventoryDrawer.cpp
+	InventoryUI.hpp			InventoryUI.cpp
 	Item.hpp				Item.cpp
 	ItemCombinator.hpp		ItemCombinator.cpp
 	ItemInstruction.hpp		ItemInstruction.cpp
