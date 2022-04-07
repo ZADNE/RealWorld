@@ -8,7 +8,7 @@ bool ItemSample::operator==(const ItemSample& other) const {
 }
 
 bool ItemSample::isEmpty() const {
-	if (ID == I_ID::EMPTY) {
+	if (ID == ITEM::EMPTY) {
 		return true;
 	}
 	return false;

@@ -72,7 +72,7 @@ void CraftingDrawer::craft(unsigned int times) {
 				if (it->first) {//If it is not border
 					m_queueIS.emplace_back(it->first->output(0), it->second);
 				} else {//Border
-					m_queueIS.emplace_back(I_ID::EMPTY, 0);
+					m_queueIS.emplace_back(ITEM::EMPTY, 0);
 				}
 				++it;
 			}

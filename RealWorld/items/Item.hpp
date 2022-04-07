@@ -7,7 +7,7 @@ struct Item : public ItemSample {
 		//Construct item from ItemSample and amount
 	Item(const ItemSample& sample, int amount);
 		//Construct item from parameters
-	Item(I_ID ID, int amount, float special = 0.0f);
+	Item(ITEM ID, int amount, float special = 0.0f);
 	~Item();
 
 		//Merge with another item of same ID and special (checks are done inside this function)

@@ -45,12 +45,12 @@ void ItemUser::step(bool use[2], const glm::ivec2& relCursorPosPx) {
 	//MAIN
 	if (m_using[PRIMARY_USE] > 0) {
 		switch (im.type) {
-		case I_TYPE::EMPTY:
+		case ITEM_TYPE::EMPTY:
 			break;
-		case I_TYPE::PICKAXE:
+		case ITEM_TYPE::PICKAXE:
 			m_world.set(SET_TARGET::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(BLOCK::AIR, 0));
 			break;
-		case I_TYPE::HAMMER:
+		case ITEM_TYPE::HAMMER:
 			m_world.set(SET_TARGET::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(WALL::AIR, 0));
 			break;
 		}
@@ -58,12 +58,12 @@ void ItemUser::step(bool use[2], const glm::ivec2& relCursorPosPx) {
 	//ALTERNATIVE
 	if (m_using[SECONDARY_USE] > 0) {
 		switch (im.type) {
-		case I_TYPE::EMPTY:
+		case ITEM_TYPE::EMPTY:
 			break;
-		case I_TYPE::BLOCK:
+		case ITEM_TYPE::BLOCK:
 			m_world.set(SET_TARGET::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 256));
 			break;
-		case I_TYPE::WALL:
+		case ITEM_TYPE::WALL:
 			m_world.set(SET_TARGET::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 256));
 			break;
 		}
@@ -74,11 +74,11 @@ void ItemUser::draw() {
 	/*Item& item = m_inv[m_chosenSlot][0];
 	const ItemMetadata& im = IDB::g(item.ID);
 	if (m_using[PRIMARY_USE] > 0) {
-		if (im.type == I_TYPE::PICKAXE && m_neededToMineBlock != 0.0f && m_UCBlock != BLOCK::AIR) {
+		if (im.type == ITEM_TYPE::PICKAXE && m_neededToMineBlock != 0.0f && m_UCBlock != BLOCK::AIR) {
 			m_spriteBatch.addSubimage(m_miningBlockTex.get(), glm::vec2(m_UCTilePx), 10, glm::vec2(m_neededToMineBlock / TDB::gb(m_UCBlock).toughness * 9.0f, 0.0f));
 		}
 
-		if (im.type == I_TYPE::HAMMER && m_neededToMineWall != 0.0f && m_UCWall != WALL::AIR) {
+		if (im.type == ITEM_TYPE::HAMMER && m_neededToMineWall != 0.0f && m_UCWall != WALL::AIR) {
 			m_spriteBatch.addSubimage(m_miningBlockTex.get(), glm::vec2(m_UCTilePx), 10, glm::vec2(m_neededToMineWall / TDB::gw(m_UCWall).toughness * 9.0f, 0.0f));
 		}
 	}*/

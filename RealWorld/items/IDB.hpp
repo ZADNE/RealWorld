@@ -5,7 +5,7 @@
 
 const std::string ITEM_ATLAS_PREFIX = "itemAtlas";
 
-enum class I_ID : uint16_t {
+enum class ITEM : uint16_t {
 	EMPTY,
 
 	B_WATER,
@@ -46,7 +46,7 @@ enum class I_ID : uint16_t {
 	LAST
 };
 
-enum class I_TYPE : uint32_t {
+enum class ITEM_TYPE : uint32_t {
 	EMPTY,
 	MATERIAL,
 	BLOCK,
@@ -60,7 +60,7 @@ enum class I_TYPE : uint32_t {
 #pragma warning(disable: 26495)
 struct ItemMetadata {
 	ItemMetadata() {};
-	ItemMetadata(const std::string& name, int32_t maxStack, char textureAtlas, float spriteIndex, float drawScale, I_TYPE type, int32_t typeIndex) :
+	ItemMetadata(const std::string& name, int32_t maxStack, char textureAtlas, float spriteIndex, float drawScale, ITEM_TYPE type, int32_t typeIndex) :
 		name(name),
 		maxStack(maxStack),
 		textureAtlas(textureAtlas),
@@ -80,7 +80,7 @@ struct ItemMetadata {
 	float spriteIndex/* = 0.0f*/;//Indicates which sprite in the texture atlas should be used
 	float drawScale;//Both X and Y scaling used when drawing the item inside slot (in world it is unstretched)
 
-	I_TYPE type/* = I_TYPE::MATERIAL*/;
+	ITEM_TYPE type/* = ITEM_TYPE::MATERIAL*/;
 	int32_t typeIndex/* = 0*/;//ID of the block with block types | totalIndex of furniture with furniture types
 };
 #pragma warning(pop)
@@ -129,7 +129,7 @@ class IDB {
 public:
 	void static init();
 
-	const static ItemMetadata& g(I_ID ID);
+	const static ItemMetadata& g(ITEM ID);
 private:
 
 	static std::vector<ItemMetadata> m_itemMetadata;

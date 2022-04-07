@@ -67,7 +67,13 @@ private:
 	void initShaders();
 	void updateUniformsAfterViewResize();
 
-	RE::Surface m_surLighting{{RE::TextureFlags::RGBA8_NU_NEAR_LIN_EDGE}, false, false};
+	static inline const RE::TextureFlags RGBA32_NU_NEAR_LIN_EDGE{
+		RE::TextureChannels::RGBA, RE::TextureFormat::NORMALIZED_UNSIGNED, RE::TextureMinFilter::NEAREST_NO_MIPMAPS,
+		RE::TextureMagFilter::LINEAR, RE::TextureWrapStyle::CLAMP_TO_EDGE, RE::TextureWrapStyle::CLAMP_TO_EDGE,
+		RE::TextureBitdepthPerChannel::BITS_32
+	};
+
+	RE::Surface m_surLighting{{RGBA32_NU_NEAR_LIN_EDGE}, false, false};
 	//0 texture (diaphragm):			R = diaphragm of the tile; G = direction of the light; B = width of light cone; A = unused yet
 	//1 texture (lights):				RGB = colour of the light; A = strength of the light
 	//2 texture (finished lighting):	RGBA = drawn to screen
@@ -83,6 +89,8 @@ private:
 
 	RE::TexturePtr m_blockAtlasTex = RE::RM::getTexture("blockAtlas");
 	RE::TexturePtr m_wallAtlasTex = RE::RM::getTexture("wallAtlas");
+	RE::TexturePtr m_blockLightAtlasTex = RE::RM::getTexture("blockLightAtlas");
+	RE::TexturePtr m_wallLightAtlasTex = RE::RM::getTexture("wallLightAtlas");
 
 	RE::ShaderProgram m_tilesShader = RE::ShaderProgram({.vert = tilesDraw_vert, .frag = colorDraw_frag});
 	RE::ShaderProgram m_coverWithDarknessShader = RE::ShaderProgram({.vert = coverWithDarkness_vert, .frag = colorDraw_frag});

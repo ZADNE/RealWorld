@@ -26,9 +26,11 @@ WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {
 	reloadViewSize(viewSizePx);
 	m_surLighting.resize({m_viewDimsUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
 
-	//Bind textures to texture units
+	//Bind textures to their reserved texture units
 	m_blockAtlasTex->bind(TEX_UNIT_BLOCK_ATLAS);
 	m_wallAtlasTex->bind(TEX_UNIT_WALL_ATLAS);
+	m_blockLightAtlasTex->bind(TEX_UNIT_BLOCK_LIGHT_ATLAS);
+	m_wallLightAtlasTex->bind(TEX_UNIT_WALL_LIGHT_ATLAS);
 	m_surLighting.getTexture(0).bind(TEX_UNIT_DIAPHRAGM);
 	m_surLighting.getTexture(1).bind(TEX_UNIT_LIGHTING);
 	m_surLighting.getTexture(2).bind(TEX_UNIT_LIGHT_FINISHED);

@@ -3,6 +3,8 @@ layout(location = 0) out vec4 diaphragm;
 layout(location = 1) out vec4 light;
 
 layout(binding = TEX_UNIT_WORLD_TEXTURE) uniform usampler2D worldTexture;
+layout(binding = TEX_UNIT_BLOCK_LIGHT_ATLAS) uniform sampler2D blockLight;
+layout(binding = TEX_UNIT_WALL_LIGHT_ATLAS) uniform sampler2D wallLight;
 layout(location = 3) uniform vec2 botLeftTi;
 
 layout(location = 4) uniform vec4 daylight;
@@ -23,9 +25,11 @@ void main() {
 					lightSum += daylight;
 				} else {//There is not a block but there is a wall
 					diaSum += diaphragms.y;
+					lightSum += texelFetch(wallLight, ivec2(tile.WL_V, tile.WL_T), 0);
 				}
 			} else {//There is a block
 				diaSum += diaphragms.z;
+				lightSum += texelFetch(blockLight, ivec2(tile.BL_V, tile.BL_T), 0);
 			}
 		}
 	}

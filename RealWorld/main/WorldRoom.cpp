@@ -39,9 +39,6 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	}
 
 	m_worldView.setPosition(glm::vec2(m_player.getHitbox().getCenter()));
-
-	Item k{I_ID::B_DIRT, 2};
-	m_playerInv.insert(k);
 }
 
 void WorldRoom::sessionEnd() {

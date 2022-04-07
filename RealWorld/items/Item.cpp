@@ -14,7 +14,7 @@ Item::Item(const ItemSample& sample, int amount):
 
 }
 
-Item::Item(I_ID ID, int amount, float special/* = 0.0f*/):
+Item::Item(ITEM ID, int amount, float special/* = 0.0f*/):
 	ItemSample(ID, special),
 	amount(amount){
 
@@ -32,12 +32,12 @@ void Item::merge(Item& item, float portion){
 	amount += temp;
 	item.amount -= temp;
 	if (item.amount <= 0) {
-		item.ID = I_ID::EMPTY;
+		item.ID = ITEM::EMPTY;
 	}
 }
 
 void Item::insert(Item & item, float portion){
-	if (ID != I_ID::EMPTY) { return; }//This is not empty item, cannot insert
+	if (ID != ITEM::EMPTY) { return; }//This is not empty item, cannot insert
 	special = item.special;
 	ID = item.ID;
 	int maxStack = IDB::g(ID).maxStack;
@@ -45,7 +45,7 @@ void Item::insert(Item & item, float portion){
 	amount += temp;
 	item.amount -= temp;
 	if (item.amount <= 0) {
-		item.ID = I_ID::EMPTY;
+		item.ID = ITEM::EMPTY;
 	}
 }
 
@@ -58,14 +58,14 @@ void Item::swap(Item& item){
 int Item::operator--(){
 	int tmp = amount;
 	if (--amount <= 0) {
-		ID = I_ID::EMPTY;
+		ID = ITEM::EMPTY;
 	}
 	return tmp;
 }
 
 int Item::operator--(int){
 	if (--amount <= 0) {
-		ID = I_ID::EMPTY;
+		ID = ITEM::EMPTY;
 	}
 	return amount;
 }
@@ -73,7 +73,7 @@ int Item::operator--(int){
 int Item::operator+=(int number){
 	amount += number;
 	if (amount <= 0) {
-		ID = I_ID::EMPTY;
+		ID = ITEM::EMPTY;
 	}
 	return amount;
 }
@@ -81,7 +81,7 @@ int Item::operator+=(int number){
 int Item::operator-=(int number){
 	amount -= number;
 	if (amount <= 0) {
-		ID = I_ID::EMPTY;
+		ID = ITEM::EMPTY;
 	}
 	return amount;
 }

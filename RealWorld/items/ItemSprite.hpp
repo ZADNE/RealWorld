@@ -8,6 +8,6 @@ struct Item;
 class ItemSprite : public RE::FullSprite {
 public:
 	ItemSprite();
-	ItemSprite(I_ID ID);
+	ItemSprite(ITEM ID);
 	ItemSprite(Item item);
 };
