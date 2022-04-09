@@ -16,13 +16,13 @@ Player::~Player() {
 
 }
 
-void Player::adoptPlayerData(const PlayerData& pd) {
-	m_hitbox.botLeft() = pd.pos;
-	m_hitboxSSBO.overwrite(offsetof(PlayerHitboxSSBO, botLeftPx), glm::vec2(pd.pos));
+void Player::adoptSave(const PlayerSave& save) {
+	m_hitbox.botLeft() = save.pos;
+	m_hitboxSSBO.overwrite(offsetof(PlayerHitboxSSBO, botLeftPx), glm::vec2(save.pos));
 }
 
-void Player::gatherPlayerData(PlayerData& pd) const {
-	pd.pos = m_hitbox.getBotLeft();
+void Player::gatherSave(PlayerSave& save) const {
+	save.pos = m_hitbox.getBotLeft();
 }
 
 Hitbox& Player::getHitbox() {

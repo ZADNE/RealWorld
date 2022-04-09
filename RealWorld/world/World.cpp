@@ -32,22 +32,22 @@ World::~World() {
 
 }
 
-glm::uvec2 World::adoptWorldData(const WorldData& wd, const std::string& name, const glm::vec2& windowDims) {
-	m_seed = wd.wi.seed;
-	m_worldName = name;
+glm::uvec2 World::adoptSave(const MetadataSave& save, const glm::vec2& windowDims) {
+	m_seed = save.seed;
+	m_worldName = save.worldName;
 
 	m_worldSurface.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
 	m_worldSurface.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
 	m_worldSurface.getTexture(0).clear(RE::Colour{1, 0, 0, 0});
 
-	m_chunkManager.setTarget(m_seed, wd.path, &m_worldSurface);
+	m_chunkManager.setTarget(m_seed, save.path, &m_worldSurface);
 
 	return m_worldSurface.getDims();
 }
 
-void World::gatherWorldData(WorldData& wd) const {
-	wd.wi.seed = m_seed;
-	wd.wi.worldName = m_worldName;
+void World::gatherSave(MetadataSave& save) const {
+	save.seed = m_seed;
+	save.worldName = m_worldName;
 }
 
 bool World::saveChunks() const {

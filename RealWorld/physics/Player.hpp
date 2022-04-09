@@ -5,10 +5,10 @@
 #include <RealEngine/graphics/ShaderProgram.hpp>
 
 #include <RealWorld/physics/Hitbox.hpp>
-#include <RealWorld/physics/PlayerData.hpp>
 #include <RealWorld/rendering/ShaderStorageBuffers.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 #include <RealWorld/shaders/world_dynamics.hpp>
+#include <RealWorld/save/WorldSave.hpp>
 
 enum class WALK : int {
 	LEFT = -1,
@@ -21,8 +21,8 @@ public:
 	Player(RE::SpriteBatch& spriteBatch);
 	~Player();
 
-	void adoptPlayerData(const PlayerData& pd);
-	void gatherPlayerData(PlayerData& pd) const;
+	void adoptSave(const PlayerSave& save);
+	void gatherSave(PlayerSave& save) const;
 
 	Hitbox& getHitbox();
 

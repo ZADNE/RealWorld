@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include <RealWorld/chunk/ChunkLoader.hpp>
+#include <RealWorld/save/ChunkLoader.hpp>
 
 
 ChunkManager::ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex) {

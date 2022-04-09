@@ -1,6 +1,6 @@
 ﻿#include <RealWorld/main/WorldRoom.hpp>
 
-#include <RealWorld/world/WorldDataLoader.hpp>
+#include <RealWorld/save/WorldSaveLoader.hpp>
 
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_world(),
@@ -143,23 +143,23 @@ void WorldRoom::drawGUI() {
 }
 
 bool WorldRoom::loadWorld(const std::string& worldName) {
-	WorldData wd = WorldData();
+	WorldSave save{};
 
-	if (!WorldDataLoader::loadWorldData(wd, worldName)) return false;
+	if (!WorldSaveLoader::loadWorld(save, worldName)) return false;
 
-	auto worldTextureSize = m_world.adoptWorldData(wd, worldName, window()->getDims());
-	m_player.adoptPlayerData(wd.pd);
-	m_playerInv.adoptInventoryData(wd.pd.id);
+	auto worldTextureSize = m_world.adoptSave(save.metadata, window()->getDims());
+	m_player.adoptSave(save.player);
+	m_playerInv.adoptInventoryData(save.inventory);
 
 	m_worldDrawer.setTarget(worldTextureSize);
 	return true;
 }
 
 bool WorldRoom::saveWorld() const {
-	WorldData wd;
-	m_world.gatherWorldData(wd);
-	m_player.gatherPlayerData(wd.pd);
-	m_playerInv.gatherInventoryData(wd.pd.id);
-	if (!WorldDataLoader::saveWorldData(wd, wd.wi.worldName, false)) return false;
+	WorldSave save{};
+	m_world.gatherSave(save.metadata);
+	m_player.gatherSave(save.player);
+	m_playerInv.gatherInventoryData(save.inventory);
+	if (!WorldSaveLoader::saveWorld(save, save.metadata.worldName, false)) return false;
 	return m_world.saveChunks();
 }

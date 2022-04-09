@@ -5,7 +5,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 
 #include <RealWorld/chunk/ChunkManager.hpp>
-#include <RealWorld/world/WorldData.hpp>
+#include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/shaders/world_dynamics.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
@@ -35,8 +35,8 @@ public:
 
 	void step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	glm::uvec2 adoptWorldData(const WorldData& wd, const std::string& name, const glm::vec2& windowDims);
-	void gatherWorldData(WorldData& wd) const;
+	glm::uvec2 adoptSave(const MetadataSave& save, const glm::vec2& windowDims);
+	void gatherSave(MetadataSave& save) const;
 	bool saveChunks() const;
 private:
 	using enum RE::BufferType;

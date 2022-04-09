@@ -2,5 +2,4 @@
 	DynamicHitbox.hpp	DynamicHitbox.cpp
 	Hitbox.hpp			Hitbox.cpp
 	Player.hpp			Player.cpp
-	PlayerData.hpp
 )

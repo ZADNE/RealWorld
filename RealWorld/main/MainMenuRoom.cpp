@@ -7,8 +7,7 @@
 
 #include <glm/common.hpp>
 
-#include <RealWorld/world/WorldCreator.hpp>
-#include <RealWorld/world/WorldDataLoader.hpp>
+#include <RealWorld/save/WorldSaveLoader.hpp>
 
 const char* KEYBIND_NOTICE = "Press a key to change the keybind.\nOr press Delete to cancel.";
 
@@ -68,7 +67,7 @@ MainMenuRoom::~MainMenuRoom() {
 
 void MainMenuRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	m_menu = MAIN;
-	WorldDataLoader::getSavedWorlds(m_worlds);
+	WorldSaveLoader::getSavedWorlds(m_worlds);
 	m_newWorldName = "";
 	m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
 }
@@ -130,8 +129,7 @@ void MainMenuRoom::newWorldMenu() {
 	ImGui::TextUnformatted("Name: "); ImGui::SameLine(); ImGui::InputText("##name", &m_newWorldName);
 	ImGui::TextUnformatted("Seed: "); ImGui::SameLine(); ImGui::InputInt("##seed", &m_newWorldSeed);
 	if (ImGui::Button("Create the world!")) {
-		auto wd = WorldCreator::createWorld(m_newWorldName, m_newWorldSeed);
-		if (WorldDataLoader::saveWorldData(wd, m_newWorldName, true)) {
+		if (WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed)) {
 			program()->scheduleRoomTransition(1, {m_newWorldName});
 		}
 	}
@@ -148,8 +146,8 @@ void MainMenuRoom::loadWorldMenu() {
 		if (ImGui::Button(world.c_str())) program()->scheduleRoomTransition(1, {world});
 		ImGui::TableNextColumn();
 		if (ImGui::Button(("Delete##" + world).c_str())) {
-			WorldDataLoader::deleteWorld(world);
-			WorldDataLoader::getSavedWorlds(m_worlds);
+			WorldSaveLoader::deleteWorld(world);
+			WorldSaveLoader::getSavedWorlds(m_worlds);
 		}
 	}
 	ImGui::EndTable();

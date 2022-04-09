@@ -1,4 +1,4 @@
-﻿#include <RealWorld/world/WorldDataLoader.hpp>
+﻿#include <RealWorld/save/WorldSaveLoader.hpp>
 
 #include <fstream>
 #include <filesystem>
@@ -10,6 +10,8 @@
 #include <RealEngine/external/lodepng/lodepng.hpp>
 #include <RealEngine/main/Error.hpp>
 
+#include <RealWorld/constants/chunk.hpp>
+
 template<class T>
 void writeBinary(std::ofstream& file, const T& x) {
 	file.write(reinterpret_cast<const char*>(&x), sizeof(x));
@@ -20,18 +22,40 @@ void readBinary(std::ifstream& file, T& x) {
 	file.read(reinterpret_cast<char*>(&x), sizeof(x));
 }
 
-std::string WorldDataLoader::m_saveFolder = "saves";
+std::string WorldSaveLoader::m_saveFolder = "saves";
 
 const std::string WORLD_INFO_FILENAME = "world_info.json";
 
-bool WorldDataLoader::loadWorldData(WorldData& data, const std::string& worldName) {
+
+bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
+	WorldSave save;
+	//World info
+	save.metadata.seed = seed;
+	save.metadata.worldName = worldName;
+
+	//Player data
+	save.player.pos = iCHUNK_SIZE * glm::ivec2(0, 5) * iTILEPx;
+	save.inventory.resize({10, 4});
+	int x = 0;
+	save.inventory[x++][0] = Item{ITEM::STEEL_PICKAXE, 1};
+	save.inventory[x++][0] = Item{ITEM::STEEL_HAMMER, 1};
+	save.inventory[x++][0] = Item{ITEM::B_STONE, 1};
+	save.inventory[x++][0] = Item{ITEM::B_WATER, 1};
+	save.inventory[x++][0] = Item{ITEM::B_LAVA, 1};
+	save.inventory[x++][0] = Item{ITEM::B_GRASS, 1};
+
+	return saveWorld(save, worldName, true);
+}
+
+bool WorldSaveLoader::loadWorld(WorldSave& save, const std::string& worldName) {
 	unsigned int ticks = SDL_GetTicks();
 	std::string pathToFolder = m_saveFolder + "/" + worldName + "/";
-	data.path = pathToFolder;
+	save.metadata.path = pathToFolder;
 
 	try {
-		loadInfo(data.wi, pathToFolder);
-		loadPlayer(data.pd, pathToFolder);
+		loadMetadata(save.metadata, pathToFolder);
+		loadPlayer(save.player, pathToFolder);
+		loadInventory(save.inventory, pathToFolder);
 	}
 	catch (...) {
 		return false;
@@ -41,10 +65,10 @@ bool WorldDataLoader::loadWorldData(WorldData& data, const std::string& worldNam
 	return true;
 }
 
-bool WorldDataLoader::saveWorldData(const WorldData& data, const std::string& worldName, bool creatingNew) {
+bool WorldSaveLoader::saveWorld(const WorldSave& save, const std::string& worldName, bool creatingNew) {
 	if (worldName == "") return false;
 	unsigned int ticks = SDL_GetTicks();
-	std::string pathToFolder = m_saveFolder + "/" + worldName + "/";
+	std::string pathToFolder = m_saveFolder + "/" + save.metadata.worldName + "/";
 	bool alreadyExists = std::filesystem::exists(pathToFolder);
 	if (alreadyExists && creatingNew) return false;
 
@@ -53,8 +77,9 @@ bool WorldDataLoader::saveWorldData(const WorldData& data, const std::string& wo
 	}
 
 	try {
-		saveInfo(data.wi, pathToFolder);
-		savePlayer(data.pd, pathToFolder);
+		saveMetadata(save.metadata, pathToFolder);
+		savePlayer(save.player, pathToFolder);
+		saveInventory(save.inventory, pathToFolder);
 	}
 	catch (...) {
 		return false;
@@ -64,7 +89,7 @@ bool WorldDataLoader::saveWorldData(const WorldData& data, const std::string& wo
 	return true;
 }
 
-bool WorldDataLoader::deleteWorld(const std::string& worldName) {
+bool WorldSaveLoader::deleteWorld(const std::string& worldName) {
 	if (std::filesystem::remove_all(m_saveFolder + "/" + worldName) > 0) {
 		return true;
 	} else {
@@ -72,7 +97,7 @@ bool WorldDataLoader::deleteWorld(const std::string& worldName) {
 	}
 }
 
-void WorldDataLoader::getSavedWorlds(std::vector<std::string>& names) {
+void WorldSaveLoader::getSavedWorlds(std::vector<std::string>& names) {
 	names.clear();
 
 	for (const auto& entry : std::filesystem::directory_iterator(m_saveFolder)) {
@@ -80,15 +105,15 @@ void WorldDataLoader::getSavedWorlds(std::vector<std::string>& names) {
 	}
 }
 
-void WorldDataLoader::loadInfo(WorldInfo& wi, const std::string& path) {
+void WorldSaveLoader::loadMetadata(MetadataSave& metadata, const std::string& path) {
 	std::ifstream i(path + WORLD_INFO_FILENAME);
 	nlohmann::json j;
 	i >> j;
-	wi.worldName = j["world"]["name"].get<std::string>();
-	wi.seed = j["world"]["seed"].get<int>();
+	metadata.worldName = j["world"]["name"].get<std::string>();
+	metadata.seed = j["world"]["seed"].get<int>();
 }
 
-void WorldDataLoader::loadPlayer(PlayerData& pd, const std::string& path) {
+void WorldSaveLoader::loadPlayer(PlayerSave& player, const std::string& path) {
 	std::ifstream stream(path + "player_state.rst", std::ios::binary);
 	if (stream.fail()) {
 		perror((path + "player_state.rst").c_str());
@@ -99,14 +124,12 @@ void WorldDataLoader::loadPlayer(PlayerData& pd, const std::string& path) {
 	auto fileSize = stream.tellg();
 	stream.seekg(0, std::ios::beg);
 
-	if (fileSize < sizeof(pd.pos)) throw std::exception{};
+	if (fileSize < sizeof(player.pos)) throw std::exception{};
 
-	readBinary(stream, pd.pos);
-
-	loadInventoryData(pd.id, path);
+	readBinary(stream, player.pos);
 }
 
-void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& path) {
+void WorldSaveLoader::loadInventory(InventoryData& inventory, const std::string& path) {
 	std::ifstream stream(path + "player_inventory.rin", std::ios::binary);
 	if (stream.fail()) {
 		perror((path + "player_inventory.rin").c_str());
@@ -124,18 +147,18 @@ void WorldDataLoader::loadInventoryData(InventoryData& id, const std::string& pa
 	if ((size_t)fileSize < ((size_t)newSize.x * (size_t)newSize.y * sizeof(Item) + sizeof(newSize))) throw std::exception{};
 
 	//All checks passed, loading inventory
-	id.resize(newSize);
+	inventory.resize(newSize);
 
-	for (int i = 0; i < id.slotCount(); ++i) {
-		readBinary(stream, id(i));
+	for (int i = 0; i < inventory.slotCount(); ++i) {
+		readBinary(stream, inventory(i));
 	}
 }
 
-void WorldDataLoader::saveInfo(const WorldInfo& wi, const std::string& path) {
+void WorldSaveLoader::saveMetadata(const MetadataSave& metadata, const std::string& path) {
 	nlohmann::json j = {
 		{"world", {
-			{"name", wi.worldName},
-			{"seed", wi.seed}
+			{"name", metadata.worldName},
+			{"seed", metadata.seed}
 		}}
 	};
 
@@ -144,27 +167,25 @@ void WorldDataLoader::saveInfo(const WorldInfo& wi, const std::string& path) {
 	o.close();
 }
 
-void WorldDataLoader::savePlayer(const PlayerData& pd, const std::string& path) {
+void WorldSaveLoader::savePlayer(const PlayerSave& playerSave, const std::string& path) {
 	std::ofstream stream(path + "player_state.rst", std::ios::binary | std::ios::trunc);
 	if (stream.fail()) {
 		perror((path + "player_state.rst").c_str());
 		throw std::exception{};
 	}
-	writeBinary(stream, pd.pos);
-
-	saveInventoryData(pd.id, path);
+	writeBinary(stream, playerSave.pos);
 }
 
-void WorldDataLoader::saveInventoryData(const InventoryData& id, const std::string& path) {
+void WorldSaveLoader::saveInventory(const InventoryData& inventory, const std::string& path) {
 	std::ofstream stream(path + "player_inventory.rin", std::ios::binary | std::ios::trunc);
 	if (stream.fail()) {
 		perror(path.c_str());
 		throw std::exception{};
 	}
 
-	writeBinary(stream, id.getSize());
+	writeBinary(stream, inventory.getSize());
 
-	for (int i = 0; i < id.slotCount(); ++i) {
-		writeBinary(stream, id(i));
+	for (int i = 0; i < inventory.slotCount(); ++i) {
+		writeBinary(stream, inventory(i));
 	}
 }
