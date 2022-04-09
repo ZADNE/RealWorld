@@ -4,9 +4,8 @@
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/ShaderProgram.hpp>
 
-#include <RealWorld/world/physics/Health.hpp>
-#include <RealWorld/world/physics/Hitbox.hpp>
-#include <RealWorld/world/physics/PlayerData.hpp>
+#include <RealWorld/physics/Hitbox.hpp>
+#include <RealWorld/physics/PlayerData.hpp>
 #include <RealWorld/rendering/ShaderStorageBuffers.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 #include <RealWorld/shaders/world_dynamics.hpp>
@@ -36,7 +35,6 @@ private:
 
 	RE::SpriteBatch& m_spriteBatch;
 
-	Health m_health;
 	Hitbox m_hitbox;
 
 	RE::TexturePtr m_playerTex = RE::ResourceManager::getTexture("player");

@@ -4,9 +4,7 @@
 #include <RealWorld/items/InventoryData.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 
-class ItemCombinator;
-
-class Inventory: public InventoryData {
+class Inventory : public InventoryData {
 	friend class InventoryUI;
 	friend class ItemCombinator;
 public:
@@ -43,10 +41,7 @@ public:
 private:
 	//Should only be called from InventoryUI::connectToInventory()
 	void connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection);
-	//Should only be called from ItemCombinator::connectToInventory()
-	void connectToItemCombinator(ItemCombinator* itemCombinator);
 
 	InventoryUI* m_UI = nullptr;
 	InventoryUI::Connection m_UIConnection;//Defines the type of connection to UI
-	ItemCombinator* m_itemCombinator = nullptr;
 };

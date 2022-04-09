@@ -6,8 +6,8 @@
 
 #include <RealEngine/graphics/Surface.hpp>
 
-#include <RealWorld/world/chunk/Chunk.hpp>
-#include <RealWorld/world/chunk/ChunkGenerator.hpp>
+#include <RealWorld/chunk/Chunk.hpp>
+#include <RealWorld/chunk/ChunkGenerator.hpp>
 #include <RealWorld/rendering/ShaderStorageBuffers.hpp>
 #include <RealWorld/shaders/world_dynamics.hpp>
 

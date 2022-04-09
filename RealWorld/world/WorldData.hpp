@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 
-#include <RealWorld/world/physics/PlayerData.hpp>
+#include <RealWorld/physics/PlayerData.hpp>
 #include <RealWorld/world/WorldInfo.hpp>
 
 struct WorldData {

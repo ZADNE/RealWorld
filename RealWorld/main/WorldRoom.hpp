@@ -7,14 +7,10 @@
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/WorldDrawer.hpp>
-#include <RealWorld/world/physics/Player.hpp>
+#include <RealWorld/physics/Player.hpp>
 #include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/items/ItemOnGroundManager.hpp>
 #include <RealWorld/items/ItemUser.hpp>
-#include <RealWorld/items/ItemInstructionDatabase.hpp>
-#include <RealWorld/items/ItemCombinator.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
-#include <RealWorld/items/CraftingDrawer.hpp>
 
 #ifdef _DEBUG
 const unsigned int FPS_LIMIT = 150u;
@@ -77,10 +73,6 @@ private:
 	WorldDrawer m_worldDrawer;
 	Player m_player;
 	Inventory m_playerInv;
-	ItemOnGroundManager m_itemOnGroundManager;
 	ItemUser m_itemUser;
-	ItemInstructionDatabase m_instructionDatabase;
-	ItemCombinator m_itemCombinator;
 	InventoryUI m_invUI;
-	CraftingDrawer m_craftingDrawer;
 };

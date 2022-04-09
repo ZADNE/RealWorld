@@ -1,6 +1,8 @@
 ﻿add_subdirectory(constants)
+add_subdirectory(chunk)
 add_subdirectory(items)
 add_subdirectory(main)
+add_subdirectory(physics)
 add_subdirectory(rendering)
 add_subdirectory(shaders)
 add_subdirectory(world)

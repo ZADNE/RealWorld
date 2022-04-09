@@ -4,7 +4,7 @@
 #include <RealEngine/graphics/SpriteBatch.hpp>
 #include <RealEngine/graphics/Surface.hpp>
 
-#include <RealWorld/world/chunk/ChunkManager.hpp>
+#include <RealWorld/chunk/ChunkManager.hpp>
 #include <RealWorld/world/WorldData.hpp>
 #include <RealWorld/shaders/world_dynamics.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
@@ -47,7 +47,7 @@ private:
 	using enum RE::Primitive;
 
 	int m_seed = 0;
-	RE::Surface m_worldSurface = RE::Surface(RE::Raster{ iCHUNK_SIZE * ACTIVE_CHUNKS_AREA }, { RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE }, true, false);
+	RE::Surface m_worldSurface = RE::Surface(RE::Raster{iCHUNK_SIZE * ACTIVE_CHUNKS_AREA}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
 
@@ -60,14 +60,14 @@ private:
 		glm::uint timeHash;
 		glm::ivec4 updateOrder[16];//Only first two components are valid, second two are padding
 	};
-	RE::UniformBuffer m_worldDynamicsUBO{ UNIF_BUF_WORLDDYNAMICS, true, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE };
+	RE::UniformBuffer m_worldDynamicsUBO{UNIF_BUF_WORLDDYNAMICS, true, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
-	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{ {.comp = dynamics_comp} };
-	RE::ShaderProgram m_transformShader = RE::ShaderProgram{ {.comp = transform_comp} };
-	RE::ShaderProgram m_modifyShader = RE::ShaderProgram{ {.comp = modify_comp} };
+	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{{.comp = dynamics_comp}};
+	RE::ShaderProgram m_transformShader = RE::ShaderProgram{{.comp = transform_comp}};
+	RE::ShaderProgram m_modifyShader = RE::ShaderProgram{{.comp = modify_comp}};
 
-	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = { glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1} };
+	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
 	uint32_t m_rngState;
 
-	ChunkManager m_chunkManager{ m_transformShader, 0u };
+	ChunkManager m_chunkManager{m_transformShader, 0u};
 };

@@ -4,8 +4,6 @@
 
 #include <RealEngine/main/Error.hpp>
 
-#include <RealWorld/items/ItemCombinator.hpp>
-
 
 Inventory::Inventory(const glm::ivec2& size) : InventoryData{size} {
 
@@ -16,9 +14,6 @@ Inventory::~Inventory() {
 	if (m_UI) {
 		m_UI->connectToInventory(nullptr, m_UIConnection);
 	}
-	if (m_itemCombinator) {
-		m_itemCombinator->connectToInventory(nullptr);
-	}
 }
 
 void Inventory::resize(const glm::ivec2& newSize) {
@@ -28,18 +23,11 @@ void Inventory::resize(const glm::ivec2& newSize) {
 	if (m_UI) {//If connected to any
 		m_UI->reload();
 	}
-	if (m_itemCombinator) {//If connected to any
-		m_itemCombinator->reload();
-	}
 }
 
 void Inventory::connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection) {
 	m_UI = inventoryDrawer;
 	m_UIConnection = connection;
-}
-
-void Inventory::connectToItemCombinator(ItemCombinator* itemCombinator) {
-	m_itemCombinator = itemCombinator;
 }
 
 bool Inventory::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
@@ -114,9 +102,6 @@ int Inventory::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ive
 void Inventory::wasChanged() const {
 	if (m_UI) {//If connected to any
 		m_UI->reload();
-	}
-	if (m_itemCombinator) {//If connected to any
-		m_itemCombinator->reload();
 	}
 }
 

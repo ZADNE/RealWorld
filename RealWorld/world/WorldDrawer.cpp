@@ -8,7 +8,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/Viewport.hpp>
 
-#include <RealWorld/world/chunk/ChunkManager.hpp>
+#include <RealWorld/chunk/ChunkManager.hpp>
 #include <RealWorld/constants/light.hpp>
 #include <RealWorld/shaders/common.hpp>
 #include <RealWorld/rendering/TextureUnits.hpp>

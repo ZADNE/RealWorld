@@ -1,16 +1,14 @@
-﻿#include <RealWorld/world/physics/Player.hpp>
+﻿#include <RealWorld/physics/Player.hpp>
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
 
 #include <RealWorld/items/ItemUser.hpp>
-#include <RealWorld/items/ItemCombinator.hpp>
 
 Player::Player(RE::SpriteBatch& spriteBatch) :
-	m_health(100.0f),
 	m_hitbox({0, 0}, {28, 40}, {14, 20}),
 	m_spriteBatch(spriteBatch) {
 	m_movementUBO.connectToShaderProgram(m_playerDynamicsShader, 0u);
-	
+
 	m_hitboxSSBO.connectToShaderProgram(m_playerDynamicsShader, 0u);
 }
 
@@ -36,7 +34,7 @@ void Player::step(WALK dir, bool jump, bool autojump) {
 	m_hitbox.botLeft() = hitboxSSBO->botLeftPx;
 	m_hitboxSSBO.unmap();
 
-	PlayerMovementUBO movement {
+	PlayerMovementUBO movement{
 		.walkDirection = glm::sign(static_cast<float>(dir)),
 		.jump_autojump = glm::vec2(jump, autojump)
 	};

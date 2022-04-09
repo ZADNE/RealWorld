@@ -1,9 +1,9 @@
-﻿#include <RealWorld/world/chunk/ChunkManager.hpp>
+﻿#include <RealWorld/chunk/ChunkManager.hpp>
 
 #include <iostream>
 #include <algorithm>
 
-#include <RealWorld/world/chunk/ChunkLoader.hpp>
+#include <RealWorld/chunk/ChunkLoader.hpp>
 
 
 ChunkManager::ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex) {

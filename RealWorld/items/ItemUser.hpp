@@ -7,14 +7,14 @@
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/IDB.hpp>
 #include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/items/ItemOnGroundManager.hpp>
+#include <RealWorld/physics/Hitbox.hpp>
 
 class ItemUser {
 public:
 	const static int PRIMARY_USE = 0;
 	const static int SECONDARY_USE = 1;
 
-	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager);
+	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch);
 	~ItemUser();
 
 	void switchShape();
@@ -29,7 +29,6 @@ private:
 	World& m_world;
 	Inventory& m_inv;
 	Hitbox& m_operatorsHitbox;
-	ItemOnGroundManager& m_itemOnGroundManager;
 	RE::SpriteBatch& m_spriteBatch;
 
 	int m_chosenSlot = 0;

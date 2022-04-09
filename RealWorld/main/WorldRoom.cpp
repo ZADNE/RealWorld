@@ -7,20 +7,12 @@ WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_worldDrawer(window()->getDims()),
 	m_player(RE::SpriteBatch::std()),
 	m_playerInv({10, 4}),
-	m_itemOnGroundManager(RE::SpriteBatch::std(), m_world, m_player.getHitbox(), m_playerInv),
-	m_itemUser(m_world, m_playerInv, m_player.getHitbox(), RE::SpriteBatch::std(), m_itemOnGroundManager),
-	m_invUI(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont),
-	m_craftingDrawer(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont) {
-
-
-	m_itemCombinator.connectToInventory(&m_playerInv);
-	m_itemCombinator.connectToIID(&m_instructionDatabase);
+	m_itemUser(m_world, m_playerInv, m_player.getHitbox(), RE::SpriteBatch::std()),
+	m_invUI(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont) {
 
 	//Drawers
 	m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
 	m_invUI.connectToItemUser(&m_itemUser);
-
-	m_craftingDrawer.connectToItemCombinator(&m_itemCombinator);
 }
 
 WorldRoom::~WorldRoom() {
@@ -73,12 +65,9 @@ void WorldRoom::step() {
 
 	//lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 255u, 255u}, 0.0f, 1.0f);
 
-	//ItemOnGroundManager
-	m_itemOnGroundManager.step();
-	//Inventory and CraftingDrawer
+	//Inventory
 	m_invUI.step();
-	m_craftingDrawer.step((glm::ivec2)input()->getCursorAbs());
-	if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); m_craftingDrawer.switchDraw(); }
+	if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); }
 	if (m_invUI.isOpen()) {//OPEN INVENTORY
 		if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(input()->getCursorAbs()); }
 		if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(input()->getCursorAbs(), 0.5f); }
@@ -111,7 +100,6 @@ void WorldRoom::render(double interpolationFactor) {
 	m_worldDrawer.drawTiles();
 
 	RE::SpriteBatch::std().begin();
-	m_itemOnGroundManager.draw();
 	m_player.draw();
 	RE::SpriteBatch::std().end(RE::GlyphSortType::TEXTURE);
 	RE::SpriteBatch::std().draw();
@@ -127,7 +115,6 @@ void WorldRoom::windowResized(const glm::ivec2& newDims) {
 	m_worldView.resizeView(newDims);
 	m_worldDrawer.resizeView(newDims);
 	m_invUI.windowResized(newDims);
-	m_craftingDrawer.resizeWindow(newDims);
 }
 
 void WorldRoom::drawGUI() {
@@ -136,8 +123,7 @@ void WorldRoom::drawGUI() {
 
 	stream << "FPS: " << synchronizer()->getFramesPerSecond() << '\n';
 	stream << "Max FT: " << std::chrono::duration_cast<std::chrono::microseconds>(synchronizer()->getMaxFrameTime()).count() << " us" << '\n';
-	stream << "RAM chunks: " << m_world.getNumberOfInactiveChunks() << '\n';
-	stream << "Items: " << m_itemOnGroundManager.getNumberOfItemsOG() << '\n';
+	stream << "CPU chunks: " << m_world.getNumberOfInactiveChunks() << '\n';
 	glm::ivec2 cursorPosPx = pxToTi(m_worldView.getCursorRel());
 	stream << "CursorTi: [" << std::setw(4) << cursorPosPx.x << ", "
 		<< std::setw(4) << cursorPosPx.y << "]\n";
@@ -149,7 +135,6 @@ void WorldRoom::drawGUI() {
 	font->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
 
 	m_invUI.draw(input()->getCursorAbs());
-	m_craftingDrawer.draw();
 
 	RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
 	RE::SpriteBatch::std().draw();

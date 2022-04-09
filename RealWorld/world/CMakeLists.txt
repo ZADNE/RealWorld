@@ -1,7 +1,4 @@
-﻿add_subdirectory(chunk)
-add_subdirectory(physics)
-
-target_sources(${PROJECT_NAME} PRIVATE 
+﻿target_sources(${PROJECT_NAME} PRIVATE 
 	DynamicLight.hpp		
 	LightManipulator.hpp	LightManipulator.cpp
 	TDB.hpp					TDB.cpp

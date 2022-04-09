@@ -1,4 +1,4 @@
-﻿#include <RealWorld/world/physics/Hitbox.hpp>
+﻿#include <RealWorld/physics/Hitbox.hpp>
 
 #include <algorithm>
 

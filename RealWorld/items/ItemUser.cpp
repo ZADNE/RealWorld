@@ -3,12 +3,11 @@
 #include <RealEngine/utility/utility.hpp>
 
 
-ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch, ItemOnGroundManager& itemOnGroundManager) :
+ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch) :
 	m_world(world),
 	m_inv(inventory),
 	m_operatorsHitbox(operatorsHitbox),
-	m_spriteBatch(spriteBatch),
-	m_itemOnGroundManager(itemOnGroundManager) {
+	m_spriteBatch(spriteBatch) {
 
 	m_item = &m_inv[m_chosenSlot][0];
 }
