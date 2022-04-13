@@ -3,8 +3,8 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/external/ImGui/imgui.h>
-#include <RealEngine/external/ImGui/imgui_stdlib.h>
+#include <ImGui/imgui.h>
+#include <ImGui/imgui_stdlib.h>
 
 /**
  * @brief The room that holds the main menu and some related objects.

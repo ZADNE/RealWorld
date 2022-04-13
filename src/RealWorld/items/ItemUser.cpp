@@ -1,7 +1,5 @@
 ﻿#include <RealWorld/items/ItemUser.hpp>
 
-#include <RealEngine/utility/utility.hpp>
-
 
 ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch) :
 	m_world(world),

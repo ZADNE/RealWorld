@@ -7,7 +7,7 @@
 #include <SDL2/SDL_timer.h>
 #include <nlohmann/json.hpp>
 
-#include <RealEngine/external/lodepng/lodepng.hpp>
+#include <lodepng/lodepng.hpp>
 #include <RealEngine/main/Error.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
@@ -99,6 +99,9 @@ bool WorldSaveLoader::deleteWorld(const std::string& worldName) {
 
 void WorldSaveLoader::getSavedWorlds(std::vector<std::string>& names) {
 	names.clear();
+	if (!std::filesystem::is_directory(m_saveFolder)) {
+		std::filesystem::create_directory(m_saveFolder);
+	}
 
 	for (const auto& entry : std::filesystem::directory_iterator(m_saveFolder)) {
 		names.push_back(entry.path().filename().string());

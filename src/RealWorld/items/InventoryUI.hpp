@@ -4,7 +4,7 @@
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/default_shaders.hpp>
-#include <RealEngine/external/magic_enum/magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>

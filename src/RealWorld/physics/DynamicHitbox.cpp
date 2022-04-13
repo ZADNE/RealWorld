@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include <RealEngine/utility/utility.hpp>
-
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/TDB.hpp>
 
