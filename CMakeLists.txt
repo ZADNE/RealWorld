@@ -13,7 +13,6 @@ set_target_properties(RealWorld CSVToDAT PROPERTIES
 	CXX_STANDARD 20
 )
 
-add_subdirectory(RealEngine)
 add_dependencies(RealWorld RealEngine)
 
 target_link_libraries(RealWorld
