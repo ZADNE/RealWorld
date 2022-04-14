@@ -22,5 +22,5 @@ target_link_libraries(RealWorld
 
 add_custom_command(TARGET RealWorld POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	${CMAKE_SOURCE_DIR}/data/ .
+	${CMAKE_CURRENT_SOURCE_DIR}/data/ .
 )
