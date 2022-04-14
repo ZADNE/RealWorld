@@ -77,14 +77,14 @@ void WorldDrawer::beginStep() {
 	m_surLighting.setTarget();
 	glDisable(GL_BLEND);
 	m_arrayPOUV.bind();
-	m_worldToLightsShader.use();
+	m_tilesToLightsShader.use();
 	glm::vec2 botLeftUn = static_cast<glm::vec2>(m_botLeftTi) / LIGHT_DOWNSAMPLE;
 	botLeftUn = glm::floor(botLeftUn) * LIGHT_DOWNSAMPLE;
-	m_worldToLightsShader.setUniform(LOC_POSITION, botLeftUn);
+	m_tilesToLightsShader.setUniform(LOC_POSITION, botLeftUn);
 	float f = /*rmath::clamp(sin(m_currentTime / m_dayLength), (10.0f/256.0f), 1.0f)*/1.0f;
-	m_worldToLightsShader.setUniform(LOC_WORLD_TO_LIGHT_DAYLIGHT, glm::vec4(0.0f, 0.0f, 0.0f, f * 0.1f));
+	m_tilesToLightsShader.setUniform(LOC_TILES_TO_LIGHT_DAYLIGHT, glm::vec4(0.0f, 0.0f, 0.0f, f * 0.1f));
 	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_WORLDTOLIGHT_RECT, 4);
-	m_worldToLightsShader.unuse();
+	m_tilesToLightsShader.unuse();
 	m_arrayPOUV.unbind();
 	glEnable(GL_BLEND);
 	m_surLighting.resetTarget();
@@ -99,14 +99,14 @@ void WorldDrawer::endStep() {
 	m_bufferDynamicLights.redefine(m_dynamicLights);
 	m_surLighting.setTarget();
 	m_arrayLights.bind();
-	m_addDynamicLightShader.use();
+	m_addLightShader.use();
 	glBlendFunc(GL_ONE, GL_ONE);
 	glm::vec2 dynLightBotLeftUn = glm::floor(static_cast<glm::vec2>(m_botLeftTi - iTILEPx / 2) / LIGHT_DOWNSAMPLE);
-	m_addDynamicLightShader.setUniform(LOC_POSITION, dynLightBotLeftUn);
+	m_addLightShader.setUniform(LOC_POSITION, dynLightBotLeftUn);
 	m_arrayLights.renderArrays(POINTS, 0, static_cast<GLsizei>(m_dynamicLights.size()), 4);
 	glTextureBarrier();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	m_addDynamicLightShader.unuse();
+	m_addLightShader.unuse();
 	m_arrayLights.unbind();
 
 	//Combine diaphragm and lighting texture to the finished texture
@@ -132,10 +132,10 @@ void WorldDrawer::drawTiles() {
 void WorldDrawer::coverWithDarkness() {
 	if (m_drawDarkness) {
 		m_arrayPOUV.bind();
-		m_coverWithDarknessShader.use();
-		m_coverWithDarknessShader.setUniform(LOC_POSITION, glm::mod(m_invBotLeftPx, TILEPx * LIGHT_DOWNSAMPLE));
+		m_coverWithShadowsShader.use();
+		m_coverWithShadowsShader.setUniform(LOC_POSITION, glm::mod(m_invBotLeftPx, TILEPx * LIGHT_DOWNSAMPLE));
 		m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsUn.x * m_viewDimsUn.y);
-		m_coverWithDarknessShader.unuse();
+		m_coverWithShadowsShader.unuse();
 		m_arrayPOUV.unbind();
 	}
 }
@@ -227,15 +227,15 @@ void WorldDrawer::updatePOUVBuffers() {
 void WorldDrawer::initShaders() {
 	m_worldDrawUniformBuffer.connectToShaderProgram(m_tilesShader, 0u);
 	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_tilesShader, 1u);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_coverWithDarknessShader, 0u);
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_coverWithDarknessShader, 0u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_coverWithShadowsShader, 0u);
+	m_worldDrawUniformBuffer.connectToShaderProgram(m_coverWithShadowsShader, 0u);
 	m_worldDrawUniformBuffer.connectToShaderProgram(m_computeLightingShader, 0u);
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_worldToLightsShader, 0u);
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_addDynamicLightShader, 0u);
+	m_worldDrawUniformBuffer.connectToShaderProgram(m_tilesToLightsShader, 0u);
+	m_worldDrawUniformBuffer.connectToShaderProgram(m_addLightShader, 0u);
 	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_minimapShader, 0u);
 	updateUniformsAfterViewResize();
 
-	m_worldToLightsShader.setUniform(LOC_WORLD_TO_LIGHT_DIAPHRAGMS, glm::vec3(0.9f, 0.8f, 0.6f));
+	m_tilesToLightsShader.setUniform(LOC_TILES_TO_LIGHT_DIAPHRAGMS, glm::vec3(0.9f, 0.8f, 0.6f));
 }
 
 void WorldDrawer::updateUniformsAfterViewResize() {
@@ -246,5 +246,5 @@ void WorldDrawer::updateUniformsAfterViewResize() {
 	};
 	m_worldDrawUniformBuffer.overwrite(0u, wdu);
 	m_tilesShader.setUniform("viewWidthTi", static_cast<int>(m_viewDimsTi.x));
-	m_coverWithDarknessShader.setUniform("viewWidthUn", static_cast<int>(m_viewDimsUn.x));
+	m_coverWithShadowsShader.setUniform("viewWidthUn", static_cast<int>(m_viewDimsUn.x));
 }

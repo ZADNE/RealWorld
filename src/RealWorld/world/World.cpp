@@ -2,7 +2,6 @@
 
 #include <RealWorld/rendering/TextureUnits.hpp>
 #include <RealWorld/rendering/ImageUnits.hpp>
-#include <RealWorld/shaders/world_drawing.hpp>
 
 //Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
@@ -23,8 +22,8 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
 
 World::World() :
 	m_rngState(static_cast<uint32_t>(time(nullptr))) {
-	m_worldDynamicsUBO.connectToShaderProgram(m_dynamicsShader, 0u);
-	m_worldDynamicsUBO.connectToShaderProgram(m_transformShader, 0u);
+	m_worldDynamicsUBO.connectToShaderProgram(m_fluidDynamicsShader, 0u);
+	m_worldDynamicsUBO.connectToShaderProgram(m_tileTransformationsShader, 0u);
 	m_worldDynamicsUBO.connectToShaderProgram(m_modifyShader, 0u);
 }
 
@@ -77,7 +76,7 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	//Fluid dynamics
 	glm::ivec2 botLeftCh = tiToCh(botLeftTi);
 	glm::ivec2 topRightCh = tiToCh(topRightTi);
-	m_dynamicsShader.use();
+	m_fluidDynamicsShader.use();
 	auto* timeHash = m_worldDynamicsUBO.map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
 		sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
 	*timeHash = m_rngState;
@@ -93,11 +92,11 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 		auto* offset = m_worldDynamicsUBO.map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
 		*offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i].x, m_dynamicsUpdateOrder[i].y) * iCHUNK_SIZE / 2;
 		m_worldDynamicsUBO.unmap();
-		m_dynamicsShader.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
+		m_fluidDynamicsShader.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
-	m_dynamicsShader.unuse();
+	m_fluidDynamicsShader.unuse();
 
 	//Tile transformations
-	m_transformShader.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
+	m_tileTransformationsShader.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
 }

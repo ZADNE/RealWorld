@@ -7,7 +7,7 @@
 #include <RealWorld/physics/Hitbox.hpp>
 #include <RealWorld/rendering/ShaderStorageBuffers.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
-#include <RealWorld/shaders/world_dynamics.hpp>
+#include <RealWorld/shaders/simulation.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
 enum class WALK : int {
@@ -62,5 +62,5 @@ private:
 		.velocityPx = glm::vec2(0.0f, 0.0f)
 	}};
 
-	RE::ShaderProgram m_playerDynamicsShader{{.comp = playerDynamics_comp}};
+	RE::ShaderProgram m_playerMovementShader{{.comp = playerMovement_comp}};
 };

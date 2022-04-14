@@ -16,8 +16,8 @@
 const int GEN_CS_GROUP_SIZE = 16;
 
 ChunkGenerator::ChunkGenerator() {
-	m_chunkUniformBuffer.connectToShaderProgram(m_basicTerrainShader, 0u);
-	m_chunkUniformBuffer.connectToShaderProgram(m_selectVariationShader, 0u);
+	m_chunkUniformBuffer.connectToShaderProgram(m_structureShader, 0u);
+	m_chunkUniformBuffer.connectToShaderProgram(m_variationSelectionShader, 0u);
 
 #ifdef GEN_USE_COMP
 	m_tilesTex[0].bind(TEX_UNIT_GEN_TILES[0]);
@@ -28,7 +28,7 @@ ChunkGenerator::ChunkGenerator() {
 	m_tilesTex[1].bindImage(IMG_UNIT_GEN_TILES[1], 0, RE::ImageAccess::READ_WRITE);
 	m_materialGenTex.bindImage(IMG_UNIT_GEN_MATERIAL, 0, RE::ImageAccess::READ_WRITE);
 #else
-	m_chunkUniformBuffer.connectToShaderProgram(m_cellularAutomatonShader, 0u);
+	m_chunkUniformBuffer.connectToShaderProgram(m_consolidationShader, 0u);
 
 	m_genSurf[0].getTexture(0).bind(TEX_UNIT_GEN_TILES[0]);
 	m_genSurf[1].getTexture(0).bind(TEX_UNIT_GEN_TILES[1]);
@@ -72,23 +72,23 @@ void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& d
 
 void ChunkGenerator::generateBasicTerrain() {
 #ifdef GEN_USE_COMP
-	m_basicTerrainShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+	m_structureShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 #else
-	m_basicTerrainShader.use();
+	m_structureShader.use();
 	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
-	m_basicTerrainShader.unuse();
+	m_structureShader.unuse();
 #endif
 }
 
 void ChunkGenerator::cellularAutomaton() {
 	GLuint cycleN = 0u;
 	auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
-		m_cellularAutomatonShader.setUniform(LOC_THRESHOLDS, thresholds);
+		m_consolidationShader.setUniform(LOC_THRESHOLDS, thresholds);
 		for (size_t i = 0; i < passes; i++) {
-			m_cellularAutomatonShader.setUniform(LOC_CYCLE_N, cycleN++);
+			m_consolidationShader.setUniform(LOC_CYCLE_N, cycleN++);
 		#ifdef GEN_USE_COMP
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-			m_cellularAutomatonShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
+			m_consolidationShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
 		#else
 			m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
 			glTextureBarrier();
@@ -109,9 +109,9 @@ void ChunkGenerator::cellularAutomaton() {
 	m_genSurf[0].setTargetTextures(stt);
 #endif
 
-	m_cellularAutomatonShader.use();
+	m_consolidationShader.use();
 	doublePass({3, 4}, {4, 5}, 4);
-	m_cellularAutomatonShader.unuse();
+	m_consolidationShader.unuse();
 
 #ifndef GEN_USE_COMP
 	stt.targetTexture(1);
@@ -124,10 +124,10 @@ void ChunkGenerator::cellularAutomaton() {
 void ChunkGenerator::selectVariations() {
 #ifdef GEN_USE_COMP
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-	m_selectVariationShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+	m_variationSelectionShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 #else
-	m_selectVariationShader.use();
+	m_variationSelectionShader.use();
 	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
-	m_selectVariationShader.unuse();
+	m_variationSelectionShader.unuse();
 #endif
 }

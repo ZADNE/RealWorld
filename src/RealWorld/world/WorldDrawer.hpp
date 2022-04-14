@@ -6,7 +6,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
-#include <RealWorld/shaders/world_drawing.hpp>
+#include <RealWorld/shaders/drawing.hpp>
 #include <RealWorld/world/DynamicLight.hpp>
 #include <RealWorld/world/LightManipulator.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
@@ -93,11 +93,11 @@ private:
 	RE::TexturePtr m_wallLightAtlasTex = RE::RM::getTexture("wallLightAtlas");
 
 	RE::ShaderProgram m_tilesShader = RE::ShaderProgram({.vert = tilesDraw_vert, .frag = colorDraw_frag});
-	RE::ShaderProgram m_coverWithDarknessShader = RE::ShaderProgram({.vert = coverWithDarkness_vert, .frag = colorDraw_frag});
-	RE::ShaderProgram m_computeLightingShader = RE::ShaderProgram({.vert = PT_vert, .frag = computeLighting_frag});//Combines diaphragm with lights
-	RE::ShaderProgram m_worldToLightsShader = RE::ShaderProgram({.vert = PT_vert, .frag = worldToLight_frag});//Processes world texture to light
+	RE::ShaderProgram m_coverWithShadowsShader = RE::ShaderProgram({.vert = coverWithShadows_vert, .frag = colorDraw_frag});
+	RE::ShaderProgram m_computeLightingShader = RE::ShaderProgram({.vert = passthrough_vert, .frag = computeLighting_frag});//Combines diaphragm with lights
+	RE::ShaderProgram m_tilesToLightsShader = RE::ShaderProgram({.vert = passthrough_vert, .frag = tilesToLight_frag});//Processes world texture to light
 
-	RE::ShaderProgram m_addDynamicLightShader = RE::ShaderProgram({.vert = addDynamicLight_vert, .frag = addDynamicLight_frag});
+	RE::ShaderProgram m_addLightShader = RE::ShaderProgram({.vert = addLight_vert, .frag = addLight_frag});
 
 	RE::ShaderProgram m_minimapShader = RE::ShaderProgram{{.vert = minimap_vert, .frag = minimap_frag}};
 	bool m_drawDarkness = true;

@@ -9,7 +9,7 @@ std::string_view standard_vert =
 ;
 
 std::string_view standardOut1_frag =
-#include "common/standardOut1.frag"
+#include "common/standard_out1.frag"
 ;
 
 std::string_view texture_frag =

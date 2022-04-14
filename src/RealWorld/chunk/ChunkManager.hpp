@@ -9,7 +9,7 @@
 #include <RealWorld/chunk/Chunk.hpp>
 #include <RealWorld/chunk/ChunkGenerator.hpp>
 #include <RealWorld/rendering/ShaderStorageBuffers.hpp>
-#include <RealWorld/shaders/world_dynamics.hpp>
+#include <RealWorld/shaders/simulation.hpp>
 
 /**
  * @brief Manages a collection of chunks.

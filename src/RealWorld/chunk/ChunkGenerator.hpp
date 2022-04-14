@@ -5,7 +5,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
-#include <RealWorld/shaders/chunk_generation.hpp>
+#include <RealWorld/shaders/generation.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 #include <RealWorld/constants/chunk.hpp>
 
@@ -80,9 +80,9 @@ private:
 
 
 #ifdef GEN_USE_COMP
-	RE::ShaderProgram m_basicTerrainShader = RE::ShaderProgram{{.comp = basicTerrain_comp}};
-	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.comp = cellularAutomaton_comp}};
-	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.comp = selectVariation_comp}};
+	RE::ShaderProgram m_structureShader = RE::ShaderProgram{{.comp = structure_comp}};
+	RE::ShaderProgram m_consolidationShader = RE::ShaderProgram{{.comp = consolidation_comp}};
+	RE::ShaderProgram m_variationSelectionShader = RE::ShaderProgram{{.comp = variationSelection_comp}};
 
 	std::array<RE::Texture, 2> m_tilesTex = {
 		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},
@@ -91,9 +91,9 @@ private:
 	RE::Texture m_materialGenTex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
 #else
 	RE::VertexArray m_VAO;
-	RE::ShaderProgram m_basicTerrainShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = basicTerrain_frag}};
-	RE::ShaderProgram m_cellularAutomatonShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = cellularAutomaton_frag}};
-	RE::ShaderProgram m_selectVariationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = selectVariation_frag}};
+	RE::ShaderProgram m_structureShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = structure_frag}};
+	RE::ShaderProgram m_consolidationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = consolidation_frag}};
+	RE::ShaderProgram m_variationSelectionShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = variationSelection_frag}};
 
 	std::array<RE::Surface, 2> m_genSurf = {
 		RE::Surface{{GEN_iCHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 2, true, false},

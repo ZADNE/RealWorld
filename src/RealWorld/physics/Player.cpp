@@ -7,9 +7,9 @@
 Player::Player(RE::SpriteBatch& spriteBatch) :
 	m_hitbox({0, 0}, {28, 40}, {14, 20}),
 	m_spriteBatch(spriteBatch) {
-	m_movementUBO.connectToShaderProgram(m_playerDynamicsShader, 0u);
+	m_movementUBO.connectToShaderProgram(m_playerMovementShader, 0u);
 
-	m_hitboxSSBO.connectToShaderProgram(m_playerDynamicsShader, 0u);
+	m_hitboxSSBO.connectToShaderProgram(m_playerMovementShader, 0u);
 }
 
 Player::~Player() {
@@ -39,7 +39,7 @@ void Player::step(WALK dir, bool jump, bool autojump) {
 		.jump_autojump = glm::vec2(jump, autojump)
 	};
 	m_movementUBO.overwrite(offsetof(PlayerMovementUBO, walkDirection), sizeof(float) + sizeof(glm::vec2), &movement.walkDirection);
-	m_playerDynamicsShader.dispatchCompute({1, 1, 1}, true);
+	m_playerMovementShader.dispatchCompute({1, 1, 1}, true);
 }
 
 void Player::draw() {

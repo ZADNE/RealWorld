@@ -6,7 +6,7 @@
 
 #include <RealWorld/chunk/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/shaders/world_dynamics.hpp>
+#include <RealWorld/shaders/simulation.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 
@@ -62,12 +62,12 @@ private:
 	};
 	RE::UniformBuffer m_worldDynamicsUBO{UNIF_BUF_WORLDDYNAMICS, true, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
-	RE::ShaderProgram m_dynamicsShader = RE::ShaderProgram{{.comp = dynamics_comp}};
-	RE::ShaderProgram m_transformShader = RE::ShaderProgram{{.comp = transform_comp}};
+	RE::ShaderProgram m_fluidDynamicsShader = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
+	RE::ShaderProgram m_tileTransformationsShader = RE::ShaderProgram{{.comp = tileTransformations_comp}};
 	RE::ShaderProgram m_modifyShader = RE::ShaderProgram{{.comp = modify_comp}};
 
 	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
 	uint32_t m_rngState;
 
-	ChunkManager m_chunkManager{m_transformShader, 0u};
+	ChunkManager m_chunkManager{m_tileTransformationsShader, 0u};
 };
