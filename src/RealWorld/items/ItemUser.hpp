@@ -3,7 +3,6 @@
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
 
-#include <RealWorld/world/TDB.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/IDB.hpp>
 #include <RealWorld/items/Inventory.hpp>
@@ -23,7 +22,7 @@ public:
 	//Does not check if the slot is inside the inventory!
 	void selectSlot(int slot);
 
-	void step(bool use[2], const glm::ivec2& relCursorPosPx);
+	void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx);
 	void draw();
 private:
 	World& m_world;

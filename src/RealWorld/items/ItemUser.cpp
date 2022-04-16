@@ -27,7 +27,9 @@ void ItemUser::selectSlot(int slot) {
 	m_item = &m_inv[m_chosenSlot][0];
 }
 
-void ItemUser::step(bool use[2], const glm::ivec2& relCursorPosPx) {
+void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx) {
+	bool use[2] = {usePrimary, useSecondary};
+
 	//Update usage
 	for (int i = 0; i < 2; i++) {
 		if (use[i] != (m_using[i] > 0)) {

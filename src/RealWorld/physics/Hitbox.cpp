@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include <RealWorld/world/World.hpp>
-#include <RealWorld/world/TDB.hpp>
 
 
 Hitbox::Hitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& centerOffsetPx/* = glm::ivec2(0.0f)*/) :

@@ -5,9 +5,7 @@ const int LOC_PROJECTION_MATRIX = 0;
 
 const int LOC_BASE_TEXTURE = 1;
 
-extern std::string_view standard_vert;
-
-extern std::string_view standardOut1_frag;
+extern std::string_view colorUV_vert;
 
 extern std::string_view texture_frag;
 

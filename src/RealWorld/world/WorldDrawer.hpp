@@ -7,14 +7,14 @@
 #include <RealEngine/graphics/VertexArray.hpp>
 
 #include <RealWorld/shaders/drawing.hpp>
-#include <RealWorld/world/DynamicLight.hpp>
-#include <RealWorld/world/LightManipulator.hpp>
+#include <RealWorld/world/Light.hpp>
 #include <RealWorld/rendering/Vertex.hpp>
 #include <RealWorld/rendering/UniformBuffers.hpp>
 
-
+/**
+ * @brief Renders tiles and shadows of a world
+*/
 class WorldDrawer {
-	friend class LightManipulator;
 public:
 	WorldDrawer(const glm::uvec2& viewSizePx);
 	~WorldDrawer();
@@ -22,25 +22,35 @@ public:
 	void setTarget(const glm::ivec2& worldDimTi);
 	void resizeView(const glm::uvec2& newViewSizePx);
 
-	//For adding and removing lights
-	LightManipulator getLightManipulator();
-
 	struct ViewEnvelope {
 		glm::vec2 botLeftTi;
 		glm::vec2 topRightTi;
 	};
 	ViewEnvelope setPosition(const glm::vec2& botLeftPx);
 
-	//All dynamic lights must be added each between beginStep() and endStep()
+
+	/**
+	 * @brief Prepares for addition of lights
+	*/
 	void beginStep();
-	//All dynamic lights must be added each between beginStep() and endStep()
+
+	/**
+	 * @brief Adds a light
+	 *
+	 * All lights must be added between beginStep() and endStep()
+	*/
+	void addLight(const glm::vec2& posPx, RE::Color col);
+
+	/**
+	 * @brief Uploads lights
+	*/
 	void endStep();
 
 	//Should be called at the beginning of draw beginStep
 	void drawTiles();
 
-	void toggleDarkness() { m_drawDarkness = !m_drawDarkness; }
-	void coverWithDarkness();
+	void toggleShadows() { m_drawShadows = !m_drawShadows; }
+	void coverWithShadows();
 
 	void toggleMinimap() { m_drawMinimap = !m_drawMinimap; }
 	void drawMinimap();
@@ -53,10 +63,6 @@ private:
 	using enum RE::VertexComponentCount;
 	using enum RE::VertexComponentType;
 	using enum RE::Primitive;
-
-
-	void addLight(const glm::vec2& posPx, RE::Colour col, float dir, float cone);
-
 
 	void reloadViewSize(const glm::uvec2& viewSizePx);
 
@@ -74,9 +80,9 @@ private:
 	};
 
 	RE::Surface m_surLighting{{RGBA32_NU_NEAR_LIN_EDGE}, false, false};
-	//0 texture (diaphragm):			R = diaphragm of the tile; G = direction of the light; B = width of light cone; A = unused yet
-	//1 texture (lights):				RGB = colour of the light; A = strength of the light
-	//2 texture (finished lighting):	RGBA = drawn to screen
+	//0 texture (light):	RGB = color of the light at the tile; A = strength of the light
+	//1 texture (translu):	RGB = unused; A = translucence of the tile
+	//2 texture (computed):	RGBA = drawn to screen
 
 	glm::vec2 m_invBotLeftPx;//Bottom-left corner of the view
 	glm::ivec2 m_botLeftTi;//Bottom-left corner of the view in blocks
@@ -92,15 +98,15 @@ private:
 	RE::TexturePtr m_blockLightAtlasTex = RE::RM::getTexture("blockLightAtlas");
 	RE::TexturePtr m_wallLightAtlasTex = RE::RM::getTexture("wallLightAtlas");
 
-	RE::ShaderProgram m_tilesShader = RE::ShaderProgram({.vert = tilesDraw_vert, .frag = colorDraw_frag});
-	RE::ShaderProgram m_coverWithShadowsShader = RE::ShaderProgram({.vert = coverWithShadows_vert, .frag = colorDraw_frag});
-	RE::ShaderProgram m_computeLightingShader = RE::ShaderProgram({.vert = passthrough_vert, .frag = computeLighting_frag});//Combines diaphragm with lights
-	RE::ShaderProgram m_tilesToLightsShader = RE::ShaderProgram({.vert = passthrough_vert, .frag = tilesToLight_frag});//Processes world texture to light
+	RE::ShaderProgram m_tilesShader{{.vert = tilesDraw_vert, .frag = colorDraw_frag}};
+	RE::ShaderProgram m_tilesToLightsShader{{.vert = passthrough_vert, .frag = tilesToLight_frag}};//Processes the world texture to lights
+	RE::ShaderProgram m_addLightShader{{.vert = addLight_vert, .frag = addLight_frag}};//Adds user's lights added by addLight()
+	RE::ShaderProgram m_computeLightingShader{{.vert = passthrough_vert, .frag = computeLighting_frag}};//Combines lights
+	RE::ShaderProgram m_coverWithShadowsShader{{.vert = coverWithShadows_vert, .frag = colorDraw_frag}};//Stretches light texture to whole screen
 
-	RE::ShaderProgram m_addLightShader = RE::ShaderProgram({.vert = addLight_vert, .frag = addLight_frag});
 
-	RE::ShaderProgram m_minimapShader = RE::ShaderProgram{{.vert = minimap_vert, .frag = minimap_frag}};
-	bool m_drawDarkness = true;
+	RE::ShaderProgram m_minimapShader{{.vert = minimap_vert, .frag = minimap_frag}};
+	bool m_drawShadows = true;
 	bool m_drawMinimap = false;
 
 
@@ -108,7 +114,7 @@ private:
 	RE::VertexArray m_arrayLights;
 
 	RE::Buffer<ARRAY, IMMUTABLE> m_bufferPOUV{sizeof(VertexPOUV) * 16, DYNAMIC_STORAGE};
-	RE::Buffer<ARRAY, MUTABLE> m_bufferDynamicLights{STREAM, DRAW};
+	RE::Buffer<ARRAY, MUTABLE> m_bufferLights{STREAM, DRAW};
 
 	struct WorldDrawUniforms {
 		glm::mat4 viewsizePxMat;
@@ -116,10 +122,5 @@ private:
 	};
 	RE::UniformBuffer m_worldDrawUniformBuffer{UNIF_BUF_WORLDDRAWER, true, sizeof(WorldDrawUniforms), DYNAMIC_STORAGE};
 
-	//Lighting global
-	float m_dayLength = 200.0f;
-	float m_currentTime = 50.0f;
-
-	//Dynamic lights
-	std::vector<DynamicLight> m_dynamicLights;
+	std::vector<Light> m_lights;
 };

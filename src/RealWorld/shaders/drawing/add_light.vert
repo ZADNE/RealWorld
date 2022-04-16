@@ -1,11 +1,8 @@
 R""(
 layout(location = 0) in vec2 basePosPx;
-layout(location = 1) in vec4 lightColour;
-layout(location = 2) in float lightDir;
-layout(location = 3) in float lightCone;
+layout(location = 1) in vec4 lightColor;
 
 out vec4 vert_light;
-out vec4 vert_diaphragm;
 
 layout(location = 3) uniform vec2 botLeftUn;
 
@@ -35,8 +32,7 @@ void main() {
 	
 	vec2 subTileNorm = fract(basePosUn + vec2(0.5, 0.5));
 	
-	vert_light = lightColour * lightPower(subTileNorm, NORM_POSITIONS[gl_InstanceID]);
-	vert_diaphragm = vec4(0.0, lightDir, lightCone, 0.0);
+	vert_light = vec4(lightColor) * lightPower(subTileNorm, NORM_POSITIONS[gl_InstanceID]);
 }
 
 )""

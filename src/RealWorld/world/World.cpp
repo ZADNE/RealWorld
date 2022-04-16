@@ -37,7 +37,7 @@ glm::uvec2 World::adoptSave(const MetadataSave& save, const glm::vec2& windowDim
 
 	m_worldSurface.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
 	m_worldSurface.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
-	m_worldSurface.getTexture(0).clear(RE::Colour{1, 0, 0, 0});
+	m_worldSurface.getTexture(0).clear(RE::Color{ 1, 0, 0, 0 });
 
 	m_chunkManager.setTarget(m_seed, save.path, &m_worldSurface);
 
@@ -65,7 +65,7 @@ void World::set(SET_TARGET target, SET_SHAPE shape, float diameter, const glm::i
 	buffer->modifyDiameter = diameter;
 	buffer->modifySetValue = tile;
 	m_worldDynamicsUBO.unmap();
-	m_modifyShader.dispatchCompute({1, 1, 1}, true);
+	m_modifyShader.dispatchCompute({ 1, 1, 1 }, true);
 }
 
 void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
@@ -92,7 +92,7 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 		auto* offset = m_worldDynamicsUBO.map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
 		*offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i].x, m_dynamicsUpdateOrder[i].y) * iCHUNK_SIZE / 2;
 		m_worldDynamicsUBO.unmap();
-		m_fluidDynamicsShader.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
+		m_fluidDynamicsShader.dispatchCompute({ topRightCh - botLeftCh, 1u }, false);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
 	m_fluidDynamicsShader.unuse();

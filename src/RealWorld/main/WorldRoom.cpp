@@ -40,38 +40,39 @@ void WorldRoom::sessionEnd() {
 void WorldRoom::step() {
 	using enum InventoryUI::SelectionManner;
 
+	//Player
 	int walkDir = keybindDown(PLAYER_LEFT) ? -1 : 0;
 	walkDir += keybindDown(PLAYER_RIGHT) ? +1 : 0;
 	m_player.step(static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
+
 	//View
 	glm::vec2 prevViewPos = m_worldView.getPosition();
-
 	glm::vec2 targetViewPos = glm::vec2(m_player.getHitbox().getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
-
 	m_worldView.setCursorAbs(input()->getCursorAbs());
 	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f);
 	m_worldViewUBO.overwrite(0u, m_worldView.getViewMatrix());
 
+	//World
 	auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
 	m_world.step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
 	m_worldDrawer.beginStep();
 
-	bool itemUse[2];
-	itemUse[ItemUser::PRIMARY_USE] = keybindDown(ITEMUSER_USE_PRIMARY) != 0 && !m_invUI.isOpen();
-	itemUse[ItemUser::SECONDARY_USE] = keybindDown(ITEMUSER_USE_SECONDARY) != 0 && !m_invUI.isOpen();
-	m_itemUser.step(itemUse, m_worldView.getCursorRel());
+	//Item user
+	m_itemUser.step(
+		keybindDown(ITEMUSER_USE_PRIMARY) && !m_invUI.isOpen(),
+		keybindDown(ITEMUSER_USE_SECONDARY) && !m_invUI.isOpen(),
+		m_worldView.getCursorRel()
+	);
 
-	auto lm = m_worldDrawer.getLightManipulator();
-
-	//lm.addLight(m_worldView.getCursorRel(), RE::Colour{0u, 0u, 255u, 255u}, 0.0f, 1.0f);
+	m_worldDrawer.addLight(m_worldView.getCursorRel(), RE::Color{0u, 0u, 0u, 255u});
 
 	//Inventory
 	m_invUI.step();
 	if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); }
-	if (m_invUI.isOpen()) {//OPEN INVENTORY
+	if (m_invUI.isOpen()) {//Inventory is open
 		if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(input()->getCursorAbs()); }
 		if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(input()->getCursorAbs(), 0.5f); }
-	} else { //CLOSED INVENTORY
+	} else { //Inventory is closed
 		if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
 			if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(0.5f); }
 			if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-0.5f); }
@@ -88,9 +89,10 @@ void WorldRoom::step() {
 		if (keybindPressed(ITEMUSER_SWITCH_SHAPE)) { m_itemUser.switchShape(); }
 	}
 	m_worldDrawer.endStep();
-	//TEMP or DEBUG
+
+	//Toggles & quit
 	if (keybindPressed(MINIMAP)) { m_worldDrawer.toggleMinimap(); }
-	if (keybindPressed(SHADOWS)) { m_worldDrawer.toggleDarkness(); }
+	if (keybindPressed(SHADOWS)) { m_worldDrawer.toggleShadows(); }
 	if (keybindPressed(QUIT)) { program()->scheduleRoomTransition(0, {}); }
 }
 
@@ -104,7 +106,7 @@ void WorldRoom::render(double interpolationFactor) {
 	RE::SpriteBatch::std().end(RE::GlyphSortType::TEXTURE);
 	RE::SpriteBatch::std().draw();
 
-	m_worldDrawer.coverWithDarkness();
+	m_worldDrawer.coverWithShadows();
 
 	RE::Viewport::getWindowMatrixUniformBuffer().bindIndexed();
 
@@ -128,11 +130,8 @@ void WorldRoom::drawGUI() {
 	stream << "CursorTi: [" << std::setw(4) << cursorPosPx.x << ", "
 		<< std::setw(4) << cursorPosPx.y << "]\n";
 
-
 	glm::vec2 topLeft = glm::vec2(0.0f, window()->getDims().y);
-	RE::Colour tint{255, 255, 255, 255};
-	auto font = RE::RM::getFont(m_inventoryFont);
-	font->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, tint, RE::HAlign::RIGHT, RE::VAlign::BELOW);
+	RE::RM::getFont(m_inventoryFont)->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, RE::Color{255, 255, 255, 255}, RE::HAlign::RIGHT, RE::VAlign::BELOW);
 
 	m_invUI.draw(input()->getCursorAbs());
 

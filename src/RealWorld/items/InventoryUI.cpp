@@ -15,7 +15,6 @@
 #include <RealWorld/items/ItemUser.hpp>
 
 
-
 InventoryUI::InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font) :
 	m_spriteBatch(spriteBatch), m_font(font) {
 	windowResized(windowSize);
@@ -83,7 +82,8 @@ void InventoryUI::reload() {
 
 	m_slotsSurf.resetTarget();
 
-	//Redraw surface with numbers
+	//Redraw surface with 
+	m_slotsSurf.setTargetTextures(RE::SurfaceTargetTextures().targetTexture(0, 1));
 	m_slotsSurf.setTarget();
 	m_slotsSurf.clear(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), 1);
 
@@ -96,13 +96,14 @@ void InventoryUI::reload() {
 
 		if ((*m_inv[PRIMARY])[x][y].amount > 1) {
 			snprintf(amount, sizeof(amount), "%i", (*m_inv[PRIMARY])[x][y].amount);
-			RE::RM::getFont(m_font)->add(m_spriteBatch, amount, pos, glm::vec2(1.0f, 1.0f), 2, m_amountColour, RE::HAlign::MIDDLE);
+			RE::RM::getFont(m_font)->add(m_spriteBatch, amount, pos, glm::vec2(1.0f, 1.0f), 2, m_amountColor, RE::HAlign::MIDDLE);
 		}
 	});
 	m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
-	m_spriteBatch.draw(m_PTSAbove);
+	m_spriteBatch.draw();
 
 	m_slotsSurf.resetTarget();
+	m_slotsSurf.setTargetTextures(RE::SurfaceTargetTextures().targetTexture(0, 0));
 }
 
 void InventoryUI::swapUnderCursor(const glm::vec2& cursorPx) {
@@ -205,7 +206,7 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
 			snprintf(amount, 8, "%i", m_heldItem.amount);
 			if (m_heldItem.amount > 1) {
 				RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(cursorPx.x, cursorPx.y - SLOT_PADDING.y - slotPivot().y),
-					glm::vec2(1.0f, 1.0f), 11, m_amountColour, RE::HAlign::MIDDLE);
+					glm::vec2(1.0f, 1.0f), 11, m_amountColor, RE::HAlign::MIDDLE);
 			}
 		}
 		//Amounts
@@ -222,7 +223,7 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
 				//Amount
 				if (item.amount > 1) {
 					snprintf(amount, 8, "%i", item.amount);
-					RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(pos.x, pos.y - SLOT_PADDING.y - slotPivot().y), glm::vec2(1.0f, 1.0f), 3, m_amountColour, RE::HAlign::MIDDLE);
+					RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(pos.x, pos.y - SLOT_PADDING.y - slotPivot().y), glm::vec2(1.0f, 1.0f), 3, m_amountColor, RE::HAlign::MIDDLE);
 				}
 			}
 		};
@@ -231,7 +232,7 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
 	}
 }
 
-inline glm::ivec2 InventoryUI::invSize(Connection con) const{
+inline glm::ivec2 InventoryUI::invSize(Connection con) const {
 	return m_inv[con]->getSize();
 }
 

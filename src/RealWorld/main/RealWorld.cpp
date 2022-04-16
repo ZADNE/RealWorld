@@ -1,7 +1,5 @@
 ﻿#include <RealWorld/main/RealWorld.hpp>
 
-#include <RealWorld/world/TDB.hpp>
-
 RealWorld::RealWorld(RE::CommandLineArguments args) :
 	m_worldRoom(args),
 	m_mainMenuRoom(args) {
@@ -19,7 +17,6 @@ RealWorld::~RealWorld() {
 
 }
 
-RealWorld::Databases::Databases() {
+RealWorld::Database::Database() {
 	IDB::init();
-	TDB::init();
 }

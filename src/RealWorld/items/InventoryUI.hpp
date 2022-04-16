@@ -34,7 +34,7 @@ public:
 
 	/**
 	 * @brief Connects the UI with given inventory (connection is mutual)
-	 * 
+	 *
 	 * Disconnects the previous inventory.
 	 * @param inventory The inventory to connect with. nullptr effectively disconnects the previous inventory
 	 * @param connection The type of conenction that is to be established
@@ -43,7 +43,7 @@ public:
 
 	/**
 	 * @brief Connects the UI with given item user
-	 * 
+	 *
 	 * Disconnects the previous item user.
 	 * @param itemUser The item user to connect with. nullptr effectively disconnects the previous item user
 	*/
@@ -51,7 +51,7 @@ public:
 
 	/**
 	 * @brief Switches the inventory to the oposite state
-	 * 
+	 *
 	 * May be blocked if an item is held.
 	*/
 	void openOrClose();
@@ -66,7 +66,7 @@ public:
 
 	/**
 	 * @brief Selects a slot from the first row of the inventory.
-	 * 
+	 *
 	 * The item in the selected slot is used by connected item user.
 	 * @param selectionManner Specifies interpretation of number parameter
 	 * @param number The slot to select
@@ -115,8 +115,6 @@ private:
 	RE::FontSeed m_font;
 	ItemUser* m_itemUser = nullptr;
 
-	RE::ShaderProgram m_PTSAbove{{.vert = RE::sprite_vert, .frag = standardOut1_frag }};
-
 	glm::vec2 m_windowSize;
 	RE::TexturePtr m_slotTex = RE::RM::getTexture("slot");
 	glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
@@ -131,7 +129,7 @@ private:
 	//0 texture: below dynamic sprites
 	//1 texture: above dynamic sprites
 
-	RE::Colour m_amountColour{255u, 255u, 255u, 255u};
+	RE::Color m_amountColor{255u, 255u, 255u, 255u};
 
 	Inventory* m_inv[magic_enum::enum_count<Connection>()] = {nullptr, nullptr, nullptr};
 	std::vector<ItemSprite> m_invItemSprites[magic_enum::enum_count<Connection>()];

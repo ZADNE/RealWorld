@@ -12,10 +12,10 @@ public:
 	RealWorld(RE::CommandLineArguments args);
 	~RealWorld();
 private:
-	struct Databases {
-		Databases();
+	struct Database {
+		Database();
 	};
-	Databases m_databases;		/**< Fake object that forces datatabase initialization */
+	Database m_database;		/**< Empty object that forces datatabase initialization */
 	WorldRoom m_worldRoom;		/**< Huge objects but it does not matter since this will be in static memory */
 	MainMenuRoom m_mainMenuRoom;/**< Huge objects but it does not matter since this will be in static memory */
 };

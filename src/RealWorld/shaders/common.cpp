@@ -5,11 +5,7 @@
 #endif
 
 std::string_view standard_vert =
-#include "common/standard.vert"
-;
-
-std::string_view standardOut1_frag =
-#include "common/standard_out1.frag"
+#include "common/colorUV.vert"
 ;
 
 std::string_view texture_frag =
