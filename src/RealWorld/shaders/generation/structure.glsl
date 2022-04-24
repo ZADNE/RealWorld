@@ -84,9 +84,16 @@ float solidity(vec2 posPx, float age, float seed){
 	return mix(hash13(vec3(posPx, seed)), solidity_weight[0], solidity_weight[1]);
 }
 
-uvec2 stoneTile(vec2 posPx, float age, float seed){
+uvec2 stoneTile(vec2 posPx, float age, float baseSolidity, float seed){
+	float depthFactor = smoothstep(-32768.0, -8192.0, posPx.y);
+	float lavaFactor = snoise(posPx * (1.0 / 400.0), -seed) + depthFactor;
 	float dither = hash13(vec3(posPx, seed)) * 0.3 - 0.15;
-	return STONE_TILES[int(clamp(age + dither, 0.0, 0.9999) * STONE_TILES.length())].TILE_TYPE;
+	uvec2 stoneTile = STONE_TILES[int(clamp(age + dither, 0.0, 0.9999) * STONE_TILES.length())].TILE_TYPE;
+	if (lavaFactor <= 0.0 && baseSolidity > 0.45){
+		return uvec2(LAVA.BLOCK_TYPE, stoneTile.y);
+	} else {
+		return stoneTile;
+	}
 }
 
 uvec2 surfaceTile(vec2 posPx, vec2 biomeClimate, float seed){
@@ -102,10 +109,10 @@ float horizonProximityFactor(float horizon, float y, float width, float low, flo
 
 void basicTerrain(in vec2 pPx, out uvec4 material, out uvec4 tile){
 	float age = age(pPx, seed);
+	float solidity = solidity(pPx, age, seed);
 	vec2 biomeClimate = biomeClimate(pPx.x, seed);
 	Biome biome = biomeStructure(biomeClimate);
-	float solidity = solidity(pPx, age, seed);//Decide whether this tile is a solid tile or air
-	uvec2 stoneTile = stoneTile(pPx, age, seed);//Decide which stone tile to use
+	uvec2 stoneTile = stoneTile(pPx, age, solidity, seed);//Decides which underground tile to use 
 	uvec2 surfaceTile = surfaceTile(pPx, biomeClimate, seed);//Decide which surface tile to use
   
 	vec2 horizon = horizon(pPx.x, biome, seed);

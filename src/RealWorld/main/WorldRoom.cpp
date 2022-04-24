@@ -64,7 +64,7 @@ void WorldRoom::step() {
 		m_worldView.getCursorRel()
 	);
 
-	m_worldDrawer.addLight(m_worldView.getCursorRel(), RE::Color{0u, 0u, 0u, 255u});
+	m_worldDrawer.addLight(m_worldView.getCursorRel(), RE::Color{0u, 0u, 0u, 31u});
 
 	//Inventory
 	m_invUI.step();

@@ -67,7 +67,7 @@ void main(){
 	bvec2 edgeTile = bvec2(false, false);
 	for(int i = 0; i < neighbors.length(); ++i){
 		nextToSpreadingBlock = nextToSpreadingBlock || (neighbors[i].BLOCK_TYPE == spreadingBlock);
-		edgeTile = edgeTile || lessThanEqual(neighbors[i].TILE_TYPE, uvec2(LAST_FLUID, AIR_WL));
+		edgeTile = edgeTile || lessThanEqual(neighbors[i].TILE_TYPE, LAST_FLUID.TILE_TYPE);
 	}
 	bool edgeRequiredToSpread = edgeRequiredToSpread(spreadingBlock);
 	
@@ -77,7 +77,7 @@ void main(){
 	}
 	
 	bvec2 currentlyInner = lessThan(tile.TILE_VAR, uvec2(12));
-	bvec2 isSolid = greaterThan(tile.TILE_TYPE, uvec2(LAST_FLUID, AIR_WL));
+	bvec2 isSolid = greaterThan(tile.TILE_TYPE, LAST_FLUID.TILE_TYPE);
 	bvec2 switchToInner = (!edgeTile && !currentlyInner) && isSolid;
 	bvec2 switchToOuter = (edgeTile && currentlyInner) && isSolid;
 	tile.TILE_VAR =
@@ -86,7 +86,6 @@ void main(){
 		+ mix(uvec2(0), random2() % 4 + 12, switchToOuter);
 	
 	//Store the transformed tile
-	//tile.BL_V = (tile.BL_V == 0) ? 12 : 0;
 	tileStore(centerTi, tile);
 }
 

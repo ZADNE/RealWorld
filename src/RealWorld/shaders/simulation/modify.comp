@@ -46,7 +46,7 @@ void main(){
 		}
 		tile.BL = modifySetValue.y != 256 ? modifySetValue : uvec2(modifySetValue.x, random() % 12);
 	} else {
-		if ((modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == (tile.BL_T <= LAST_FLUID)){
+		if ((modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == (tile.BL_T <= LAST_FLUID.BLOCK_TYPE)){
 			return;
 		}
 		tile.WL = modifySetValue.y != 256 ? modifySetValue : uvec2(modifySetValue.x, random() % 12);

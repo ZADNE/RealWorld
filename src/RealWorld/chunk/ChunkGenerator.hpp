@@ -50,7 +50,7 @@ public:
 	void setSeed(int seed);
 
 	/**
-	 * @brief Generates a chunk. The pixels are stored to given texture at given position.
+	 * @brief Generates a chunk. The pixels are stored inside given texture at given position.
 	 *
 	 * @param posCh Position of the chunk (measured in chunks)
 	 * @param destinationTexture The texture that will receive the generated chunk
@@ -82,7 +82,7 @@ private:
 #ifdef GEN_USE_COMP
 	RE::ShaderProgram m_structureShader = RE::ShaderProgram{{.comp = structure_comp}};
 	RE::ShaderProgram m_consolidationShader = RE::ShaderProgram{{.comp = consolidation_comp}};
-	RE::ShaderProgram m_variationSelectionShader = RE::ShaderProgram{{.comp = variationSelection_comp}};
+	RE::ShaderProgram m_variantSelectionShader = RE::ShaderProgram{{.comp = variantSelection_comp}};
 
 	std::array<RE::Texture, 2> m_tilesTex = {
 		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},
@@ -93,11 +93,11 @@ private:
 	RE::VertexArray m_VAO;
 	RE::ShaderProgram m_structureShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = structure_frag}};
 	RE::ShaderProgram m_consolidationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = consolidation_frag}};
-	RE::ShaderProgram m_variationSelectionShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = variationSelection_frag}};
+	RE::ShaderProgram m_variantSelectionShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = variationSelection_frag}};
 
 	std::array<RE::Surface, 2> m_genSurf = {
-		RE::Surface{{GEN_iCHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 2, true, false},
-		RE::Surface{{GEN_iCHUNK_SIZE}, {RE::TextureFlags::RGBA_IU_NEAR_NEAR_EDGE}, 1, true, false}
+		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 2, true, false},
+		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 1, true, false}
 	};
 #endif
 	int m_seed = 0;

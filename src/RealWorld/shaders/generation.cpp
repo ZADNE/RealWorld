@@ -31,7 +31,7 @@ std::string_view variationSelection_frag =
 #include "external/float_hash.glsl"
 #include "common/tile_constants.glsl"
 #include "common/texture_units.glsl"
-#include "generation/variation_selection.frag"
+#include "generation/variant_selection.frag"
 ;
 
 std::string_view structure_comp =
@@ -54,12 +54,12 @@ std::string_view consolidation_comp =
 #include "generation/consolidation.comp"
 ;
 
-std::string_view variationSelection_comp =
+std::string_view variantSelection_comp =
 #include "external/float_hash.glsl"
 #include "common/tile_constants.glsl"
 #include "common/image_units.glsl"
 #include "common/texture_units.glsl"
 #include "generation/gen_settings.glsl"
 #include "generation/ChunkUBO.glsl"
-#include "generation/variation_selection.comp"
+#include "generation/variant_selection.comp"
 ;

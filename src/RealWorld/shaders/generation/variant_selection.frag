@@ -15,11 +15,11 @@ const ivec2 OFFSETS[] = {
 	
 void main() {
 	ivec2 posTi = ivec2(gl_FragCoord.xy);
-	uvec2 block_wall = texelFetch(tilesTexture, posTi, 0).rb;
+	uvec2 block_wall = texelFetch(tilesTexture, posTi, 0).TILE_TYPE;
 	
 	ivec2 inner = ivec2(0);
 	for (int i = 0; i < OFFSETS.length(); i++){
-		inner |= ivec2(equal(texelFetchOffset(tilesTexture, posTi, 0, OFFSETS[i]).rb, AIR.xz));
+		inner |= ivec2(lessThanEqual(texelFetchOffset(tilesTexture, posTi, 0, OFFSETS[i]).TILE_TYPE, LAST_FLUID.TILE_TYPE));
 	}
 	
 	vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));

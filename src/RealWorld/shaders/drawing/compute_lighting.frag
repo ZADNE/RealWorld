@@ -24,7 +24,7 @@ void ray(const float maxrange, const float minrange, const float d, inout vec4 l
 
 void main() {
 	vec4 lightSum = vec4(0.0, 0.0, 0.0, 0.0);
-	const vec2 center = gl_FragCoord.xy;
+	const vec2 center = gl_FragCoord.xy + vec2(0.5);
 	//Rays
 	for (vec3 dir = vec3(0.0, 1.0, 0.5); dir.x < DIRECTIONS; dir += 2.0) {
 		vec3 d = dir * PI_FRACTION;

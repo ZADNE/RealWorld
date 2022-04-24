@@ -74,7 +74,7 @@ const uvec4 MUD = 				{	MUD_BL,			0,	MUD_WL,		0};
 const uvec4 MUD_GRASS = 		{	MUD_GRASS_BL,	0,	MUD_GRASS_WL,	0};
 const uvec4 DRY_GRASS = 		{	DRY_GRASS_BL,	0,	DRY_GRASS_WL,	0};
 
-const uint LAST_FLUID = 		ACID_BL;
+const uvec4 LAST_FLUID = 		{	ACID_BL,		0,	AIR_WL,			0};
 
 const uvec4 STONE_TILES[] = {
 	STONE,

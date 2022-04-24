@@ -13,4 +13,4 @@ extern std::string_view variationSelection_frag;
 
 extern std::string_view structure_comp;
 extern std::string_view consolidation_comp;
-extern std::string_view variationSelection_comp;
+extern std::string_view variantSelection_comp;
