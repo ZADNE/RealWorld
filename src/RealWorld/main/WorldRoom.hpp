@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include <RealWorld/main/Room.hpp>
 
+#include <ImGui/imgui.h>
+#include <ImGui/imgui_stdlib.h>
+
 #include <RealEngine/graphics/View.hpp>
 #include <RealEngine/graphics/Viewport.hpp>
 
@@ -35,7 +38,8 @@ public:
 		static RE::RoomDisplaySettings settings{
 			.clearColor = SKY_BLUE,
 			.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
-			.framesPerSecondLimit = FPS_LIMIT
+			.framesPerSecondLimit = FPS_LIMIT,
+			.usingImGui = true
 		};
 		return settings;
 	}
@@ -60,6 +64,8 @@ private:
 	 */
 	bool saveWorld() const;
 
+	ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
+
 	//View
 	RE::View m_worldView{window()->getDims()};
 	RE::UniformBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, false, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
@@ -71,4 +77,9 @@ private:
 	Inventory m_playerInv;
 	ItemUser m_itemUser;
 	InventoryUI m_invUI;
+
+	//Toggle states
+	bool m_minimap = false;
+	bool m_shadows = true;
+	bool m_permute = true;
 };
