@@ -8,15 +8,14 @@
 
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/SpriteBatch.hpp>
-#include <RealEngine/graphics/Font.hpp>
 
 #include <RealWorld/shaders/common.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemUser.hpp>
 
 
-InventoryUI::InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font) :
-	m_spriteBatch(spriteBatch), m_font(font) {
+InventoryUI::InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize) :
+	m_spriteBatch(spriteBatch) {
 	windowResized(windowSize);
 }
 
@@ -29,7 +28,7 @@ InventoryUI::~InventoryUI() {
 
 void InventoryUI::windowResized(const glm::vec2& newWindowSize) {
 	m_windowSize = newWindowSize;
-	m_slotsSurf.resize({newWindowSize}, 2);
+	m_slotsSurf.resize({newWindowSize}, 1);
 	reload();
 }
 
@@ -81,29 +80,6 @@ void InventoryUI::reload() {
 	m_spriteBatch.draw();
 
 	m_slotsSurf.resetTarget();
-
-	//Redraw surface with 
-	m_slotsSurf.setTargetTextures(RE::SurfaceTargetTextures().targetTexture(0, 1));
-	m_slotsSurf.setTarget();
-	m_slotsSurf.clear(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), 1);
-
-	char amount[8];
-
-	m_spriteBatch.begin();
-
-	forEachSlotByPosition(PRIMARY, [&](int x, int y) {
-		pos = m_invBotLeftPx + (slotDims() + SLOT_PADDING) * glm::vec2(x, y) + glm::vec2(slotPivot().x, -SLOT_PADDING.y);
-
-		if ((*m_inv[PRIMARY])[x][y].amount > 1) {
-			snprintf(amount, sizeof(amount), "%i", (*m_inv[PRIMARY])[x][y].amount);
-			RE::RM::getFont(m_font)->add(m_spriteBatch, amount, pos, glm::vec2(1.0f, 1.0f), 2, m_amountColor, RE::HAlign::MIDDLE);
-		}
-	});
-	m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
-	m_spriteBatch.draw();
-
-	m_slotsSurf.resetTarget();
-	m_slotsSurf.setTargetTextures(RE::SurfaceTargetTextures().targetTexture(0, 0));
 }
 
 void InventoryUI::swapUnderCursor(const glm::vec2& cursorPx) {
@@ -204,10 +180,6 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
 			//Item under cursor
 			m_spriteBatch.addSprite(m_heldSprite, cursorPx, 10);
 			snprintf(amount, 8, "%i", m_heldItem.amount);
-			if (m_heldItem.amount > 1) {
-				RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(cursorPx.x, cursorPx.y - SLOT_PADDING.y - slotPivot().y),
-					glm::vec2(1.0f, 1.0f), 11, m_amountColor, RE::HAlign::MIDDLE);
-			}
 		}
 		//Amounts
 		m_spriteBatch.addSurface(m_slotsSurf, glm::vec2(0.0f, 0.0f), 2, 1);
@@ -220,11 +192,6 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
 			if (!item.isEmpty()) {
 				//Item sprite
 				m_spriteBatch.addSprite(m_invItemSprites[PRIMARY][x], pos, 1);
-				//Amount
-				if (item.amount > 1) {
-					snprintf(amount, 8, "%i", item.amount);
-					RE::RM::getFont(m_font)->add(m_spriteBatch, amount, glm::vec2(pos.x, pos.y - SLOT_PADDING.y - slotPivot().y), glm::vec2(1.0f, 1.0f), 3, m_amountColor, RE::HAlign::MIDDLE);
-				}
 			}
 		};
 		//The selected slot indicator

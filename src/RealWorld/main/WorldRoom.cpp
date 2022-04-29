@@ -8,7 +8,7 @@ WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_player(RE::SpriteBatch::std()),
 	m_playerInv({10, 4}),
 	m_itemUser(m_world, m_playerInv, m_player.getHitbox(), RE::SpriteBatch::std()),
-	m_invUI(RE::SpriteBatch::std(), window()->getDims(), m_inventoryFont) {
+	m_invUI(RE::SpriteBatch::std(), window()->getDims()) {
 
 	//Drawers
 	m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
@@ -121,7 +121,7 @@ void WorldRoom::windowResized(const glm::ivec2& newDims) {
 
 void WorldRoom::drawGUI() {
 	RE::SpriteBatch::std().begin();
-	std::stringstream stream;
+	/*std::stringstream stream;
 
 	stream << "FPS: " << synchronizer()->getFramesPerSecond() << '\n';
 	stream << "Max FT: " << std::chrono::duration_cast<std::chrono::microseconds>(synchronizer()->getMaxFrameTime()).count() << " us" << '\n';
@@ -131,7 +131,7 @@ void WorldRoom::drawGUI() {
 		<< std::setw(4) << cursorPosPx.y << "]\n";
 
 	glm::vec2 topLeft = glm::vec2(0.0f, window()->getDims().y);
-	RE::RM::getFont(m_inventoryFont)->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, RE::Color{255, 255, 255, 255}, RE::HAlign::RIGHT, RE::VAlign::BELOW);
+	RE::RM::getFont(m_inventoryFont)->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, RE::Color{255, 255, 255, 255}, RE::HAlign::RIGHT, RE::VAlign::BELOW);*/
 
 	m_invUI.draw(input()->getCursorAbs());
 

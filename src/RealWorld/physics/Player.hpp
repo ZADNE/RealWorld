@@ -3,6 +3,7 @@
 
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/ShaderProgram.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
 
 #include <RealWorld/physics/Hitbox.hpp>
 #include <RealWorld/rendering/ShaderStorageBuffers.hpp>
