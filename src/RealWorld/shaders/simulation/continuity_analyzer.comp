@@ -37,7 +37,9 @@ void main(){
 	barrier();
 	
 	//Output the update group size
-	dynamicsGroupSize.x = counter;
+	if (gl_LocalInvocationIndex == 0){
+		dynamicsGroupSize.x = counter;
+	}
 }
 
 )""

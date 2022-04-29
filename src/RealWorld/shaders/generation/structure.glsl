@@ -89,11 +89,7 @@ uvec2 stoneTile(vec2 posPx, float age, float baseSolidity, float seed){
 	float lavaFactor = snoise(posPx * (1.0 / 400.0), -seed) + depthFactor;
 	float dither = hash13(vec3(posPx, seed)) * 0.3 - 0.15;
 	uvec2 stoneTile = STONE_TILES[int(clamp(age + dither, 0.0, 0.9999) * STONE_TILES.length())].TILE_TYPE;
-	if (lavaFactor <= 0.0 && baseSolidity > 0.45){
-		return uvec2(LAVA.BLOCK_TYPE, stoneTile.y);
-	} else {
-		return stoneTile;
-	}
+	return (lavaFactor <= 0.0 && baseSolidity > 0.45) ? uvec2(LAVA.BLOCK_TYPE, stoneTile.y) : stoneTile;
 }
 
 uvec2 surfaceTile(vec2 posPx, vec2 biomeClimate, float seed){
