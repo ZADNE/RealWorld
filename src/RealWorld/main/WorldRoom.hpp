@@ -3,7 +3,6 @@
 
 #include <RealEngine/graphics/View.hpp>
 #include <RealEngine/graphics/Viewport.hpp>
-#include <RealEngine/resources/FontCache.hpp>
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/WorldDrawer.hpp>
@@ -64,9 +63,6 @@ private:
 	//View
 	RE::View m_worldView{window()->getDims()};
 	RE::UniformBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, false, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
-
-	//Standard drawing
-	RE::FontSeed m_inventoryFont{"arial", 24, 32, 350};
 
 	//Gameplay
 	World m_world;

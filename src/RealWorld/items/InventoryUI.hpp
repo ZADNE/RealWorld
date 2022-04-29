@@ -1,10 +1,12 @@
 ﻿#pragma once
 #include <glm/vec2.hpp>
 
+#include <magic_enum/magic_enum.hpp>
+
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/default_shaders.hpp>
-#include <magic_enum/magic_enum.hpp>
+#include <RealEngine/graphics/SpriteBatch.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
@@ -24,7 +26,7 @@ public:
 	/**
 	 * @brief Contructs a UI that is not connected to any inventories
 	*/
-	InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize, const RE::FontSeed& font);
+	InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize);
 	~InventoryUI();
 
 	/**
@@ -112,7 +114,6 @@ private:
 	}
 
 	RE::SpriteBatch& m_spriteBatch;
-	RE::FontSeed m_font;
 	ItemUser* m_itemUser = nullptr;
 
 	glm::vec2 m_windowSize;
@@ -126,8 +127,7 @@ private:
 	int m_chosenSlotPrev = 0;//Is signed but never should be negative
 
 	RE::Surface m_slotsSurf{{RE::TextureFlags::RGBA8_NU_NEAR_NEAR_EDGE}, true, false};
-	//0 texture: below dynamic sprites
-	//1 texture: above dynamic sprites
+	//0 texture: slots below dynamic sprites
 
 	RE::Color m_amountColor{255u, 255u, 255u, 255u};
 
