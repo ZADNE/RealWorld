@@ -37,8 +37,8 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
 	save.player.pos = iCHUNK_SIZE * glm::ivec2(0, 5) * iTILEPx;
 	save.inventory.resize({10, 4});
 	int x = 0;
-	save.inventory[x++][0] = Item{ITEM::STEEL_PICKAXE, 1};
-	save.inventory[x++][0] = Item{ITEM::STEEL_HAMMER, 1};
+	save.inventory[x++][0] = Item{ITEM::CREATIVE_PICKAXE, 1};
+	save.inventory[x++][0] = Item{ITEM::CREATIVE_HAMMER, 1};
 	save.inventory[x++][0] = Item{ITEM::B_STONE, 1};
 	save.inventory[x++][0] = Item{ITEM::B_WATER, 1};
 	save.inventory[x++][0] = Item{ITEM::B_LAVA, 1};

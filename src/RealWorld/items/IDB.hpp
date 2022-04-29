@@ -33,15 +33,9 @@ enum class ITEM : uint16_t {
 	W_MUD_GRASS,
 	W_DRY_GRASS,
 
-	WOODEN_PICKAXE,
-	STONE_PICKAXE,
-	BRONZE_PICKAXE,
-	STEEL_PICKAXE,
+	CREATIVE_PICKAXE,
 
-	WOODEN_HAMMER,
-	STONE_HAMMER,
-	BRONZE_HAMMER,
-	STEEL_HAMMER,
+	CREATIVE_HAMMER,
 
 	LAST
 };
@@ -53,7 +47,6 @@ enum class ITEM_TYPE : uint32_t {
 	WALL,
 	PICKAXE,//Mines blocks
 	HAMMER,//Mines walls
-	CHISEL
 };
 
 #pragma warning(push)
@@ -111,18 +104,12 @@ struct HammerMetadata {
 	float range;//How distant walls it can mine (in pixels)
 };
 
-PickaxeMetadata const pickaxeMetadata[4] = {
-	PickaxeMetadata(100,	1.0f,	128.0f),
-	PickaxeMetadata(100,	0.9f,	128.0f),
-	PickaxeMetadata(100,	1.0f,	128.0f),
-	PickaxeMetadata(100,	100.0f,	128.0f)
+PickaxeMetadata const pickaxeMetadata[1] = {
+	PickaxeMetadata(100,	1.0f,	128.0f)
 };
 
-HammerMetadata const hammerMetadata[4] = {
-	HammerMetadata(100,		0.8f,	128.0f),
-	HammerMetadata(100,		0.9f,	128.0f),
-	HammerMetadata(100,		1.0f,	128.0f),
-	HammerMetadata(100,		1.1f,	128.0f)
+HammerMetadata const hammerMetadata[1] = {
+	HammerMetadata(100,		0.8f,	128.0f)
 };
 
 class IDB {

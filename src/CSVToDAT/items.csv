@@ -1,5 +1,4 @@
 enum, DTB_TYPE, ushort
-furniture, 256
 item, 512
 tile, 768
 
@@ -14,7 +13,6 @@ BLOCK
 WALL
 PICKAXE
 HAMMER
-CHISEL
 
 
 //			MAXSTACK,	TEXATLAS,	SPRITEINDEX,	DRAWSCALE,	I_TYPE,		TYPEINDEX
@@ -46,13 +44,7 @@ skip,		int,		char,		float,			float,		I_TYPE,		int
 22,			1000,		W,			8.0,			2.0,		WALL,		9,			"Mud Grass Wall"
 23,			1000,		W,			9.0,			2.0,		WALL,		10,			"Dry Grass Wall"
 //
-24,			5,			P,			0.0,			1.0,		PICKAXE,	0,			"Wooden Pickaxe"
-25,			1,			P,			1.0,			1.0,		PICKAXE,	1,			"Stone Pickaxe"
-26,			1,			P,			2.0,			1.0,		PICKAXE,	2,			"Bronze Pickaxe"
-27,			1,			P,			3.0,			1.0,		PICKAXE,	3,			"Steel Pickaxe"
+24,			5,			P,			0.0,			1.0,		PICKAXE,	0,			"Pickaxe"
 //
-28,			5,			H,			0.0,			1.0,		HAMMER,		0,			"Wooden Hammer"
-29,			1,			H,			1.0,			1.0,		HAMMER,		1,			"Stone Hammer"
-30,			1,			H,			2.0,			1.0,		HAMMER,		2,			"Bronze Hammer"
-31,			1,			H,			3.0,			1.0,		HAMMER,		3,			"Steel Hammer"
+25,			5,			H,			0.0,			1.0,		HAMMER,		0,			"Hammer"
 
