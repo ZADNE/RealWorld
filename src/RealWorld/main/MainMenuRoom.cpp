@@ -70,6 +70,7 @@ void MainMenuRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	WorldSaveLoader::getSavedWorlds(m_worlds);
 	m_newWorldName = "";
 	m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
+	window()->setTitle("RealWorld!");
 }
 
 void MainMenuRoom::sessionEnd() {

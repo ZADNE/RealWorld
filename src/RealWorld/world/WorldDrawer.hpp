@@ -49,10 +49,10 @@ public:
 	//Should be called at the beginning of draw beginStep
 	void drawTiles();
 
-	void toggleShadows() { m_drawShadows = !m_drawShadows; }
+	void shouldDrawShadows(bool should) { m_drawShadows = should; }
 	void coverWithShadows();
 
-	void toggleMinimap() { m_drawMinimap = !m_drawMinimap; }
+	void shouldDrawMinimap(bool should) { m_drawMinimap = should; }
 	void drawMinimap();
 private:
 	using enum RE::BufferType;

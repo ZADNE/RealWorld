@@ -38,6 +38,8 @@ public:
 	glm::uvec2 adoptSave(const MetadataSave& save, const glm::vec2& windowDims);
 	void gatherSave(MetadataSave& save) const;
 	bool saveChunks() const;
+
+	void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
 private:
 	using enum RE::BufferType;
 	using enum RE::BufferAccessFrequency;
@@ -70,4 +72,6 @@ private:
 	uint32_t m_rngState;
 
 	ChunkManager m_chunkManager{m_tileTransformationsShader, 0u};
+
+	bool m_permuteOrder = true;
 };

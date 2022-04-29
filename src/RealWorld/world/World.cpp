@@ -13,7 +13,7 @@ uint32_t xorshift32(uint32_t& state) {
 
 //Fisher–Yates shuffle algorithm
 void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
-	for (int i = 0; i < order.size() - 1; i++) {
+	for (size_t i = 0; i < order.size() - 1; i++) {
 		int j = i + xorshift32(state) % (order.size() - i);
 		std::swap(order[i].x, order[j].x);
 		std::swap(order[i].y, order[j].y);
@@ -37,7 +37,7 @@ glm::uvec2 World::adoptSave(const MetadataSave& save, const glm::vec2& windowDim
 
 	m_worldSurface.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
 	m_worldSurface.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
-	m_worldSurface.getTexture(0).clear(RE::Color{ 1, 0, 0, 0 });
+	m_worldSurface.getTexture(0).clear(RE::Color{ 0, 0, 0, 0 });
 
 	m_chunkManager.setTarget(m_seed, save.path, &m_worldSurface);
 
@@ -77,18 +77,20 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	glm::ivec2 botLeftCh = tiToCh(botLeftTi);
 	glm::ivec2 topRightCh = tiToCh(topRightTi);
 	m_fluidDynamicsShader.use();
-	auto* timeHash = m_worldDynamicsUBO.map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
-		sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
-	*timeHash = m_rngState;
-	glm::ivec4* updateOrder = reinterpret_cast<glm::ivec4*>(&timeHash[1]);
-	for (unsigned int i = 0; i < 4; i++) {
+	if (m_permuteOrder) {
+		auto* timeHash = m_worldDynamicsUBO.map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
+			sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
+		*timeHash = m_rngState;
+		glm::ivec4* updateOrder = reinterpret_cast<glm::ivec4*>(&timeHash[1]);
+		for (unsigned int i = 0; i < 4; i++) {
+			permuteOrder(m_rngState, m_dynamicsUpdateOrder);
+			std::memcpy(&updateOrder[i * 4], &m_dynamicsUpdateOrder[0], 4 * sizeof(m_dynamicsUpdateOrder[0]));
+		}
+		m_worldDynamicsUBO.unmap();
 		permuteOrder(m_rngState, m_dynamicsUpdateOrder);
-		std::memcpy(&updateOrder[i * 4], &m_dynamicsUpdateOrder[0], 4 * sizeof(m_dynamicsUpdateOrder[0]));
 	}
-	m_worldDynamicsUBO.unmap();
 	glm::ivec2 dynBotLeftTi = botLeftCh * iCHUNK_SIZE + iCHUNK_SIZE / 2;
-	permuteOrder(m_rngState, m_dynamicsUpdateOrder);
-	for (int i = 0; i < m_dynamicsUpdateOrder.size(); i++) {
+	for (size_t i = 0; i < m_dynamicsUpdateOrder.size(); i++) {
 		auto* offset = m_worldDynamicsUBO.map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
 		*offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i].x, m_dynamicsUpdateOrder[i].y) * iCHUNK_SIZE / 2;
 		m_worldDynamicsUBO.unmap();

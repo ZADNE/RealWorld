@@ -21,10 +21,12 @@ WorldRoom::~WorldRoom() {
 
 void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	try {
-		if (!loadWorld(std::any_cast<const std::string&>(params[0]))) {
+		const std::string& worldName = std::any_cast<const std::string&>(params[0]);
+		if (!loadWorld(worldName)) {
 			program()->scheduleRoomTransition(0, {});
 			return;
 		}
+		window()->setTitle("RealWorld! - " + worldName);
 	}
 	catch (...) {
 		RE::fatalError("Bad transition paramaters to start WorldRoom session");
@@ -91,9 +93,10 @@ void WorldRoom::step() {
 	m_worldDrawer.endStep();
 
 	//Toggles & quit
-	if (keybindPressed(MINIMAP)) { m_worldDrawer.toggleMinimap(); }
-	if (keybindPressed(SHADOWS)) { m_worldDrawer.toggleShadows(); }
 	if (keybindPressed(QUIT)) { program()->scheduleRoomTransition(0, {}); }
+	if (keybindPressed(MINIMAP)) { m_worldDrawer.shouldDrawMinimap(m_minimap = !m_minimap); }
+	if (keybindPressed(SHADOWS)) { m_worldDrawer.shouldDrawShadows(m_shadows = !m_shadows); }
+	if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
 }
 
 void WorldRoom::render(double interpolationFactor) {
@@ -120,25 +123,30 @@ void WorldRoom::windowResized(const glm::ivec2& newDims) {
 }
 
 void WorldRoom::drawGUI() {
+	//Inventory
 	RE::SpriteBatch::std().begin();
-	/*std::stringstream stream;
-
-	stream << "FPS: " << synchronizer()->getFramesPerSecond() << '\n';
-	stream << "Max FT: " << std::chrono::duration_cast<std::chrono::microseconds>(synchronizer()->getMaxFrameTime()).count() << " us" << '\n';
-	stream << "CPU chunks: " << m_world.getNumberOfInactiveChunks() << '\n';
-	glm::ivec2 cursorPosPx = pxToTi(m_worldView.getCursorRel());
-	stream << "CursorTi: [" << std::setw(4) << cursorPosPx.x << ", "
-		<< std::setw(4) << cursorPosPx.y << "]\n";
-
-	glm::vec2 topLeft = glm::vec2(0.0f, window()->getDims().y);
-	RE::RM::getFont(m_inventoryFont)->add(RE::SpriteBatch::std(), stream.str(), topLeft, 0, RE::Color{255, 255, 255, 255}, RE::HAlign::RIGHT, RE::VAlign::BELOW);*/
-
 	m_invUI.draw(input()->getCursorAbs());
-
 	RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
 	RE::SpriteBatch::std().draw();
-
+	//Minimap
 	m_worldDrawer.drawMinimap();
+	//Top-left menu
+	ImGui::SetNextWindowPos({0.0f, 0.0f});
+	ImGui::PushFont(m_arial);
+	if (ImGui::Begin("##topLeftMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
+		ImGui::Text("FPS: %u\nMax FT: %i us",
+			synchronizer()->getFramesPerSecond(),
+			(int)std::chrono::duration_cast<std::chrono::microseconds>(synchronizer()->getMaxFrameTime()).count());
+		ImGui::Separator();
+		ImGui::TextUnformatted("Minimap:"); ImGui::SameLine();
+		if (ImGui::ToggleButton("##minimap", &m_minimap)) m_worldDrawer.shouldDrawMinimap(m_minimap);
+		ImGui::TextUnformatted("Shadows:"); ImGui::SameLine();
+		if (ImGui::ToggleButton("##shadows", &m_shadows)) m_worldDrawer.shouldDrawShadows(m_shadows);
+		ImGui::TextUnformatted("Permute:"); ImGui::SameLine();
+		if (ImGui::ToggleButton("##shadows", &m_permute)) m_world.shouldPermuteOrder(m_permute);
+	}
+	ImGui::End();
+	ImGui::PopFont();
 }
 
 bool WorldRoom::loadWorld(const std::string& worldName) {

@@ -36,7 +36,8 @@ enum class RealWorldKeyBindings {
 
 	QUIT,
 	MINIMAP,
-	SHADOWS
+	SHADOWS,
+	PERMUTE
 };
 
 constexpr static std::array KEYBINDER_DESC = {
@@ -71,7 +72,8 @@ constexpr static std::array KEYBINDER_DESC = {
 
 	"Quit",
 	"Draw minimap",
-	"Draw shadows"
+	"Draw shadows",
+	"Permute order"
 };
 
 /**
@@ -108,8 +110,9 @@ constexpr static RE::KeyBindingValueList<const RealWorldKeyBindings> KEYBINDER_D
 	RE::Key::LShift,
 
 	RE::Key::Escape,
-	RE::Key::P,
-	RE::Key::O
+	RE::Key::Numpad1,
+	RE::Key::Numpad2,
+	RE::Key::Numpad3
 };
 
 static_assert(KEYBINDER_DEFAULT_LIST.size() == magic_enum::enum_count<RealWorldKeyBindings>()
