@@ -1,11 +1,10 @@
 ﻿#include <RealWorld/items/ItemUser.hpp>
 
 
-ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch) :
+ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox) :
 	m_world(world),
 	m_inv(inventory),
-	m_operatorsHitbox(operatorsHitbox),
-	m_spriteBatch(spriteBatch) {
+	m_operatorsHitbox(operatorsHitbox) {
 
 	m_item = &m_inv[m_chosenSlot][0];
 }
@@ -27,7 +26,7 @@ void ItemUser::selectSlot(int slot) {
 	m_item = &m_inv[m_chosenSlot][0];
 }
 
-void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx) {
+void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch& gb) {
 	bool use[2] = {usePrimary, useSecondary};
 
 	//Update usage
@@ -67,18 +66,23 @@ void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCur
 			break;
 		}
 	}
-}
 
-void ItemUser::draw() {
-	/*Item& item = m_inv[m_chosenSlot][0];
-	const ItemMetadata& im = IDB::g(item.ID);
-	if (m_using[PRIMARY_USE] > 0) {
-		if (im.type == ITEM_TYPE::PICKAXE && m_neededToMineBlock != 0.0f && m_UCBlock != BLOCK::AIR) {
-			m_spriteBatch.addSubimage(m_miningBlockTex.get(), glm::vec2(m_UCTilePx), 10, glm::vec2(m_neededToMineBlock / TDB::gb(m_UCBlock).toughness * 9.0f, 0.0f));
+	
+	if (im.type != ITEM_TYPE::EMPTY) {//Draw
+		RE::Color col{255, 255, 255, 255};
+		glm::vec2 c = tiToPx(pxToTi(relCursorPosPx)) + TILEPx * 0.5f;
+		float dia = m_diameter * TILEPx.x;
+		if (m_shape == SET_SHAPE::DISC) {
+			RE::CirclePOCO circ{RE::CirclePO{c, dia, false}, col};
+			gb.addCircles(0u, 1u, &circ);
+		} else {
+			RE::VertexPOCO square[4] = {
+				{c + glm::vec2{-dia, -dia}, col},
+				{c + glm::vec2{+dia, -dia}, col},
+				{c + glm::vec2{+dia, +dia}, col},
+				{c + glm::vec2{-dia, +dia}, col}
+			};
+			gb.addPrimitives(RE::PRIM::LINE_LOOP, 0, 4, square);
 		}
-
-		if (im.type == ITEM_TYPE::HAMMER && m_neededToMineWall != 0.0f && m_UCWall != WALL::AIR) {
-			m_spriteBatch.addSubimage(m_miningBlockTex.get(), glm::vec2(m_UCTilePx), 10, glm::vec2(m_neededToMineWall / TDB::gw(m_UCWall).toughness * 9.0f, 0.0f));
-		}
-	}*/
+	}
 }

@@ -7,7 +7,7 @@ WorldRoom::WorldRoom(RE::CommandLineArguments args) :
 	m_worldDrawer(window()->getDims()),
 	m_player(RE::SpriteBatch::std()),
 	m_playerInv({10, 4}),
-	m_itemUser(m_world, m_playerInv, m_player.getHitbox(), RE::SpriteBatch::std()),
+	m_itemUser(m_world, m_playerInv, m_player.getHitbox()),
 	m_invUI(RE::SpriteBatch::std(), window()->getDims()) {
 
 	//Drawers
@@ -40,6 +40,7 @@ void WorldRoom::sessionEnd() {
 }
 
 void WorldRoom::step() {
+	RE::GeometryBatch::std().begin();
 	using enum InventoryUI::SelectionManner;
 
 	//Player
@@ -63,7 +64,7 @@ void WorldRoom::step() {
 	m_itemUser.step(
 		keybindDown(ITEMUSER_USE_PRIMARY) && !m_invUI.isOpen(),
 		keybindDown(ITEMUSER_USE_SECONDARY) && !m_invUI.isOpen(),
-		m_worldView.getCursorRel()
+		m_worldView.getCursorRel(), RE::GeometryBatch::std()
 	);
 
 	m_worldDrawer.addLight(m_worldView.getCursorRel(), RE::Color{0u, 0u, 0u, 31u});
@@ -76,8 +77,8 @@ void WorldRoom::step() {
 		if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(input()->getCursorAbs(), 0.5f); }
 	} else { //Inventory is closed
 		if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
-			if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(0.5f); }
-			if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-0.5f); }
+			if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(1.0f); }
+			if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-1.0f); }
 		} else {
 			if (keybindPressed(INV_RIGHT_SLOT)) { m_invUI.selectSlot(RIGHT, keybindPressed(INV_RIGHT_SLOT)); }
 			if (keybindPressed(INV_LEFT_SLOT)) { m_invUI.selectSlot(LEFT, keybindPressed(INV_LEFT_SLOT)); }
@@ -97,6 +98,8 @@ void WorldRoom::step() {
 	if (keybindPressed(MINIMAP)) { m_worldDrawer.shouldDrawMinimap(m_minimap = !m_minimap); }
 	if (keybindPressed(SHADOWS)) { m_worldDrawer.shouldDrawShadows(m_shadows = !m_shadows); }
 	if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
+
+	RE::GeometryBatch::std().end();
 }
 
 void WorldRoom::render(double interpolationFactor) {
@@ -104,12 +107,15 @@ void WorldRoom::render(double interpolationFactor) {
 
 	m_worldDrawer.drawTiles();
 
-	RE::SpriteBatch::std().begin();
-	m_player.draw();
-	RE::SpriteBatch::std().end(RE::GlyphSortType::TEXTURE);
-	RE::SpriteBatch::std().draw();
+	auto& sb = RE::SpriteBatch::std();
+	sb.begin();
+		m_player.draw();
+	sb.end(RE::GlyphSortType::TEXTURE);
+	sb.draw();
 
 	m_worldDrawer.coverWithShadows();
+
+	RE::GeometryBatch::std().draw();
 
 	RE::Viewport::getWindowMatrixUniformBuffer().bindIndexed();
 

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/graphics/GeometryBatch.hpp>
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/IDB.hpp>
@@ -13,7 +13,7 @@ public:
 	const static int PRIMARY_USE = 0;
 	const static int SECONDARY_USE = 1;
 
-	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox, RE::SpriteBatch& spriteBatch);
+	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox);
 	~ItemUser();
 
 	void switchShape();
@@ -22,18 +22,16 @@ public:
 	//Does not check if the slot is inside the inventory!
 	void selectSlot(int slot);
 
-	void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx);
-	void draw();
+	void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch& geometryBatch);
 private:
 	World& m_world;
 	Inventory& m_inv;
 	Hitbox& m_operatorsHitbox;
-	RE::SpriteBatch& m_spriteBatch;
 
 	int m_chosenSlot = 0;
 
 	SET_SHAPE m_shape = SET_SHAPE::DISC;
-	float m_diameter = 1.0f;
+	float m_diameter = 1.5f;
 
 	// <  -1: steps not using
 	// == -1: just stopped using
