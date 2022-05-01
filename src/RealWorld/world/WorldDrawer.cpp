@@ -21,7 +21,7 @@ const GLint VERTICES_POUV_MINIMAP_RECT = 12;
 
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {
 	reloadViewSize(viewSizePx);
-	m_surLighting.resize({ m_viewDimsUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u }, 3);
+	m_surLighting.resize({m_viewDimsUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
 
 	//Bind textures to their reserved texture units
 	m_blockAtlasTex->bind(TEX_UNIT_BLOCK_ATLAS);
@@ -52,7 +52,7 @@ void WorldDrawer::resizeView(const glm::uvec2& newViewSizePx) {
 	updateUniformsAfterViewResize();
 	updatePOUVBuffers();
 
-	m_surLighting.resize({ m_viewDimsUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u }, 3);
+	m_surLighting.resize({m_viewDimsUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
 	m_surLighting.getTexture(0).bind(TEX_UNIT_LIGHTS_LIGHT);
 	m_surLighting.getTexture(1).bind(TEX_UNIT_LIGHTS_TRANSLU);
 	m_surLighting.getTexture(2).bind(TEX_UNIT_LIGHTS_COMPUTED);
@@ -61,7 +61,7 @@ void WorldDrawer::resizeView(const glm::uvec2& newViewSizePx) {
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
 	m_invBotLeftPx = botLeftPx;
 	m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx)) - glm::ivec2(LIGHT_MAX_RANGETi);
-	return ViewEnvelope{ .botLeftTi = m_botLeftTi, .topRightTi = m_botLeftTi + glm::ivec2(m_viewDimsTi) + glm::ivec2(LIGHT_MAX_RANGETi) * 2 };
+	return ViewEnvelope{.botLeftTi = m_botLeftTi, .topRightTi = m_botLeftTi + glm::ivec2(m_viewDimsTi) + glm::ivec2(LIGHT_MAX_RANGETi) * 2};
 }
 
 void WorldDrawer::beginStep() {
@@ -178,35 +178,35 @@ void WorldDrawer::updatePOUVBuffers() {
 	//World to light rectangle
 	size_t i = VERTICES_POUV_WORLDTOLIGHT_RECT;
 	glm::vec2 worldToLightDims = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn) * 2.0f;
-	vertices[i++].position = { 0.0f, 0.0f };
-	vertices[i++].position = { worldToLightDims.x, 0.0f };
-	vertices[i++].position = { 0.0f, worldToLightDims.y };
-	vertices[i++].position = { worldToLightDims.x, worldToLightDims.y };
+	vertices[i++].position = {0.0f, 0.0f};
+	vertices[i++].position = {worldToLightDims.x, 0.0f};
+	vertices[i++].position = {0.0f, worldToLightDims.y};
+	vertices[i++].position = {worldToLightDims.x, worldToLightDims.y};
 
 	//Compute light rectangle
 	i = VERTICES_POUV_COMPUTELIGHT_RECT;
 	glm::vec2 computeLightTopRight = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn + 1);
-	vertices[i++].position = { LIGHT_MAX_RANGEUn - 1, LIGHT_MAX_RANGEUn - 1 };
-	vertices[i++].position = { computeLightTopRight.x, LIGHT_MAX_RANGEUn - 1 };
-	vertices[i++].position = { LIGHT_MAX_RANGEUn - 1, computeLightTopRight.y };
-	vertices[i++].position = { computeLightTopRight.x, computeLightTopRight.y };
+	vertices[i++].position = {LIGHT_MAX_RANGEUn - 1, LIGHT_MAX_RANGEUn - 1};
+	vertices[i++].position = {computeLightTopRight.x, LIGHT_MAX_RANGEUn - 1};
+	vertices[i++].position = {LIGHT_MAX_RANGEUn - 1, computeLightTopRight.y};
+	vertices[i++].position = {computeLightTopRight.x, computeLightTopRight.y};
 
 	//Normalized rectangle
 	i = VERTICES_POUV_NORM_RECT;
-	vertices[i++] = { {0.0f, 0.0f}, {0.0f, 0.0f} };
-	vertices[i++] = { {1.0f, 0.0f}, {1.0f, 0.0f} };
-	vertices[i++] = { {0.0f, 1.0f}, {0.0f, 1.0f} };
-	vertices[i++] = { {1.0f, 1.0f}, {1.0f, 1.0f} };
+	vertices[i++] = {{0.0f, 0.0f}, {0.0f, 0.0f}};
+	vertices[i++] = {{1.0f, 0.0f}, {1.0f, 0.0f}};
+	vertices[i++] = {{0.0f, 1.0f}, {0.0f, 1.0f}};
+	vertices[i++] = {{1.0f, 1.0f}, {1.0f, 1.0f}};
 
 	//Minimap rectangle
 	float scale = std::min(m_viewDimsPx.x / m_worldDimTi.x, m_viewDimsPx.y / m_worldDimTi.y) * 0.5f;
 	const glm::vec2 middle = m_viewDimsPx * 0.5f;
 	const glm::vec2 world = glm::vec2(m_worldDimTi) * scale;
 	i = VERTICES_POUV_MINIMAP_RECT;
-	vertices[i++] = { {middle.x - world.x, middle.y - world.y}, {0.0f, 0.0f} };
-	vertices[i++] = { {middle.x + world.x, middle.y - world.y}, {1.0f, 0.0f} };
-	vertices[i++] = { {middle.x - world.x, middle.y + world.y}, {0.0f, 1.0f} };
-	vertices[i++] = { {middle.x + world.x, middle.y + world.y}, {1.0f, 1.0f} };
+	vertices[i++] = {{middle.x - world.x, middle.y - world.y}, {0.0f, 0.0f}};
+	vertices[i++] = {{middle.x + world.x, middle.y - world.y}, {1.0f, 0.0f}};
+	vertices[i++] = {{middle.x - world.x, middle.y + world.y}, {0.0f, 1.0f}};
+	vertices[i++] = {{middle.x + world.x, middle.y + world.y}, {1.0f, 1.0f}};
 
 	m_bufferPOUV.overwrite(0, sizeof(vertices), vertices);
 }

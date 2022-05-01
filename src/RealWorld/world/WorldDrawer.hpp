@@ -76,7 +76,7 @@ private:
 	static inline const RE::TextureFlags RGBA32_NU_NEAR_LIN_EDGE{
 		RE::TextureChannels::RGBA, RE::TextureFormat::NORMALIZED_UNSIGNED, RE::TextureMinFilter::NEAREST_NO_MIPMAPS,
 		RE::TextureMagFilter::LINEAR, RE::TextureWrapStyle::CLAMP_TO_EDGE, RE::TextureWrapStyle::CLAMP_TO_EDGE,
-		RE::TextureBitdepthPerChannel::BITS_32
+		RE::TextureBitdepthPerChannel::BITS_8
 	};
 
 	RE::Surface m_surLighting{{RGBA32_NU_NEAR_LIN_EDGE}, false, false};
