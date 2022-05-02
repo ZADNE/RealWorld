@@ -4,7 +4,6 @@
 #include <RealEngine/graphics/GeometryBatch.hpp>
 
 #include <RealWorld/world/World.hpp>
-#include <RealWorld/items/IDB.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/physics/Hitbox.hpp>
 

@@ -3,8 +3,6 @@
 #include <vector>
 #include <cmath>
 
-const std::string ITEM_ATLAS_PREFIX = "itemAtlas";
-
 enum class ITEM : uint16_t {
 	EMPTY,
 
@@ -78,45 +76,20 @@ struct ItemMetadata {
 };
 #pragma warning(pop)
 
-struct PickaxeMetadata {
-	PickaxeMetadata(int strength, float speed, float range) :
-		strength(strength),
-		speed(speed),
-		range(range) {
-
-	};
-
-	int strength;//How hard blocks it can mine, must be equal or higher than block's hardness to mine it
-	float speed;//How fast it mines
-	float range;//How distant blocks it can mine (in pixels)
-};
-
-struct HammerMetadata {
-	HammerMetadata(int strength, float speed, float range) :
-		strength(strength),
-		speed(speed),
-		range(range) {
-
-	};
-
-	int strength;//How hard blocks it can mine, must be equal or higher than wall's hardness to mine it
-	float speed;//How fast it mines
-	float range;//How distant walls it can mine (in pixels)
-};
-
-PickaxeMetadata const pickaxeMetadata[1] = {
-	PickaxeMetadata(100,	1.0f,	128.0f)
-};
-
-HammerMetadata const hammerMetadata[1] = {
-	HammerMetadata(100,		0.8f,	128.0f)
-};
-
-class IDB {
+/**
+ * @brief Is a readonly database of item metadata
+*/
+class ItemDatabase {
 public:
+	/**
+	 * @brief To be called once at startup
+	*/
 	void static init();
 
-	const static ItemMetadata& g(ITEM ID);
+	/**
+	 * @brief Fetches metadata of an item
+	*/
+	const static ItemMetadata& md(ITEM ID);
 private:
 
 	static std::vector<ItemMetadata> m_itemMetadata;

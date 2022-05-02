@@ -18,5 +18,5 @@ RealWorld::~RealWorld() {
 }
 
 RealWorld::Database::Database() {
-	IDB::init();
+	ItemDatabase::init();
 }

@@ -64,7 +64,7 @@ public:
 	void swapUnderCursor(const glm::vec2& cursorPx);
 	void movePortion(const glm::vec2& cursorPx, float portion);
 	//Try to choose a number (may fail if tried to choose a slot outside inventory)
-	//For some constants, number is irrelevant (e.g. LAST_SLOT, PREV)
+	//For some constants, number is irrelevant (e.md. LAST_SLOT, PREV)
 
 	/**
 	 * @brief Selects a slot from the first row of the inventory.

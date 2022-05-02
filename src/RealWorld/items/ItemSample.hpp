@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <RealWorld/items/IDB.hpp>
+#include <RealWorld/items/ItemDatabase.hpp>
 
 struct ItemSample {
 		//Construct empty ItemSample

@@ -27,7 +27,7 @@ Item::~Item(){
 void Item::merge(Item& item, float portion){
 	if (ID != item.ID) { return; }//Both items are not same type, cannot merge
 	if (special != item.special) { return; }//Both items do nat have same special, cannot merge
-	int maxStack = IDB::g(ID).maxStack;
+	int maxStack = ItemDatabase::md(ID).maxStack;
 	int temp = std::min(maxStack - amount, (int)(std::ceil((float)item.amount * portion)));
 	amount += temp;
 	item.amount -= temp;
@@ -40,7 +40,7 @@ void Item::insert(Item & item, float portion){
 	if (ID != ITEM::EMPTY) { return; }//This is not empty item, cannot insert
 	special = item.special;
 	ID = item.ID;
-	int maxStack = IDB::g(ID).maxStack;
+	int maxStack = ItemDatabase::md(ID).maxStack;
 	int temp = std::min(maxStack, (int)(std::ceil((float)item.amount * portion)));
 	amount += temp;
 	item.amount -= temp;

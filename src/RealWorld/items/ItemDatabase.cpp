@@ -1,4 +1,4 @@
-﻿#include <RealWorld/items/IDB.hpp>
+﻿#include <RealWorld/items/ItemDatabase.hpp>
 
 #include <fstream>
 
@@ -12,13 +12,13 @@ void readBinary(std::ifstream& file, T& x){
 	file.read(reinterpret_cast<char *>(&x), sizeof(x));
 }
 
-std::vector<ItemMetadata> IDB::m_itemMetadata;
+std::vector<ItemMetadata> ItemDatabase::m_itemMetadata;
 
-const ItemMetadata& IDB::g(ITEM ID){
+const ItemMetadata& ItemDatabase::md(ITEM ID){
 	return m_itemMetadata[static_cast<unsigned int>(ID)];
 }
 
-void IDB::init() {
+void ItemDatabase::init() {
 	std::ifstream file("items.dat", std::ios::binary | std::ios::in);
 	if (file.fail()) {
 		return;

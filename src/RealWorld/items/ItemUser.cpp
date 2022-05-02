@@ -38,11 +38,11 @@ void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCur
 		}
 	}
 
-	const ItemMetadata& im = IDB::g(m_item->ID);
+	const ItemMetadata& md = ItemDatabase::md(m_item->ID);
 
 	//MAIN
 	if (m_using[PRIMARY_USE] > 0) {
-		switch (im.type) {
+		switch (md.type) {
 		case ITEM_TYPE::EMPTY:
 			break;
 		case ITEM_TYPE::PICKAXE:
@@ -55,20 +55,20 @@ void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCur
 	}
 	//ALTERNATIVE
 	if (m_using[SECONDARY_USE] > 0) {
-		switch (im.type) {
+		switch (md.type) {
 		case ITEM_TYPE::EMPTY:
 			break;
 		case ITEM_TYPE::BLOCK:
-			m_world.set(SET_TARGET::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 256));
+			m_world.set(SET_TARGET::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256));
 			break;
 		case ITEM_TYPE::WALL:
-			m_world.set(SET_TARGET::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(im.typeIndex, 256));
+			m_world.set(SET_TARGET::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256));
 			break;
 		}
 	}
 
 	
-	if (im.type != ITEM_TYPE::EMPTY) {//Draw
+	if (md.type != ITEM_TYPE::EMPTY) {//Draw
 		RE::Color col{255, 255, 255, 255};
 		glm::vec2 c = tiToPx(pxToTi(relCursorPosPx)) + TILEPx * 0.5f;
 		float dia = m_diameter * TILEPx.x;

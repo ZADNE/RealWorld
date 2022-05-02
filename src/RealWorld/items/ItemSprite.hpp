@@ -1,13 +1,20 @@
 ﻿#pragma once
 #include <RealEngine/graphics/Sprite.hpp>
 
-#include <RealWorld/items/IDB.hpp>
+#include <RealWorld/items/Item.hpp>
 
-struct Item;
-
+/**
+ * @brief Allows convenient drawing of items in inventory
+*/
 class ItemSprite : public RE::FullSprite {
 public:
 	ItemSprite();
 	ItemSprite(ITEM ID);
-	ItemSprite(Item item);
+	ItemSprite(ItemSample item);
+
+private:
+	/**
+	 * Filenames of all item atlases must begin with this prefix
+	*/
+	static inline const std::string ATLAS_PREFIX = "itemAtlas";
 };
