@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <string>
-#include <vector>
-#include <cmath>
+#include <array>
+
+#include <magic_enum/magic_enum.hpp>
 
 enum class ITEM : uint16_t {
 	EMPTY,
@@ -51,44 +52,34 @@ enum class ITEM_TYPE : uint32_t {
 	OPERATOR_LIGHT
 };
 
-#pragma warning(push)
-#pragma warning(disable: 26495)
 struct ItemMetadata {
-	ItemMetadata() {};
-	ItemMetadata(const std::string& name, int32_t maxStack, char textureAtlas, float spriteIndex, float drawScale, ITEM_TYPE type, int32_t typeIndex) :
+	ItemMetadata(int maxStack, char textureAtlas, float spriteIndex, float drawScale, ITEM_TYPE type, int typeIndex, const std::string& name) :
 		name(name),
 		maxStack(maxStack),
 		textureAtlas(textureAtlas),
-		spriteIndex(std::floor(spriteIndex)),
+		spriteIndex(spriteIndex),
 		drawScale(drawScale),
 		type(type),
 		typeIndex(typeIndex) {
 
 	};
 
-	static size_t constexpr saveSize() { return (sizeof(maxStack) + sizeof(textureAtlas) + sizeof(spriteIndex) + sizeof(drawScale) + sizeof(type) + sizeof(typeIndex)); }
+	std::string name;
+	int maxStack;
 
-	std::string name/* = ""*/;
-	int32_t maxStack/* = 0*/;
+	char textureAtlas;//Determines which texture atlas should be used to draw this item
+	float spriteIndex;//Determines which sprite in the texture atlas should be used
+	float drawScale;//Both X and Y scaling used when drawing the item inside slot
 
-	char textureAtlas/* = '0'*/;//Indicates which texture atlas should be used to draw this item
-	float spriteIndex/* = 0.0f*/;//Indicates which sprite in the texture atlas should be used
-	float drawScale;//Both X and Y scaling used when drawing the item inside slot (in world it is unstretched)
-
-	ITEM_TYPE type/* = ITEM_TYPE::MATERIAL*/;
-	int32_t typeIndex/* = 0*/;//ID of the block with block types | totalIndex of furniture with furniture types
+	ITEM_TYPE type;
+	int typeIndex;//ID of the block with block types
 };
-#pragma warning(pop)
 
 /**
  * @brief Is a readonly database of item metadata
 */
 class ItemDatabase {
 public:
-	/**
-	 * @brief To be called once at startup
-	*/
-	void static init();
 
 	/**
 	 * @brief Fetches metadata of an item
@@ -96,5 +87,5 @@ public:
 	const static ItemMetadata& md(ITEM ID);
 private:
 
-	static std::vector<ItemMetadata> m_itemMetadata;
+	const static std::array<ItemMetadata, magic_enum::enum_count<ITEM>()> m_itemMetadata;
 };

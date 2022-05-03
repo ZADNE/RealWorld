@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include <glm/common.hpp>
+
 
 Item::Item():
 	ItemSample{} {
@@ -28,7 +30,7 @@ void Item::merge(Item& item, float portion){
 	if (ID != item.ID) { return; }//Both items are not same type, cannot merge
 	if (special != item.special) { return; }//Both items do nat have same special, cannot merge
 	int maxStack = ItemDatabase::md(ID).maxStack;
-	int temp = std::min(maxStack - amount, (int)(std::ceil((float)item.amount * portion)));
+	int temp = glm::min(maxStack - amount, (int)(glm::ceil((float)item.amount * portion)));
 	amount += temp;
 	item.amount -= temp;
 	if (item.amount <= 0) {
@@ -41,7 +43,7 @@ void Item::insert(Item & item, float portion){
 	special = item.special;
 	ID = item.ID;
 	int maxStack = ItemDatabase::md(ID).maxStack;
-	int temp = std::min(maxStack, (int)(std::ceil((float)item.amount * portion)));
+	int temp = glm::min(maxStack, (int)(glm::ceil((float)item.amount * portion)));
 	amount += temp;
 	item.amount -= temp;
 	if (item.amount <= 0) {

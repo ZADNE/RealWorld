@@ -4,12 +4,9 @@ project(RealWorld)
 add_executable(RealWorld)
 target_include_directories(RealWorld PRIVATE src )
 
-add_executable(CSVToDAT)
-target_include_directories(CSVToDAT PRIVATE src )
-
 add_subdirectory(src)
 
-set_target_properties(RealWorld CSVToDAT PROPERTIES
+set_target_properties(RealWorld PROPERTIES
 	CXX_STANDARD 20
 )
 

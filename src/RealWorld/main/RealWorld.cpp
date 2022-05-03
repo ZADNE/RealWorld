@@ -16,7 +16,3 @@ RealWorld::RealWorld(RE::CommandLineArguments args) :
 RealWorld::~RealWorld() {
 
 }
-
-RealWorld::Database::Database() {
-	ItemDatabase::init();
-}

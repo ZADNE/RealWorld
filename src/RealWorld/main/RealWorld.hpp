@@ -5,17 +5,15 @@
 #include <RealWorld/main/WorldRoom.hpp>
 
 /**
- * @brief Is the main program-class of RealWorld.
+ * @brief Is a container for everything of the RealWorld game.
+ * 
+ * This is the main program-class with a room for main menu and gameplay.
 */
 class RealWorld : public RE::MainProgram {
 public:
 	RealWorld(RE::CommandLineArguments args);
 	~RealWorld();
 private:
-	struct Database {
-		Database();
-	};
-	Database m_database;		/**< Empty object that forces datatabase initialization */
-	WorldRoom m_worldRoom;		/**< Huge objects but it does not matter since this will be in static memory */
-	MainMenuRoom m_mainMenuRoom;/**< Huge objects but it does not matter since this will be in static memory */
+	WorldRoom m_worldRoom;		/**< Room with the gameplay */
+	MainMenuRoom m_mainMenuRoom;/**< Room with the main menu */
 };
