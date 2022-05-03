@@ -26,6 +26,7 @@ std::string_view fluidDynamics_comp =
 #include "common/image_units.glsl"
 #include "simulation/WorldDynamicsUBO.glsl"
 #include "simulation/tile_load_store.glsl"
+#include "simulation/fluid_constants.glsl"
 #include "simulation/fluid_dynamics.comp"
 ;
 

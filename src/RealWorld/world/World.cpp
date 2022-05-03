@@ -73,6 +73,10 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
 	m_chunkManager.step();
 
+	//Tile transformations
+	m_tileTransformationsShader.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
 	//Fluid dynamics
 	glm::ivec2 botLeftCh = tiToCh(botLeftTi);
 	glm::ivec2 topRightCh = tiToCh(topRightTi);
@@ -98,7 +102,4 @@ void World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
 	m_fluidDynamicsShader.unuse();
-
-	//Tile transformations
-	m_tileTransformationsShader.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
 }

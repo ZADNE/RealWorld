@@ -15,6 +15,7 @@ std::string_view structure_frag =
 #include "external/float_hash.glsl"
 #include "external/snoise.glsl"
 #include "common/tile_constants.glsl"
+#include "generation/structure_constants.glsl"
 #include "generation/column_values.glsl"
 #include "generation/ChunkUBO.glsl"
 #include "generation/structure.glsl"
@@ -37,8 +38,9 @@ std::string_view variationSelection_frag =
 std::string_view structure_comp =
 #include "external/float_hash.glsl"
 #include "external/snoise.glsl"
-#include "common/tile_constants.glsl"
 #include "common/image_units.glsl"
+#include "common/tile_constants.glsl"
+#include "generation/structure_constants.glsl"
 #include "generation/gen_settings.glsl"
 #include "generation/column_values.glsl"
 #include "generation/ChunkUBO.glsl"

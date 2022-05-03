@@ -5,10 +5,14 @@
 
 enum class ITEM : uint16_t {
 	EMPTY,
-
-	B_WATER,
-	B_LAVA,
-	B_ACID,
+	//Fluids
+	F_WATER,
+	F_LAVA,
+	F_STEAM,
+	F_FIRE,
+	F_SMOKE,
+	F_ACID,
+	//Blocks
 	B_STONE,
 	B_DIRT,
 	B_GRASS,
@@ -19,7 +23,7 @@ enum class ITEM : uint16_t {
 	B_MUD,
 	B_MUD_GRASS,
 	B_DRY_GRASS,
-
+	//Walls
 	W_STONE,
 	W_DIRT,
 	W_GRASS,
@@ -30,12 +34,10 @@ enum class ITEM : uint16_t {
 	W_MUD,
 	W_MUD_GRASS,
 	W_DRY_GRASS,
-
+	//Pickaxes
 	CREATIVE_PICKAXE,
-
+	///Hammers
 	CREATIVE_HAMMER,
-
-	LAST
 };
 
 enum class ITEM_TYPE : uint32_t {
@@ -45,6 +47,8 @@ enum class ITEM_TYPE : uint32_t {
 	WALL,
 	PICKAXE,//Mines blocks
 	HAMMER,//Mines walls
+	CURSOR_LIGHT,
+	OPERATOR_LIGHT
 };
 
 #pragma warning(push)

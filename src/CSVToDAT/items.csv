@@ -13,38 +13,44 @@ BLOCK
 WALL
 PICKAXE
 HAMMER
+CURSOR_LIGHT
+OPERATOR_LIGHT
 
 
-//			MAXSTACK,	TEXATLAS,	SPRITEINDEX,	DRAWSCALE,	I_TYPE,		TYPEINDEX
-skip,		int,		char,		float,			float,		I_TYPE,		int
-0,			0,			P,			4.0,			1.0,		EMPTY,		0,			"Empty"
-//
-1,			1000,		B,			0.0,			2.0,		BLOCK,		1,			"Water"
-2,			1000,		B,			1.0,			2.0,		BLOCK,		2,			"Lava"
-3,			1000,		B,			2.0,			2.0,		BLOCK,		3,			"Acid"
-4,			1000,		B,			3.0,			2.0,		BLOCK,		4,			"Stone Block"
-5,			1000,		B,			4.0,			2.0,		BLOCK,		5,			"Dirt Block"
-6,			1000,		B,			5.0,			2.0,		BLOCK,		6,			"Grass Block"
-7,			1000,		B,			6.0,			2.0,		BLOCK,		7,			"Cold Stone Block"
-8,			1000,		B,			7.0,			2.0,		BLOCK,		8,			"Sand Block"
-9,			1000,		B,			8.0,			2.0,		BLOCK,		9,			"Cold Dirt Block"
-10,			1000,		B,			9.0,			2.0,		BLOCK,		10,			"Cold Grass Block"
-11,			1000,		B,			10.0,			2.0,		BLOCK,		11,			"Mud Block"
-12,			1000,		B,			11.0,			2.0,		BLOCK,		12,			"Mud Grass Block"
-13,			1000,		B,			12.0,			2.0,		BLOCK,		13,			"Dry Grass Block"
-//
-14,			1000,		W,			0.0,			2.0,		WALL,		1,			"Stone Wall"
-15,			1000,		W,			1.0,			2.0,		WALL,		2,			"Dirt Wall"
-16,			1000,		W,			2.0,			2.0,		WALL,		3,			"Grass Wall"
-17,			1000,		W,			3.0,			2.0,		WALL,		4,			"Cold Stone Wall"
-18,			1000,		W,			4.0,			2.0,		WALL,		5,			"Sand Wall"
-19,			1000,		W,			5.0,			2.0,		WALL,		6,			"Cold Dirt Wall"
-20,			1000,		W,			6.0,			2.0,		WALL,		7,			"Cold Grass Wall"
-21,			1000,		W,			7.0,			2.0,		WALL,		8,			"Mud Wall"
-22,			1000,		W,			8.0,			2.0,		WALL,		9,			"Mud Grass Wall"
-23,			1000,		W,			9.0,			2.0,		WALL,		10,			"Dry Grass Wall"
-//
-24,			5,			P,			0.0,			1.0,		PICKAXE,	0,			"Pickaxe"
-//
-25,			5,			H,			0.0,			1.0,		HAMMER,		0,			"Hammer"
+//MAXSTACK	TEXATLAS	SPRITEINDEX		DRAWSCALE	I_TYPE		TYPEINDEX	NAME
+int,		char,		float,			float,		I_TYPE,		int
+0,			B,			0.0,			1.0,		EMPTY,		0,			"Empty"
+//Fluids
+1000,		F,			0.0,			4.0,		BLOCK,		1,			"Water"
+1000,		F,			1.0,			4.0,		BLOCK,		2,			"Lava"
+1000,		F,			2.0,			4.0,		BLOCK,		3,			"Steam"
+1000,		F,			3.0,			4.0,		BLOCK,		4,			"Fire"
+1000,		F,			4.0,			4.0,		BLOCK,		5,			"Smoke"
+1000,		F,			5.0,			4.0,		BLOCK,		15,			"Acid"
+//Blocks
+1000,		B,			0.0,			4.0,		BLOCK,		16,			"Stone Block"
+1000,		B,			1.0,			4.0,		BLOCK,		17,			"Dirt Block"
+1000,		B,			2.0,			4.0,		BLOCK,		18,			"Grass Block"
+1000,		B,			3.0,			4.0,		BLOCK,		19,			"Cold Stone Block"
+1000,		B,			4.0,			4.0,		BLOCK,		20,			"Sand Block"
+1000,		B,			5.0,			4.0,		BLOCK,		21,			"Cold Dirt Block"
+1000,		B,			6.0,			4.0,		BLOCK,		22,			"Cold Grass Block"
+1000,		B,			7.0,			4.0,		BLOCK,		23,			"Mud Block"
+1000,		B,			8.0,			4.0,		BLOCK,		24,			"Mud Grass Block"
+1000,		B,			9.0,			4.0,		BLOCK,		25,			"Dry Grass Block"
+//Walls
+1000,		W,			0.0,			4.0,		WALL,		1,			"Stone Wall"
+1000,		W,			1.0,			4.0,		WALL,		2,			"Dirt Wall"
+1000,		W,			2.0,			4.0,		WALL,		3,			"Grass Wall"
+1000,		W,			3.0,			4.0,		WALL,		4,			"Cold Stone Wall"
+1000,		W,			4.0,			4.0,		WALL,		5,			"Sand Wall"
+1000,		W,			5.0,			4.0,		WALL,		6,			"Cold Dirt Wall"
+1000,		W,			6.0,			4.0,		WALL,		7,			"Cold Grass Wall"
+1000,		W,			7.0,			4.0,		WALL,		8,			"Mud Wall"
+1000,		W,			8.0,			4.0,		WALL,		9,			"Mud Grass Wall"
+1000,		W,			9.0,			4.0,		WALL,		10,			"Dry Grass Wall"
+//Pickaxes
+1000,		P,			0.0,			1.0,		PICKAXE,	0,			"Pickaxe"
+//Hammers
+1000,		H,			0.0,			1.0,		HAMMER,		0,			"Hammer"
 

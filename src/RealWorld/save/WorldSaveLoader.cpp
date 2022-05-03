@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL_timer.h>
 #include <nlohmann/json.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 #include <lodepng/lodepng.hpp>
 #include <RealEngine/main/Error.hpp>
@@ -36,13 +37,14 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
 	//Player data
 	save.player.pos = iCHUNK_SIZE * glm::ivec2(0, 5) * iTILEPx;
 	save.inventory.resize({10, 4});
-	int x = 0;
-	save.inventory[x++][0] = Item{ITEM::CREATIVE_PICKAXE, 1};
-	save.inventory[x++][0] = Item{ITEM::CREATIVE_HAMMER, 1};
-	save.inventory[x++][0] = Item{ITEM::B_STONE, 1};
-	save.inventory[x++][0] = Item{ITEM::B_WATER, 1};
-	save.inventory[x++][0] = Item{ITEM::B_LAVA, 1};
-	save.inventory[x++][0] = Item{ITEM::B_GRASS, 1};
+
+	int slot = 0;
+	save.inventory(slot++) = Item{ITEM::CREATIVE_PICKAXE, 1};
+	save.inventory(slot++) = Item{ITEM::CREATIVE_HAMMER, 1};
+
+	for (size_t i = magic_enum::enum_integer(ITEM::F_WATER); i <= magic_enum::enum_integer(ITEM::W_DRY_GRASS); ++i) {
+		save.inventory(slot++) = Item{static_cast<ITEM>(i), 1};
+	}
 
 	return saveWorld(save, worldName, true);
 }
