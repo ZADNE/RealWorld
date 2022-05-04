@@ -14,16 +14,11 @@
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 
-#ifdef _DEBUG
-const unsigned int FPS_LIMIT = 150u;
-#else
-const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
-#endif // _DEBUG
-
+const unsigned int FPS_LIMIT = 300u;
 const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
 
 /**
- * @brief Is the room that holds all gameplay-related objects.
+ * @brief Manages all gameplay-related objects.
 */
 class WorldRoom : public Room {
 public:

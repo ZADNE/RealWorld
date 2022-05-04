@@ -28,6 +28,9 @@ const std::array<ItemMetadata, magic_enum::enum_count<ITEM>()> ItemDatabase::m_i
 	ItemMetadata{1000,		'B',		7.0f,			4.0f,		ITEM_TYPE::BLOCK,		i(BLOCK::MUD),			"Mud Block"},
 	ItemMetadata{1000,		'B',		8.0f,			4.0f,		ITEM_TYPE::BLOCK,		i(BLOCK::MUD_GRASS),	"Mud Grass Block"},
 	ItemMetadata{1000,		'B',		9.0f,			4.0f,		ITEM_TYPE::BLOCK,		i(BLOCK::DRY_GRASS),	"Dry Grass Block"},
+	ItemMetadata{1000,		'B',		10.0f,			4.0f,		ITEM_TYPE::BLOCK,		i(BLOCK::HALLOW_STONE),	"Hallow Stone Block"},
+	ItemMetadata{1000,		'B',		11.0f,			4.0f,		ITEM_TYPE::BLOCK,		i(BLOCK::HALLOW_DIRT),	"Hallow Dirt Block"},
+	ItemMetadata{1000,		'B',		12.0f,			4.0f,		ITEM_TYPE::BLOCK,		i(BLOCK::HALLOW_GRASS),	"Hallow Grass Block"},
 	//Walls		maxStack	texAtlas	spriteIndex		drawScale	type					typeIndex				name
 	ItemMetadata{1000,		'W',		0.0f,			4.0f,		ITEM_TYPE::WALL,		i(WALL::STONE),			"Stone Wall"},
 	ItemMetadata{1000,		'W',		1.0f,			4.0f,		ITEM_TYPE::WALL,		i(WALL::DIRT),			"Dirt Wall"},

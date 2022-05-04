@@ -1,22 +1,41 @@
 R""(
 #line 3
 //To be edited with propertiesHelper.txt
-const uint LIVING = 	1 << 0;
-const uint BURNING = 	1 << 1;
+const uint STONEb = 	1 << 0;
+const uint DIRTb = 		1 << 1;
+const uint GRASSb = 	1 << 2;
+const uint BURNINGb = 	1 << 3;
+const uint HALLOWb = 	1 << 4;
 
 
 
-const uint TILE_PROPERTIES[256] = {
+
+
+
+
+
+
+
+const uint BLOCK_PROPERTIES[256] = {
+	STONEb,
+	DIRTb,
+	GRASSb,
+	STONEb,
+	DIRTb,
+	DIRTb,
+	GRASSb,
+	DIRTb,
+	GRASSb,
+	GRASSb,
+	HALLOWb | STONEb,
+	HALLOWb | DIRTb,
+	HALLOWb | GRASSb,
 	0,
 	0,
-	LIVING,
 	0,
 	0,
 	0,
-	LIVING,
 	0,
-	LIVING,
-	LIVING,
 	0,
 	0,
 	0,
@@ -223,19 +242,10 @@ const uint TILE_PROPERTIES[256] = {
 	0,
 	0,
 	0,
+	BURNINGb,
 	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	BURNING,
-	0,
-	BURNING,
-	BURNING,
+	BURNINGb,
+	BURNINGb,
 	0,
 	0,
 	0,

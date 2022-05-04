@@ -7,6 +7,16 @@ Names are aligned with tile_propertiestxt
 
 
 
+
+
+
+
+
+
+
+
+
+
 STONE
 DIRT
 GRASS
@@ -17,9 +27,9 @@ COLD_GRASS
 MUD
 MUD_GRASS
 DRY_GRASS
-
-
-
+HALLOW_STONE
+HALLOW_DIRT
+HALLOW_GRASS
 
 
 

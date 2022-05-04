@@ -35,10 +35,6 @@ const ivec2 OFFSETS[] = {
 				{-1, -2},	{+0, -2},	{+1, -2}
 };
 
-bool edgeRequiredToSpread(uint block_type){
-	return isSolidBlock(block_type) ? bool(TRANSFORM[block_type].w) : true;
-}
-
 void main(){
 	random();
 	ivec2 centerTi = updateOffsetTi[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
@@ -46,26 +42,37 @@ void main(){
 					
 	
 	uvec4 tile = tileLoad(centerTi);
-	uvec4 propConv = TRANSFORM[tile.BL_T];
 	bvec2 edgeTile = bvec2(false, false);
-	uint nearbyProperties = 0;
+	uvec2 nearbyProperties = uvec2(0);
 	for(int i = 0; i < OFFSETS.length(); ++i){//Check all neighbors
 		uvec4 neighbor = tileLoad(centerTi + OFFSETS[i]);
 		//Analyze the neighbor
-		nearbyProperties |= TILE_PROPERTIES[neighbor.BL_T];
+		nearbyProperties |= uvec2(BLOCK_PROPERTIES[neighbor.BL_T], WALL_PROPERTIES[neighbor.WL_T]);
 		edgeTile = edgeTile || isFluidTile(neighbor.TL_T);
 	}
 	
-	bool edgeRequiredToSpread = bool(propConv.z);
 	
-	//Transform the tile
-	bool requiredNearby = (nearbyProperties & propConv.x) == propConv.x;
-	bool forbiddenNotNearby = (nearbyProperties & propConv.y) == 0;
+	//Transform the tile type
+	uvec4 blockRule = BLOCK_TRANSF_RULE[tile.BL_T];
+	uvec4 wallRule = WALL_TRANSF_RULE[tile.WL_T];
+	uvec2 props = nearbyProperties | mix(uvec2(0), nearbyProperties.yx, bvec2(uvec2(blockRule.z, wallRule.z) & MIX_PROPSb));
+	bvec2 requiredNearby = equal(props & uvec2(blockRule.x, wallRule.x), uvec2(blockRule.x, wallRule.x));
+	bvec2 forbiddenNotNearby = equal(props & uvec2(blockRule.y, wallRule.y), uvec2(0));
+	bvec2 edgeRequiredToSpread = bvec2(uvec2(blockRule.z, wallRule.z) & EDGEb);
+	bvec2 transform = requiredNearby && forbiddenNotNearby && (!edgeRequiredToSpread || edgeTile);
+	tile.TILE_TYPE = mix(tile.TILE_TYPE, uvec2(blockRule.w, wallRule.w), transform);
 	
-	if (requiredNearby && forbiddenNotNearby && (!edgeRequiredToSpread || edgeTile.x)){
-		tile.BLOCK_TYPE = propConv.w;
-	}
+	//Hallow
+	uvec2 tileProps = uvec2(BLOCK_PROPERTIES[tile.BL_T], WALL_PROPERTIES[tile.WL_T]);
+	tile.TILE_TYPE =
+		mix(tile.TILE_TYPE,
+			  mix(uvec2(0), HALLOW_STONE.TL_T, bvec2(tileProps & STONEb))
+			+ mix(uvec2(0), HALLOW_DIRT.TL_T, bvec2(tileProps & DIRTb))
+			+ mix(uvec2(0), HALLOW_GRASS.TL_T, bvec2(tileProps & GRASSb))
+			+ mix(AIR.TL_T, uvec2(0), bvec2(tileProps & (STONEb | DIRTb | GRASSb))),
+		bvec2((props.x | props.y) & HALLOWb));
 	
+	//Select variant
 	bvec2 currentlyInner = lessThan(tile.TILE_VAR, uvec2(12));
 	bvec2 isSolid = isSolidTile(tile.TILE_TYPE);
 	bvec2 switchToInner = (!edgeTile && !currentlyInner) && isSolid;

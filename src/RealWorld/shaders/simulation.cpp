@@ -20,8 +20,10 @@ std::string_view tileTransformations_comp =
 #include "simulation/ActiveChunksSSBO.glsl"
 #include "simulation/WorldDynamicsUBO.glsl"
 #include "simulation/tile_load_store.glsl"
-#include "simulation/tile_properties.glsl"
-#include "simulation/transformation_constants.glsl"
+#include "simulation/properties/block_properties.glsl"
+#include "simulation/properties/wall_properties.glsl"
+#include "simulation/properties/block_transf_rules.glsl"
+#include "simulation/properties/wall_transf_rules.glsl"
 #include "simulation/tile_transformations.comp"
 ;
 
@@ -30,7 +32,7 @@ std::string_view fluidDynamics_comp =
 #include "common/image_units.glsl"
 #include "simulation/WorldDynamicsUBO.glsl"
 #include "simulation/tile_load_store.glsl"
-#include "simulation/fluid_constants.glsl"
+#include "simulation/properties/fluid_properties.glsl"
 #include "simulation/fluid_dynamics.comp"
 ;
 

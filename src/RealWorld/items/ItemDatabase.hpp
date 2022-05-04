@@ -24,6 +24,9 @@ enum class ITEM : uint16_t {
 	B_MUD,
 	B_MUD_GRASS,
 	B_DRY_GRASS,
+	B_HALLOW_STONE,
+	B_HALLOW_DIRT,
+	B_HALLOW_GRASS,
 	//Walls
 	W_STONE,
 	W_DIRT,
