@@ -25,10 +25,9 @@ void main() {
 	uvec4 material = texelFetch(materialTexture, pos, 0);
 	
 	//Check neighbors
-	uvec2 neighborsN = uvec2(0, 0);
+	int neighborsN = 0;
 	for (int i = 0; i < offsets.length(); i++){
-		uvec4 neighbor = texelFetch(tilesTexture[read], pos + offsets[i], 0);
-		neighborsN += mix(uvec2(0, 0), uvec2(1, 1), notEqual(neighbor.TILE_TYPE, AIR.TILE_TYPE));
+		neighborsN += int(!isAirBlock(texelFetch(tilesTexture[read], pos + offsets[i], 0).BL_T));
 	}
 	
 	if (previous.g > 0){//If there are more cycles to be done on this tile
@@ -36,10 +35,10 @@ void main() {
 		uvec4 resultMaterial = uvec4(material.r, previous.gba);
 		uvec4 resultAir = uvec4(AIR.r, previous.gba);
 		
-		if (previous.r == AIR.x){
-			result = neighborsN.x > thresholds[HIGH] ? resultMaterial : previous;
+		if (previous.BL_T == AIR_BL){
+			result = neighborsN > thresholds[HIGH] ? resultMaterial : previous;
 		} else {
-			result = neighborsN.x < thresholds[LOW] ? resultAir : previous;
+			result = neighborsN < thresholds[LOW] ? resultAir : previous;
 		}
 	} else {//No more cycles to be done on this cell
 		result = previous;

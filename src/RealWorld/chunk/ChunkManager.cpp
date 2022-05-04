@@ -5,6 +5,12 @@
 
 #include <RealWorld/save/ChunkLoader.hpp>
 
+#include <RealWorld/performance_tests/switches.hpp>
+#ifdef MEASURE_GENERATION_DELAY
+#include <chrono>
+#include <iostream>
+#endif // MEASURE_GENERATION_DELAY
+
 
 ChunkManager::ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex) {
 	m_activeChunksSSBO.connectToShaderProgram(transformShader, activeChunksInterfaceBlockIndex);
@@ -59,7 +65,7 @@ size_t ChunkManager::getNumberOfInactiveChunks() {
 
 void ChunkManager::step() {
 	for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {//For each inactive chunk
-		if (it->second.step() >= PHYSICS_STEPS_PER_SECOND * 60) {//If the chunk has not been used for a minute
+		if (it->second.step() >= PHYSICS_STEPS_PER_SECOND * 180) {//If the chunk has not been used for 3 minutes
 			saveChunk(it->second.data(), it->first);//Save the chunk to disk
 			it = m_inactiveChunks.erase(it);//And remove it from the collection
 		} else { it++; }
@@ -70,6 +76,14 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 	glm::ivec2 botLeftCh = tiToCh(botLeftTi);
 	glm::ivec2 topRightCh = tiToCh(topRightTi);
 
+#ifdef MEASURE_GENERATION_DELAY
+	using namespace std::chrono;
+	auto start = steady_clock::now();
+	static int batchN = -5;
+	static nanoseconds total_ns = nanoseconds::zero();
+	static int histogram[10] = {0};
+#endif // MEASURE_GENERATION_DELAY
+
 	//Activate all chunks that at least partially overlap the area
 	int activatedChunks = 0;
 	for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
@@ -77,6 +91,25 @@ void ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const gl
 			activatedChunks += activateChunk(glm::ivec2(x, y));
 		}
 	}
+
+#ifdef MEASURE_GENERATION_DELAY
+	if (activatedChunks > 0) {
+		batchN++;
+		if (batchN > 0) {
+			glFinish();
+			auto dur = steady_clock::now() - start;
+			total_ns += dur;
+			auto N = duration_cast<microseconds>(dur).count() / 1000 - 3;
+			histogram[glm::clamp(N, 0ll, 9ll)]++;
+			if (batchN % 100 == 0) {
+				for (size_t i = 0; i < 10; ++i) {
+					std::cout << histogram[i] << "\t";
+				}
+				std::cout << "avg: " << duration_cast<microseconds>(total_ns / batchN) << "\n";
+			}
+		}
+	}
+#endif // MEASURE_GENERATION_DELAY
 
 	if (activatedChunks > 0) {//If at least one chunk has been activated
 		m_continuityAnalyzerShader.dispatchCompute({1, 1, 1}, true);
@@ -88,10 +121,10 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 	auto acIndex = acToIndex(chToAc(posCh));
 	auto& chunk = m_activeChunks[acIndex];
 	if (chunk == posCh) {
-		return 0;//Signal that the chunk has already been active
+		return 0;//Signals that the chunk has already been active
 	} else {
 		deactivateChunk(posCh);//Deactivate the previous chunk
-		chunk = posCh;//Se the new chunk to occupy the slot
+		chunk = posCh;//Set the new chunk to occupy the slot
 	}
 
 	//Try to find it among inactive chunks

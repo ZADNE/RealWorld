@@ -56,8 +56,8 @@ void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& d
 
 	//Actual generation
 	generateBasicTerrain();
-	cellularAutomaton();
-	selectVariations();
+	consolidateEdges();
+	selectVariants();
 
 
 #ifdef GEN_USE_COMP
@@ -79,7 +79,7 @@ void ChunkGenerator::generateBasicTerrain() {
 #endif
 }
 
-void ChunkGenerator::cellularAutomaton() {
+void ChunkGenerator::consolidateEdges() {
 	GLuint cycleN = 0u;
 	auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
 		m_consolidationShader.setUniform(LOC_THRESHOLDS, thresholds);
@@ -120,11 +120,12 @@ void ChunkGenerator::cellularAutomaton() {
 	assert(static_cast<int>(cycleN) <= BORDER_WIDTH);
 }
 
-void ChunkGenerator::selectVariations() {
+void ChunkGenerator::selectVariants() {
 #ifdef GEN_USE_COMP
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	m_variantSelectionShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 #else
+	glTextureBarrier();
 	m_variantSelectionShader.use();
 	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 	m_variantSelectionShader.unuse();

@@ -129,4 +129,5 @@ private:
 	std::string m_folderPath;
 	ChunkGenerator m_chunkGen;
 	RE::Surface* m_ws = nullptr;
+
 };

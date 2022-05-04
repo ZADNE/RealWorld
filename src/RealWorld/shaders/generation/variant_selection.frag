@@ -17,13 +17,13 @@ void main() {
 	ivec2 posTi = ivec2(gl_FragCoord.xy);
 	uvec2 block_wall = texelFetch(tilesTexture, posTi, 0).TILE_TYPE;
 	
-	ivec2 inner = ivec2(0);
+	bvec2 inner = bvec2(false, false);
 	for (int i = 0; i < OFFSETS.length(); i++){
-		inner |= ivec2(lessThanEqual(texelFetchOffset(tilesTexture, posTi, 0, OFFSETS[i]).TILE_TYPE, LAST_FLUID.TILE_TYPE));
+		inner = inner || isFluidTile(texelFetchOffset(tilesTexture, posTi, 0, OFFSETS[i]).TILE_TYPE);
 	}
 	
-	vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
-	uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
+	vec2 variationRange = mix(vec2(12.0), vec2(4.0), inner);
+	uvec2 variationOffset = mix(uvec2(0), uvec2(12), inner);
 	
 	uvec2 variation = uvec2(hash22(posTi) * variationRange) + variationOffset;
 	

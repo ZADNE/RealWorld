@@ -16,20 +16,24 @@ constexpr glm::vec2 TILEPx = uTILEPx;
 
 
 enum class BLOCK : uint8_t {
-	AIR, WATER, LAVA, ACID,
 	STONE, DIRT, GRASS, COLD_STONE,
 	SAND, COLD_DIRT, COLD_GRASS, MUD,
 	MUD_GRASS, DRY_GRASS,
 
-	LAST_FLUID = ACID,
-	TECHBLOCK = 255
+	WATER = 224, LAVA, STEAM,
+	FIRE, SMOKE,
+	
+	ACID = 254,
+
+	AIR = 255
 };
-constexpr unsigned int LAST_FLUID = static_cast<unsigned int>(BLOCK::LAST_FLUID);
 
 enum class WALL : uint8_t {
-	AIR, STONE, DIRT, GRASS,
+	STONE, DIRT, GRASS,
 	COLD_STONE, SAND, COLD_DIRT, COLD_GRASS,
-	MUD, MUD_GRASS, DRY_GRASS
+	MUD, MUD_GRASS, DRY_GRASS,
+
+	AIR = 255
 };
 
 enum class TILE_VALUE : unsigned int {

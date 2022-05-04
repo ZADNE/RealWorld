@@ -2,6 +2,7 @@
 add_subdirectory(chunk)
 add_subdirectory(items)
 add_subdirectory(main)
+add_subdirectory(performance_tests)
 add_subdirectory(physics)
 add_subdirectory(rendering)
 add_subdirectory(save)

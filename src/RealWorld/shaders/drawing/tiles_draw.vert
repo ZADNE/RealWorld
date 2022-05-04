@@ -1,4 +1,5 @@
 ﻿R""(
+#line 3
 layout(location = 0) in vec2 basePosTi;
 layout(location = 2) in vec2 baseUV;
 
@@ -27,7 +28,7 @@ void main() {
 	vec4 tile = vec4(texelFetch(worldTexture, ivec2(localWorldPosTi), 0));
 	
 	//Clip if both block and wall are air
-	vec4 clip = (tile.x == 0.0 && tile.z == 0.0) ? vec4(-1.0) : vec4(1.0);
+	float clip = (isAirBlock(uint(tile.BL_T)) && isAirWall(uint(tile.WL_T))) ? -1.0 : 1.0;
 	
 	gl_Position = viewMat * vec4(posTi * TILEPx - mod(realPosPx, TILEPx), 0.0, clip);
 	

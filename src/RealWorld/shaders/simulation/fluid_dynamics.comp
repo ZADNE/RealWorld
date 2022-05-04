@@ -24,7 +24,7 @@ uint random(){
 bool probTest1023(uint probability){ return (random() & 1023) < probability; }
 bool probTest65535(uint probability){ return (random() & 65535) < probability; }
 uvec2 blockRandomVariant(uint blockType){
-	return uvec2(blockType, (blockType <= LAST_FLUID_BL) ? random() & 15 : 12 + (random() & 3));
+	return uvec2(blockType, isFluidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
 }
 
 ivec2 extractVelocity(uint var){
@@ -47,17 +47,20 @@ int randomStateToDirection1D(){
 	return bool(randomState & 1) ? +1 : -1;
 }
 
+uint fluidIndex(uint fluid){ return fluid & ~FIRST_FLUID_BL; }
+
 void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
 	uvec4 surroundings[3];
 	int leaningSide = bool(fluid.BL_V & 1) ? 1 : -1;
+	uint fi = fluidIndex(fluid.BL_T);
 	//Compute surroundings positions
 	ivec2 surrPosIm[3] = {
-		imPos(posIm + ivec2(+0, PRIM_MOVE_DIR[fluid.BL_T])),
+		imPos(posIm + ivec2(+0, PRIM_MOVE_DIR[fi])),
 		imPos(posIm + ivec2(leaningSide, 0)),
-		imPos(posIm + ivec2(leaningSide, PRIM_MOVE_DIR[fluid.BL_T]))
+		imPos(posIm + ivec2(leaningSide, PRIM_MOVE_DIR[fi]))
 	};
-	int first_move = probTest1023(PRIM_MOVE_PROB[fluid.BL_T]) ? 0 : 2;
-	int last_move = probTest1023(FLUIDITY[fluid.BL_T]) ? 2 : 0;
+	int first_move = probTest1023(PRIM_MOVE_PROB[fi]) ? 0 : 2;
+	int last_move = probTest1023(FLUIDITY[fi]) ? 2 : 0;
 	//Fetch surroundings
 	for(int i = first_move; i <= last_move; ++i){
 		surroundings[i] = tileLoadIm(surrPosIm[i]);
@@ -66,20 +69,20 @@ void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
 	for(int i = first_move; i <= last_move; ++i){
 		const uvec4 n = surroundings[i];//The neighbor
 		//If touched the trigger tile and passed probability test
-		if (n.BL_T == TRIGGER_CONV[fluid.BL_T].z && probTest1023(TRIGGER_CONV[fluid.BL_T].x)){
-			tileStoreIm(posIm, uvec4(blockRandomVariant(TRIGGER_CONV[fluid.BL_T].y), fluid.WL));
+		if (n.BL_T == TRIGGER_CONV[fi].z && probTest1023(TRIGGER_CONV[fi].x)){
+			tileStoreIm(posIm, uvec4(blockRandomVariant(TRIGGER_CONV[fi].y), fluid.WL));
 			return;
-		} else if (n.BL_T <= LAST_FLUID_BL && n.BL_T != fluid.BL_T){//If can swap
+		} else if (isFluidBlock(n.BL_T) && n.BL_T != fluid.BL_T){//If can swap
 			tileStoreIm(surrPosIm[i], uvec4(fluid.BL, n.WL));
 			tileStoreIm(posIm, uvec4(n.BL, fluid.WL));
 			return;
 		}
 	}
 	
-	if (probTest65535(RANDOM_CONV[fluid.BL_T].x)){//Random conversion 1
-		fluid.BL = blockRandomVariant(RANDOM_CONV[fluid.BL_T].y);
-	} else if (probTest65535(RANDOM_CONV[fluid.BL_T].z)) {//Random conversion 2
-		fluid.BL = blockRandomVariant(RANDOM_CONV[fluid.BL_T].w);
+	if (probTest65535(RANDOM_CONV[fi].x)){//Random conversion 1
+		fluid.BL = blockRandomVariant(RANDOM_CONV[fi].y);
+	} else if (probTest65535(RANDOM_CONV[fi].z)) {//Random conversion 2
+		fluid.BL = blockRandomVariant(RANDOM_CONV[fi].w);
 	} else if (last_move == 2) {//If could not move horizontally
 		fluid.BL_V ^= 1;//Invert the leaning side
 	}
@@ -128,8 +131,7 @@ void main(){
 			uvec4 tile = tileLoadIm(posIm);
 			if (tile.BL_T >= WATER_BL && tile.BL_T <= SMOKE_BL){
 				leaningFluidDynamics(tile, posIm);
-			}
-			if (tile.BL_T == ACID_BL){
+			} else if (tile.BL_T == ACID_BL){
 				velocityFluidDynamics(tile, posIm);
 			}
 		}

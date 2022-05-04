@@ -35,49 +35,39 @@ const ivec2 OFFSETS[] = {
 				{-1, -2},	{+0, -2},	{+1, -2}
 };
 
-uint spreadingBlock(uvec4 tile){
-	switch (tile.BLOCK_TYPE){
-		case DIRT_BL: return GRASS_BL;
-		case STONE_BL: return COLD_STONE_BL;
-		default: return 1024;//Unreachable
-	}
-}
-
-bool edgeRequiredToSpread(uint spreadingBlock){
-	switch (spreadingBlock){
-		case GRASS_BL: return true;
-		default: return false;
-	}
+bool edgeRequiredToSpread(uint block_type){
+	return isSolidBlock(block_type) ? bool(TRANSFORM[block_type].w) : true;
 }
 
 void main(){
+	random();
 	ivec2 centerTi = updateOffsetTi[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
 					+ (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
 					
-	//Load neighbors
+	
 	uvec4 tile = tileLoad(centerTi);
-	uvec4 neighbors[OFFSETS.length()];
-	for(int i = 0; i < neighbors.length(); ++i){
-		neighbors[i] = tileLoad(centerTi + OFFSETS[i]);
+	uvec4 propConv = TRANSFORM[tile.BL_T];
+	bvec2 edgeTile = bvec2(false, false);
+	uint nearbyProperties = 0;
+	for(int i = 0; i < OFFSETS.length(); ++i){//Check all neighbors
+		uvec4 neighbor = tileLoad(centerTi + OFFSETS[i]);
+		//Analyze the neighbor
+		nearbyProperties |= TILE_PROPERTIES[neighbor.BL_T];
+		edgeTile = edgeTile || isFluidTile(neighbor.TL_T);
 	}
 	
-	//Analyze neighbors
-	bool nextToSpreadingBlock = false;
-	uint spreadingBlock = spreadingBlock(tile);
-	bvec2 edgeTile = bvec2(false, false);
-	for(int i = 0; i < neighbors.length(); ++i){
-		nextToSpreadingBlock = nextToSpreadingBlock || (neighbors[i].BLOCK_TYPE == spreadingBlock);
-		edgeTile = edgeTile || lessThanEqual(neighbors[i].TILE_TYPE, LAST_FLUID.TILE_TYPE);
-	}
-	bool edgeRequiredToSpread = edgeRequiredToSpread(spreadingBlock);
+	bool edgeRequiredToSpread = bool(propConv.z);
 	
 	//Transform the tile
-	if (nextToSpreadingBlock && (!edgeRequiredToSpread || edgeTile.x)){
-		tile.BLOCK_TYPE = spreadingBlock;
+	bool requiredNearby = (nearbyProperties & propConv.x) == propConv.x;
+	bool forbiddenNotNearby = (nearbyProperties & propConv.y) == 0;
+	
+	if (requiredNearby && forbiddenNotNearby && (!edgeRequiredToSpread || edgeTile.x)){
+		tile.BLOCK_TYPE = propConv.w;
 	}
 	
 	bvec2 currentlyInner = lessThan(tile.TILE_VAR, uvec2(12));
-	bvec2 isSolid = greaterThan(tile.TILE_TYPE, LAST_FLUID.TILE_TYPE);
+	bvec2 isSolid = isSolidTile(tile.TILE_TYPE);
 	bvec2 switchToInner = (!edgeTile && !currentlyInner) && isSolid;
 	bvec2 switchToOuter = (edgeTile && currentlyInner) && isSolid;
 	tile.TILE_VAR =

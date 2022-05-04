@@ -9,7 +9,7 @@
 #include <RealWorld/rendering/UniformBuffers.hpp>
 #include <RealWorld/constants/chunk.hpp>
 
-#define GEN_USE_COMP
+#include <RealWorld/performance_tests/switches.hpp>
 
 /**
  * Generates new chunks.
@@ -75,8 +75,8 @@ private:
 
 	//Actual generation functions
 	void generateBasicTerrain();
-	void cellularAutomaton();
-	void selectVariations();
+	void consolidateEdges();
+	void selectVariants();
 
 
 #ifdef GEN_USE_COMP

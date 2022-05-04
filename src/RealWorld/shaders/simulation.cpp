@@ -1,5 +1,7 @@
 ﻿#include <RealWorld/shaders/simulation.hpp>
 
+#include <RealWorld/performance_tests/switches.hpp>
+
 #ifdef __INTELLISENSE__
 #pragma diag_suppress 29
 #endif
@@ -18,6 +20,8 @@ std::string_view tileTransformations_comp =
 #include "simulation/ActiveChunksSSBO.glsl"
 #include "simulation/WorldDynamicsUBO.glsl"
 #include "simulation/tile_load_store.glsl"
+#include "simulation/tile_properties.glsl"
+#include "simulation/transformation_constants.glsl"
 #include "simulation/tile_transformations.comp"
 ;
 
@@ -36,6 +40,9 @@ std::string_view playerMovement_comp =
 #include "simulation/tile_load.glsl"
 #include "simulation/PlayerMovementUBO.glsl"
 #include "simulation/PlayerHitboxSSBO.glsl"
+#ifdef MEASURE_GENERATION_DELAY
+"#define MEASURE_GENERATION_DELAY\n"
+#endif // MEASURE_GENERATION_DELAY
 #include "simulation/player_movement.comp"
 ;
 

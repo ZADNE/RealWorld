@@ -18,7 +18,7 @@ uint ground(){
 	uint grnd = AIR.BLOCK_TYPE;
 	int yTi = pxToTi(botLeftPx.y - 1.0);
 	for(int xTi = pxToTi(botLeftPx.x); xTi <= pxToTi(botLeftPx.x + dimsPx.x); ++xTi){
-		grnd = max(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);
+		grnd = min(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);
 	}
 	return grnd;
 }
@@ -27,7 +27,7 @@ bool overlapsBlocks(vec2 offsetPx){
 	vec2 posPx = botLeftPx + offsetPx;
 	for(int yTi = pxToTi(posPx.y); yTi <= pxToTi(posPx.y + dimsPx.y); ++yTi){
 		for(int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi){
-			if (tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE > LAST_FLUID.BLOCK_TYPE){
+			if (isSolidBlock(tileLoad(ivec2(xTi, yTi)).BL_T)){
 				return true;
 			}
 		}
@@ -43,6 +43,7 @@ void tryJump(float jumpPower){
 }
 
 void main(){
+#ifndef MEASURE_GENERATION_DELAY
 	if (walkDirection != 0.0){
 		velocityPx.x += walkDirection * acceleration;//Walk
 		velocityPx.x = clamp(velocityPx.x, -maxWalkVelocity, maxWalkVelocity);
@@ -51,9 +52,9 @@ void main(){
 	}
 	
 	uint grnd = ground();
-	if (grnd > LAST_FLUID.BLOCK_TYPE){//Standing on solid ground
+	if (isSolidBlock(grnd)){//Standing on solid ground
 		tryJump(1.0);
-	} else if (grnd > AIR.BLOCK_TYPE){//Floating in a fluid
+	} else if (!isAirBlock(grnd)){//Floating in a fluid
 		tryJump(0.75);
 		velocityPx *= 0.9375;
 		velocityPx *= 0.9375;
@@ -82,6 +83,9 @@ void main(){
 	} else {
 		botLeftPx.y += truncVelPx.y;
 	}
+#else
+	botLeftPx.x += 10;
+#endif
 }
 
 )""

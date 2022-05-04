@@ -49,10 +49,15 @@ void WorldRoom::step() {
 	m_player.step(static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
 
 	//View
+#ifndef MEASURE_GENERATION_DELAY
 	glm::vec2 prevViewPos = m_worldView.getPosition();
 	glm::vec2 targetViewPos = glm::vec2(m_player.getHitbox().getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
+	auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
+#else
+	auto viewPos = glm::vec2(m_player.getHitbox().getCenter());
+#endif // MEASURE_GENERATION_DELAY
 	m_worldView.setCursorAbs(input()->getCursorAbs());
-	m_worldView.setPosition(prevViewPos * 0.875f + targetViewPos * 0.125f);
+	m_worldView.setPosition(viewPos);
 	m_worldViewUBO.overwrite(0u, m_worldView.getViewMatrix());
 
 	//World

@@ -12,6 +12,7 @@
 #include <RealEngine/main/Error.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/performance_tests/switches.hpp>
 
 template<class T>
 void writeBinary(std::ofstream& file, const T& x) {
@@ -35,7 +36,11 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
 	save.metadata.worldName = worldName;
 
 	//Player data
+#ifdef MEASURE_GENERATION_DELAY
+	save.player.pos = glm::ivec2(0, 0);
+#else
 	save.player.pos = iCHUNK_SIZE * glm::ivec2(0, 5) * iTILEPx;
+#endif // MEASURE_GENERATION_DELAY
 	save.inventory.resize({10, 4});
 
 	int slot = 0;

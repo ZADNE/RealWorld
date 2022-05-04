@@ -119,11 +119,10 @@ void basicTerrain(in vec2 pPx, out uvec4 material, out uvec4 tile){
 	float solidityShifter = belowHorizon ? horizonProximityFactor(horizon.x, pPx.y, 400.0, 0.0, 0.2) : -10.0;
 	bool occupied = (solidity + solidityShifter) > 0.5;
 	
-	material.rb = belowHorizon ? (belowSoil ? stoneTile : surfaceTile) : AIR.TILE_TYPE;	//RB = block & wall type
-	material.g = 8;// + uint((1.0 - age) * 6.01);									//G = number of CA cycles
-	material.a = 0;																	//A = unused yet
+	material.TL_T = belowHorizon ? (belowSoil ? stoneTile : surfaceTile) : AIR.TILE_TYPE;	//RB = block & wall type
+	material.TL_V = uvec2(255, 255);
 	
-	tile = occupied ? material : uvec4(AIR.r, material.gba);
+	tile = occupied ? material : uvec4(AIR.BL_T, material.BL_V, material.WL);
 }
 
 )""
