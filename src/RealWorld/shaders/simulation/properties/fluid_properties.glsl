@@ -19,7 +19,7 @@ int PRIM_MOVE_DIR[] = {
 //0-1024 probability to move vertically
 uint PRIM_MOVE_PROB[] = {
 	920,	1024,	200,
-	256,	64
+	320,	64
 };
 
 //Fluids with higher density move below fluid lower density

@@ -56,8 +56,8 @@ void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
 	//Compute surroundings positions
 	ivec2 surrPosIm[3] = {
 		imPos(posIm + ivec2(+0, PRIM_MOVE_DIR[fi])),
-		imPos(posIm + ivec2(leaningSide, 0)),
-		imPos(posIm + ivec2(leaningSide, PRIM_MOVE_DIR[fi]))
+		imPos(posIm + ivec2(leaningSide, PRIM_MOVE_DIR[fi])),
+		imPos(posIm + ivec2(leaningSide, 0))
 	};
 	int first_move = probTest1023(PRIM_MOVE_PROB[fi]) ? 0 : 2;
 	int last_move = probTest1023(FLUIDITY[fi]) ? 2 : 0;

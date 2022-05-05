@@ -35,6 +35,16 @@ const ivec2 OFFSETS[] = {
 				{-1, -2},	{+0, -2},	{+1, -2}
 };
 
+bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, uvec4 rule, uvec2 nearbyProperties, bvec2 edgeTile){
+	uint props = nearbyProperties[layer] | mix(0, nearbyProperties[otherLayer], bool(rule.z & MIX_PROPSb));
+	bool requiredNearby = (props & rule.x) == rule.x;
+	bool forbiddenNotNearby = (props & rule.y) == 0;
+	bool edgeRequiredToSpread = bool(rule.z & EDGEb);
+	bool transform = requiredNearby && forbiddenNotNearby && (!edgeRequiredToSpread || edgeTile[layer]);
+	tile[layer * 2] = mix(tile[layer * 2], rule.w, transform);
+	return transform;
+}
+
 void main(){
 	random();
 	ivec2 centerTi = updateOffsetTi[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
@@ -52,25 +62,20 @@ void main(){
 	}
 	
 	
-	//Transform the tile type
-	uvec4 blockRule = BLOCK_TRANSF_RULE[tile.BL_T];
-	uvec4 wallRule = WALL_TRANSF_RULE[tile.WL_T];
-	uvec2 props = nearbyProperties | mix(uvec2(0), nearbyProperties.yx, bvec2(uvec2(blockRule.z, wallRule.z) & MIX_PROPSb));
-	bvec2 requiredNearby = equal(props & uvec2(blockRule.x, wallRule.x), uvec2(blockRule.x, wallRule.x));
-	bvec2 forbiddenNotNearby = equal(props & uvec2(blockRule.y, wallRule.y), uvec2(0));
-	bvec2 edgeRequiredToSpread = bvec2(uvec2(blockRule.z, wallRule.z) & EDGEb);
-	bvec2 transform = requiredNearby && forbiddenNotNearby && (!edgeRequiredToSpread || edgeTile);
-	tile.TILE_TYPE = mix(tile.TILE_TYPE, uvec2(blockRule.w, wallRule.w), transform);
-	
-	//Hallow
-	uvec2 tileProps = uvec2(BLOCK_PROPERTIES[tile.BL_T], WALL_PROPERTIES[tile.WL_T]);
-	tile.TILE_TYPE =
-		mix(tile.TILE_TYPE,
-			  mix(uvec2(0), HALLOW_STONE.TL_T, bvec2(tileProps & STONEb))
-			+ mix(uvec2(0), HALLOW_DIRT.TL_T, bvec2(tileProps & DIRTb))
-			+ mix(uvec2(0), HALLOW_GRASS.TL_T, bvec2(tileProps & GRASSb))
-			+ mix(AIR.TL_T, uvec2(0), bvec2(tileProps & (STONEb | DIRTb | GRASSb))),
-		bvec2((props.x | props.y) & HALLOWb));
+	//Transform block of the tile
+	uvec2 blockRuleIndices = BLOCK_TRANSF_INDICES[tile.BL_T];
+	for (uint i = blockRuleIndices.x; i <= blockRuleIndices.y;++i) {
+		if (layerTransition(tile, 0, 1, BLOCK_TRANSF_RULE[i], nearbyProperties, edgeTile)){
+			break;
+		}
+	}
+	//Transform wall of the tile
+	uvec2 wallRuleIndices = WALL_TRANSF_INDICES[tile.WL_T];
+	for (uint i = wallRuleIndices.x; i <= wallRuleIndices.y;++i) {
+		if (layerTransition(tile, 1, 0, WALL_TRANSF_RULE[i], nearbyProperties, edgeTile)){
+			break;
+		}
+	}
 	
 	//Select variant
 	bvec2 currentlyInner = lessThan(tile.TILE_VAR, uvec2(12));

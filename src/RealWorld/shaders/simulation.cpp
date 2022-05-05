@@ -24,6 +24,8 @@ std::string_view tileTransformations_comp =
 #include "simulation/properties/wall_properties.glsl"
 #include "simulation/properties/block_transf_rules.glsl"
 #include "simulation/properties/wall_transf_rules.glsl"
+#include "simulation/properties/block_transf_indices.glsl"
+#include "simulation/properties/wall_transf_indices.glsl"
 #include "simulation/tile_transformations.comp"
 ;
 
