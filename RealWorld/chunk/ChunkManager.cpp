@@ -9,7 +9,8 @@
 #include <RealWorld/save/ChunkLoader.hpp>
 
 
-ChunkManager::ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex) {
+ChunkManager::ChunkManager(ChunkGenerator& chunkGen, const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex):
+	m_chunkGen(chunkGen) {
 	m_activeChunksSSBO.connectToShaderProgram(transformShader, activeChunksInterfaceBlockIndex);
 	m_activeChunksSSBO.connectToShaderProgram(m_continuityAnalyzerShader, 0u);
 	m_activeChunksSSBO.bind<RE::BufferType::DISPATCH_INDIRECT>();

@@ -23,7 +23,8 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
 	}
 }
 
-World::World() :
+World::World(ChunkGenerator& chunkGen) :
+	m_chunkManager(chunkGen, m_tileTransformationsShader, 0u),
 	m_rngState(static_cast<uint32_t>(time(nullptr))) {
 	m_worldDynamicsUBO.connectToShaderProgram(m_fluidDynamicsShader, 0u);
 	m_worldDynamicsUBO.connectToShaderProgram(m_tileTransformationsShader, 0u);

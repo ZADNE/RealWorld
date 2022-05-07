@@ -2,10 +2,13 @@
  *  @author    Dubsky Tomas
  */
 #include <chrono>
+#include <optional>
 
 #include <RealEngine/main/room/Room.hpp>
 #include <RealEngine/graphics/View.hpp>
 
+#include <RealWorld/chunk/ChunkGeneratorCS.hpp>
+#include <RealWorld/chunk/ChunkGeneratorFBO.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/world/WorldDrawer.hpp>
 
@@ -17,22 +20,18 @@ using namespace std::chrono;
 
 class Room : public RE::Room {
 public:
-	Room(RE::CommandLineArguments args) :
-		m_world(),
-		m_worldDrawer(RESOLUTION) {
-
-	}
+	Room(RE::CommandLineArguments args) : m_worldDrawer(RESOLUTION) {}
 	~Room() {}
 
 	virtual void sessionStart(const RE::RoomTransitionParameters& params) override {
-		WorldSave save{.metadata = MetadataSave{
-			.path = "",
-			.seed = static_cast<int>(time(nullptr)) & 65535,
-			.worldName = "PERF_TEST"
-		}};
-		auto worldTextureSize = m_world.adoptSave(save.metadata, window()->getDims());
+		resetRecords();
+		//Initialize compute shader generator
+		m_genCS.emplace();
+		m_world.emplace(*m_genCS);
+		WorldSave save{.metadata = MetadataSave{ .seed = static_cast<int>(time(nullptr)) & 65535}};
+		auto worldTextureSize = (*m_world).adoptSave(save.metadata, RESOLUTION);
 		m_worldDrawer.setTarget(worldTextureSize);
-		std::cout << "Check the console once the view stops.\n";
+		std::cout << "Check console once the view stops moving (~1.5 min).\n";
 	}
 
 	virtual void sessionEnd() override {}
@@ -42,28 +41,41 @@ public:
 		auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
 
 		auto start = steady_clock::now();
-		int activatedChunks = m_world.step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
+		int activatedChunks = (*m_world).step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
 		if (activatedChunks > 0) {
-			batchN++;
-			if (batchN > 0) {
+			m_batchN++;
+			if (m_batchN > 0) {
 				glFinish();
 				auto dur = steady_clock::now() - start;
-				total_ns += dur;
-				auto N = duration_cast<microseconds>(dur).count() / 1000 - 3;
-				histogram[glm::clamp(N, 0ll, 9ll)]++;
-				if (batchN % 100 == 0) {
-					std::cout << "100 batches generated! Histogram \\|/\n";
-					for (size_t i = 3; i < 14; ++i) {
+				m_total_ns += dur;
+				int N = duration_cast<microseconds>(dur).count() / 1000;
+				m_histogram[glm::clamp(N, 0, 9)]++;
+				if (m_batchN % 100 == 0) {
+					std::cout << (m_state == 0 ? "CS" : "VS+FS+FBO") << ": 100 batches histogram \\|/\n";
+					for (size_t i = 0; i < 10; ++i) {
 						std::cout << i << "ms\t";
 					}
 					std::cout << "\n";
 					for (size_t i = 0; i < 10; ++i) {
-						std::cout << "    " << histogram[i] << "\t";
+						std::cout << "    " << m_histogram[i] << "\t";
 					}
-					std::cout << "\nAverage time: " << duration_cast<microseconds>(total_ns / batchN) << "\n";
-					std::string dontcare;
-					std::cin >> dontcare;
-					program()->scheduleProgramExit(0);
+					std::cout << "\nAverage time: " << duration_cast<microseconds>(m_total_ns / m_batchN).count() << "\n";
+					m_state++;
+					if (m_state == 1){
+						//Switch to framebuffer generator
+						resetRecords();
+						m_world.reset();
+						m_genCS.reset();
+						m_genFBO.emplace();
+						m_world.emplace(*m_genFBO);
+						WorldSave save{.metadata = MetadataSave{ .seed = static_cast<int>(time(nullptr)) & 65535}};
+						auto worldTextureSize = (*m_world).adoptSave(save.metadata, RESOLUTION);
+						m_worldDrawer.setTarget(worldTextureSize);
+					} else {
+						std::string dontcare;
+						std::cin >> dontcare;
+						program()->scheduleProgramExit(0);
+					}
 				}
 			}
 		}
@@ -87,13 +99,25 @@ public:
 		};
 		return settings;
 	}
+
+	void resetRecords(){
+		m_batchN = -5;
+		m_total_ns = nanoseconds::zero();
+		for (int i = 0; i < 10; i++){
+			m_histogram[i] = 0;
+		}
+	}
+
 private:
 	RE::View m_worldView{RESOLUTION};
-	World m_world;
-	WorldDrawer m_worldDrawer;
-	int batchN = -5;
-	nanoseconds total_ns = nanoseconds::zero();
-	int histogram[10] = {0};
+	std::optional<ChunkGeneratorCS> m_genCS;
+	std::optional<ChunkGeneratorFBO> m_genFBO;
+	std::optional<World> m_world;
+	WorldDrawer m_worldDrawer{RESOLUTION};
+	int m_batchN;
+	nanoseconds m_total_ns;
+	int m_histogram[10];
+	int m_state;
 };
 
 class Program : public RE::MainProgram {

@@ -9,8 +9,8 @@
 
 #include <RealEngine/graphics/Surface.hpp>
 
-#include <RealWorld/chunk/Chunk.hpp>
 #include <RealWorld/chunk/ChunkGenerator.hpp>
+#include <RealWorld/chunk/Chunk.hpp>
 #include <RealWorld/reserved_units/ShaderStorageBuffers.hpp>
 #include <RealWorld/shaders/simulation.hpp>
 
@@ -24,7 +24,7 @@ public:
 	/**
 	 * @brief Contructs ChunkManager and connects given shader program with active chunks buffer
 	 */
-	ChunkManager(const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex);
+	ChunkManager(ChunkGenerator& chunkGen, const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex);
 
 	/**
 	 * @brief Calls saveAndFreeAllChunks() and deconstructs the object.
@@ -130,7 +130,7 @@ private:
 	RE::ShaderProgram m_continuityAnalyzerShader{{.comp = continuityAnalyzer_comp}};
 
 	std::string m_folderPath;
-	ChunkGenerator m_chunkGen;
+	ChunkGenerator& m_chunkGen;
 	RE::Surface* m_ws = nullptr;
 
 };

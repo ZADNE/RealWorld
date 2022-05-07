@@ -12,12 +12,8 @@
 #include <RealWorld/reserved_units/UniformBuffers.hpp>
 #include <RealWorld/constants/chunk.hpp>
 
-//defined: vertex+fragment shaders are used for generation
-//undefined: compute shaders are used for generation
-//#define GEN_USE_FRAMEBUFFER
-
 /**
- * @brief Generates new chunks.
+ * @brief Is an interface for chunk generators.
  */
 class ChunkGenerator {
 public:
@@ -36,16 +32,10 @@ public:
 	 * @see BORDER_WIDTH
 	*/
 	const glm::ivec2 GEN_CHUNK_SIZE = iCHUNK_SIZE + 2 * BORDER_WIDTH;
-
-	/**
-	 * @brief Contructs new chunk generator, initializes world-independent members.
-	 */
+	
 	ChunkGenerator();
-
-	/**
-	 * @brief Decontructs chunk generator, frees all memory.
-	 */
-	~ChunkGenerator();
+	
+	virtual ~ChunkGenerator();
 
 	/**
 	 * @brief Sets the seed that controls how the generated chunks look
@@ -63,7 +53,7 @@ public:
 	 */
 	void generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset);
 
-private:
+protected:
 	using enum RE::BufferType;
 	using enum RE::BufferStorage;
 	using enum RE::BufferAccessFrequency;
@@ -76,34 +66,13 @@ private:
 		glm::ivec2 chunkOffsetTi;
 		int seed;
 	};
-	RE::UniformBuffer m_chunkUniformBuffer{UNIF_BUF_CHUNKGEN, true, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+	RE::UniformBuffer p_chunkUniformBuffer{UNIF_BUF_CHUNKGEN, true, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
-	//Actual generation functions
-	void generateBasicTerrain();
-	void consolidateEdges();
-	void selectVariants();
+	virtual void prepareToGenerate() = 0;
+	virtual void generateBasicTerrain() = 0;
+	virtual void consolidateEdges() = 0;
+	virtual void selectVariants() = 0;
+	virtual void finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) = 0;
 
-
-#ifndef GEN_USE_FRAMEBUFFER
-	RE::ShaderProgram m_structureShader = RE::ShaderProgram{{.comp = structure_comp}};
-	RE::ShaderProgram m_consolidationShader = RE::ShaderProgram{{.comp = consolidation_comp}};
-	RE::ShaderProgram m_variantSelectionShader = RE::ShaderProgram{{.comp = variantSelection_comp}};
-
-	std::array<RE::Texture, 2> m_tilesTex = {
-		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},
-		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}}
-	};
-	RE::Texture m_materialGenTex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
-#else
-	RE::VertexArray m_VAO;
-	RE::ShaderProgram m_structureShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = structure_frag}};
-	RE::ShaderProgram m_consolidationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = consolidation_frag}};
-	RE::ShaderProgram m_variantSelectionShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = variationSelection_frag}};
-
-	std::array<RE::Surface, 2> m_genSurf = {
-		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 2, true, false},
-		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 1, true, false}
-	};
-#endif
-	int m_seed = 0;
+	int p_seed = 0;
 };

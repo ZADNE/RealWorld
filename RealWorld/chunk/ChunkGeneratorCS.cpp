@@ -1,0 +1,68 @@
+﻿/*! 
+ *  @author    Dubsky Tomas
+ */
+#include <RealWorld/chunk/ChunkGeneratorCS.hpp>
+
+#include <RealWorld/reserved_units/TextureUnits.hpp>
+#include <RealWorld/reserved_units/ImageUnits.hpp>
+
+const int GEN_CS_GROUP_SIZE = 16;
+
+ChunkGeneratorCS::ChunkGeneratorCS() {
+	p_chunkUniformBuffer.connectToShaderProgram(m_structureShader, 0u);
+	p_chunkUniformBuffer.connectToShaderProgram(m_variantSelectionShader, 0u);
+
+	m_tilesTex[0].bind(TEX_UNIT_GEN_TILES[0]);
+	m_tilesTex[1].bind(TEX_UNIT_GEN_TILES[1]);
+	m_materialGenTex.bind(TEX_UNIT_GEN_MATERIAL);
+
+	m_tilesTex[0].bindImage(IMG_UNIT_GEN_TILES[0], 0, RE::ImageAccess::READ_WRITE);
+	m_tilesTex[1].bindImage(IMG_UNIT_GEN_TILES[1], 0, RE::ImageAccess::READ_WRITE);
+	m_materialGenTex.bindImage(IMG_UNIT_GEN_MATERIAL, 0, RE::ImageAccess::READ_WRITE);
+}
+
+ChunkGeneratorCS::~ChunkGeneratorCS() {
+
+}
+
+void ChunkGeneratorCS::prepareToGenerate() {
+	
+}
+
+void ChunkGeneratorCS::generateBasicTerrain() {
+	m_structureShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+}
+
+void ChunkGeneratorCS::consolidateEdges() {
+	GLuint cycleN = 0u;
+	auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
+		m_consolidationShader.setUniform(LOC_THRESHOLDS, thresholds);
+		for (size_t i = 0; i < passes; i++) {
+			m_consolidationShader.setUniform(LOC_CYCLE_N, cycleN++);
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+			m_consolidationShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
+		}
+	};
+	auto doublePass = [pass](const glm::ivec2& firstThresholds, const glm::ivec2& secondThresholds, size_t passes) {
+		for (size_t i = 0; i < passes; i++) {
+			pass(firstThresholds, 1);
+			pass(secondThresholds, 1);
+		}
+	};
+
+	m_consolidationShader.use();
+	doublePass({3, 4}, {4, 5}, 4);
+	m_consolidationShader.unuse();
+
+	assert(static_cast<int>(cycleN) <= BORDER_WIDTH);
+}
+
+void ChunkGeneratorCS::selectVariants() {
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	m_variantSelectionShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+}
+
+
+void ChunkGeneratorCS::finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
+	m_tilesTex[0].copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
+}

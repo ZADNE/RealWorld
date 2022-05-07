@@ -23,7 +23,11 @@ enum class MODIFY_SHAPE : unsigned int {
  */
 class World {
 public:
-	World();
+
+	/**
+	 * @brief Initializes the world to use the given chunk generator
+	*/
+	World(ChunkGenerator& chunkGen);
 	~World();
 
 	/**
@@ -82,7 +86,7 @@ private:
 	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
 	uint32_t m_rngState;
 
-	ChunkManager m_chunkManager{m_tileTransformationsShader, 0u};
+	ChunkManager m_chunkManager;
 
 	bool m_permuteOrder = true;
 };

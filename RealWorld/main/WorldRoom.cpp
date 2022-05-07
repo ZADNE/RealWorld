@@ -6,7 +6,7 @@
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
 WorldRoom::WorldRoom(RE::CommandLineArguments args) :
-	m_world(),
+	m_world(m_chunkGen),
 	m_worldDrawer(window()->getDims()),
 	m_player(RE::SpriteBatch::std()),
 	m_playerInv({10, 4}),

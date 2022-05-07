@@ -17,6 +17,18 @@
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 
+//Use this to swap generators
+#define FBO_GENERATOR 1
+#define CS_GENERATOR 2
+#define CHUNK_GENERATOR CS_GENERATOR
+#if CHUNK_GENERATOR == CS_GENERATOR
+#include <RealWorld/chunk/ChunkGeneratorCS.hpp>
+#elif CHUNK_GENERATOR == FBO_GENERATOR
+#include <RealWorld/chunk/ChunkGeneratorFBO.hpp>
+#else
+#error "No chunk generator has been selected!"
+#endif
+
 const unsigned int FPS_LIMIT = 300u;
 const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
 
@@ -69,6 +81,11 @@ private:
 	RE::UniformBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, false, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	//Gameplay
+#if CHUNK_GENERATOR == CS_GENERATOR
+	ChunkGeneratorCS m_chunkGen;
+#elif CHUNK_GENERATOR == FBO_GENERATOR
+	ChunkGeneratorFBO m_chunkGen;
+#endif
 	World m_world;
 	WorldDrawer m_worldDrawer;
 	Player m_player;
