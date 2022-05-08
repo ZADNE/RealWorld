@@ -57,7 +57,7 @@ void WorldRoom::step() {
 	auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
 	//auto viewPos = prevViewPos + glm::vec2(glm::ivec2(input()->getCursorAbs()) - window()->getDims() / 2) * 0.03f;
 	m_worldView.setCursorAbs(input()->getCursorAbs());
-	m_worldView.setPosition(viewPos);
+	m_worldView.setPosition(glm::floor(viewPos));
 	m_worldViewUBO.overwrite(0u, m_worldView.getViewMatrix());
 
 	//World
