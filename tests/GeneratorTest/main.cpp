@@ -37,7 +37,9 @@ public:
 	virtual void sessionEnd() override {}
 
 	virtual void step() override {
-		m_worldView.setPosition(m_worldView.getPosition() + glm::vec2(10.0f, 0.0f));
+		if (m_state <= 1) {
+			m_worldView.setPosition(m_worldView.getPosition() + glm::vec2(10.0f, 0.0f));
+		}
 		auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
 
 		auto start = steady_clock::now();
@@ -52,11 +54,11 @@ public:
 				m_histogram[glm::clamp(N, 0, 9)]++;
 				if (m_batchN % 100 == 0) {
 					std::cout << (m_state == 0 ? "CS" : "VS+FS+FBO") << ": 100 batches histogram \\|/\n";
-					for (size_t i = 0; i < 10; ++i) {
+					for (size_t i = 0; i <= 15; ++i) {
 						std::cout << i << "ms\t";
 					}
 					std::cout << "\n";
-					for (size_t i = 0; i < 10; ++i) {
+					for (size_t i = 0; i < 15; ++i) {
 						std::cout << "    " << m_histogram[i] << "\t";
 					}
 					std::cout << "\nAverage time: " << duration_cast<microseconds>(m_total_ns / m_batchN).count() << "\n";
@@ -69,12 +71,7 @@ public:
 						m_genFBO.emplace();
 						m_world.emplace(*m_genFBO);
 						WorldSave save{.metadata = MetadataSave{ .seed = static_cast<int>(time(nullptr)) & 65535}};
-						auto worldTextureSize = (*m_world).adoptSave(save.metadata, RESOLUTION);
-						m_worldDrawer.setTarget(worldTextureSize);
-					} else {
-						std::string dontcare;
-						std::cin >> dontcare;
-						program()->scheduleProgramExit(0);
+						(*m_world).adoptSave(save.metadata, RESOLUTION);
 					}
 				}
 			}
@@ -95,7 +92,7 @@ public:
 			.clearColor = SKY_BLUE,
 			.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
 			.framesPerSecondLimit = FPS_LIMIT,
-			.usingImGui = true
+			.usingImGui = false
 		};
 		return settings;
 	}
@@ -103,7 +100,7 @@ public:
 	void resetRecords(){
 		m_batchN = -5;
 		m_total_ns = nanoseconds::zero();
-		for (int i = 0; i < 10; i++){
+		for (int i = 0; i < 15; i++){
 			m_histogram[i] = 0;
 		}
 	}
@@ -116,7 +113,7 @@ private:
 	WorldDrawer m_worldDrawer{RESOLUTION};
 	int m_batchN;
 	nanoseconds m_total_ns;
-	int m_histogram[10];
+	int m_histogram[15];
 	int m_state;
 };
 
