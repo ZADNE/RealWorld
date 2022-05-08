@@ -39,7 +39,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 }
 
 void WorldRoom::sessionEnd() {
-	//saveWorld();
+	saveWorld();
 }
 
 void WorldRoom::step() {
