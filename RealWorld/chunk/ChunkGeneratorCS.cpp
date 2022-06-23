@@ -1,16 +1,16 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/chunk/ChunkGeneratorCS.hpp>
 
-#include <RealWorld/reserved_units/TextureUnits.hpp>
-#include <RealWorld/reserved_units/ImageUnits.hpp>
+#include <RealWorld/reserved_units/textures.hpp>
+#include <RealWorld/reserved_units/images.hpp>
 
 const int GEN_CS_GROUP_SIZE = 16;
 
 ChunkGeneratorCS::ChunkGeneratorCS() {
-	p_chunkUniformBuffer.connectToShaderProgram(m_structureShader, 0u);
-	p_chunkUniformBuffer.connectToShaderProgram(m_variantSelectionShader, 0u);
+	p_chunkUniformBuffer.connectToInterfaceBlock(m_structureShader, 0u);
+	p_chunkUniformBuffer.connectToInterfaceBlock(m_variantSelectionShader, 0u);
 
 	m_tilesTex[0].bind(TEX_UNIT_GEN_TILES[0]);
 	m_tilesTex[1].bind(TEX_UNIT_GEN_TILES[1]);
@@ -26,7 +26,7 @@ ChunkGeneratorCS::~ChunkGeneratorCS() {
 }
 
 void ChunkGeneratorCS::prepareToGenerate() {
-	
+
 }
 
 void ChunkGeneratorCS::generateBasicTerrain() {

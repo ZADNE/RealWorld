@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/world/WorldDrawer.hpp>
@@ -14,12 +14,11 @@
 #include <RealWorld/chunk/ChunkManager.hpp>
 #include <RealWorld/constants/light.hpp>
 #include <RealWorld/shaders/common.hpp>
-#include <RealWorld/reserved_units/TextureUnits.hpp>
+#include <RealWorld/reserved_units/textures.hpp>
+#include <RealWorld/reserved_units/images.hpp>
 
-const GLint VERTICES_POUV_WORLDTOLIGHT_RECT = 0;
-const GLint VERTICES_POUV_COMPUTELIGHT_RECT = 4;
-const GLint VERTICES_POUV_NORM_RECT = 8;
-const GLint VERTICES_POUV_MINIMAP_RECT = 12;
+const GLint VERTICES_POUV_NORM_RECT = 0;
+const GLint VERTICES_POUV_MINIMAP_RECT = 4;
 
 
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {
@@ -68,83 +67,46 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
 }
 
 void WorldDrawer::beginStep() {
-	//Process the world texture to light and translucency
-	m_surLighting.setTarget();
-	glDisable(GL_BLEND);
-	m_arrayPOUV.bind();
-	m_tilesToLightsShader.use();
-	glm::vec2 botLeftUn = static_cast<glm::vec2>(m_botLeftTi) / LIGHT_DOWNSAMPLE;
-	botLeftUn = glm::floor(botLeftUn) * LIGHT_DOWNSAMPLE;
-	m_tilesToLightsShader.setUniform(LOC_POSITION, botLeftUn);
-	m_tilesToLightsShader.setUniform(LOC_TILES_TO_LIGHT_DAYLIGHT, glm::vec4(0.0f, 0.0f, 0.0f, 0.125f));
-	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_WORLDTOLIGHT_RECT, 4);
-	m_tilesToLightsShader.unuse();
-	m_arrayPOUV.unbind();
-	glEnable(GL_BLEND);
-	m_surLighting.resetTarget();
+	//Process the world texture to translucency texture
 
-	//Clear lights
-	m_bufferLights.invalidate();
-	m_lights.clear();
 }
 
 void WorldDrawer::addLight(const glm::vec2& posPx, RE::Color col) {
-	m_lights.emplace_back(posPx, col);
+	//TODO
 }
 
 void WorldDrawer::endStep() {
-	//Add lights
-	m_bufferLights.redefine(m_lights);
-	m_surLighting.setTarget();
-	m_arrayLights.bind();
-	m_addLightShader.use();
-	glBlendFunc(GL_ONE, GL_ONE);
-	glm::vec2 dynLightBotLeftUn = glm::floor(static_cast<glm::vec2>(m_botLeftTi) / LIGHT_DOWNSAMPLE);
-	m_addLightShader.setUniform(LOC_POSITION, dynLightBotLeftUn);
-	m_arrayLights.renderArrays(POINTS, 0, static_cast<GLsizei>(m_lights.size()), 4);
-	glTextureBarrier();
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	m_addLightShader.unuse();
-	m_arrayLights.unbind();
+	//Calculate shadow of each light
 
-	//Compute lighting
-	glDisable(GL_BLEND);
-	m_arrayPOUV.bind();
-	m_computeLightingShader.use();
-	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_COMPUTELIGHT_RECT, 4);
-	m_computeLightingShader.unuse();
-	m_arrayPOUV.unbind();
-	glEnable(GL_BLEND);
-	m_surLighting.resetTarget();
 }
 
 void WorldDrawer::drawTiles() {
-	m_arrayPOUV.bind();
+	m_pouvArray.bind();
 	m_tilesShader.use();
 	m_tilesShader.setUniform(LOC_POSITION, m_invBotLeftPx);
-	m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsTi.x * m_viewDimsTi.y);
+	m_pouvArray.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsTi.x * m_viewDimsTi.y);
 	m_tilesShader.unuse();
-	m_arrayPOUV.unbind();
+	m_pouvArray.unbind();
 }
 
 void WorldDrawer::coverWithShadows() {
 	if (m_drawShadows) {
-		m_arrayPOUV.bind();
+		m_pouvArray.bind();
 		m_coverWithShadowsShader.use();
 		m_coverWithShadowsShader.setUniform(LOC_POSITION, glm::mod(m_invBotLeftPx, TILEPx * LIGHT_DOWNSAMPLE));
-		m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsUn.x * m_viewDimsUn.y);
+		m_pouvArray.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsUn.x * m_viewDimsUn.y);
 		m_coverWithShadowsShader.unuse();
-		m_arrayPOUV.unbind();
+		m_pouvArray.unbind();
 	}
 }
 
 void WorldDrawer::drawMinimap() {
 	if (m_drawMinimap) {
-		m_arrayPOUV.bind();
+		m_pouvArray.bind();
 		m_minimapShader.use();
-		m_arrayPOUV.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_MINIMAP_RECT, 4);
+		m_pouvArray.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_MINIMAP_RECT, 4);
 		m_minimapShader.unuse();
-		m_arrayPOUV.unbind();
+		m_pouvArray.unbind();
 	}
 }
 
@@ -157,45 +119,20 @@ void WorldDrawer::reloadViewSize(const glm::uvec2& viewSizePx) {
 void WorldDrawer::initVAOs() {
 	//POUV vertex array
 	GLuint vboBindingPoint = 0u;
-	m_arrayPOUV.setBindingPoint(vboBindingPoint, m_bufferPOUV, 0u, sizeof(VertexPOUV));
+	m_pouvArray.setBindingPoint(vboBindingPoint, m_pouvBuffer, 0u, sizeof(VertexPOUV));
 
-	m_arrayPOUV.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexPOUV, position));
-	m_arrayPOUV.setAttribute(RE::ATTR_UV, XY, FLOAT, offsetof(VertexPOUV, uv));
+	m_pouvArray.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexPOUV, position));
+	m_pouvArray.setAttribute(RE::ATTR_UV, XY, FLOAT, offsetof(VertexPOUV, uv));
 
-	m_arrayPOUV.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
-	m_arrayPOUV.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
-
-	//Lights vertex array
-	m_arrayLights.setBindingPoint(vboBindingPoint, m_bufferLights, 0u, sizeof(Light));
-
-	m_arrayLights.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(Light, posPx));
-	m_arrayLights.setAttribute(RE::ATTR_COLOR, RGBA, UNSIGNED_BYTE, offsetof(Light, col));
-
-	m_arrayLights.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
-	m_arrayLights.connectAttributeToBindingPoint(RE::ATTR_COLOR, vboBindingPoint);
+	m_pouvArray.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
+	m_pouvArray.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
 }
 
 void WorldDrawer::updatePOUVBuffers() {
-	VertexPOUV vertices[16];
-
-	//World to light rectangle
-	size_t i = VERTICES_POUV_WORLDTOLIGHT_RECT;
-	glm::vec2 worldToLightDims = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn) * 2.0f;
-	vertices[i++].position = {0.0f, 0.0f};
-	vertices[i++].position = {worldToLightDims.x, 0.0f};
-	vertices[i++].position = {0.0f, worldToLightDims.y};
-	vertices[i++].position = {worldToLightDims.x, worldToLightDims.y};
-
-	//Compute light rectangle
-	i = VERTICES_POUV_COMPUTELIGHT_RECT;
-	glm::vec2 computeLightTopRight = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn + 1);
-	vertices[i++].position = {LIGHT_MAX_RANGEUn - 1, LIGHT_MAX_RANGEUn - 1};
-	vertices[i++].position = {computeLightTopRight.x, LIGHT_MAX_RANGEUn - 1};
-	vertices[i++].position = {LIGHT_MAX_RANGEUn - 1, computeLightTopRight.y};
-	vertices[i++].position = {computeLightTopRight.x, computeLightTopRight.y};
+	VertexPOUV vertices[8];
 
 	//Normalized rectangle
-	i = VERTICES_POUV_NORM_RECT;
+	int i = VERTICES_POUV_NORM_RECT;
 	vertices[i++] = {{0.0f, 0.0f}, {0.0f, 0.0f}};
 	vertices[i++] = {{1.0f, 0.0f}, {1.0f, 0.0f}};
 	vertices[i++] = {{0.0f, 1.0f}, {0.0f, 1.0f}};
@@ -211,28 +148,22 @@ void WorldDrawer::updatePOUVBuffers() {
 	vertices[i++] = {{middle.x - world.x, middle.y + world.y}, {0.0f, 1.0f}};
 	vertices[i++] = {{middle.x + world.x, middle.y + world.y}, {1.0f, 1.0f}};
 
-	m_bufferPOUV.overwrite(0, sizeof(vertices), vertices);
+	m_pouvBuffer.overwrite(0, sizeof(vertices), vertices);
 }
 
 void WorldDrawer::initShaders() {
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_tilesShader, 0u);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_tilesShader, 1u);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_coverWithShadowsShader, 0u);
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_coverWithShadowsShader, 0u);
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_computeLightingShader, 0u);
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_tilesToLightsShader, 0u);
-	m_worldDrawUniformBuffer.connectToShaderProgram(m_addLightShader, 0u);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToShaderProgram(m_minimapShader, 0u);
+	m_worldDrawUniformBuffer.connectToInterfaceBlock(m_tilesShader, 0u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_tilesShader, 1u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_coverWithShadowsShader, 0u);
+	m_worldDrawUniformBuffer.connectToInterfaceBlock(m_coverWithShadowsShader, 0u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_minimapShader, 0u);
 	updateUniformsAfterViewResize();
-
-	m_tilesToLightsShader.setUniform(LOC_TILES_TO_LIGHT_DIAPHRAGMS, glm::vec3(0.9f, 0.8f, 0.6f));
 }
 
 void WorldDrawer::updateUniformsAfterViewResize() {
 	glm::vec2 worldToLightDims = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn) * 2.0f;
 	WorldDrawUniforms wdu{
 		.viewsizePxMat = glm::ortho(0.0f, m_viewDimsPx.x, 0.0f, m_viewDimsPx.y),
-		.viewsizeLightingUnMat = glm::ortho(0.0f, worldToLightDims.x, 0.0f, worldToLightDims.y)
 	};
 	m_worldDrawUniformBuffer.overwrite(0u, wdu);
 	m_tilesShader.setUniform("viewWidthTi", static_cast<int>(m_viewDimsTi.x));

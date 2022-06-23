@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -10,13 +10,13 @@
 
 #include <RealWorld/chunk/ChunkGenerator.hpp>
 #include <RealWorld/shaders/generation.hpp>
-#include <RealWorld/reserved_units/UniformBuffers.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/chunk.hpp>
 
-/**
- * @brief Generates new chunks by switching framebuffers.
- */
-class ChunkGeneratorFBO: public ChunkGenerator {
+ /**
+  * @brief Generates new chunks by switching framebuffers.
+  */
+class ChunkGeneratorFBO : public ChunkGenerator {
 public:
 
 	ChunkGeneratorFBO();

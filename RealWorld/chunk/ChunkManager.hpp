@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -11,14 +11,14 @@
 
 #include <RealWorld/chunk/ChunkGenerator.hpp>
 #include <RealWorld/chunk/Chunk.hpp>
-#include <RealWorld/reserved_units/ShaderStorageBuffers.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/shaders/simulation.hpp>
 
-/**
- * @brief Ensures that chunks are activated when needed.
- *
- * Uploads and downloads chunks from the world texture.
- */
+ /**
+  * @brief Ensures that chunks are activated when needed.
+  *
+  * Uploads and downloads chunks from the world texture.
+  */
 class ChunkManager {
 public:
 	/**
@@ -125,7 +125,7 @@ private:
 	std::vector<glm::ivec2> m_activeChunks{ACTIVE_CHUNKS_AREA.x * ACTIVE_CHUNKS_AREA.y};
 
 	using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
-	RE::ShaderStorageBuffer m_activeChunksSSBO{STRG_BUF_ACTIVECHUNKS, true, sizeof(ActiveChunksSSBO), MAP_WRITE};
+	RE::TypedBuffer m_activeChunksSSBO{RE::BufferType::SHADER_STORAGE, STRG_BUF_ACTIVECHUNKS, sizeof(ActiveChunksSSBO), MAP_WRITE};
 
 	RE::ShaderProgram m_continuityAnalyzerShader{{.comp = continuityAnalyzer_comp}};
 

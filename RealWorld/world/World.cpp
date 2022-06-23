@@ -1,12 +1,12 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/world/World.hpp>
 
-#include <RealWorld/reserved_units/TextureUnits.hpp>
-#include <RealWorld/reserved_units/ImageUnits.hpp>
+#include <RealWorld/reserved_units/textures.hpp>
+#include <RealWorld/reserved_units/images.hpp>
 
-//Xorshift algorithm by George Marsaglia
+ //Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
 	state ^= state << 13;
 	state ^= state >> 17;
@@ -26,9 +26,9 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
 World::World(ChunkGenerator& chunkGen) :
 	m_chunkManager(chunkGen, m_tileTransformationsShader, 0u),
 	m_rngState(static_cast<uint32_t>(time(nullptr))) {
-	m_worldDynamicsUBO.connectToShaderProgram(m_fluidDynamicsShader, 0u);
-	m_worldDynamicsUBO.connectToShaderProgram(m_tileTransformationsShader, 0u);
-	m_worldDynamicsUBO.connectToShaderProgram(m_modifyShader, 0u);
+	m_worldDynamicsUBO.connectToInterfaceBlock(m_fluidDynamicsShader, 0u);
+	m_worldDynamicsUBO.connectToInterfaceBlock(m_tileTransformationsShader, 0u);
+	m_worldDynamicsUBO.connectToInterfaceBlock(m_modifyShader, 0u);
 }
 
 World::~World() {

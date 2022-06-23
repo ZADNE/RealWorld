@@ -1,15 +1,15 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/chunk/ChunkGeneratorFBO.hpp>
 
-#include <RealWorld/reserved_units/TextureUnits.hpp>
-#include <RealWorld/reserved_units/ImageUnits.hpp>
+#include <RealWorld/reserved_units/textures.hpp>
+#include <RealWorld/reserved_units/images.hpp>
 
 ChunkGeneratorFBO::ChunkGeneratorFBO() {
-	p_chunkUniformBuffer.connectToShaderProgram(m_structureShader, 0u);
-	p_chunkUniformBuffer.connectToShaderProgram(m_consolidationShader, 0u);
-	p_chunkUniformBuffer.connectToShaderProgram(m_variantSelectionShader, 0u);
+	p_chunkUniformBuffer.connectToInterfaceBlock(m_structureShader, 0u);
+	p_chunkUniformBuffer.connectToInterfaceBlock(m_consolidationShader, 0u);
+	p_chunkUniformBuffer.connectToInterfaceBlock(m_variantSelectionShader, 0u);
 
 	m_genSurf[0].getTexture(0).bind(TEX_UNIT_GEN_TILES[0]);
 	m_genSurf[1].getTexture(0).bind(TEX_UNIT_GEN_TILES[1]);

@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/physics/Player.hpp>
@@ -10,9 +10,8 @@
 Player::Player(RE::SpriteBatch& spriteBatch) :
 	m_hitbox({0, 0}, {28, 40}, {14, 20}),
 	m_spriteBatch(spriteBatch) {
-	m_movementUBO.connectToShaderProgram(m_playerMovementShader, 0u);
-
-	m_hitboxSSBO.connectToShaderProgram(m_playerMovementShader, 0u);
+	m_movementUBO.connectToInterfaceBlock(m_playerMovementShader, 0u);
+	m_hitboxSSBO.connectToInterfaceBlock(m_playerMovementShader, 0u);
 }
 
 Player::~Player() {

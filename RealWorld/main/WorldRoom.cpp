@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/main/WorldRoom.hpp>
@@ -39,7 +39,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 }
 
 void WorldRoom::sessionEnd() {
-	saveWorld();
+	//saveWorld();
 }
 
 void WorldRoom::step() {
@@ -115,7 +115,7 @@ void WorldRoom::render(double interpolationFactor) {
 
 	auto& sb = RE::SpriteBatch::std();
 	sb.begin();
-		m_player.draw();
+	m_player.draw();
 	sb.end(RE::GlyphSortType::TEXTURE);
 	sb.draw();
 

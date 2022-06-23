@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/shaders/drawing.hpp>
@@ -22,33 +22,6 @@ std::string_view coverWithShadows_vert =
 #include "common/tile_constants.glsl"
 #include "common/texture_units.glsl"
 #include "drawing/cover_with_shadows.vert"
-;
-
-std::string_view passthrough_vert =
-#include "drawing/WorldDrawUBO.glsl"
-#include "drawing/passthrough.vert"
-;
-
-std::string_view computeLighting_frag =
-#include "common/tile_constants.glsl"
-#include "common/texture_units.glsl"
-#include "drawing/compute_lighting.frag"
-;
-
-std::string_view tilesToLight_frag =
-#include "common/tile_constants.glsl"
-#include "common/texture_units.glsl"
-#include "drawing/tiles_to_light.frag"
-;
-
-std::string_view addLight_vert =
-#include "common/tile_constants.glsl"
-#include "drawing/WorldDrawUBO.glsl"
-#include "drawing/add_light.vert"
-;
-
-std::string_view addLight_frag =
-#include "drawing/add_light.frag"
 ;
 
 std::string_view minimap_vert =

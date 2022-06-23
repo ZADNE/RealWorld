@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -9,8 +9,7 @@
 #include <RealEngine/graphics/SpriteBatch.hpp>
 
 #include <RealWorld/physics/Hitbox.hpp>
-#include <RealWorld/reserved_units/ShaderStorageBuffers.hpp>
-#include <RealWorld/reserved_units/UniformBuffers.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/shaders/simulation.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
@@ -53,7 +52,7 @@ private:
 		float walkDirection;
 		glm::vec2 jump_autojump;
 	};
-	RE::UniformBuffer m_movementUBO{UNIF_BUF_PLAYERMOVEMENT, true, DYNAMIC_STORAGE, PlayerMovementUBO{
+	RE::TypedBuffer m_movementUBO{RE::BufferType::UNIFORM, UNIF_BUF_PLAYERMOVEMENT, DYNAMIC_STORAGE, PlayerMovementUBO{
 		.acceleration = 0.5f,
 		.maxWalkVelocity = 6.0f,
 		.jumpVelocity = 7.0f
@@ -64,7 +63,7 @@ private:
 		glm::vec2 dimsPx;
 		glm::vec2 velocityPx;
 	};
-	RE::ShaderStorageBuffer m_hitboxSSBO{STRG_BUF_PLAYER, true, DYNAMIC_STORAGE | MAP_READ, PlayerHitboxSSBO{
+	RE::TypedBuffer m_hitboxSSBO{RE::BufferType::SHADER_STORAGE, STRG_BUF_PLAYER, DYNAMIC_STORAGE | MAP_READ, PlayerHitboxSSBO{
 		.dimsPx = glm::ivec2(m_playerTex->getTrueDims()) - glm::ivec2(1),
 		.velocityPx = glm::vec2(0.0f, 0.0f)
 	}};

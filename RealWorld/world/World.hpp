@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -10,7 +10,7 @@
 #include <RealWorld/chunk/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/shaders/simulation.hpp>
-#include <RealWorld/reserved_units/UniformBuffers.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 
 enum class MODIFY_SHAPE : unsigned int {
 	SQUARE,
@@ -77,7 +77,7 @@ private:
 		glm::uint timeHash;
 		glm::ivec4 updateOrder[16];//Only first two components are valid, second two are padding
 	};
-	RE::UniformBuffer m_worldDynamicsUBO{UNIF_BUF_WORLDDYNAMICS, true, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+	RE::TypedBuffer m_worldDynamicsUBO{UNIFORM, UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
 	RE::ShaderProgram m_fluidDynamicsShader = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
 	RE::ShaderProgram m_tileTransformationsShader = RE::ShaderProgram{{.comp = tileTransformations_comp}};

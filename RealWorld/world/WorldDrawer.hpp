@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -11,11 +11,11 @@
 
 #include <RealWorld/shaders/drawing.hpp>
 #include <RealWorld/world/Light.hpp>
-#include <RealWorld/reserved_units/UniformBuffers.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 
-/**
- * @brief Vertex with position and UVs
-*/
+ /**
+   * @brief Vertex with position and UVs
+  */
 struct VertexPOUV {
 	VertexPOUV() {}
 
@@ -28,7 +28,7 @@ struct VertexPOUV {
 
 /**
  * @brief Renders a world
- * 
+ *
  * Renders its tiles and calculated shadows.
 */
 class WorldDrawer {
@@ -116,9 +116,7 @@ private:
 	RE::TexturePtr m_wallLightAtlasTex = RE::RM::getTexture("wallLightAtlas");
 
 	RE::ShaderProgram m_tilesShader{{.vert = tilesDraw_vert, .frag = colorDraw_frag}};
-	RE::ShaderProgram m_tilesToLightsShader{{.vert = passthrough_vert, .frag = tilesToLight_frag}};//Processes the world texture to lights
-	RE::ShaderProgram m_addLightShader{{.vert = addLight_vert, .frag = addLight_frag}};//Adds user's lights added by addLight()
-	RE::ShaderProgram m_computeLightingShader{{.vert = passthrough_vert, .frag = computeLighting_frag}};//Combines lights
+
 	RE::ShaderProgram m_coverWithShadowsShader{{.vert = coverWithShadows_vert, .frag = colorDraw_frag}};//Stretches light texture to whole screen
 
 
@@ -127,17 +125,12 @@ private:
 	bool m_drawMinimap = false;
 
 
-	RE::VertexArray m_arrayPOUV;
-	RE::VertexArray m_arrayLights;
+	RE::VertexArray m_pouvArray;
 
-	RE::Buffer<ARRAY, IMMUTABLE> m_bufferPOUV{sizeof(VertexPOUV) * 16, DYNAMIC_STORAGE};
-	RE::Buffer<ARRAY, MUTABLE> m_bufferLights{STREAM, DRAW};
+	RE::Buffer m_pouvBuffer{sizeof(VertexPOUV) * 8, DYNAMIC_STORAGE};
 
 	struct WorldDrawUniforms {
 		glm::mat4 viewsizePxMat;
-		glm::mat4 viewsizeLightingUnMat;
 	};
-	RE::UniformBuffer m_worldDrawUniformBuffer{UNIF_BUF_WORLDDRAWER, true, sizeof(WorldDrawUniforms), DYNAMIC_STORAGE};
-
-	std::vector<Light> m_lights;
+	RE::TypedBuffer m_worldDrawUniformBuffer{UNIFORM, UNIF_BUF_WORLDDRAWER, sizeof(WorldDrawUniforms), DYNAMIC_STORAGE};
 };

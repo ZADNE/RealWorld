@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -9,12 +9,12 @@
 #include <RealEngine/graphics/VertexArray.hpp>
 
 #include <RealWorld/shaders/generation.hpp>
-#include <RealWorld/reserved_units/UniformBuffers.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/chunk.hpp>
 
-/**
- * @brief Is an interface for chunk generators.
- */
+ /**
+  * @brief Is an interface for chunk generators.
+  */
 class ChunkGenerator {
 public:
 	/**
@@ -32,9 +32,9 @@ public:
 	 * @see BORDER_WIDTH
 	*/
 	const glm::ivec2 GEN_CHUNK_SIZE = iCHUNK_SIZE + 2 * BORDER_WIDTH;
-	
+
 	ChunkGenerator();
-	
+
 	virtual ~ChunkGenerator();
 
 	/**
@@ -66,7 +66,7 @@ protected:
 		glm::ivec2 chunkOffsetTi;
 		int seed;
 	};
-	RE::UniformBuffer p_chunkUniformBuffer{UNIF_BUF_CHUNKGEN, true, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+	RE::TypedBuffer p_chunkUniformBuffer{UNIFORM, UNIF_BUF_CHUNKGEN, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	virtual void prepareToGenerate() = 0;
 	virtual void generateBasicTerrain() = 0;
