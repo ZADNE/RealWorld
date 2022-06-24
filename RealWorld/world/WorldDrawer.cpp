@@ -17,26 +17,38 @@
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
+static inline const RE::TextureFlags R8_NU_NEAR_LIN_EDGE{
+	RE::TextureChannels::R, RE::TextureFormat::NORMALIZED_UNSIGNED, RE::TextureMinFilter::NEAREST_NO_MIPMAPS,
+	RE::TextureMagFilter::LINEAR, RE::TextureWrapStyle::CLAMP_TO_EDGE, RE::TextureWrapStyle::CLAMP_TO_EDGE,
+	RE::TextureBitdepthPerChannel::BITS_8
+};
+
 const GLint VERTICES_POUV_NORM_RECT = 0;
 const GLint VERTICES_POUV_MINIMAP_RECT = 4;
 
 
-WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) {
-	reloadViewSize(viewSizePx);
-	m_surLighting.resize({m_viewDimsUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
+WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) :
+	m_viewSizePx(viewSizePx),
+	m_viewSizeTi(viewSizeTi(viewSizePx)),
+	m_analysisGroupCount(analysisGroupCount(m_viewSizeTi)),
+	m_analysisTex({glm::vec2(m_analysisGroupCount) * ANALYSIS_GROUP_SIZE * ANALYSIS_PER_THREAD_AREA}, {R8_NU_NEAR_LIN_EDGE}),
+	m_calcShadowsGroupCount(calcShadowsGroupCount(m_viewSizeTi)),
+	m_shadowsTex({glm::vec2(m_calcShadowsGroupCount) * CALC_GROUP_SIZE}, {RE::TextureFlags::RGBA8_NU_NEAR_LIN_EDGE}) {
 
 	//Bind textures to their reserved texture units
 	m_blockAtlasTex->bind(TEX_UNIT_BLOCK_ATLAS);
 	m_wallAtlasTex->bind(TEX_UNIT_WALL_ATLAS);
 	m_blockLightAtlasTex->bind(TEX_UNIT_BLOCK_LIGHT_ATLAS);
 	m_wallLightAtlasTex->bind(TEX_UNIT_WALL_LIGHT_ATLAS);
-	m_surLighting.getTexture(0).bind(TEX_UNIT_LIGHTS_LIGHT);
-	m_surLighting.getTexture(1).bind(TEX_UNIT_LIGHTS_TRANSLU);
-	m_surLighting.getTexture(2).bind(TEX_UNIT_LIGHTS_COMPUTED);
+
+	m_analysisTex.bind(TEX_UNIT_TILE_TRANSLU);
+	m_shadowsTex.bind(TEX_UNIT_SHADOWS);
+	m_analysisTex.bindImage(IMG_UNIT_TILE_TRANSLU, 0, RE::ImageAccess::READ_WRITE);
+	m_shadowsTex.bindImage(IMG_UNIT_SHADOWS, 0, RE::ImageAccess::READ_WRITE);
 
 	initShaders();
 	initVAOs();
-	updatePOUVBuffers();
+	updateArrayBuffers();
 }
 
 WorldDrawer::~WorldDrawer() {
@@ -45,30 +57,35 @@ WorldDrawer::~WorldDrawer() {
 
 void WorldDrawer::setTarget(const glm::ivec2& worldDimTi) {
 	m_worldDimTi = worldDimTi;
-
-	updatePOUVBuffers();
+	updateArrayBuffers();
 }
 
 void WorldDrawer::resizeView(const glm::uvec2& newViewSizePx) {
-	reloadViewSize(newViewSizePx);
-	updateUniformsAfterViewResize();
-	updatePOUVBuffers();
+	m_viewSizePx = newViewSizePx;
+	m_viewSizeTi = viewSizeTi(newViewSizePx);
+	m_analysisGroupCount = analysisGroupCount(m_viewSizeTi);
+	m_analysisTex = RE::Texture({glm::vec2(m_analysisGroupCount) * ANALYSIS_GROUP_SIZE * ANALYSIS_PER_THREAD_AREA}, {R8_NU_NEAR_LIN_EDGE});
+	m_shadowsTex = RE::Texture({glm::vec2(m_calcShadowsGroupCount) * CALC_GROUP_SIZE}, {RE::TextureFlags::RGBA8_NU_NEAR_LIN_EDGE});
 
-	m_surLighting.resize({m_viewDimsUn + glm::uvec2(LIGHT_MAX_RANGEUn) * 2u}, 3);
-	m_surLighting.getTexture(0).bind(TEX_UNIT_LIGHTS_LIGHT);
-	m_surLighting.getTexture(1).bind(TEX_UNIT_LIGHTS_TRANSLU);
-	m_surLighting.getTexture(2).bind(TEX_UNIT_LIGHTS_COMPUTED);
+	updateUniformsAfterViewResize();
+	updateArrayBuffers();
+
+	m_analysisTex.bind(TEX_UNIT_TILE_TRANSLU);
+	m_shadowsTex.bind(TEX_UNIT_SHADOWS);
+	m_analysisTex.bindImage(IMG_UNIT_TILE_TRANSLU, 0, RE::ImageAccess::READ_WRITE);
+	m_shadowsTex.bindImage(IMG_UNIT_SHADOWS, 0, RE::ImageAccess::READ_WRITE);
 }
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
 	m_invBotLeftPx = botLeftPx;
 	m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx)) - glm::ivec2(LIGHT_MAX_RANGETi);
-	return ViewEnvelope{.botLeftTi = m_botLeftTi, .topRightTi = m_botLeftTi + glm::ivec2(m_viewDimsTi) + glm::ivec2(LIGHT_MAX_RANGETi) * 2};
+	return ViewEnvelope{.botLeftTi = m_botLeftTi, .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi) * 2};
 }
 
 void WorldDrawer::beginStep() {
 	//Process the world texture to translucency texture
-
+	m_analysisShd.setUniform(LOC_POSITION, m_botLeftTi);
+	m_analysisShd.dispatchCompute(m_analysisGroupCount, true);
 }
 
 void WorldDrawer::addLight(const glm::vec2& posPx, RE::Color col) {
@@ -76,59 +93,53 @@ void WorldDrawer::addLight(const glm::vec2& posPx, RE::Color col) {
 }
 
 void WorldDrawer::endStep() {
-	//Calculate shadow of each light
-
+	//Calculate shadow above each tile
+	m_calcShadowsShd.dispatchCompute(m_calcShadowsGroupCount, true);
 }
 
 void WorldDrawer::drawTiles() {
-	m_pouvArray.bind();
-	m_tilesShader.use();
-	m_tilesShader.setUniform(LOC_POSITION, m_invBotLeftPx);
-	m_pouvArray.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsTi.x * m_viewDimsTi.y);
-	m_tilesShader.unuse();
-	m_pouvArray.unbind();
+	m_pouvArr.bind();
+	m_drawTilesShd.use();
+	m_drawTilesShd.setUniform(LOC_POSITION, m_invBotLeftPx);
+	m_pouvArr.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewSizeTi.x * m_viewSizeTi.y);
+	m_drawTilesShd.unuse();
+	m_pouvArr.unbind();
 }
 
 void WorldDrawer::coverWithShadows() {
 	if (m_drawShadows) {
-		m_pouvArray.bind();
-		m_coverWithShadowsShader.use();
-		m_coverWithShadowsShader.setUniform(LOC_POSITION, glm::mod(m_invBotLeftPx, TILEPx * LIGHT_DOWNSAMPLE));
-		m_pouvArray.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewDimsUn.x * m_viewDimsUn.y);
-		m_coverWithShadowsShader.unuse();
-		m_pouvArray.unbind();
+		m_pouvArr.bind();
+		m_drawShadowsShd.use();
+		m_drawShadowsShd.setUniform(LOC_POSITION, glm::mod(m_invBotLeftPx, TILEPx));
+		m_pouvArr.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_NORM_RECT, 4, m_viewSizeTi.x * m_viewSizeTi.y);
+		m_drawShadowsShd.unuse();
+		m_pouvArr.unbind();
 	}
 }
 
 void WorldDrawer::drawMinimap() {
 	if (m_drawMinimap) {
-		m_pouvArray.bind();
-		m_minimapShader.use();
-		m_pouvArray.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_MINIMAP_RECT, 4);
-		m_minimapShader.unuse();
-		m_pouvArray.unbind();
+		m_pouvArr.bind();
+		m_minimapShd.use();
+		m_pouvArr.renderArrays(TRIANGLE_STRIP, VERTICES_POUV_MINIMAP_RECT, 4);
+		m_minimapShd.unuse();
+		m_pouvArr.unbind();
 	}
-}
-
-void WorldDrawer::reloadViewSize(const glm::uvec2& viewSizePx) {
-	m_viewDimsPx = (glm::vec2)viewSizePx;
-	m_viewDimsTi = glm::uvec2(1u, 1u) + glm::uvec2(glm::ceil(m_viewDimsPx / TILEPx));
-	m_viewDimsUn = glm::uvec2(1u, 1u) + glm::uvec2(glm::ceil(m_viewDimsPx / TILEPx / LIGHT_DOWNSAMPLE));
 }
 
 void WorldDrawer::initVAOs() {
 	//POUV vertex array
 	GLuint vboBindingPoint = 0u;
-	m_pouvArray.setBindingPoint(vboBindingPoint, m_pouvBuffer, 0u, sizeof(VertexPOUV));
+	m_pouvArr.setBindingPoint(vboBindingPoint, m_pouvBuf, 0u, sizeof(VertexPOUV));
 
-	m_pouvArray.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexPOUV, position));
-	m_pouvArray.setAttribute(RE::ATTR_UV, XY, FLOAT, offsetof(VertexPOUV, uv));
+	m_pouvArr.setAttribute(RE::ATTR_POSITION, XY, FLOAT, offsetof(VertexPOUV, position));
+	m_pouvArr.setAttribute(RE::ATTR_UV, XY, FLOAT, offsetof(VertexPOUV, uv));
 
-	m_pouvArray.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
-	m_pouvArray.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
+	m_pouvArr.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
+	m_pouvArr.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
 }
 
-void WorldDrawer::updatePOUVBuffers() {
+void WorldDrawer::updateArrayBuffers() {
 	VertexPOUV vertices[8];
 
 	//Normalized rectangle
@@ -139,8 +150,8 @@ void WorldDrawer::updatePOUVBuffers() {
 	vertices[i++] = {{1.0f, 1.0f}, {1.0f, 1.0f}};
 
 	//Minimap rectangle
-	float scale = std::min(m_viewDimsPx.x / m_worldDimTi.x, m_viewDimsPx.y / m_worldDimTi.y) * 0.5f;
-	const glm::vec2 middle = m_viewDimsPx * 0.5f;
+	float scale = std::min(m_viewSizePx.x / m_worldDimTi.x, m_viewSizePx.y / m_worldDimTi.y) * 0.5f;
+	const glm::vec2 middle = m_viewSizePx * 0.5f;
 	const glm::vec2 world = glm::vec2(m_worldDimTi) * scale;
 	i = VERTICES_POUV_MINIMAP_RECT;
 	vertices[i++] = {{middle.x - world.x, middle.y - world.y}, {0.0f, 0.0f}};
@@ -148,24 +159,23 @@ void WorldDrawer::updatePOUVBuffers() {
 	vertices[i++] = {{middle.x - world.x, middle.y + world.y}, {0.0f, 1.0f}};
 	vertices[i++] = {{middle.x + world.x, middle.y + world.y}, {1.0f, 1.0f}};
 
-	m_pouvBuffer.overwrite(0, sizeof(vertices), vertices);
+	m_pouvBuf.overwrite(0, sizeof(vertices), vertices);
 }
 
 void WorldDrawer::initShaders() {
-	m_worldDrawUniformBuffer.connectToInterfaceBlock(m_tilesShader, 0u);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_tilesShader, 1u);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_coverWithShadowsShader, 0u);
-	m_worldDrawUniformBuffer.connectToInterfaceBlock(m_coverWithShadowsShader, 0u);
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_minimapShader, 0u);
+	m_worldDrawUniformBuf.connectToInterfaceBlock(m_drawTilesShd, 0u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_drawTilesShd, 1u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_drawShadowsShd, 0u);
+	m_worldDrawUniformBuf.connectToInterfaceBlock(m_drawShadowsShd, 0u);
+	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_minimapShd, 0u);
 	updateUniformsAfterViewResize();
 }
 
 void WorldDrawer::updateUniformsAfterViewResize() {
-	glm::vec2 worldToLightDims = glm::vec2(m_viewDimsUn) + glm::vec2(LIGHT_MAX_RANGEUn) * 2.0f;
 	WorldDrawUniforms wdu{
-		.viewsizePxMat = glm::ortho(0.0f, m_viewDimsPx.x, 0.0f, m_viewDimsPx.y),
+		.viewsizePxMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y),
 	};
-	m_worldDrawUniformBuffer.overwrite(0u, wdu);
-	m_tilesShader.setUniform("viewWidthTi", static_cast<int>(m_viewDimsTi.x));
-	m_coverWithShadowsShader.setUniform("viewWidthUn", static_cast<int>(m_viewDimsUn.x));
+	m_worldDrawUniformBuf.overwrite(0u, wdu);
+	m_drawTilesShd.setUniform("viewWidthTi", static_cast<int>(m_viewSizeTi.x));
+	m_drawShadowsShd.setUniform("viewWidthTi", static_cast<int>(m_viewSizeTi.x));
 }

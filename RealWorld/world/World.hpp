@@ -64,7 +64,7 @@ private:
 	using enum RE::Primitive;
 
 	int m_seed = 0;
-	RE::Surface m_worldSurface = RE::Surface(RE::Raster{iCHUNK_SIZE * ACTIVE_CHUNKS_AREA}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, true, false);
+	RE::Surface m_worldSurface = RE::Surface({iCHUNK_SIZE * ACTIVE_CHUNKS_AREA}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
 
@@ -77,7 +77,7 @@ private:
 		glm::uint timeHash;
 		glm::ivec4 updateOrder[16];//Only first two components are valid, second two are padding
 	};
-	RE::TypedBuffer m_worldDynamicsUBO{UNIFORM, UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+	RE::TypedBuffer m_worldDynamicsUBO{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
 	RE::ShaderProgram m_fluidDynamicsShader = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
 	RE::ShaderProgram m_tileTransformationsShader = RE::ShaderProgram{{.comp = tileTransformations_comp}};

@@ -1,0 +1,20 @@
+R""(
+const int GROUP_SIZE = 4;
+layout(	local_size_x = GROUP_SIZE,
+		local_size_y = GROUP_SIZE,
+		local_size_z = 1
+) in;
+
+layout(binding = TEX_UNIT_TILE_TRANSLU) uniform sampler2D transluTexture;
+layout(binding = IMG_UNIT_SHADOWS, rgba8) uniform restrict writeonly image2D shadowsImage;
+
+void main(){
+	const ivec2 ID = ivec2(gl_GlobalInvocationID);
+	vec2 pos = vec2(ID + LIGHT_MAX_RANGETi) + 0.5;
+	vec4 result = texture(transluTexture, pos / textureSize(transluTexture, 0));
+	result.a *= 0.8;
+	//vec4 result = ((ID.x % 2) == (ID.y % 2)) ? vec4(0.0, 0.0, 0.0, 0.0) : vec4(0.0, 0.0, 0.0, 0.8);
+	imageStore(shadowsImage, ID, result);
+}
+
+)""

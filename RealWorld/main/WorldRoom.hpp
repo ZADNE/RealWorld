@@ -78,9 +78,7 @@ private:
 
 	//View
 	RE::View2D m_worldView{window()->getDims()};
-	RE::TypedBuffer m_worldViewUBO{
-		RE::BufferType::UNIFORM, RE::UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE
-	};
+	RE::TypedBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	//Gameplay
 #if CHUNK_GENERATOR == CS_GENERATOR

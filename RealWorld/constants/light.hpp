@@ -1,8 +1,6 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
 
-const int LIGHT_DOWNSAMPLE = 4;
-const int LIGHT_MAX_RANGEUn = 30;
-const int LIGHT_MAX_RANGETi = LIGHT_MAX_RANGEUn * LIGHT_DOWNSAMPLE;
+const int LIGHT_MAX_RANGETi = 128;

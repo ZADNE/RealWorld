@@ -1,0 +1,28 @@
+R""(
+const int GROUP_SIZE = 4;
+layout(	local_size_x = GROUP_SIZE,
+		local_size_y = GROUP_SIZE,
+		local_size_z = 1
+) in;
+
+layout(binding = TEX_UNIT_WORLD_TEXTURE) uniform usampler2D worldTexture;
+layout(binding = IMG_UNIT_TILE_TRANSLU, r8) uniform restrict writeonly image2D transluImage;
+layout(location = 3) uniform ivec2 offsetTi;
+
+const int PER_THREAD_AREA = 4;
+
+void main(){
+	const ivec2 ID = ivec2(gl_GlobalInvocationID) * PER_THREAD_AREA;
+	const ivec2 readBasePosTi = ID + offsetTi;
+	const ivec2 MASK = textureSize(worldTexture, 0) - 1;
+	vec4 result = vec4(0.0, 0.0, 0.0, 0.0);
+	for (int y = 0; y < PER_THREAD_AREA; y++){
+		for (int x = 0; x < PER_THREAD_AREA; x++){
+			uvec4 tile = texelFetch(worldTexture, (readBasePosTi + ivec2(x, y)) & MASK, 0);
+			result.x = isAirBlock(tile.BLOCK_TYPE) ? 0.9 : 0.6;
+			imageStore(transluImage, ID + ivec2(x, y), result);
+		}
+	}
+}
+
+)""

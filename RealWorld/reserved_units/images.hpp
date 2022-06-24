@@ -10,3 +10,6 @@ const RE::ImageUnit IMG_UNIT_WORLD = {1};				/**< Image unit reserved for the wo
 
 const RE::ImageUnit IMG_UNIT_GEN_TILES[] = {{2}, {3}};	/**< Image units reserved for CA ping pong of chunk generation */
 const RE::ImageUnit IMG_UNIT_GEN_MATERIAL = {4};		/**< Image unit reserved for the material of chunk generation */
+
+const RE::ImageUnit IMG_UNIT_TILE_TRANSLU = {5};
+const RE::ImageUnit IMG_UNIT_SHADOWS = {6};

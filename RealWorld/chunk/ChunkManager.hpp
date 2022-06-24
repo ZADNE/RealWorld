@@ -125,7 +125,7 @@ private:
 	std::vector<glm::ivec2> m_activeChunks{ACTIVE_CHUNKS_AREA.x * ACTIVE_CHUNKS_AREA.y};
 
 	using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
-	RE::TypedBuffer m_activeChunksSSBO{RE::BufferType::SHADER_STORAGE, STRG_BUF_ACTIVECHUNKS, sizeof(ActiveChunksSSBO), MAP_WRITE};
+	RE::TypedBuffer m_activeChunksSSBO{STRG_BUF_ACTIVECHUNKS, sizeof(ActiveChunksSSBO), MAP_WRITE};
 
 	RE::ShaderProgram m_continuityAnalyzerShader{{.comp = continuityAnalyzer_comp}};
 
