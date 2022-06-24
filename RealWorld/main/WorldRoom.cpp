@@ -72,8 +72,8 @@ void WorldRoom::step() {
 		m_worldView.getCursorRel(), RE::GeometryBatch::std()
 	);
 
-	m_worldDrawer.addLight(m_worldView.getCursorRel(), RE::Color{0u, 0u, 0u, 100u});
-	m_worldDrawer.addLight(m_player.getHitbox().getCenter(), RE::Color{0u, 0u, 0u, 15u});
+	//m_worldDrawer.addLight(m_worldView.getCursorRel(), RE::Color{0u, 0u, 0u, 100u});
+	//m_worldDrawer.addLight(m_player.getHitbox().getCenter(), RE::Color{0u, 0u, 0u, 15u});
 
 	//Inventory
 	m_invUI.step();
@@ -119,7 +119,7 @@ void WorldRoom::render(double interpolationFactor) {
 	sb.end(RE::GlyphSortType::TEXTURE);
 	sb.draw();
 
-	m_worldDrawer.coverWithShadows();
+	m_worldDrawer.drawShadows();
 
 	RE::GeometryBatch::std().draw();
 

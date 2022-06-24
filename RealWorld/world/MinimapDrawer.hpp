@@ -1,0 +1,40 @@
+﻿/*!
+ *  @author    Dubsky Tomas
+ */
+#pragma once
+#include <RealEngine/graphics/VertexArray.hpp>
+
+#include <RealWorld/shaders/drawing.hpp>
+
+ /**
+  * @brief Renders minimap of the world
+ */
+class MinimapDrawer {
+public:
+	MinimapDrawer();
+	~MinimapDrawer();
+
+	void setTarget(const glm::uvec2& worldDimTi, const glm::vec2& viewSizePx);
+	void resizeView(const glm::uvec2& viewSizePx);
+
+	void draw();
+private:
+	void updateArrayBuffers(const glm::vec2& viewSizePx);
+
+	glm::uvec2 m_worldDimTi;
+
+	RE::ShaderProgram m_minimapShd{{.vert = minimap_vert, .frag = minimap_frag}};
+
+	RE::VertexArray m_pouvArr;
+
+	struct VertexPOUV {
+		VertexPOUV() {}
+
+		VertexPOUV(const glm::vec2& position, const glm::vec2& uv) :
+			position(position), uv(uv) {}
+
+		glm::vec2 position;
+		glm::vec2 uv;
+	};
+	RE::Buffer m_pouvBuf{sizeof(VertexPOUV) * 4, RE::BufferUsageFlags::DYNAMIC_STORAGE};
+};

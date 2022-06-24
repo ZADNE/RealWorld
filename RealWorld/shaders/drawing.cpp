@@ -35,6 +35,7 @@ std::string_view colorDraw_frag =
 std::string_view drawShadows_vert =
 #include "common/tile_constants.glsl"
 #include "reserved_units/textures.glsl"
+#include "drawing/WorldDrawUBO.glsl"
 #include "drawing/draw_shadows.vert"
 ;
 
