@@ -23,13 +23,12 @@ MinimapDrawer::~MinimapDrawer() {
 
 }
 
-void MinimapDrawer::setTarget(const glm::uvec2& worldDimTi, const glm::vec2& viewSizePx) {
-	m_worldDimTi = worldDimTi;
-	updateArrayBuffers(viewSizePx);
+void MinimapDrawer::setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx) {
+	updateArrayBuffers(worldTexSize, viewSizePx);
 }
 
-void MinimapDrawer::resizeView(const glm::uvec2& viewSizePx) {
-	updateArrayBuffers(viewSizePx);
+void MinimapDrawer::resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx) {
+	updateArrayBuffers(worldTexSize, viewSizePx);
 }
 
 void MinimapDrawer::draw() {
@@ -40,13 +39,13 @@ void MinimapDrawer::draw() {
 	m_pouvArr.unbind();
 }
 
-void MinimapDrawer::updateArrayBuffers(const glm::vec2& viewSizePx) {
+void MinimapDrawer::updateArrayBuffers(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx) {
 	VertexPOUV vertices[4];
 
 	//Minimap rectangle
-	float scale = glm::min(viewSizePx.x / m_worldDimTi.x, viewSizePx.y / m_worldDimTi.y) * 0.5f;
+	float scale = glm::min(viewSizePx.x / worldTexSize.x, viewSizePx.y / worldTexSize.y) * 0.5f;
 	const glm::vec2 middle = viewSizePx * 0.5f;
-	const glm::vec2 world = glm::vec2(m_worldDimTi) * scale;
+	const glm::vec2 world = glm::vec2(worldTexSize) * scale;
 	int i = 0;
 	vertices[i++] = VertexPOUV{{middle.x - world.x, middle.y - world.y}, {0.0f, 0.0f}};
 	vertices[i++] = VertexPOUV{{middle.x + world.x, middle.y - world.y}, {1.0f, 0.0f}};

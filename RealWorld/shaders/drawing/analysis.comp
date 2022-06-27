@@ -1,27 +1,54 @@
 R""(
-const int GROUP_SIZE = 4;
-layout(	local_size_x = GROUP_SIZE,
-		local_size_y = GROUP_SIZE,
+#line 3
+layout(	local_size_x = ANALYSIS_GROUP_SIZE,
+		local_size_y = ANALYSIS_GROUP_SIZE,
 		local_size_z = 1
 ) in;
 
 layout(binding = TEX_UNIT_WORLD_TEXTURE) uniform usampler2D worldTexture;
+layout(binding = TEX_UNIT_BLOCK_LIGHT_ATLAS) uniform sampler2D blockLightTexture;
+layout(binding = TEX_UNIT_WALL_LIGHT_ATLAS) uniform sampler2D wallLightTexture;
 layout(binding = IMG_UNIT_TILE_TRANSLU, r8) uniform restrict writeonly image2D transluImage;
-layout(location = 3) uniform ivec2 offsetTi;
-
-const int PER_THREAD_AREA = 4;
+layout(binding = IMG_UNIT_POINT_LIGHT_COUNT, r32ui) uniform restrict uimage2D pointLightCountImage;
+layout(location = 4) uniform ivec2 botLeftTi;
 
 void main(){
-	const ivec2 ID = ivec2(gl_GlobalInvocationID) * PER_THREAD_AREA;
-	const ivec2 readBasePosTi = ID + offsetTi;
-	const ivec2 MASK = textureSize(worldTexture, 0) - 1;
-	vec4 result = vec4(0.0, 0.0, 0.0, 0.0);
-	for (int y = 0; y < PER_THREAD_AREA; y++){
-		for (int x = 0; x < PER_THREAD_AREA; x++){
-			uvec4 tile = texelFetch(worldTexture, (readBasePosTi + ivec2(x, y)) & MASK, 0);
-			result.x = isAirBlock(tile.BLOCK_TYPE) ? 0.9 : 0.8;
-			imageStore(transluImage, ID + ivec2(x, y), result);
+	//Calculate position and init variables
+	const ivec2 ID = ivec2(gl_GlobalInvocationID) << ANALYSIS_PER_THREAD_BITS;
+	const ivec2 readBasePosTi = botLeftTi + ID;
+	vec4 translu = vec4(0.0);
+	vec2 lightPos = vec2(0.0);
+	vec4 light = vec4(0.0);
+	
+	//Analyze the thread's area
+	for (int y = 0; y < ANALYSIS_PER_THREAD_AREA; y++){
+		for (int x = 0; x < ANALYSIS_PER_THREAD_AREA; x++){
+			//Fetch the tile
+			uvec4 tile = texelFetch(worldTexture, (readBasePosTi + ivec2(x, y)) & worldTexMask, 0);
+			//Process its translucency
+			bool airBlock = isAirBlock(tile.BLOCK_TYPE);
+			translu.x += airBlock ? (200.0/255.0) : (150.0/255.0);
+			//Process it as a light source
+			vec4 blockLight = texelFetch(blockLightTexture, ivec2(tile.yx), 0);
+			vec4 wallLight = texelFetch(wallLightTexture, ivec2(tile.wz), 0);
+			vec4 tileLight = airBlock ? wallLight : blockLight;
+			light += vec4(tileLight.rgb * tileLight.a, tileLight.a);
+			lightPos += vec2(ID + ivec2(x, y)) * tileLight.a;
 		}
+	}
+	
+	//Output translucency
+	translu.x *= 0.0625;
+	imageStore(transluImage, ivec2(gl_GlobalInvocationID), translu);
+	
+	//Output light (if there was a light source)
+	if (light.a > 0.0){
+		uint inSlotIndex = imageAtomicAdd(pointLightCountImage, ivec2(gl_WorkGroupID), 1u);
+		uint slotIndex = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+		uint totalIndex = slotIndex * MAX_LIGHTS_PER_SLOT + inSlotIndex;
+		float scale = 1.0 / light.a;
+		pointLights[totalIndex].pos = packHalf2x16(lightPos * scale * 0.25 + 0.125);
+		pointLights[totalIndex].col = packUnorm4x8(vec4(light.rgb * scale, light.a));
 	}
 }
 

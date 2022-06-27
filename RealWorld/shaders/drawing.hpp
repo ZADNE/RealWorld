@@ -4,7 +4,8 @@
 #pragma once
 #include <string_view>
 
-const int LOC_POSITION = 3;
+const int LOC_POSITIONPx = 3;
+const int LOC_POSITIONTi = 4;
 
 extern std::string_view analysis_comp;
 

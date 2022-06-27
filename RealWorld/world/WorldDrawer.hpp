@@ -15,7 +15,7 @@ public:
 	WorldDrawer(const glm::uvec2& viewSizePx);
 	~WorldDrawer();
 
-	void setTarget(const glm::ivec2& worldDimTi);
+	void setTarget(const glm::ivec2& worldTexSize);
 	void resizeView(const glm::uvec2& viewSizePx);
 
 	struct ViewEnvelope {
@@ -43,7 +43,7 @@ public:
 	void shouldDrawMinimap(bool should) { m_drawMinimap = should; }
 	void drawMinimap();
 private:
-	void updateUniformsAfterViewResize();
+	void updateUniformBuffer();
 
 	glm::vec2 m_botLeftPx;//Bottom-left corner of the view
 	glm::ivec2 m_botLeftTi;//Bottom-left corner of the view in tiles
@@ -52,11 +52,14 @@ private:
 	glm::uvec2 m_viewSizeTi;
 	glm::uvec2 viewSizeTi(const glm::vec2& viewSizePx) const;
 
+	glm::ivec2 m_worldTexSize;
+
 	bool m_drawShadows = true;
 	bool m_drawMinimap = false;
 
 	struct WorldDrawerUniforms {
-		glm::mat4 viewsizePxMat;
+		glm::mat4 viewMat;
+		glm::ivec2 worldTexMask;
 		int viewWidthTi;
 	};
 	RE::TypedBuffer m_uniformBuf{UNIF_BUF_WORLDDRAWER, sizeof(WorldDrawerUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};

@@ -19,23 +19,25 @@ WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) :
 	m_shadowDrawer(m_viewSizeTi, m_uniformBuf),
 	m_minimapDrawer() {
 
-	updateUniformsAfterViewResize();
+	updateUniformBuffer();
 }
 
 WorldDrawer::~WorldDrawer() {
 
 }
 
-void WorldDrawer::setTarget(const glm::ivec2& worldDimTi) {
-	m_minimapDrawer.setTarget(worldDimTi, m_viewSizePx);
+void WorldDrawer::setTarget(const glm::ivec2& worldTexSize) {
+	m_worldTexSize = worldTexSize;
+	m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
+	updateUniformBuffer();
 }
 
 void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
 	m_viewSizePx = viewSizePx;
 	m_viewSizeTi = viewSizeTi(viewSizePx);
-	updateUniformsAfterViewResize();
+	updateUniformBuffer();
 	m_shadowDrawer.resizeView(m_viewSizeTi);
-	m_minimapDrawer.resizeView(m_viewSizePx);
+	m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
 }
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
@@ -68,9 +70,10 @@ void WorldDrawer::drawMinimap() {
 	}
 }
 
-void WorldDrawer::updateUniformsAfterViewResize() {
+void WorldDrawer::updateUniformBuffer() {
 	WorldDrawerUniforms wdu{
-		.viewsizePxMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y),
+		.viewMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y),
+		.worldTexMask = m_worldTexSize - 1,
 		.viewWidthTi = static_cast<int>(m_viewSizeTi.x)
 	};
 	m_uniformBuf.overwrite(0u, wdu);

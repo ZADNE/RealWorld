@@ -14,14 +14,12 @@ public:
 	MinimapDrawer();
 	~MinimapDrawer();
 
-	void setTarget(const glm::uvec2& worldDimTi, const glm::vec2& viewSizePx);
-	void resizeView(const glm::uvec2& viewSizePx);
+	void setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
+	void resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx);
 
 	void draw();
 private:
-	void updateArrayBuffers(const glm::vec2& viewSizePx);
-
-	glm::uvec2 m_worldDimTi;
+	void updateArrayBuffers(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
 
 	RE::ShaderProgram m_minimapShd{{.vert = minimap_vert, .frag = minimap_frag}};
 

@@ -9,7 +9,7 @@ const int TEX_UNIT_WALL_LIGHT_ATLAS = 	5;
 
 const int TEX_UNIT_TILE_TRANSLU =		6;
 const int TEX_UNIT_SHADOWS =			7;
-//const int TEX_UNIT_LIGHTS_COMPUTED =	8;
+const int TEX_UNIT_POINT_LIGHT_COUNT =	8;
 
 const int TEX_UNIT_GEN_TILES0 =			9;
 const int TEX_UNIT_GEN_TILES1 =			10;

@@ -29,7 +29,12 @@
 #error "No chunk generator has been selected!"
 #endif
 
+#ifdef _DEBUG
 const unsigned int FPS_LIMIT = 300u;
+#else
+const unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
+#endif // _DEBUG
+
 const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
 
 /**

@@ -13,3 +13,4 @@ const RE::ImageUnit IMG_UNIT_GEN_MATERIAL = {4};		/**< Image unit reserved for t
 
 const RE::ImageUnit IMG_UNIT_TILE_TRANSLU = {5};
 const RE::ImageUnit IMG_UNIT_SHADOWS = {6};
+const RE::ImageUnit IMG_UNIT_POINT_LIGHT_COUNT = {7};

@@ -1,20 +1,61 @@
 R""(
-const int GROUP_SIZE = 4;
-layout(	local_size_x = GROUP_SIZE,
-		local_size_y = GROUP_SIZE,
+layout(	local_size_x = CALC_GROUP_SIZE,
+		local_size_y = CALC_GROUP_SIZE,
 		local_size_z = 1
 ) in;
 
 layout(binding = TEX_UNIT_TILE_TRANSLU) uniform sampler2D transluTexture;
+layout(binding = TEX_UNIT_POINT_LIGHT_COUNT) uniform usampler2D pointLightCountTexture;
 layout(binding = IMG_UNIT_SHADOWS, rgba8) uniform restrict writeonly image2D shadowsImage;
+uniform uint slotsInRow;
+
+const vec2 transluScale = 1.0 / textureSize(transluTexture, 0);
+
+uint pointLightSlotIndex(uvec2 slotID){
+	uint slotIndex = slotID.y * slotsInRow + slotID.x;
+	return slotIndex * MAX_LIGHTS_PER_SLOT;
+}
+
+float ray(float light, vec2 lightPos, vec2 tilePos){
+	vec2 diff = tilePos - lightPos;
+	float dist = floor(length(diff));
+	vec2 increment = diff / dist * transluScale;
+	vec2 pos = lightPos * transluScale;
+	for (float i = 0.0; i <= dist; i++){
+		light *= texture(transluTexture, pos).x;
+		pos += increment;
+	}
+	return light;
+}
+
+//Sums point lights of the given slot
+void sumSlot(inout vec4 final, uvec2 slotID, vec2 tilePos){
+	uint pointLightCount = texelFetch(pointLightCountTexture, ivec2(slotID), 0).x;
+	const uint first = pointLightSlotIndex(slotID);
+	const uint last = first + pointLightCount;
+	for (uint i = first; i < last; i++){
+		vec2 lightPos = unpackHalf2x16(pointLights[i].pos);
+		vec4 lightCol = unpackUnorm4x8(pointLights[i].col);
+		final.a += ray(lightCol.a, lightPos, tilePos);
+	}
+}
 
 void main(){
+	//Calculate position and init variables
 	const ivec2 ID = ivec2(gl_GlobalInvocationID);
-	vec2 pos = vec2(ID + LIGHT_MAX_RANGETi) + 0.5;
-	vec4 result = texture(transluTexture, pos / textureSize(transluTexture, 0));
-	result.a *= 0.8;
-	//vec4 result = ((ID.x % 2) == (ID.y % 2)) ? vec4(0.0, 0.0, 0.0, 0.0) : vec4(0.0, 0.0, 0.0, 0.8);
-	imageStore(shadowsImage, ID, result);
+	vec2 tilePos = vec2(ID + LIGHT_MAX_RANGETi) * 0.25 + 0.125;
+	vec4 final = vec4(0.0, 0.0, 0.0, 0.0);
+	
+	//Sum slots of point lights
+	const uvec2 botLeft = (gl_WorkGroupID.xy >> ANALYSIS_PER_THREAD_BITS);
+	const uvec2 topRight = botLeft + LIGHT_MAX_RANGE_SLOTS * 2;
+	for (uint y = botLeft.y; y <= topRight.y; y++){
+		for (uint x = botLeft.x; x <= topRight.x; x++){
+			sumSlot(final, uvec2(x, y), tilePos);
+		}
+	}
+	
+	imageStore(shadowsImage, ID, vec4(final.rgb, 1.0 - sqrt(final.a)));
 }
 
 )""

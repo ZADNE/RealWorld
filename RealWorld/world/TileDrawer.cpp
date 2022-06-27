@@ -3,6 +3,7 @@
  */
 #include <RealWorld/world/TileDrawer.hpp>
 
+#include <RealWorld/constants/tile.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 
 
@@ -22,7 +23,8 @@ TileDrawer::~TileDrawer() {
 void TileDrawer::draw(const RE::VertexArray& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
 	vao.bind();
 	m_drawTilesShd.use();
-	m_drawTilesShd.setUniform(LOC_POSITION, botLeftPx);
+	m_drawTilesShd.setUniform(LOC_POSITIONPx, glm::mod(botLeftPx, TILEPx));
+	m_drawTilesShd.setUniform(LOC_POSITIONTi, glm::ivec2(pxToTi(botLeftPx)));
 	vao.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4, viewSizeTi.x * viewSizeTi.y);
 	m_drawTilesShd.unuse();
 	vao.unbind();
