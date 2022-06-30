@@ -6,8 +6,11 @@
 
 const int LOC_POSITIONPx = 3;
 const int LOC_POSITIONTi = 4;
+const int LOC_LIGHT_COUNT = 5;
 
 extern std::string_view analysis_comp;
+
+extern std::string_view addDynamicLights_comp;
 
 extern std::string_view calcShadows_comp;
 

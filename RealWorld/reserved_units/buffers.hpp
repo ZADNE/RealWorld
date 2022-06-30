@@ -12,7 +12,7 @@
 
 const RE::BufferTypedIndex STRG_BUF_PLAYER = {RE::BufferType::SHADER_STORAGE, 0u};
 const RE::BufferTypedIndex STRG_BUF_ACTIVECHUNKS = {RE::BufferType::SHADER_STORAGE, 1u};
-const RE::BufferTypedIndex STRG_BUF_POINTLIGHTS = {RE::BufferType::SHADER_STORAGE, 2u};
+const RE::BufferTypedIndex STRG_BUF_EXTERNALLIGHTS = {RE::BufferType::SHADER_STORAGE, 2u};
 
 
 //UNIFORM BUFFERS

@@ -1,61 +1,98 @@
 R""(
+#line 3
 layout(	local_size_x = CALC_GROUP_SIZE,
 		local_size_y = CALC_GROUP_SIZE,
 		local_size_z = 1
 ) in;
 
-layout(binding = TEX_UNIT_TILE_TRANSLU) uniform sampler2D transluTexture;
-layout(binding = TEX_UNIT_POINT_LIGHT_COUNT) uniform usampler2D pointLightCountTexture;
+layout(binding = TEX_UNIT_LIGHT) uniform sampler2D lightTexture;
+layout(binding = TEX_UNIT_TRANSLU) uniform sampler2D transluTexture;
 layout(binding = IMG_UNIT_SHADOWS, rgba8) uniform restrict writeonly image2D shadowsImage;
-uniform uint slotsInRow;
 
-const vec2 transluScale = 1.0 / textureSize(transluTexture, 0);
+const vec2 analysisUVScale = 1.0 / textureSize(lightTexture, 0);
+const float UV_OFFSET = LIGHT_MAX_RANGEUn - 0.5;
 
-uint pointLightSlotIndex(uvec2 slotID){
-	uint slotIndex = slotID.y * slotsInRow + slotID.x;
-	return slotIndex * MAX_LIGHTS_PER_SLOT;
+const float PI2 = 6.28318530718;
+
+const float PI_16 = 	0.19634954084;
+const float PI_32 = 	0.09817477042;
+const float PI_64 = 	0.04908738521;
+const float PI_128 = 	0.0245436926;
+const float PI_256 = 	0.0122718463;
+
+void accumulate(inout vec4 accumulated, vec2 UV){
+	vec4 light = texture(lightTexture, UV);
+	vec4 translu = texture(transluTexture, UV).rrrr;
+	accumulated = fma(accumulated, translu, light);
 }
 
-float ray(float light, vec2 lightPos, vec2 tilePos){
-	vec2 diff = tilePos - lightPos;
-	float dist = floor(length(diff));
-	vec2 increment = diff / dist * transluScale;
-	vec2 pos = lightPos * transluScale;
-	for (float i = 0.0; i <= dist; i++){
-		light *= texture(transluTexture, pos).x;
-		pos += increment;
+void ray(inout vec4 light, vec2 centerUV, vec2 dirUV, vec2 firstLast){
+	vec2 UV = centerUV + dirUV * firstLast.y;
+	for (float i = firstLast.y; i >= firstLast.x; i--){
+		accumulate(light, UV);
+		UV -= dirUV;
 	}
+}
+
+vec4 ray1(vec2 centerUV, float a){
+	vec4 light = vec4(0.0);
+	vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
+	ray(light, centerUV, dirUV, vec2(29.0, 32.0));
 	return light;
 }
 
-//Sums point lights of the given slot
-void sumSlot(inout vec4 final, uvec2 slotID, vec2 tilePos){
-	uint pointLightCount = texelFetch(pointLightCountTexture, ivec2(slotID), 0).x;
-	const uint first = pointLightSlotIndex(slotID);
-	const uint last = first + pointLightCount;
-	for (uint i = first; i < last; i++){
-		vec2 lightPos = unpackHalf2x16(pointLights[i].pos);
-		vec4 lightCol = unpackUnorm4x8(pointLights[i].col);
-		final.a += ray(lightCol.a, lightPos, tilePos);
-	}
+vec4 ray2(vec2 centerUV, float a){
+	vec4 light = ray1(centerUV, a + PI_256) + ray1(centerUV, a - PI_256);
+	vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
+	ray(light, centerUV, dirUV, vec2(15.0, 28.0));
+	return light;
+}
+
+vec4 ray4(vec2 centerUV, float a){
+	vec4 light = ray2(centerUV, a + PI_128) + ray2(centerUV, a - PI_128);
+	vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
+	ray(light, centerUV, dirUV, vec2(8.0, 14.0));
+	return light;
+}
+
+vec4 ray8(vec2 centerUV, float a){
+	vec4 light = ray4(centerUV, a + PI_64) + ray4(centerUV, a - PI_64);
+	vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
+	ray(light, centerUV, dirUV, vec2(4.0, 7.0));
+	return light;
+}
+
+vec4 ray16(vec2 centerUV, float a){
+	vec4 light = ray8(centerUV, a + PI_32) + ray8(centerUV, a - PI_32);
+	vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
+	ray(light, centerUV, dirUV, vec2(2.0, 3.0));
+	return light;
+}
+
+vec4 ray32(vec2 centerUV, float a){
+	vec4 light = ray16(centerUV, a + PI_16) + ray16(centerUV, a - PI_16);
+	vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
+	ray(light, centerUV, dirUV, vec2(1.0, 1.0));
+	return light;
 }
 
 void main(){
 	//Calculate position and init variables
 	const ivec2 ID = ivec2(gl_GlobalInvocationID);
-	vec2 tilePos = vec2(ID + LIGHT_MAX_RANGETi) * 0.25 + 0.125;
-	vec4 final = vec4(0.0, 0.0, 0.0, 0.0);
+	vec4 total = vec4(0.0);
+	const vec2 centerUV = (vec2(ID) + UV_OFFSET) * analysisUVScale;
 	
-	//Sum slots of point lights
-	const uvec2 botLeft = (gl_WorkGroupID.xy >> ANALYSIS_PER_THREAD_BITS);
-	const uvec2 topRight = botLeft + LIGHT_MAX_RANGE_SLOTS * 2;
-	for (uint y = botLeft.y; y <= topRight.y; y++){
-		for (uint x = botLeft.x; x <= topRight.x; x++){
-			sumSlot(final, uvec2(x, y), tilePos);
-		}
+	//Eight tree rays, each sums 45 degrees
+	for (float a = 0.0; a < 6.2; a += 0.78539816339){
+		total += ray32(centerUV, a);
 	}
 	
-	imageStore(shadowsImage, ID, vec4(final.rgb, 1.0 - sqrt(final.a)));
+	//The center unit
+	accumulate(total, centerUV);
+	
+	//final = ((ID.x % 4 == 0)) ? vec4(0.0, 0.0, 0.0, 0.0) : vec4(0.0, 0.0, 0.0, 1.0);
+	vec4 final = vec4(total.rgb, 1.0 - sqrt(total.a));
+	imageStore(shadowsImage, ID, final);
 }
 
 )""

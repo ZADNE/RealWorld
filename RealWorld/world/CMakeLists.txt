@@ -1,5 +1,5 @@
 ﻿target_sources(RealWorld PRIVATE 
-	Light.hpp				
+	ExternalLight.hpp				
 	MinimapDrawer.hpp		MinimapDrawer.cpp
 	ShadowDrawer.hpp		ShadowDrawer.cpp
 	TileDrawer.hpp			TileDrawer.cpp

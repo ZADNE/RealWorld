@@ -26,12 +26,17 @@ public:
 
 
 	/**
-	 * @brief Lights have to be added between beginStep() and endStep()
+	 * @brief External lights have to be added between beginStep() and endStep()
 	*/
 	void beginStep();
 
 	/**
-	 * @brief Lights have to be added between beginStep() and endStep()
+	 * @brief Adds an external light into the world. Must be used between beginStep() and endStep()
+	*/
+	void addExternalLight(const glm::ivec2& posPx, RE::Color col);
+
+	/**
+	 * @brief External lights have to be added between beginStep() and endStep()
 	*/
 	void endStep();
 

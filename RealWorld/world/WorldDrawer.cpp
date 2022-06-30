@@ -42,16 +42,20 @@ void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
 	m_botLeftPx = botLeftPx;
-	m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx)) - glm::ivec2(LIGHT_MAX_RANGETi);
-	return ViewEnvelope{.botLeftTi = m_botLeftTi, .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi) * 2};
+	m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx));
+	return ViewEnvelope{.botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi)};
 }
 
 void WorldDrawer::beginStep() {
 	m_shadowDrawer.analyze(m_botLeftTi);
 }
 
+void WorldDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
+	m_shadowDrawer.addExternalLight(posPx, col);
+}
+
 void WorldDrawer::endStep() {
-	m_shadowDrawer.calculate();
+	m_shadowDrawer.calculate(m_botLeftPx);
 }
 
 void WorldDrawer::drawTiles() {

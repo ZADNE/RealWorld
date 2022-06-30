@@ -12,38 +12,24 @@
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
+constexpr int UNIT_MASK = ~(iLIGHT_SCALE * iTILEPx.x - 1);
+constexpr int HALF_UNIT_OFFSET = iTILEPx.x * iLIGHT_SCALE / 2;
+
 const RE::TextureFlags R8_NU_NEAR_LIN_EDGE{
 	RE::TextureChannels::R, RE::TextureFormat::NORMALIZED_UNSIGNED, RE::TextureMinFilter::NEAREST_NO_MIPMAPS,
 	RE::TextureMagFilter::LINEAR, RE::TextureWrapStyle::CLAMP_TO_EDGE, RE::TextureWrapStyle::CLAMP_TO_EDGE,
 	RE::TextureBitdepthPerChannel::BITS_8
 };
 
-const RE::TextureFlags R32_IU_NEAR_NEAR_EDGE{
-	RE::TextureChannels::R, RE::TextureFormat::INTEGRAL_UNSIGNED, RE::TextureMinFilter::NEAREST_NO_MIPMAPS,
-	RE::TextureMagFilter::NEAREST, RE::TextureWrapStyle::CLAMP_TO_EDGE, RE::TextureWrapStyle::CLAMP_TO_EDGE,
-	RE::TextureBitdepthPerChannel::BITS_32
-};
-
 constexpr glm::vec2 ANALYSIS_GROUP_SIZE = glm::vec2{8.0f};
-constexpr glm::vec2 ANALYSIS_PER_THREAD_AREA = glm::vec2{4.0f};
 glm::uvec3 getAnalysisGroupCount(const glm::vec2& viewSizeTi) {
-	return {glm::ceil((viewSizeTi + glm::vec2(LIGHT_MAX_RANGETi) * 2.0f) / ANALYSIS_GROUP_SIZE / ANALYSIS_PER_THREAD_AREA), 1u};
+	return {glm::ceil((viewSizeTi + glm::vec2(LIGHT_MAX_RANGETi) * 2.0f) / ANALYSIS_GROUP_SIZE / LIGHT_SCALE), 1u};
 }
 
 constexpr glm::vec2 CALC_GROUP_SIZE = glm::vec2{8.0f};
 glm::uvec3 getCalcShadowsGroupCount(const glm::vec2& viewSizeTi) {
-	return {glm::ceil(viewSizeTi / CALC_GROUP_SIZE), 1u};
+	return {glm::ceil((viewSizeTi + LIGHT_SCALE * 2.0f) / CALC_GROUP_SIZE / LIGHT_SCALE), 1u};
 }
-
-struct PointLight {
-	glm::uint posTi;//2 half floats - X and Y pos
-	RE::Color col;//RGB = color of the light, A = strength of the light (15 is max for single tile!)
-};
-GLsizeiptr getPointLightsBufSize(const glm::uvec2& analysisGroupCount) {
-	constexpr auto GS = glm::uvec2(ANALYSIS_GROUP_SIZE);
-	return sizeof(PointLight) * analysisGroupCount.x * analysisGroupCount.y * GS.x * GS.y;
-}
-
 
 ShadowDrawer::ShadowDrawer(const glm::uvec2& viewSizeTi, RE::TypedBuffer& uniformBuf) :
 	m_(viewSizeTi) {
@@ -54,10 +40,7 @@ ShadowDrawer::ShadowDrawer(const glm::uvec2& viewSizeTi, RE::TypedBuffer& unifor
 
 	uniformBuf.connectToInterfaceBlock(m_analysisShd, 0u);
 	uniformBuf.connectToInterfaceBlock(m_drawShadowsShd, 0u);
-
-	m_.pointLightsBuf.connectToInterfaceBlock(m_analysisShd, 0u);
-	m_.pointLightsBuf.connectToInterfaceBlock(m_calcShadowsShd, 0u);
-	m_calcShadowsShd.setUniform("slotsInRow", m_.analysisGroupCount.x);
+	m_lightsBuf.connectToInterfaceBlock(m_addLightsShd, 0u);
 }
 
 ShadowDrawer::~ShadowDrawer() {
@@ -66,21 +49,28 @@ ShadowDrawer::~ShadowDrawer() {
 
 void ShadowDrawer::resizeView(const glm::uvec2& viewSizeTi) {
 	m_ = {viewSizeTi};
-
-	m_.pointLightsBuf.connectToInterfaceBlock(m_analysisShd, 0u);
-	m_.pointLightsBuf.connectToInterfaceBlock(m_calcShadowsShd, 0u);
-	m_calcShadowsShd.setUniform("slotsInRow", m_.analysisGroupCount.x);
 }
 
 void ShadowDrawer::analyze(const glm::ivec2& botLeftTi) {
-	m_.pointLightCountTex.clear(glm::uvec4(0u));
-	m_analysisShd.setUniform(LOC_POSITIONTi, botLeftTi);
+	m_analysisShd.setUniform(LOC_POSITIONTi, (botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi)) & ~LIGHT_SCALE_BITS);
 	m_analysisShd.dispatchCompute(m_.analysisGroupCount, true);
+	m_lights.clear();
 }
 
-void ShadowDrawer::calculate() {
+void ShadowDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
+	m_lights.emplace_back(posPx, col);
+}
+
+void ShadowDrawer::calculate(const glm::ivec2& botLeftPx) {
+	//Add dyanmic lights
+	m_lightsBuf.redefine(m_lights);
+	m_addLightsShd.setUniform(LOC_LIGHT_COUNT, glm::uint(m_lights.size()));
+	glm::ivec2 viewBotLeftPx = (botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK;
+	m_addLightsShd.setUniform(LOC_POSITIONPx, viewBotLeftPx + HALF_UNIT_OFFSET);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	m_addLightsShd.dispatchCompute(glm::uvec3{glm::ceil(m_lights.size() / 8.0f), 1u, 1u}, true);
+	//Calculate Shadows
+	glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 	m_calcShadowsShd.dispatchCompute(m_.calcShadowsGroupCount, true);
 }
 
@@ -88,23 +78,24 @@ void ShadowDrawer::draw(const RE::VertexArray& vao, const glm::vec2& botLeftPx, 
 	vao.bind();
 	m_drawShadowsShd.use();
 	m_drawShadowsShd.setUniform(LOC_POSITIONPx, glm::mod(botLeftPx, TILEPx));
+	glm::ivec2 botLeftTi = pxToTi(botLeftPx);
+	m_drawShadowsShd.setUniform(LOC_POSITIONTi, botLeftTi & LIGHT_SCALE_BITS);
 	vao.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4, viewSizeTi.x * viewSizeTi.y);
 	m_drawShadowsShd.unuse();
 	vao.unbind();
 }
 
 ShadowDrawer::ViewSizeDependent::ViewSizeDependent(const glm::uvec2& viewSizeTi) :
-	analysisTex({glm::vec2(getAnalysisGroupCount(viewSizeTi)) * ANALYSIS_GROUP_SIZE}, {R8_NU_NEAR_LIN_EDGE}),
+	lightTex({glm::vec2(getAnalysisGroupCount(viewSizeTi)) * ANALYSIS_GROUP_SIZE}, {RE::TextureFlags::RGBA8_NU_NEAR_LIN_EDGE}),
+	transluTex({glm::vec2(getAnalysisGroupCount(viewSizeTi)) * ANALYSIS_GROUP_SIZE}, {R8_NU_NEAR_LIN_EDGE}),
 	shadowsTex({glm::vec2(getCalcShadowsGroupCount(viewSizeTi)) * CALC_GROUP_SIZE}, {RE::TextureFlags::RGBA8_NU_NEAR_LIN_EDGE}),
-	pointLightCountTex({getAnalysisGroupCount(viewSizeTi)}, {R32_IU_NEAR_NEAR_EDGE}),
-	pointLightsBuf(STRG_BUF_POINTLIGHTS, getPointLightsBufSize(getAnalysisGroupCount(viewSizeTi)), RE::BufferUsageFlags::NO_FLAGS),
 	analysisGroupCount(getAnalysisGroupCount(viewSizeTi)),
 	calcShadowsGroupCount(getCalcShadowsGroupCount(viewSizeTi)) {
 
-	analysisTex.bind(TEX_UNIT_TILE_TRANSLU);
+	lightTex.bind(TEX_UNIT_LIGHT);
+	transluTex.bind(TEX_UNIT_TRANSLU);
 	shadowsTex.bind(TEX_UNIT_SHADOWS);
-	pointLightCountTex.bind(TEX_UNIT_POINT_LIGHT_COUNT);
-	analysisTex.bindImage(IMG_UNIT_TILE_TRANSLU, 0, RE::ImageAccess::READ_WRITE);
-	shadowsTex.bindImage(IMG_UNIT_SHADOWS, 0, RE::ImageAccess::READ_WRITE);
-	pointLightCountTex.bindImage(IMG_UNIT_POINT_LIGHT_COUNT, 0, RE::ImageAccess::READ_WRITE);
+	lightTex.bindImage(IMG_UNIT_LIGHT, 0, RE::ImageAccess::READ_WRITE);
+	transluTex.bindImage(IMG_UNIT_TRANSLU, 0, RE::ImageAccess::WRITE_ONLY);
+	shadowsTex.bindImage(IMG_UNIT_SHADOWS, 0, RE::ImageAccess::WRITE_ONLY);
 }

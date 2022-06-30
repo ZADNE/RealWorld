@@ -2,12 +2,14 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <vector>
+
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
-#include <RealEngine/graphics/buffers/TypedBuffer.hpp>
 
-#include <RealWorld/world/Light.hpp>
+#include <RealWorld/world/ExternalLight.hpp>
 #include <RealWorld/shaders/drawing.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 
  /**
   * @brief Renders shadows of the world
@@ -21,7 +23,9 @@ public:
 
 	void analyze(const glm::ivec2& botLeftTi);
 
-	void calculate();
+	void addExternalLight(const glm::ivec2& posPx, RE::Color col);
+
+	void calculate(const glm::ivec2& botLeftPx);
 
 	void draw(const RE::VertexArray& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
 private:
@@ -29,10 +33,9 @@ private:
 	struct ViewSizeDependent {
 		ViewSizeDependent(const glm::uvec2& viewSizeTi);
 
-		RE::Texture analysisTex;
+		RE::Texture lightTex;//RGB = color of the light, A = intensity of the light
+		RE::Texture transluTex;//R = translucency of the unit
 		RE::Texture shadowsTex;
-		RE::Texture pointLightCountTex;
-		RE::TypedBuffer pointLightsBuf;
 		glm::uvec3 analysisGroupCount;
 		glm::uvec3 calcShadowsGroupCount;
 	};
@@ -43,6 +46,10 @@ private:
 	RE::TexturePtr m_wallLightAtlasTex = RE::RM::getTexture("wallLightAtlas");
 
 	RE::ShaderProgram m_analysisShd{{.comp = analysis_comp}};
+	RE::ShaderProgram m_addLightsShd{{.comp = addDynamicLights_comp}};
 	RE::ShaderProgram m_calcShadowsShd{{.comp = calcShadows_comp}};
 	RE::ShaderProgram m_drawShadowsShd{{.vert = drawShadows_vert, .frag = colorDraw_frag}};
+
+	std::vector<ExternalLight> m_lights;
+	RE::TypedBuffer m_lightsBuf{STRG_BUF_EXTERNALLIGHTS, sizeof(ExternalLight) * 8, RE::BufferAccessFrequency::DYNAMIC, RE::BufferAccessNature::DRAW, nullptr};
 };
