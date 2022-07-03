@@ -1,8 +1,5 @@
 ﻿target_sources(RealWorld PRIVATE 
-	ExternalLight.hpp				
-	MinimapDrawer.hpp		MinimapDrawer.cpp
-	ShadowDrawer.hpp		ShadowDrawer.cpp
-	TileDrawer.hpp			TileDrawer.cpp
+	Chunk.hpp				Chunk.cpp
+	ChunkManager.hpp		ChunkManager.cpp
 	World.hpp				World.cpp
-	WorldDrawer.hpp			WorldDrawer.cpp
 )

@@ -10,7 +10,7 @@
 std::string_view modify_comp =
 #include "common/tile_constants.glsl"
 #include "reserved_units/images.glsl"
-#include "simulation/WorldDynamicsUBO.glsl"
+#include "simulation/WorldDynamicsUIB.glsl"
 #include "simulation/tile_load_store.glsl"
 #include "simulation/modify.comp"
 ;
@@ -18,8 +18,8 @@ std::string_view modify_comp =
 std::string_view tileTransformations_comp =
 #include "common/tile_constants.glsl"
 #include "reserved_units/images.glsl"
-#include "simulation/ActiveChunksSSBO.glsl"
-#include "simulation/WorldDynamicsUBO.glsl"
+#include "simulation/ActiveChunksSSIB.glsl"
+#include "simulation/WorldDynamicsUIB.glsl"
 #include "simulation/tile_load_store.glsl"
 #include "simulation/properties/block_properties.glsl"
 #include "simulation/properties/wall_properties.glsl"
@@ -33,7 +33,7 @@ std::string_view tileTransformations_comp =
 std::string_view fluidDynamics_comp =
 #include "common/tile_constants.glsl"
 #include "reserved_units/images.glsl"
-#include "simulation/WorldDynamicsUBO.glsl"
+#include "simulation/WorldDynamicsUIB.glsl"
 #include "simulation/tile_load_store.glsl"
 #include "simulation/properties/fluid_properties.glsl"
 #include "simulation/fluid_dynamics.comp"
@@ -43,13 +43,13 @@ std::string_view playerMovement_comp =
 #include "common/tile_constants.glsl"
 #include "reserved_units/images.glsl"
 #include "simulation/tile_load.glsl"
-#include "simulation/PlayerMovementUBO.glsl"
-#include "simulation/PlayerHitboxSSBO.glsl"
+#include "simulation/PlayerMovementUIB.glsl"
+#include "simulation/PlayerHitboxSSIB.glsl"
 #include "simulation/player_movement.comp"
 ;
 
 std::string_view continuityAnalyzer_comp =
 #include "common/tile_constants.glsl"
-#include "simulation/ActiveChunksSSBO.glsl"
+#include "simulation/ActiveChunksSSIB.glsl"
 #include "simulation/continuity_analyzer.comp"
 ;

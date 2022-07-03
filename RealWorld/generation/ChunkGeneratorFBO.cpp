@@ -1,15 +1,15 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/chunk/ChunkGeneratorFBO.hpp>
+#include <RealWorld/generation/ChunkGeneratorFBO.hpp>
 
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
 ChunkGeneratorFBO::ChunkGeneratorFBO() {
-	p_chunkUniformBuffer.connectToInterfaceBlock(m_structureShader, 0u);
-	p_chunkUniformBuffer.connectToInterfaceBlock(m_consolidationShader, 0u);
-	p_chunkUniformBuffer.connectToInterfaceBlock(m_variantSelectionShader, 0u);
+	m_structureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+	m_consolidationShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+	m_variantSelectionShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
 
 	m_genSurf[0].getTexture(0).bind(TEX_UNIT_GEN_TILES[0]);
 	m_genSurf[1].getTexture(0).bind(TEX_UNIT_GEN_TILES[1]);
@@ -26,17 +26,17 @@ void ChunkGeneratorFBO::prepareToGenerate() {
 }
 
 void ChunkGeneratorFBO::generateBasicTerrain() {
-	m_structureShader.use();
+	m_structureShd.use();
 	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
-	m_structureShader.unuse();
+	m_structureShd.unuse();
 }
 
 void ChunkGeneratorFBO::consolidateEdges() {
 	GLuint cycleN = 0u;
 	auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
-		m_consolidationShader.setUniform(LOC_THRESHOLDS, thresholds);
+		m_consolidationShd.setUniform(LOC_THRESHOLDS, thresholds);
 		for (size_t i = 0; i < passes; i++) {
-			m_consolidationShader.setUniform(LOC_CYCLE_N, cycleN++);
+			m_consolidationShd.setUniform(LOC_CYCLE_N, cycleN++);
 			m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
 			glTextureBarrier();
 			m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
@@ -53,9 +53,9 @@ void ChunkGeneratorFBO::consolidateEdges() {
 	stt.targetTexture(0, 0);
 	m_genSurf[0].setTargetTextures(stt);
 
-	m_consolidationShader.use();
+	m_consolidationShd.use();
 	doublePass({3, 4}, {4, 5}, 4);
-	m_consolidationShader.unuse();
+	m_consolidationShd.unuse();
 
 	stt.targetTexture(1, 1);
 	m_genSurf[0].setTarget();
@@ -65,9 +65,9 @@ void ChunkGeneratorFBO::consolidateEdges() {
 
 void ChunkGeneratorFBO::selectVariants() {
 	glTextureBarrier();
-	m_variantSelectionShader.use();
+	m_variantSelectionShd.use();
 	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
-	m_variantSelectionShader.unuse();
+	m_variantSelectionShd.unuse();
 }
 
 void ChunkGeneratorFBO::finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {

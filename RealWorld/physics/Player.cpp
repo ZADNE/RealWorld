@@ -10,8 +10,8 @@
 Player::Player(RE::SpriteBatch& spriteBatch) :
 	m_hitbox({0, 0}, {28, 40}, {14, 20}),
 	m_spriteBatch(spriteBatch) {
-	m_movementUBO.connectToInterfaceBlock(m_playerMovementShader, 0u);
-	m_hitboxSSBO.connectToInterfaceBlock(m_playerMovementShader, 0u);
+	m_playerMovementShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
+	m_playerMovementShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
 }
 
 Player::~Player() {
@@ -20,7 +20,7 @@ Player::~Player() {
 
 void Player::adoptSave(const PlayerSave& save) {
 	m_hitbox.botLeft() = save.pos;
-	m_hitboxSSBO.overwrite(offsetof(PlayerHitboxSSBO, botLeftPx), glm::vec2(save.pos));
+	m_hitboxBuf.overwrite(offsetof(PlayerHitboxSSBO, botLeftPx), glm::vec2(save.pos));
 }
 
 void Player::gatherSave(PlayerSave& save) const {
@@ -32,16 +32,16 @@ Hitbox& Player::getHitbox() {
 }
 
 void Player::step(WALK dir, bool jump, bool autojump) {
-	const auto* hitboxSSBO = m_hitboxSSBO.map<PlayerHitboxSSBO>(offsetof(PlayerHitboxSSBO, botLeftPx), sizeof(PlayerHitboxSSBO), READ);
+	const auto* hitboxSSBO = m_hitboxBuf.map<PlayerHitboxSSBO>(offsetof(PlayerHitboxSSBO, botLeftPx), sizeof(PlayerHitboxSSBO), READ);
 	m_hitbox.botLeft() = hitboxSSBO->botLeftPx;
-	m_hitboxSSBO.unmap();
+	m_hitboxBuf.unmap();
 
 	PlayerMovementUBO movement{
 		.walkDirection = glm::sign(static_cast<float>(dir)),
 		.jump_autojump = glm::vec2(jump, autojump)
 	};
-	m_movementUBO.overwrite(offsetof(PlayerMovementUBO, walkDirection), sizeof(float) + sizeof(glm::vec2), &movement.walkDirection);
-	m_playerMovementShader.dispatchCompute({1, 1, 1}, true);
+	m_movementBuf.overwrite(offsetof(PlayerMovementUBO, walkDirection), sizeof(float) + sizeof(glm::vec2), &movement.walkDirection);
+	m_playerMovementShd.dispatchCompute({1, 1, 1}, true);
 }
 
 void Player::draw() {

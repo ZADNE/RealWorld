@@ -5,9 +5,9 @@
 #include <string>
 
 #include <RealEngine/graphics/SpriteBatch.hpp>
-#include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/chunk/ChunkManager.hpp>
+#include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/shaders/simulation.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
@@ -20,12 +20,15 @@ enum class MODIFY_SHAPE : unsigned int {
 
 /**
  * @brief Represents the world as an endless grid of tiles.
+ *
+ * Also runs tile transformation and fluid dynamics simulation.
  */
 class World {
 public:
 
 	/**
-	 * @brief Initializes the world to use the given chunk generator
+	 * @brief Initializes the world
+	 * @param The generator that will be used to generate new chunks
 	*/
 	World(ChunkGenerator& chunkGen);
 	~World();
@@ -48,23 +51,23 @@ public:
 	*/
 	int step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	glm::uvec2 adoptSave(const MetadataSave& save, const glm::vec2& windowDims);
+	/**
+	 * @brief Sets this world class to simulate the world inside the given save
+	 * @param save Save of the world to run
+	 * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8.
+	*/
+	void adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
+
 	void gatherSave(MetadataSave& save) const;
+
 	bool saveChunks() const;
 
 	void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
 private:
 	void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	using enum RE::BufferType;
-	using enum RE::BufferAccessFrequency;
-	using enum RE::BufferMapUsageFlags;
-	using enum RE::VertexComponentCount;
-	using enum RE::VertexComponentType;
-	using enum RE::Primitive;
-
+	RE::Surface m_worldSrf;
 	int m_seed = 0;
-	RE::Surface m_worldSurface = RE::Surface({iCHUNK_SIZE * ACTIVE_CHUNKS_AREA}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, true, false);
 
 	std::string m_worldName;
 
@@ -75,13 +78,13 @@ private:
 		glm::uvec2 modifySetValue;
 		float modifyDiameter;
 		glm::uint timeHash;
-		glm::ivec4 updateOrder[16];//Only first two components are valid, second two are padding
+		glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
 	};
-	RE::TypedBuffer m_worldDynamicsUBO{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+	RE::TypedBuffer m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
-	RE::ShaderProgram m_fluidDynamicsShader = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
-	RE::ShaderProgram m_tileTransformationsShader = RE::ShaderProgram{{.comp = tileTransformations_comp}};
-	RE::ShaderProgram m_modifyShader = RE::ShaderProgram{{.comp = modify_comp}};
+	RE::ShaderProgram m_fluidDynamicsShd = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
+	RE::ShaderProgram m_tileTransformationsShd = RE::ShaderProgram{{.comp = tileTransformations_comp}};
+	RE::ShaderProgram m_modifyShd = RE::ShaderProgram{{.comp = modify_comp}};
 
 	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
 	uint32_t m_rngState;

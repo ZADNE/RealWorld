@@ -1,7 +1,7 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/chunk/ChunkGeneratorCS.hpp>
+#include <RealWorld/generation/ChunkGeneratorCS.hpp>
 
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
@@ -9,8 +9,8 @@
 const int GEN_CS_GROUP_SIZE = 16;
 
 ChunkGeneratorCS::ChunkGeneratorCS() {
-	p_chunkUniformBuffer.connectToInterfaceBlock(m_structureShader, 0u);
-	p_chunkUniformBuffer.connectToInterfaceBlock(m_variantSelectionShader, 0u);
+	m_structureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+	m_variantSelectionShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
 
 	m_tilesTex[0].bind(TEX_UNIT_GEN_TILES[0]);
 	m_tilesTex[1].bind(TEX_UNIT_GEN_TILES[1]);
@@ -30,17 +30,17 @@ void ChunkGeneratorCS::prepareToGenerate() {
 }
 
 void ChunkGeneratorCS::generateBasicTerrain() {
-	m_structureShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+	m_structureShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 }
 
 void ChunkGeneratorCS::consolidateEdges() {
 	GLuint cycleN = 0u;
 	auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
-		m_consolidationShader.setUniform(LOC_THRESHOLDS, thresholds);
+		m_consolidationShd.setUniform(LOC_THRESHOLDS, thresholds);
 		for (size_t i = 0; i < passes; i++) {
-			m_consolidationShader.setUniform(LOC_CYCLE_N, cycleN++);
+			m_consolidationShd.setUniform(LOC_CYCLE_N, cycleN++);
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-			m_consolidationShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
+			m_consolidationShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
 		}
 	};
 	auto doublePass = [pass](const glm::ivec2& firstThresholds, const glm::ivec2& secondThresholds, size_t passes) {
@@ -50,16 +50,16 @@ void ChunkGeneratorCS::consolidateEdges() {
 		}
 	};
 
-	m_consolidationShader.use();
+	m_consolidationShd.use();
 	doublePass({3, 4}, {4, 5}, 4);
-	m_consolidationShader.unuse();
+	m_consolidationShd.unuse();
 
 	assert(static_cast<int>(cycleN) <= BORDER_WIDTH);
 }
 
 void ChunkGeneratorCS::selectVariants() {
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-	m_variantSelectionShader.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+	m_variantSelectionShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 }
 
 

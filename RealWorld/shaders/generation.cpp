@@ -10,7 +10,7 @@
 std::string_view chunkGen_vert =
 #include "common/tile_constants.glsl"
 #include "generation/gen_settings.glsl"
-#include "generation/ChunkUBO.glsl"
+#include "generation/ChunkUIB.glsl"
 #include "generation/chunk_gen.vert"
 ;
 
@@ -20,7 +20,7 @@ std::string_view structure_frag =
 #include "common/tile_constants.glsl"
 #include "generation/structure_constants.glsl"
 #include "generation/column_values.glsl"
-#include "generation/ChunkUBO.glsl"
+#include "generation/ChunkUIB.glsl"
 #include "generation/structure.glsl"
 #include "generation/structure.frag"
 ;
@@ -46,7 +46,7 @@ std::string_view structure_comp =
 #include "generation/structure_constants.glsl"
 #include "generation/gen_settings.glsl"
 #include "generation/column_values.glsl"
-#include "generation/ChunkUBO.glsl"
+#include "generation/ChunkUIB.glsl"
 #include "generation/structure.glsl"
 #include "generation/structure.comp"
 ;
@@ -65,6 +65,6 @@ std::string_view variantSelection_comp =
 #include "reserved_units/textures.glsl"
 #include "reserved_units/images.glsl"
 #include "generation/gen_settings.glsl"
-#include "generation/ChunkUBO.glsl"
+#include "generation/ChunkUIB.glsl"
 #include "generation/variant_selection.comp"
 ;

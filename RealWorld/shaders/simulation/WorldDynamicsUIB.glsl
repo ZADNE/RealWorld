@@ -1,5 +1,5 @@
 R""(
-layout(std140, binding = 0) uniform WorldDynamicsUBO {
+layout(std140, binding = 0) uniform WorldDynamicsUIB {
 	ivec2 globalPosTi;
 	uint modifyTarget;
 	uint modifyShape;

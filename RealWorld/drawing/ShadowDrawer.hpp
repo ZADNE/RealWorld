@@ -7,7 +7,7 @@
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
-#include <RealWorld/world/ExternalLight.hpp>
+#include <RealWorld/drawing/ExternalLight.hpp>
 #include <RealWorld/shaders/drawing.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 
@@ -16,7 +16,7 @@
  */
 class ShadowDrawer {
 public:
-	ShadowDrawer(const glm::uvec2& viewSizeTi, RE::TypedBuffer& uniformBuf);
+	ShadowDrawer(const glm::uvec2& viewSizeTi);
 	~ShadowDrawer();
 
 	void resizeView(const glm::uvec2& viewSizeTi);

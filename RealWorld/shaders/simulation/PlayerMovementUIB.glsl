@@ -1,5 +1,5 @@
 R""(
-layout(std140, binding = 0) uniform PlayerMovementUBO {
+layout(std140, binding = 0) uniform PlayerMovementUIB {
 	float acceleration;
 	float maxWalkVelocity;
 	float jumpVelocity;

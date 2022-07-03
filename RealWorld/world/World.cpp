@@ -24,28 +24,29 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
 }
 
 World::World(ChunkGenerator& chunkGen) :
-	m_chunkManager(chunkGen, m_tileTransformationsShader, 0u),
+	m_worldSrf({RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
+	m_chunkManager(chunkGen),
 	m_rngState(static_cast<uint32_t>(time(nullptr))) {
-	m_worldDynamicsUBO.connectToInterfaceBlock(m_fluidDynamicsShader, 0u);
-	m_worldDynamicsUBO.connectToInterfaceBlock(m_tileTransformationsShader, 0u);
-	m_worldDynamicsUBO.connectToInterfaceBlock(m_modifyShader, 0u);
+	m_fluidDynamicsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+	m_tileTransformationsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+	m_modifyShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+	m_tileTransformationsShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
 World::~World() {
 
 }
 
-glm::uvec2 World::adoptSave(const MetadataSave& save, const glm::vec2& windowDims) {
+void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
 	m_seed = save.seed;
 	m_worldName = save.worldName;
 
-	m_worldSurface.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
-	m_worldSurface.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
-	m_worldSurface.getTexture(0).clear(RE::Color{0, 0, 0, 0});
+	m_worldSrf.resize({iCHUNK_SIZE * activeChunksArea}, 1u);
+	m_worldSrf.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
+	m_worldSrf.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
+	m_worldSrf.getTexture(0).clear(RE::Color{0, 0, 0, 0});
 
-	m_chunkManager.setTarget(m_seed, save.path, &m_worldSurface);
-
-	return m_worldSurface.getDims();
+	m_chunkManager.setTarget(m_seed, save.path, &m_worldSrf);
 }
 
 void World::gatherSave(MetadataSave& save) const {
@@ -62,14 +63,15 @@ size_t World::getNumberOfInactiveChunks() {
 }
 
 void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
-	auto* buffer = m_worldDynamicsUBO.map<WorldDynamicsUBO>(0u, offsetof(WorldDynamicsUBO, timeHash), WRITE | INVALIDATE_RANGE);
+	using enum RE::BufferMapUsageFlags;
+	auto* buffer = m_worldDynamicsBuf.map<WorldDynamicsUBO>(0u, offsetof(WorldDynamicsUBO, timeHash), WRITE | INVALIDATE_RANGE);
 	buffer->globalPosTi = posTi;
 	buffer->modifyTarget = static_cast<glm::uint>(layer);
 	buffer->modifyShape = static_cast<glm::uint>(shape);
 	buffer->modifyDiameter = diameter;
 	buffer->modifySetValue = tile;
-	m_worldDynamicsUBO.unmap();
-	m_modifyShader.dispatchCompute({1, 1, 1}, true);
+	m_worldDynamicsBuf.unmap();
+	m_modifyShd.dispatchCompute({1, 1, 1}, true);
 }
 
 int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
@@ -78,7 +80,7 @@ int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 	m_chunkManager.step();
 
 	//Tile transformations
-	m_tileTransformationsShader.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
+	m_tileTransformationsShd.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 	//Fluid dynamics
@@ -88,14 +90,15 @@ int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 }
 
 void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+	using enum RE::BufferMapUsageFlags;
 	//Convert positions to chunks
 	glm::ivec2 botLeftCh = tiToCh(botLeftTi);
 	glm::ivec2 topRightCh = tiToCh(topRightTi);
 
 	//Permute the orders
-	m_fluidDynamicsShader.use();
+	m_fluidDynamicsShd.use();
 	if (m_permuteOrder) {
-		auto* timeHash = m_worldDynamicsUBO.map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
+		auto* timeHash = m_worldDynamicsBuf.map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
 			sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
 		*timeHash = m_rngState;
 		glm::ivec4* updateOrder = reinterpret_cast<glm::ivec4*>(&timeHash[1]);
@@ -104,7 +107,7 @@ void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& top
 			permuteOrder(m_rngState, m_dynamicsUpdateOrder);
 			std::memcpy(&updateOrder[i * 4], &m_dynamicsUpdateOrder[0], 4 * sizeof(m_dynamicsUpdateOrder[0]));
 		}
-		m_worldDynamicsUBO.unmap();
+		m_worldDynamicsBuf.unmap();
 		//Random order of dispatches
 		permuteOrder(m_rngState, m_dynamicsUpdateOrder);
 	}
@@ -113,12 +116,12 @@ void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& top
 	glm::ivec2 dynBotLeftTi = botLeftCh * iCHUNK_SIZE + iCHUNK_SIZE / 2;
 	for (unsigned int i = 0; i < 4u; i++) {
 		//Update offset of the groups
-		auto* offset = m_worldDynamicsUBO.map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
+		auto* offset = m_worldDynamicsBuf.map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
 		*offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i]) * iCHUNK_SIZE / 2;
-		m_worldDynamicsUBO.unmap();
+		m_worldDynamicsBuf.unmap();
 		//Dispatch
-		m_fluidDynamicsShader.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
+		m_fluidDynamicsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
-	m_fluidDynamicsShader.unuse();
+	m_fluidDynamicsShd.unuse();
 }

@@ -1,19 +1,20 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/world/TileDrawer.hpp>
+#include <RealWorld/drawing/TileDrawer.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
+#include <RealWorld/reserved_units/buffers.hpp>
 
 
-TileDrawer::TileDrawer(const glm::uvec2& viewSizeTi, RE::TypedBuffer& uniformBuf) {
+TileDrawer::TileDrawer(const glm::uvec2& viewSizeTi) {
 	//Bind textures to their reserved texture units
 	m_blockAtlasTex->bind(TEX_UNIT_BLOCK_ATLAS);
 	m_wallAtlasTex->bind(TEX_UNIT_WALL_ATLAS);
 
-	//Init shaders
-	uniformBuf.connectToInterfaceBlock(m_drawTilesShd, 0u);
+	//Init shader
+	m_drawTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
 }
 
 TileDrawer::~TileDrawer() {

@@ -1,7 +1,7 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/world/MinimapDrawer.hpp>
+#include <RealWorld/drawing/MinimapDrawer.hpp>
 
 #include <RealEngine/graphics/Vertex.hpp>
 #include <RealEngine/graphics/Viewport.hpp>
@@ -16,7 +16,7 @@ MinimapDrawer::MinimapDrawer() {
 	m_pouvArr.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
 	m_pouvArr.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
 
-	RE::Viewport::getWindowMatrixUniformBuffer().connectToInterfaceBlock(m_minimapShd, 0u);
+	m_minimapShd.backInterfaceBlock(0u, RE::UNIF_BUF_VIEWPORT_MATRIX);
 }
 
 MinimapDrawer::~MinimapDrawer() {

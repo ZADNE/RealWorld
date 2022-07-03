@@ -1,7 +1,7 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/chunk/Chunk.hpp>
+#include <RealWorld/world/Chunk.hpp>
 
 Chunk::Chunk(const glm::ivec2& chunkPosCh, std::vector<unsigned char> data) :
 	m_chunkPosCh(chunkPosCh), m_data(data) {

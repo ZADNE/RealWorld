@@ -47,7 +47,7 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
 
 void main(){
 	random();
-	ivec2 centerTi = updateOffsetTi[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
+	ivec2 centerTi = offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
 					+ (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
 					
 	

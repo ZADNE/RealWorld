@@ -3,9 +3,9 @@
  */
 #pragma once
 #include <RealWorld/reserved_units/buffers.hpp>
-#include <RealWorld/world/TileDrawer.hpp>
-#include <RealWorld/world/ShadowDrawer.hpp>
-#include <RealWorld/world/MinimapDrawer.hpp>
+#include <RealWorld/drawing/TileDrawer.hpp>
+#include <RealWorld/drawing/ShadowDrawer.hpp>
+#include <RealWorld/drawing/MinimapDrawer.hpp>
 
  /**
   * @brief Renders the world (i.e. tiles, shadows, minimap)

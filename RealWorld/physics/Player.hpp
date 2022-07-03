@@ -52,7 +52,7 @@ private:
 		float walkDirection;
 		glm::vec2 jump_autojump;
 	};
-	RE::TypedBuffer m_movementUBO{UNIF_BUF_PLAYERMOVEMENT, DYNAMIC_STORAGE, PlayerMovementUBO{
+	RE::TypedBuffer m_movementBuf{UNIF_BUF_PLAYERMOVEMENT, DYNAMIC_STORAGE, PlayerMovementUBO{
 		.acceleration = 0.5f,
 		.maxWalkVelocity = 6.0f,
 		.jumpVelocity = 7.0f
@@ -63,10 +63,10 @@ private:
 		glm::vec2 dimsPx;
 		glm::vec2 velocityPx;
 	};
-	RE::TypedBuffer m_hitboxSSBO{STRG_BUF_PLAYER, DYNAMIC_STORAGE | MAP_READ, PlayerHitboxSSBO{
+	RE::TypedBuffer m_hitboxBuf{STRG_BUF_PLAYER, DYNAMIC_STORAGE | MAP_READ, PlayerHitboxSSBO{
 		.dimsPx = glm::ivec2(m_playerTex->getTrueDims()) - glm::ivec2(1),
 		.velocityPx = glm::vec2(0.0f, 0.0f)
 	}};
 
-	RE::ShaderProgram m_playerMovementShader{{.comp = playerMovement_comp}};
+	RE::ShaderProgram m_playerMovementShd{{.comp = playerMovement_comp}};
 };

@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -9,12 +9,14 @@
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
-/**
- * @brief Holds the main menu and related objects.
-*/
+#include <RealWorld/main/settings/GameSettings.hpp>
+
+ /**
+  * @brief Holds the main menu and related objects.
+ */
 class MainMenuRoom : public Room {
 public:
-	MainMenuRoom(RE::CommandLineArguments args);
+	MainMenuRoom(GameSettings& gameSettings);
 	~MainMenuRoom();
 
 	virtual void sessionStart(const RE::RoomTransitionParameters& params) override;
@@ -42,6 +44,7 @@ private:
 	};
 	using enum Menu;
 
+	GameSettings& m_gameSettings;
 	Menu m_menu = MAIN;								/**< The currently open menu */
 	std::vector<std::string> m_worlds;				/**< Names of all worlds that can be loaded */
 	ImFont* m_arial16 = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 28.0f);
@@ -53,6 +56,7 @@ private:
 	bool m_borderless = window()->isBorderless();	/**< Current state */
 	bool m_vSync = window()->isVSynced();			/**< Current state */
 	size_t m_selectedResolution = 0;				/**< Index into the array of supported resolutions */
+	size_t m_selectedActiveChunksArea = 0;			/**< Index into the array of supported active-chunks areas */
 
 	bool m_drawKeybindListeningPopup = false;		/**< True if currently listening */
 

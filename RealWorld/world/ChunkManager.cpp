@@ -1,42 +1,53 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/chunk/ChunkManager.hpp>
+#include <RealWorld/world/ChunkManager.hpp>
 
-#include <iostream>
 #include <algorithm>
 
 #include <RealWorld/save/ChunkLoader.hpp>
 
+int calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
+	glm::ivec2 maxContinuous = activeChunksArea - 1;
+	return sizeof(glm::ivec4) +
+		sizeof(glm::ivec2) * (activeChunksArea.x * activeChunksArea.y + maxContinuous.x * maxContinuous.y);
+}
 
-ChunkManager::ChunkManager(ChunkGenerator& chunkGen, const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex) :
+ChunkManager::ChunkManager(ChunkGenerator& chunkGen) :
 	m_chunkGen(chunkGen) {
-	m_activeChunksSSBO.connectToInterfaceBlock(transformShader, activeChunksInterfaceBlockIndex);
-	m_activeChunksSSBO.connectToInterfaceBlock(m_continuityAnalyzerShader, 0u);
-	m_activeChunksSSBO.bind(RE::BufferType::DISPATCH_INDIRECT);
+	m_contAnalyzerShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
 ChunkManager::~ChunkManager() {
 
 }
 
-void ChunkManager::setTarget(int seed, std::string folderPath, RE::Surface* ws) {
+void ChunkManager::setTarget(int seed, std::string folderPath, RE::Surface* worldSrf) {
 	m_folderPath = folderPath;
 	m_chunkGen.setSeed(seed);
-	m_ws = ws;
+	m_worldSrf = worldSrf;
+
+	//Recalculate active chunks mask and analyzer dispatch size
+	glm::ivec2 activeChunksArea = m_worldSrf->getTexture(0).getTrueDims() / uCHUNK_SIZE;
+	m_activeChunksMask = activeChunksArea - 1;
+	m_contAnalyzerGroupCount = {activeChunksArea / 8, 1};
+	m_contAnalyzerShd.setUniform("activeChunksArea", activeChunksArea);
+	m_contAnalyzerShd.setUniform("activeChunksMask", m_activeChunksMask);
 
 	//Reset active chunks
-	for (glm::ivec2& ch : m_activeChunks) {
-		ch = NO_ACTIVE_CHUNK;
-	}
+	m_activeChunks.clear();
+	m_activeChunks.resize(activeChunksArea.x * activeChunksArea.y, NO_ACTIVE_CHUNK);
 
 	//Reset SSBO
-	auto* ssbo = m_activeChunksSSBO.map<ActiveChunksSSBO>(0, sizeof(ActiveChunksSSBO), WRITE | INVALIDATE_BUFFER);
-	for (glm::ivec2& ch : ssbo->activeChunksCh) {//Clear active chunks
-		ch = NO_ACTIVE_CHUNK;
+	m_activeChunksBuf = RE::TypedBuffer{STRG_BUF_ACTIVECHUNKS, calcActiveChunksBufSize(activeChunksArea), MAP_WRITE};
+	auto* ssbo = m_activeChunksBuf.map<ActiveChunksSSBO>(0, calcActiveChunksBufSize(activeChunksArea), WRITE | INVALIDATE_BUFFER);
+	ssbo->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
+	int maxNumberOfUpdateChunks = m_activeChunksMask.x * m_activeChunksMask.y;
+	for (int i = maxNumberOfUpdateChunks; i < (maxNumberOfUpdateChunks + activeChunksArea.x * activeChunksArea.y); i++) {
+		ssbo->offsets[i] = NO_ACTIVE_CHUNK;
 	}
-	ssbo->dynamicsGroupSize = glm::ivec4{0, 1, 1, 1};
-	m_activeChunksSSBO.unmap();
+	m_activeChunksBuf.unmap();
+	m_activeChunksBuf.bind(RE::BufferType::DISPATCH_INDIRECT);
 
 	//Clear inactive chunks as they do not belong to this world
 	m_inactiveChunks.clear();
@@ -51,7 +62,7 @@ bool ChunkManager::saveChunks() const {
 	//Save all active chunks (they have to be downloaded)
 	for (auto& posCh : m_activeChunks) {
 		if (posCh != NO_ACTIVE_CHUNK) {
-			saveChunk(downloadChunk(chToAt(posCh)), posCh);
+			saveChunk(downloadChunk(chToAt(posCh, m_activeChunksMask)), posCh);
 		}
 	}
 	return true;
@@ -63,7 +74,7 @@ size_t ChunkManager::getNumberOfInactiveChunks() {
 
 void ChunkManager::step() {
 	for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {//For each inactive chunk
-		if (it->second.step() >= PHYSICS_STEPS_PER_SECOND * 180) {//If the chunk has not been used for 3 minutes
+		if (it->second.step() >= PHYSICS_STEPS_PER_SECOND * 60) {//If the chunk has not been used for a minute
 			saveChunk(it->second.data(), it->first);//Save the chunk to disk
 			it = m_inactiveChunks.erase(it);//And remove it from the collection
 		} else { it++; }
@@ -83,14 +94,19 @@ int ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm
 	}
 
 	if (activatedChunks > 0) {//If at least one chunk has been activated
-		m_continuityAnalyzerShader.dispatchCompute({1, 1, 1}, true);
+		//Reset the number of update chunks to zero
+		auto* numberOfUpdateChunks = m_activeChunksBuf.map<int>(0, sizeof(int), WRITE | INVALIDATE_RANGE);
+		*numberOfUpdateChunks = 0;
+		m_activeChunksBuf.unmap();
+		//And analyze the world texture
+		m_contAnalyzerShd.dispatchCompute(m_contAnalyzerGroupCount, true);
 	}
 	return activatedChunks;
 }
 
 int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 	//Check if it is not already active
-	auto acIndex = acToIndex(chToAc(posCh));
+	auto acIndex = acToIndex(chToAc(posCh, m_activeChunksMask), m_activeChunksMask + 1);
 	auto& chunk = m_activeChunks[acIndex];
 	if (chunk == posCh) {
 		return 0;//Signals that the chunk has already been active
@@ -112,15 +128,16 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 		}
 		catch (...) {
 			//Chunk is not on the disk, it has to be generated
-			m_chunkGen.generateChunk(posCh, m_ws->getTexture(), chToAt(posCh));
+			m_chunkGen.generateChunk(posCh, m_worldSrf->getTexture(0), chToAt(posCh, m_activeChunksMask));
 		}
 	}
 
 	//The chunk has been uploaded to the world texture
 	//Its position also has to be updated in the active chunks buffer
-	auto* ssbo = m_activeChunksSSBO.map<glm::ivec2>(acIndex * sizeof(glm::ivec2), sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
+	GLintptr mapOffset = offsetof(ActiveChunksSSBO, offsets) + (m_activeChunksMask.x * m_activeChunksMask.y + acIndex) * sizeof(glm::ivec2);
+	auto* ssbo = m_activeChunksBuf.map<glm::ivec2>(mapOffset, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
 	*ssbo = posCh;
-	m_activeChunksSSBO.unmap();
+	m_activeChunksBuf.unmap();
 
 	//Signal that the chunk has been activated
 	return 1;
@@ -128,8 +145,8 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 
 void ChunkManager::deactivateChunk(const glm::ivec2& posCh) {
 	//Get the chunk that is to be deactivated
-	auto posAc = chToAc(posCh);
-	auto& chunk = m_activeChunks[acToIndex(posAc)];
+	auto posAc = chToAc(posCh, m_activeChunksMask);
+	auto& chunk = m_activeChunks[acToIndex(posAc, m_activeChunksMask + 1)];
 
 	//It there is a chunk
 	if (chunk != NO_ACTIVE_CHUNK) {
@@ -145,17 +162,17 @@ std::vector<unsigned char> ChunkManager::downloadChunk(const glm::ivec2& posAt) 
 	tiles.resize(iCHUNK_SIZE.x * iCHUNK_SIZE.y * 4);
 
 	//Bind the framebuffer
-	m_ws->setTarget();
+	m_worldSrf->setTarget();
 	//Data download (CPU stall -> Pixel Buffer Object todo...)
 	glReadnPixels(posAt.x, posAt.y, iCHUNK_SIZE.x, iCHUNK_SIZE.y,
 		GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, static_cast<GLsizei>(tiles.size()), tiles.data());
-	m_ws->resetTarget();
+	m_worldSrf->resetTarget();
 
 	return tiles;
 }
 
 void ChunkManager::uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
-	m_ws->getTexture().setTexelsWithinImage(0, chToAt(posCh), iCHUNK_SIZE, chunk.data());
+	m_worldSrf->getTexture(0).setTexelsWithinImage(0, chToAt(posCh, m_activeChunksMask), iCHUNK_SIZE, chunk.data());
 }
 
 void ChunkManager::saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {

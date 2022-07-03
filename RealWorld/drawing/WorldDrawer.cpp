@@ -1,11 +1,13 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/world/WorldDrawer.hpp>
+#include <RealWorld/drawing/WorldDrawer.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealWorld/chunk/ChunkManager.hpp>
+#include <RealEngine/graphics/Vertex.hpp>
+
+#include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
 #include <RealWorld/shaders/common.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
@@ -15,8 +17,8 @@
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) :
 	m_viewSizePx(viewSizePx),
 	m_viewSizeTi(viewSizeTi(viewSizePx)),
-	m_tileDrawer(m_viewSizeTi, m_uniformBuf),
-	m_shadowDrawer(m_viewSizeTi, m_uniformBuf),
+	m_tileDrawer(m_viewSizeTi),
+	m_shadowDrawer(m_viewSizeTi),
 	m_minimapDrawer() {
 
 	updateUniformBuffer();

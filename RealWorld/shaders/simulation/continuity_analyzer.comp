@@ -1,44 +1,35 @@
 R""(
 #line 3
 
-layout(	local_size_x = ACTIVE_CHUNKS_AREA_X,
-		local_size_y = ACTIVE_CHUNKS_AREA_Y,
+layout(	local_size_x = 8,
+		local_size_y = 8,
 		local_size_z = 1
 ) in;
 
+uniform ivec2 activeChunksMask;
+uniform ivec2 activeChunksArea;
+
+const int maxNumberOfUpdateChunks = activeChunksMask.x * activeChunksMask.y;
+
 ivec2 getActiveChunk(ivec2 pos){
-	return activeChunksCh[pos.y * ACTIVE_CHUNKS_AREA_X + pos.x];
+	return offsets[maxNumberOfUpdateChunks + pos.y * activeChunksArea.x + pos.x];
 }
 
-shared int counter;
-
 void main(){
-	//Init
-	if (gl_LocalInvocationIndex == 0){
-		counter = 0;
-	}
-	barrier();
-	
 	//Gather chunks
-	const ivec2 posCh = ivec2(gl_LocalInvocationID.xy);
+	const ivec2 posCh = ivec2(gl_GlobalInvocationID.xy);
 	ivec2 ch00 = getActiveChunk(posCh);
-	ivec2 ch01 = getActiveChunk((posCh + ivec2(0, 1)) & ACTIVE_CHUNKS_AREA_MASK);
-	ivec2 ch10 = getActiveChunk((posCh + ivec2(1, 0)) & ACTIVE_CHUNKS_AREA_MASK);
-	ivec2 ch11 = getActiveChunk((posCh + ivec2(1, 1)) & ACTIVE_CHUNKS_AREA_MASK);
+	ivec2 ch01 = getActiveChunk((posCh + ivec2(0, 1)) & activeChunksMask);
+	ivec2 ch10 = getActiveChunk((posCh + ivec2(1, 0)) & activeChunksMask);
+	ivec2 ch11 = getActiveChunk((posCh + ivec2(1, 1)) & activeChunksMask);
 	
-	//Test the continuity
+	//Test their continuity
 	if ((ch00 + ivec2(0, 1)) == ch01 &&
 		(ch10 + ivec2(0, 1)) == ch11 && 
 		(ch00 + ivec2(1, 0)) == ch10){
 		//The update chunk is continous
-		int i = atomicAdd(counter, 1);
-		updateOffsetTi[i] = posCh * CHUNK_SIZE + CHUNK_SIZE / 2;
-	}
-	barrier();
-	
-	//Output the update group size
-	if (gl_LocalInvocationIndex == 0){
-		dynamicsGroupSize.x = counter;
+		int i = atomicAdd(dynamicsGroupSize.x, 1);
+		offsets[i] = posCh * CHUNK_SIZE + CHUNK_SIZE / 2;
 	}
 }
 

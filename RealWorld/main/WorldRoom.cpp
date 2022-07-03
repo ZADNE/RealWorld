@@ -5,7 +5,8 @@
 
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
-WorldRoom::WorldRoom(RE::CommandLineArguments args) :
+WorldRoom::WorldRoom(const GameSettings& gameSettings) :
+	m_gameSettings(gameSettings),
 	m_world(m_chunkGen),
 	m_worldDrawer(window()->getDims()),
 	m_player(RE::SpriteBatch::std()),
@@ -168,11 +169,11 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
 	if (!WorldSaveLoader::loadWorld(save, worldName)) return false;
 
-	auto worldTextureSize = m_world.adoptSave(save.metadata, window()->getDims());
+	m_world.adoptSave(save.metadata, m_gameSettings.getActiveChunksArea());
 	m_player.adoptSave(save.player);
 	m_playerInv.adoptInventoryData(save.inventory);
 
-	m_worldDrawer.setTarget(worldTextureSize);
+	m_worldDrawer.setTarget(m_gameSettings.getActiveChunksArea() * iCHUNK_SIZE);
 	return true;
 }
 

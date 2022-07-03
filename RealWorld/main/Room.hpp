@@ -1,14 +1,14 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
 #include <RealEngine/main/room/Room.hpp>
 
-#include <RealWorld/main/KeyBinder.hpp>
+#include <RealWorld/main/settings/KeyBinder.hpp>
 
-/**
- * @brief Is an abstract base class for all rooms of RealWorld.
-*/
+ /**
+  * @brief Is an abstract base class for all rooms of RealWorld.
+ */
 class Room : public RE::Room {
 public:
 	Room() {}

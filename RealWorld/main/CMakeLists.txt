@@ -1,5 +1,6 @@
+add_subdirectory(settings)
+
 target_sources(RealWorld PRIVATE 
-	KeyBinder.hpp			
 	MainMenuRoom.hpp		MainMenuRoom.cpp
 	RealWorld.hpp			RealWorld.cpp
 	Room.hpp				

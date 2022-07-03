@@ -10,8 +10,9 @@
 #include <RealEngine/graphics/cameras/View2D.hpp>
 #include <RealEngine/graphics/Viewport.hpp>
 
+#include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/world/World.hpp>
-#include <RealWorld/world/WorldDrawer.hpp>
+#include <RealWorld/drawing/WorldDrawer.hpp>
 #include <RealWorld/physics/Player.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemUser.hpp>
@@ -22,9 +23,9 @@
 #define CS_GENERATOR 2
 #define CHUNK_GENERATOR CS_GENERATOR
 #if CHUNK_GENERATOR == CS_GENERATOR
-#include <RealWorld/chunk/ChunkGeneratorCS.hpp>
+#include <RealWorld/generation/ChunkGeneratorCS.hpp>
 #elif CHUNK_GENERATOR == FBO_GENERATOR
-#include <RealWorld/chunk/ChunkGeneratorFBO.hpp>
+#include <RealWorld/generation/ChunkGeneratorFBO.hpp>
 #else
 #error "No chunk generator has been selected!"
 #endif
@@ -42,7 +43,7 @@ const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.9047058823
 */
 class WorldRoom : public Room {
 public:
-	WorldRoom(RE::CommandLineArguments args);
+	WorldRoom(const GameSettings& gameSettings);
 	~WorldRoom();
 	virtual void sessionStart(const RE::RoomTransitionParameters& params) override;
 	virtual void sessionEnd() override;
@@ -79,6 +80,7 @@ private:
 	 */
 	bool saveWorld() const;
 
+	const GameSettings& m_gameSettings;
 	ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
 	//View

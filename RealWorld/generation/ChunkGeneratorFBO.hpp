@@ -8,7 +8,7 @@
 #include <RealEngine/graphics/Surface.hpp>
 #include <RealEngine/graphics/VertexArray.hpp>
 
-#include <RealWorld/chunk/ChunkGenerator.hpp>
+#include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/shaders/generation.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/chunk.hpp>
@@ -31,9 +31,9 @@ private:
 	void finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) override;
 
 	RE::VertexArray m_VAO;
-	RE::ShaderProgram m_structureShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = structure_frag}};
-	RE::ShaderProgram m_consolidationShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = consolidation_frag}};
-	RE::ShaderProgram m_variantSelectionShader = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = variationSelection_frag}};
+	RE::ShaderProgram m_structureShd = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = structure_frag}};
+	RE::ShaderProgram m_consolidationShd = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = consolidation_frag}};
+	RE::ShaderProgram m_variantSelectionShd = RE::ShaderProgram{{.vert = chunkGen_vert, .frag = variationSelection_frag}};
 
 	std::array<RE::Surface, 2> m_genSurf = {
 		RE::Surface{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 2, true, false},

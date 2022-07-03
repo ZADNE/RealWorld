@@ -1,7 +1,7 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/world/ShadowDrawer.hpp>
+#include <RealWorld/drawing/ShadowDrawer.hpp>
 
 #include <RealEngine/graphics/Vertex.hpp>
 #include <RealEngine/graphics/Surface.hpp>
@@ -31,16 +31,16 @@ glm::uvec3 getCalcShadowsGroupCount(const glm::vec2& viewSizeTi) {
 	return {glm::ceil((viewSizeTi + LIGHT_SCALE * 2.0f) / CALC_GROUP_SIZE / LIGHT_SCALE), 1u};
 }
 
-ShadowDrawer::ShadowDrawer(const glm::uvec2& viewSizeTi, RE::TypedBuffer& uniformBuf) :
+ShadowDrawer::ShadowDrawer(const glm::uvec2& viewSizeTi) :
 	m_(viewSizeTi) {
 
 	//Bind objects to their reserved texture units
 	m_blockLightAtlasTex->bind(TEX_UNIT_BLOCK_LIGHT_ATLAS);
 	m_wallLightAtlasTex->bind(TEX_UNIT_WALL_LIGHT_ATLAS);
 
-	uniformBuf.connectToInterfaceBlock(m_analysisShd, 0u);
-	uniformBuf.connectToInterfaceBlock(m_drawShadowsShd, 0u);
-	m_lightsBuf.connectToInterfaceBlock(m_addLightsShd, 0u);
+	m_analysisShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
+	m_drawShadowsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
+	m_addLightsShd.backInterfaceBlock(0u, STRG_BUF_EXTERNALLIGHTS);
 }
 
 ShadowDrawer::~ShadowDrawer() {

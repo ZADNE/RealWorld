@@ -7,10 +7,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/chunk/ChunkGenerator.hpp>
-#include <RealWorld/chunk/Chunk.hpp>
+#include <RealWorld/generation/ChunkGenerator.hpp>
+#include <RealWorld/world/Chunk.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/shaders/simulation.hpp>
 
@@ -22,25 +22,27 @@
 class ChunkManager {
 public:
 	/**
-	 * @brief Contructs ChunkManager and connects given shader program with active chunks buffer
+	 * @brief Contructs chunks manager
+	 *
+	 * Chunk manager needs to have set its target to work properly.
 	 */
-	ChunkManager(ChunkGenerator& chunkGen, const RE::ShaderProgram& transformShader, GLuint activeChunksInterfaceBlockIndex);
+	ChunkManager(ChunkGenerator& chunkGen);
 
 	/**
-	 * @brief Calls saveAndFreeAllChunks() and deconstructs the object.
+	 * @brief Saves all chunks and deconstructs the chunk manager.
 	 */
 	~ChunkManager();
 
 	/**
-	 * @brief Retargets chunk handler to a new world.
+	 * @brief Retargets the chunk manager to a new world.
 	 *
 	 * Frees all chunks of the previous world (does not save them).
 	 *
 	 * @param seed Seed of the new world.
 	 * @param folderPath Path to the folder that contains the new world.
-	 * @param ws World surface that will receive the loaded chunks.
+	 * @param worldSrf The world surface that will receive the loaded chunks.
 	 */
-	void setTarget(int seed, std::string folderPath, RE::Surface* ws);
+	void setTarget(int seed, std::string folderPath, RE::Surface* worldSrf);
 
 	/**
 	 * @brief Saves all chunks, keeps them in the memory.
@@ -71,12 +73,14 @@ public:
 	*/
 	int forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
+#pragma warning( push )
+#pragma warning( disable : 4200 )
 	struct ActiveChunksSSBO {
-		glm::ivec2 activeChunksCh[ACTIVE_CHUNKS_AREA_X * ACTIVE_CHUNKS_AREA_Y];
-		glm::ivec2 updateOffsetTi[ACTIVE_CHUNKS_MAX_UPDATES];
-		glm::ivec2 padding;
 		glm::ivec4 dynamicsGroupSize;
+		glm::ivec2 offsets[];			//First indexes: offsets of update chunks, in tiles
+										//Following indexes: absolute positions of chunks, in chunks
 	};
+#pragma warning( pop )
 private:
 
 	/**
@@ -122,15 +126,17 @@ private:
 	mutable std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
 
 	const static inline glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
-	std::vector<glm::ivec2> m_activeChunks{ACTIVE_CHUNKS_AREA.x * ACTIVE_CHUNKS_AREA.y};
+	std::vector<glm::ivec2> m_activeChunks;
 
 	using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
-	RE::TypedBuffer m_activeChunksSSBO{STRG_BUF_ACTIVECHUNKS, sizeof(ActiveChunksSSBO), MAP_WRITE};
+	RE::TypedBuffer m_activeChunksBuf{STRG_BUF_ACTIVECHUNKS, 1u, NO_FLAGS};
 
-	RE::ShaderProgram m_continuityAnalyzerShader{{.comp = continuityAnalyzer_comp}};
+	RE::ShaderProgram m_contAnalyzerShd{{.comp = continuityAnalyzer_comp}};
+	glm::uvec3 m_contAnalyzerGroupCount;
 
 	std::string m_folderPath;
 	ChunkGenerator& m_chunkGen;
-	RE::Surface* m_ws = nullptr;
+	RE::Surface* m_worldSrf = nullptr;
+	glm::ivec2 m_activeChunksMask;
 
 };

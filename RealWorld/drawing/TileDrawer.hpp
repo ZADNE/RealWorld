@@ -13,7 +13,7 @@
  */
 class TileDrawer {
 public:
-	TileDrawer(const glm::uvec2& viewSizeTi, RE::TypedBuffer& uniformBuf);
+	TileDrawer(const glm::uvec2& viewSizeTi);
 	~TileDrawer();
 
 	void draw(const RE::VertexArray& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);

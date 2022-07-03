@@ -1,15 +1,15 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/main/MainMenuRoom.hpp>
 
 #include <time.h>
 
-#include <array>
 #include <iostream>
 
 #include <glm/common.hpp>
 
+#include <RealWorld/main/settings/combos.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
 const char* KEYBIND_NOTICE = "Press a key to change the keybind.\nOr press Delete to cancel.";
@@ -26,40 +26,17 @@ void controlsCategoryHeader(const char* header) {
 	ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn();
 }
 
-const std::array RESOLUTIONS_STRINGS = {
-	"1280x1024",
-	"1360x768",
-	"1366x768",
-	"1440x900",
-	"1600x900",
-	"1680x1050",
-	"1920x1080",
-	"2560x1080",
-	"2560x1440",
-	"3440x1440",
-	"3840x2160"
-};
-
-const std::array<glm::ivec2, RESOLUTIONS_STRINGS.size()> RESOLUTIONS = {
-	glm::ivec2{1280, 1024},
-	glm::ivec2{1360, 768},
-	glm::ivec2{1366, 768},
-	glm::ivec2{1440, 900},
-	glm::ivec2{1600, 900},
-	glm::ivec2{1680, 1050},
-	glm::ivec2{1920, 1080},
-	glm::ivec2{2560, 1080},
-	glm::ivec2{2560, 1440},
-	glm::ivec2{3440, 1440},
-	glm::ivec2{3840, 2160}
-};
-
-
-MainMenuRoom::MainMenuRoom(RE::CommandLineArguments args) {
+MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
+	m_gameSettings(gameSettings) {
 	glm::ivec2 windowSize = window()->getDims();
 	for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
 		if (windowSize == RESOLUTIONS[i]) {
 			m_selectedResolution = i;
+		}
+	}
+	for (size_t i = 0; i < ACTIVE_CHUNKS_AREAS.size(); ++i) {
+		if (m_gameSettings.getActiveChunksArea() == ACTIVE_CHUNKS_AREAS[i]) {
+			m_selectedActiveChunksArea = i;
 		}
 	}
 }
@@ -186,22 +163,20 @@ void MainMenuRoom::displaySettingsMenu() {
 		m_unsavedChanges = true;
 	}
 
-	ImGui::TextUnformatted("Resolution"); ImGui::SameLine();
-	ImGui::SetNextItemWidth(window()->getDims().x * 0.125f);
-	if (ImGui::BeginCombo("##resolution", RESOLUTIONS_STRINGS[m_selectedResolution])) {
-		for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
-			if (ImGui::Selectable(RESOLUTIONS_STRINGS[i], i == m_selectedResolution)) {
-				m_selectedResolution = i;
-				program()->resizeWindow(RESOLUTIONS[i], false);
-				m_unsavedChanges = true;
-			}
-		}
-		ImGui::EndCombo();
+	if (ivec2ComboSelect<RESOLUTIONS>("Resolution", window()->getDims().x * 0.125f, m_selectedResolution)) {
+		program()->resizeWindow(RESOLUTIONS[m_selectedResolution], false);
+		m_unsavedChanges = true;
+	}
+
+	if (ivec2ComboSelect<ACTIVE_CHUNKS_AREAS>("Active chunks area", window()->getDims().x * 0.125f, m_selectedActiveChunksArea)) {
+		m_gameSettings.setActiveChunksArea(ACTIVE_CHUNKS_AREAS[m_selectedActiveChunksArea]);
+		m_unsavedChanges = true;
 	}
 
 	ImGui::NewLine();
 	if (m_unsavedChanges && ImGui::Button("Save changes")) {
 		window()->save();
+		m_gameSettings.save();
 		m_unsavedChanges = false;
 	}
 }
