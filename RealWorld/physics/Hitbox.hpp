@@ -24,7 +24,7 @@ public:
 	bool overlapsBlockwise(const glm::ivec2& pointPx) const;
 protected:
 	//Basic physics variables
-	glm::ivec2 p_botLeftPx;//Bottom-left corner of the hitbox
-	glm::ivec2 p_dimsPx;
-	glm::ivec2 p_centerOffsetPx;//m_botLeftPx + m_offsetPx -> considered as center of the hitbox
+	glm::ivec2 m_botLeftPx;//Bottom-left corner of the hitbox
+	glm::ivec2 m_dimsPx;
+	glm::ivec2 m_centerOffsetPx;//m_botLeftPx + m_offsetPx -> considered as center of the hitbox
 };

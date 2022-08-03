@@ -9,9 +9,9 @@
 
 
 Hitbox::Hitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& centerOffsetPx/* = glm::ivec2(0.0f)*/) :
-	p_botLeftPx(botLeftPx),
-	p_dimsPx(dimsPx),
-	p_centerOffsetPx(centerOffsetPx) {
+	m_botLeftPx(botLeftPx),
+	m_dimsPx(dimsPx),
+	m_centerOffsetPx(centerOffsetPx) {
 
 }
 
@@ -20,40 +20,40 @@ Hitbox::~Hitbox() {
 }
 
 glm::ivec2& Hitbox::botLeft() {
-	return p_botLeftPx;
+	return m_botLeftPx;
 }
 
 const glm::ivec2& Hitbox::getBotLeft() const {
-	return p_botLeftPx;
+	return m_botLeftPx;
 }
 
 void Hitbox::setDims(const glm::ivec2& dimensionPx) {
-	p_dimsPx = dimensionPx;
+	m_dimsPx = dimensionPx;
 }
 
 glm::ivec2 Hitbox::getCenter() const {
-	return p_botLeftPx + p_centerOffsetPx;
+	return m_botLeftPx + m_centerOffsetPx;
 }
 
 bool Hitbox::collidesWith(Hitbox& otherHitbox) const {
-	if (p_botLeftPx.x <= (otherHitbox.p_botLeftPx.x + otherHitbox.p_dimsPx.x) && (p_botLeftPx.x + p_dimsPx.x) >= otherHitbox.p_botLeftPx.x &&
-		p_botLeftPx.y <= (otherHitbox.p_botLeftPx.y + otherHitbox.p_dimsPx.y) && (p_botLeftPx.y + p_dimsPx.y) >= otherHitbox.p_botLeftPx.y) {
+	if (m_botLeftPx.x <= (otherHitbox.m_botLeftPx.x + otherHitbox.m_dimsPx.x) && (m_botLeftPx.x + m_dimsPx.x) >= otherHitbox.m_botLeftPx.x &&
+		m_botLeftPx.y <= (otherHitbox.m_botLeftPx.y + otherHitbox.m_dimsPx.y) && (m_botLeftPx.y + m_dimsPx.y) >= otherHitbox.m_botLeftPx.y) {
 		return true;
 	}
 	return false;
 }
 
 bool Hitbox::overlaps(const glm::ivec2& pointPx) const {
-	if (p_botLeftPx.x <= pointPx.x && (p_botLeftPx.x + p_dimsPx.x) >= pointPx.x &&
-		p_botLeftPx.y <= pointPx.y && (p_botLeftPx.y + p_dimsPx.y) >= pointPx.y) {
+	if (m_botLeftPx.x <= pointPx.x && (m_botLeftPx.x + m_dimsPx.x) >= pointPx.x &&
+		m_botLeftPx.y <= pointPx.y && (m_botLeftPx.y + m_dimsPx.y) >= pointPx.y) {
 		return true;
 	}
 	return false;
 }
 
 bool Hitbox::overlapsBlockwise(const glm::ivec2& pointPx) const {
-	glm::ivec2 botLeftTi = pxToTi(p_botLeftPx);
-	glm::ivec2 topRightTi = pxToTi(p_botLeftPx + p_dimsPx);
+	glm::ivec2 botLeftTi = pxToTi(m_botLeftPx);
+	glm::ivec2 topRightTi = pxToTi(m_botLeftPx + m_dimsPx);
 	glm::ivec2 pointTi = pxToTi(pointPx);
 
 	if (botLeftTi.x <= pointTi.x && topRightTi.x >= pointTi.x &&

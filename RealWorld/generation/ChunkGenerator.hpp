@@ -66,7 +66,7 @@ protected:
 		glm::ivec2 chunkOffsetTi;
 		int seed;
 	};
-	RE::TypedBuffer p_chunkUniformBuf{UNIF_BUF_CHUNKGEN, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+	RE::TypedBuffer m_chunkUniformBuf{UNIF_BUF_CHUNKGEN, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	virtual void prepareToGenerate() = 0;
 	virtual void generateBasicTerrain() = 0;
@@ -74,5 +74,5 @@ protected:
 	virtual void selectVariants() = 0;
 	virtual void finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) = 0;
 
-	int p_seed = 0;
+	int m_seed = 0;
 };

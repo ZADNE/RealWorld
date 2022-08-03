@@ -15,34 +15,34 @@ class InventoryData {
 	friend class Inventory;
 public:
 	InventoryData() {}
-	InventoryData(glm::ivec2 size) : p_size(size), p_items(slotCount()) { }
+	InventoryData(glm::ivec2 size) : m_size(size), m_items(slotCount()) { }
 
-	glm::ivec2 getSize() const { return p_size; }
+	glm::ivec2 getSize() const { return m_size; }
 
 
 	int toIndex(int x, int y) const {
-		return y * p_size.x + x;
+		return y * m_size.x + x;
 	}
 
 	int slotCount() const {
-		return p_size.x * p_size.y;
+		return m_size.x * m_size.y;
 	}
 
 	void resize(const glm::ivec2& newSize) {
-		p_size = newSize;
-		p_items.resize(slotCount());
+		m_size = newSize;
+		m_items.resize(slotCount());
 	}
 
 	class Proxy {
 	public:
-		Proxy(InventoryData& inv, int x) : p_inv(inv), p_x(x) { }
+		Proxy(InventoryData& inv, int x) : m_inv(inv), m_x(x) { }
 
 		Item& operator[](int y) {
-			return p_inv.p_items[p_inv.toIndex(p_x, y)];
+			return m_inv.m_items[m_inv.toIndex(m_x, y)];
 		}
 	private:
-		InventoryData& p_inv;
-		int p_x;
+		InventoryData& m_inv;
+		int m_x;
 	};
 
 	Proxy operator[](int x) {
@@ -50,14 +50,14 @@ public:
 	}
 
 	Item& operator()(int i) {
-		return p_items[i];
+		return m_items[i];
 	}
 
 	const Item& operator()(int i) const {
-		return p_items[i];
+		return m_items[i];
 	}
 
 protected:
-	glm::ivec2 p_size = glm::ivec2(0, 0);
-	std::vector<Item> p_items;
+	glm::ivec2 m_size = glm::ivec2(0, 0);
+	std::vector<Item> m_items;
 };

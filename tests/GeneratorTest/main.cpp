@@ -5,14 +5,15 @@
 #include <optional>
 
 #include <RealEngine/main/room/Room.hpp>
-#include <RealEngine/graphics/View.hpp>
+#include <RealEngine/graphics/cameras/View2D.hpp>
 
-#include <RealWorld/chunk/ChunkGeneratorCS.hpp>
-#include <RealWorld/chunk/ChunkGeneratorFBO.hpp>
+#include <RealWorld/generation/ChunkGeneratorCS.hpp>
+#include <RealWorld/generation/ChunkGeneratorFBO.hpp>
 #include <RealWorld/world/World.hpp>
-#include <RealWorld/world/WorldDrawer.hpp>
+#include <RealWorld/drawing/WorldDrawer.hpp>
 
 const glm::ivec2 RESOLUTION = glm::ivec2(1920, 1080);
+const glm::ivec2 ACTIVE_CHUNKS_AREA = glm::ivec2(16, 16);
 const unsigned int FPS_LIMIT = 300u;
 const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
 
@@ -29,8 +30,8 @@ public:
 		m_genCS.emplace();
 		m_world.emplace(*m_genCS);
 		WorldSave save{.metadata = MetadataSave{ .seed = static_cast<int>(time(nullptr)) & 65535}};
-		auto worldTextureSize = (*m_world).adoptSave(save.metadata, RESOLUTION);
-		m_worldDrawer.setTarget(worldTextureSize);
+		(*m_world).adoptSave(save.metadata, ACTIVE_CHUNKS_AREA);
+		m_worldDrawer.setTarget(ACTIVE_CHUNKS_AREA * iCHUNK_SIZE);
 		std::cout << "Check console once the view stops moving (~1.5 min).\n";
 	}
 
@@ -78,13 +79,13 @@ public:
 		}
 
 		m_worldDrawer.beginStep();
-		m_worldDrawer.addLight(m_worldView.getPosition(), RE::Color{0u, 0u, 0u, 100u});
+		m_worldDrawer.addExternalLight(m_worldView.getPosition(), RE::Color{0u, 0u, 0u, 100u});
 		m_worldDrawer.endStep();
 	}
 
 	virtual void render(double interpolationFactor) override {
 		m_worldDrawer.drawTiles();
-		m_worldDrawer.coverWithShadows();
+		m_worldDrawer.drawShadows();
 	}
 
 	virtual const RE::RoomDisplaySettings& getDisplaySettings() override {
@@ -106,7 +107,7 @@ public:
 	}
 
 private:
-	RE::View m_worldView{RESOLUTION};
+	RE::View2D m_worldView{RESOLUTION};
 	std::optional<ChunkGeneratorCS> m_genCS;
 	std::optional<ChunkGeneratorFBO> m_genFBO;
 	std::optional<World> m_world;
@@ -122,7 +123,7 @@ public:
 	Program(RE::CommandLineArguments args) :
 		m_testRoom(args) {
 		resizeWindow(RESOLUTION, false);
-		p_roomManager.gotoRoom(p_roomManager.addRoom(&m_testRoom), {});
+		m_roomManager.gotoRoom(m_roomManager.addRoom(&m_testRoom), {});
 	}
 	~Program() {}
 private:

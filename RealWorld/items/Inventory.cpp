@@ -36,8 +36,8 @@ void Inventory::connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Conne
 bool Inventory::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
 	if (item.amount <= 0) { return true; }
 	int target = item.amount - (int)(std::ceil((float)item.amount * portion));
-	for (int y = startSlot.y; y < p_size.y; y++) {
-		for (int x = startSlot.x; x < p_size.x; x++) {
+	for (int y = startSlot.y; y < m_size.y; y++) {
+		for (int x = startSlot.x; x < m_size.x; x++) {
 			(*this)[x][y].insert(item, portion);
 			if (item.amount == target) {
 				if (reload) { wasChanged(); }
@@ -58,8 +58,8 @@ bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& sta
 	if (item.amount <= 0) { return true; }
 	int target = item.amount - (int)((float)item.amount * portion);
 	//Filling already existing stacks
-	for (int y = startSlot.y; y < p_size.y; y++) {
-		for (int x = startSlot.x; x < p_size.x; x++) {
+	for (int y = startSlot.y; y < m_size.y; y++) {
+		for (int x = startSlot.x; x < m_size.x; x++) {
 			(*this)[x][y].merge(item, portion);
 			if (item.amount == target) {
 				if (reload) { wasChanged(); }
@@ -68,8 +68,8 @@ bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& sta
 		}
 	}
 	//Creating new stacks
-	for (int y = startSlot.y; y < p_size.y; y++) {
-		for (int x = startSlot.x; x < p_size.x; x++) {
+	for (int y = startSlot.y; y < m_size.y; y++) {
+		for (int x = startSlot.x; x < m_size.x; x++) {
 			(*this)[x][y].insert(item, portion);
 			if (item.amount == target) {
 				if (reload) { wasChanged(); }
@@ -84,8 +84,8 @@ bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& sta
 int Inventory::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
 	if (item.amount <= 0) { return 0; }
 	int leftToRemove = item.amount;
-	for (int y = startSlot.y; y < p_size.y; y++) {
-		for (int x = startSlot.x; x < p_size.x; x++) {
+	for (int y = startSlot.y; y < m_size.y; y++) {
+		for (int x = startSlot.x; x < m_size.x; x++) {
 			Item& slotItem = (*this)[x][y];
 			if (slotItem == item) {//If this is the desired item
 				int removed = std::min(slotItem.amount, item.amount);
@@ -109,14 +109,14 @@ void Inventory::wasChanged() const {
 }
 
 void Inventory::adoptInventoryData(const InventoryData& id) {
-	p_size = id.p_size;
-	p_items = id.p_items;
+	m_size = id.m_size;
+	m_items = id.m_items;
 	wasChanged();
 }
 
 void Inventory::gatherInventoryData(InventoryData& id) const {
-	id.p_size = p_size;
-	id.p_items = p_items;
+	id.m_size = m_size;
+	id.m_items = m_items;
 }
 
 void Inventory::operator+=(Item& item) {
