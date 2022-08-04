@@ -24,10 +24,6 @@ WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) :
 	updateUniformBuffer();
 }
 
-WorldDrawer::~WorldDrawer() {
-
-}
-
 void WorldDrawer::setTarget(const glm::ivec2& worldTexSize) {
 	m_worldTexSize = worldTexSize;
 	m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);

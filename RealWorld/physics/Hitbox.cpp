@@ -15,10 +15,6 @@ Hitbox::Hitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm:
 
 }
 
-Hitbox::~Hitbox() {
-
-}
-
 glm::ivec2& Hitbox::botLeft() {
 	return m_botLeftPx;
 }

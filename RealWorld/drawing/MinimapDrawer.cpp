@@ -19,10 +19,6 @@ MinimapDrawer::MinimapDrawer() {
 	m_minimapShd.backInterfaceBlock(0u, RE::UNIF_BUF_VIEWPORT_MATRIX);
 }
 
-MinimapDrawer::~MinimapDrawer() {
-
-}
-
 void MinimapDrawer::setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx) {
 	updateArrayBuffers(worldTexSize, viewSizePx);
 }

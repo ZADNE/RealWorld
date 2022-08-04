@@ -14,7 +14,6 @@ struct Item : public ItemSample {
 	Item(const ItemSample& sample, int amount);
 		//Construct item from parameters
 	Item(ITEM ID, int amount, float special = 0.0f);
-	~Item();
 
 		//Merge with another item of same ID and special (checks are done inside this function)
 		//Both items may be changed

@@ -10,7 +10,6 @@
 class Hitbox {
 public:
 	Hitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& centerOffsetPx = glm::ivec2(0, 0));
-	~Hitbox();
 
 	glm::ivec2& botLeft();
 	const glm::ivec2& getBotLeft() const;

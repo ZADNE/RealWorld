@@ -31,7 +31,6 @@ public:
 	 * @param The generator that will be used to generate new chunks
 	*/
 	World(ChunkGenerator& chunkGen);
-	~World();
 
 	/**
 	 * @copydoc ChunkHandler::getNumberOfInactiveChunks

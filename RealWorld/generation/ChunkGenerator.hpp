@@ -35,8 +35,6 @@ public:
 
 	ChunkGenerator();
 
-	virtual ~ChunkGenerator();
-
 	/**
 	 * @brief Sets the seed that controls how the generated chunks look
 	 *

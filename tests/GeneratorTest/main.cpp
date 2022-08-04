@@ -22,9 +22,8 @@ using namespace std::chrono;
 class Room : public RE::Room {
 public:
 	Room(RE::CommandLineArguments args) : m_worldDrawer(RESOLUTION) {}
-	~Room() {}
 
-	virtual void sessionStart(const RE::RoomTransitionParameters& params) override {
+	void sessionStart(const RE::RoomTransitionParameters& params) override {
 		resetRecords();
 		//Initialize compute shader generator
 		m_genCS.emplace();
@@ -35,9 +34,9 @@ public:
 		std::cout << "Check console once the view stops moving (~1.5 min).\n";
 	}
 
-	virtual void sessionEnd() override {}
+	void sessionEnd() override {}
 
-	virtual void step() override {
+	void step() override {
 		if (m_state <= 1) {
 			m_worldView.setPosition(m_worldView.getPosition() + glm::vec2(10.0f, 0.0f));
 		}
@@ -83,12 +82,12 @@ public:
 		m_worldDrawer.endStep();
 	}
 
-	virtual void render(double interpolationFactor) override {
+	void render(double interpolationFactor) override {
 		m_worldDrawer.drawTiles();
 		m_worldDrawer.drawShadows();
 	}
 
-	virtual const RE::RoomDisplaySettings& getDisplaySettings() override {
+	const RE::RoomDisplaySettings& getDisplaySettings() override {
 		static RE::RoomDisplaySettings settings{
 			.clearColor = SKY_BLUE,
 			.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
@@ -125,7 +124,7 @@ public:
 		resizeWindow(RESOLUTION, false);
 		m_roomManager.gotoRoom(m_roomManager.addRoom(&m_testRoom), {});
 	}
-	~Program() {}
+
 private:
 	Room m_testRoom;
 };

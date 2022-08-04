@@ -25,10 +25,6 @@ Item::Item(ITEM ID, int amount, float special/* = 0.0f*/):
 
 }
 
-Item::~Item(){
-
-}
-
 void Item::merge(Item& item, float portion){
 	if (ID != item.ID) { return; }//Both items are not same type, cannot merge
 	if (special != item.special) { return; }//Both items do nat have same special, cannot merge

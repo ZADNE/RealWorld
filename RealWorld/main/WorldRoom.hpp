@@ -44,13 +44,13 @@ const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.9047058823
 class WorldRoom : public Room {
 public:
 	WorldRoom(const GameSettings& gameSettings);
-	~WorldRoom();
-	virtual void sessionStart(const RE::RoomTransitionParameters& params) override;
-	virtual void sessionEnd() override;
-	virtual void step() override;
-	virtual void render(double interpolationFactor) override;
 
-	virtual const RE::RoomDisplaySettings& getDisplaySettings() override {
+	void sessionStart(const RE::RoomTransitionParameters& params) override;
+	void sessionEnd() override;
+	void step() override;
+	void render(double interpolationFactor) override;
+
+	const RE::RoomDisplaySettings& getDisplaySettings() override {
 		static RE::RoomDisplaySettings settings{
 			.clearColor = SKY_BLUE,
 			.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
@@ -60,7 +60,7 @@ public:
 		return settings;
 	}
 
-	virtual void windowResized(const glm::ivec2& newDims) override;
+	void windowResized(const glm::ivec2& newDims) override;
 private:
 
 	void drawGUI();

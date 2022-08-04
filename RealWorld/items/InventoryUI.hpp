@@ -32,6 +32,9 @@ public:
 	InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize);
 	~InventoryUI();
 
+	InventoryUI(const InventoryUI&) = delete;
+	InventoryUI& operator=(const InventoryUI&) = delete;
+
 	/**
 	 * @brief Notifies the UI that the window has been resized
 	*/

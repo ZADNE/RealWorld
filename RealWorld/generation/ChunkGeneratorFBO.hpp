@@ -20,7 +20,6 @@ class ChunkGeneratorFBO : public ChunkGenerator {
 public:
 
 	ChunkGeneratorFBO();
-	~ChunkGeneratorFBO();
 
 private:
 

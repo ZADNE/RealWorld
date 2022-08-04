@@ -11,7 +11,9 @@
 #include <RealWorld/physics/Hitbox.hpp>
 
 /**
- * @brief Uses items based on their type.
+ * @brief Uses items from an inventory.
+ * 
+ * Can add or remove tile to the world.
 */
 class ItemUser {
 public:
@@ -19,7 +21,6 @@ public:
 	const static int SECONDARY_USE = 1;
 
 	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox);
-	~ItemUser();
 
 	void switchShape();
 	void resizeShape(float change);

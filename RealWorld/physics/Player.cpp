@@ -14,10 +14,6 @@ Player::Player(RE::SpriteBatch& spriteBatch) :
 	m_playerMovementShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
 }
 
-Player::~Player() {
-
-}
-
 void Player::adoptSave(const PlayerSave& save) {
 	m_hitbox.botLeft() = save.pos;
 	m_hitboxBuf.overwrite(offsetof(PlayerHitboxSSBO, botLeftPx), glm::vec2(save.pos));

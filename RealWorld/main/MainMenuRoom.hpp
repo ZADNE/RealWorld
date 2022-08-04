@@ -17,14 +17,13 @@
 class MainMenuRoom : public Room {
 public:
 	MainMenuRoom(GameSettings& gameSettings);
-	~MainMenuRoom();
 
-	virtual void sessionStart(const RE::RoomTransitionParameters& params) override;
-	virtual void sessionEnd() override;
-	virtual void step() override;
-	virtual void render(double interpolationFactor) override;
+	void sessionStart(const RE::RoomTransitionParameters& params) override;
+	void sessionEnd() override;
+	void step() override;
+	void render(double interpolationFactor) override;
 
-	virtual const RE::RoomDisplaySettings& getDisplaySettings() override {
+	const RE::RoomDisplaySettings& getDisplaySettings() override {
 		static RE::RoomDisplaySettings settings{
 			.framesPerSecondLimit = 144,
 			.usingImGui = true

@@ -21,10 +21,6 @@ ChunkGeneratorCS::ChunkGeneratorCS() {
 	m_materialGenTex.bindImage(IMG_UNIT_GEN_MATERIAL, 0, RE::ImageAccess::READ_WRITE);
 }
 
-ChunkGeneratorCS::~ChunkGeneratorCS() {
-
-}
-
 void ChunkGeneratorCS::prepareToGenerate() {
 
 }

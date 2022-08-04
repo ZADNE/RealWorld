@@ -16,7 +16,7 @@
 class RealWorld : public RE::MainProgram {
 public:
 	RealWorld(RE::CommandLineArguments args);
-	~RealWorld();
+
 private:
 	GameSettings m_gameSettings;/**< Loads and stores settings specific to the RealWorld game */
 	WorldRoom m_worldRoom;		/**< Room with the gameplay */

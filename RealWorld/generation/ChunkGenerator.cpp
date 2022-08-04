@@ -4,9 +4,6 @@
 #include <RealWorld/generation/ChunkGenerator.hpp>
 
 ChunkGenerator::ChunkGenerator() {
-}
-
-ChunkGenerator::~ChunkGenerator() {
 
 }
 

@@ -40,11 +40,6 @@ public:
 	Chunk(const glm::ivec2& chunkPosCh, std::vector<unsigned char> data);
 
 	/**
-	 * @brief Destroys the chunk, frees its data.
-	 */
-	~Chunk() {};
-
-	/**
 	 * @brief Gets a value of a tile inside the chunk.
 	 *
 	 * Checks whether the tile is inside the bounds of the chunk.

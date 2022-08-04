@@ -18,10 +18,6 @@ ChunkManager::ChunkManager(ChunkGenerator& chunkGen) :
 	m_contAnalyzerShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
-ChunkManager::~ChunkManager() {
-
-}
-
 void ChunkManager::setTarget(int seed, std::string folderPath, RE::Surface* worldSrf) {
 	m_folderPath = folderPath;
 	m_chunkGen.setSeed(seed);

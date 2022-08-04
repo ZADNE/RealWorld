@@ -17,10 +17,6 @@ TileDrawer::TileDrawer(const glm::uvec2& viewSizeTi) {
 	m_drawTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
 }
 
-TileDrawer::~TileDrawer() {
-
-}
-
 void TileDrawer::draw(const RE::VertexArray& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
 	vao.bind();
 	m_drawTilesShd.use();

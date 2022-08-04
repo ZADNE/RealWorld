@@ -16,10 +16,6 @@ ChunkGeneratorFBO::ChunkGeneratorFBO() {
 	m_genSurf[0].getTexture(1).bind(TEX_UNIT_GEN_MATERIAL);
 }
 
-ChunkGeneratorFBO::~ChunkGeneratorFBO() {
-
-}
-
 void ChunkGeneratorFBO::prepareToGenerate() {
 	m_VAO.bind();
 	m_genSurf[0].setTarget();

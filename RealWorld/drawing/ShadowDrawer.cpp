@@ -43,10 +43,6 @@ ShadowDrawer::ShadowDrawer(const glm::uvec2& viewSizeTi) :
 	m_addLightsShd.backInterfaceBlock(0u, STRG_BUF_EXTERNALLIGHTS);
 }
 
-ShadowDrawer::~ShadowDrawer() {
-
-}
-
 void ShadowDrawer::resizeView(const glm::uvec2& viewSizeTi) {
 	m_ = {viewSizeTi};
 }

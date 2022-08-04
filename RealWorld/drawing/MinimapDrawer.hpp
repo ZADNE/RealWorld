@@ -12,7 +12,6 @@
 class MinimapDrawer {
 public:
 	MinimapDrawer();
-	~MinimapDrawer();
 
 	void setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
 	void resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx);

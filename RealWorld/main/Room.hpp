@@ -12,7 +12,6 @@
 class Room : public RE::Room {
 public:
 	Room() {}
-	virtual ~Room() {}
 
 protected:
 	using enum RealWorldKeyBindings;

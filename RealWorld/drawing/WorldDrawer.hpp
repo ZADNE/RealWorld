@@ -13,7 +13,6 @@
 class WorldDrawer {
 public:
 	WorldDrawer(const glm::uvec2& viewSizePx);
-	~WorldDrawer();
 
 	void setTarget(const glm::ivec2& worldTexSize);
 	void resizeView(const glm::uvec2& viewSizePx);

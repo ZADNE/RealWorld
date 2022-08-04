@@ -12,10 +12,6 @@ ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox) 
 	m_item = &m_inv[m_chosenSlot][0];
 }
 
-ItemUser::~ItemUser() {
-
-}
-
 void ItemUser::switchShape() {
 	m_shape = m_shape == MODIFY_SHAPE::DISC ? MODIFY_SHAPE::SQUARE : MODIFY_SHAPE::DISC;
 }

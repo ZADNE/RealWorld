@@ -18,7 +18,6 @@ class ChunkGeneratorCS : public ChunkGenerator {
 public:
 
 	ChunkGeneratorCS();
-	~ChunkGeneratorCS();
 
 private:
 

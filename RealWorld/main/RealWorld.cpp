@@ -14,7 +14,3 @@ RealWorld::RealWorld(RE::CommandLineArguments args) :
 
 	m_roomManager.gotoRoom(mainRoom, {});
 }
-
-RealWorld::~RealWorld() {
-
-}

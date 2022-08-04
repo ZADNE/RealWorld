@@ -29,11 +29,6 @@ public:
 	ChunkManager(ChunkGenerator& chunkGen);
 
 	/**
-	 * @brief Saves all chunks and deconstructs the chunk manager.
-	 */
-	~ChunkManager();
-
-	/**
 	 * @brief Retargets the chunk manager to a new world.
 	 *
 	 * Frees all chunks of the previous world (does not save them).

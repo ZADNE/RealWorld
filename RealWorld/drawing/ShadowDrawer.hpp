@@ -17,7 +17,6 @@
 class ShadowDrawer {
 public:
 	ShadowDrawer(const glm::uvec2& viewSizeTi);
-	~ShadowDrawer();
 
 	void resizeView(const glm::uvec2& viewSizeTi);
 

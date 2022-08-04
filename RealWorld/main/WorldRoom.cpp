@@ -19,10 +19,6 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings) :
 	m_invUI.connectToItemUser(&m_itemUser);
 }
 
-WorldRoom::~WorldRoom() {
-
-}
-
 void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	try {
 		const std::string& worldName = std::any_cast<const std::string&>(params[0]);

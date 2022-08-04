@@ -41,10 +41,6 @@ MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
 	}
 }
 
-MainMenuRoom::~MainMenuRoom() {
-
-}
-
 void MainMenuRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	m_menu = MAIN;
 	WorldSaveLoader::getSavedWorlds(m_worlds);

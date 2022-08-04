@@ -16,6 +16,10 @@ class Inventory : public InventoryData {
 public:
 	Inventory(const glm::ivec2& size);
 	~Inventory();
+
+	Inventory(const Inventory&) = delete;
+	Inventory& operator=(const Inventory&) = delete;
+
 	//New slots are empty
 	//Contents of removed slots are lost
 	void resize(const glm::ivec2& newSize);

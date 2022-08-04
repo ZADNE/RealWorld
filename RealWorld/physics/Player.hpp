@@ -25,7 +25,6 @@ enum class WALK : int {
 class Player {
 public:
 	Player(RE::SpriteBatch& spriteBatch);
-	~Player();
 
 	void adoptSave(const PlayerSave& save);
 	void gatherSave(PlayerSave& save) const;

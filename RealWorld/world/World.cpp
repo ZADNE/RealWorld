@@ -33,10 +33,6 @@ World::World(ChunkGenerator& chunkGen) :
 	m_tileTransformationsShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
-World::~World() {
-
-}
-
 void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
 	m_seed = save.seed;
 	m_worldName = save.worldName;
