@@ -3,6 +3,8 @@
  */
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 
+#include <RealEngine/rendering/Ordering.hpp>
+
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
@@ -30,12 +32,13 @@ void ChunkGeneratorCS::generateBasicTerrain() {
 }
 
 void ChunkGeneratorCS::consolidateEdges() {
-	GLuint cycleN = 0u;
+	using enum RE::IncoherentAccessBarrierFlags;
+	unsigned int cycleN = 0u;
 	auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
 		m_consolidationShd.setUniform(LOC_THRESHOLDS, thresholds);
 		for (size_t i = 0; i < passes; i++) {
 			m_consolidationShd.setUniform(LOC_CYCLE_N, cycleN++);
-			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+			RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 			m_consolidationShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
 		}
 	};
@@ -54,11 +57,12 @@ void ChunkGeneratorCS::consolidateEdges() {
 }
 
 void ChunkGeneratorCS::selectVariants() {
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	using enum RE::IncoherentAccessBarrierFlags;
+	RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 	m_variantSelectionShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 }
 
 
 void ChunkGeneratorCS::finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
-	m_tilesTex[0].copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
+	m_tilesTex[0].copyTexels(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 }

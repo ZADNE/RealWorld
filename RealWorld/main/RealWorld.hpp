@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/main/MainProgram.hpp>
+#include <RealEngine/main/program/MainProgram.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>

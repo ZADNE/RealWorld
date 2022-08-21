@@ -3,6 +3,8 @@
  */
 #include <RealWorld/generation/ChunkGeneratorFBO.hpp>
 
+#include <RealEngine/rendering/Ordering.hpp>
+
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
@@ -28,13 +30,13 @@ void ChunkGeneratorFBO::generateBasicTerrain() {
 }
 
 void ChunkGeneratorFBO::consolidateEdges() {
-	GLuint cycleN = 0u;
+	unsigned int cycleN = 0u;
 	auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
 		m_consolidationShd.setUniform(LOC_THRESHOLDS, thresholds);
 		for (size_t i = 0; i < passes; i++) {
 			m_consolidationShd.setUniform(LOC_CYCLE_N, cycleN++);
 			m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
-			glTextureBarrier();
+			RE::Ordering::issueDrawBarrier();
 			m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 		}
 	};
@@ -45,22 +47,24 @@ void ChunkGeneratorFBO::consolidateEdges() {
 		}
 	};
 
-	RE::SurfaceTargetTextures stt{};
-	stt.targetTexture(0, 0);
-	m_genSurf[0].setTargetTextures(stt);
+	std::vector<RE::FramebufferOutput> outputs;
+	outputs.reserve(2);
+	outputs.push_back(RE::FramebufferOutput::TO_COLOR0);
+
+	m_genSurf[0].associateTexturesWithOutputs(outputs);
 
 	m_consolidationShd.use();
 	doublePass({3, 4}, {4, 5}, 4);
 	m_consolidationShd.unuse();
 
-	stt.targetTexture(1, 1);
 	m_genSurf[0].setTarget();
-	m_genSurf[0].setTargetTextures(stt);
+	outputs.push_back(RE::FramebufferOutput::TO_COLOR1);
+	m_genSurf[0].associateTexturesWithOutputs(outputs);
 	assert(static_cast<int>(cycleN) <= BORDER_WIDTH);
 }
 
 void ChunkGeneratorFBO::selectVariants() {
-	glTextureBarrier();
+	RE::Ordering::issueDrawBarrier();
 	m_variantSelectionShd.use();
 	m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
 	m_variantSelectionShd.unuse();
@@ -69,5 +73,5 @@ void ChunkGeneratorFBO::selectVariants() {
 void ChunkGeneratorFBO::finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
 	m_genSurf[0].resetTarget();
 	m_VAO.unbind();
-	m_genSurf[0].getTexture().copyTexelsBetweenImages(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
+	m_genSurf[0].getTexture().copyTexels(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 }

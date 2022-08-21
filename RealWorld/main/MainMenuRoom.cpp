@@ -27,6 +27,7 @@ void controlsCategoryHeader(const char* header) {
 }
 
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
+	Room(DEFAULT_SETTINGS),
 	m_gameSettings(gameSettings) {
 	glm::ivec2 windowSize = window()->getDims();
 	for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {

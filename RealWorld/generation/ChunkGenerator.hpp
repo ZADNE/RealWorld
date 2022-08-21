@@ -4,9 +4,9 @@
 #pragma once
 #include <array>
 
-#include <RealEngine/graphics/ShaderProgram.hpp>
-#include <RealEngine/graphics/Surface.hpp>
-#include <RealEngine/graphics/VertexArray.hpp>
+#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
+#include <RealEngine/rendering/output/Surface.hpp>
+#include <RealEngine/rendering/vertices/VertexArray.hpp>
 
 #include <RealWorld/shaders/generation.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>

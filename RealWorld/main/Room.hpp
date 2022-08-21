@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/main/room/Room.hpp>
+#include <RealEngine/main/rooms/Room.hpp>
 
 #include <RealWorld/main/settings/KeyBinder.hpp>
 
@@ -11,7 +11,7 @@
  */
 class Room : public RE::Room {
 public:
-	Room() {}
+	Room(const RE::RoomDisplaySettings& rds) : RE::Room(rds) {}
 
 protected:
 	using enum RealWorldKeyBindings;

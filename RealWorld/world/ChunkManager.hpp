@@ -7,7 +7,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <RealEngine/graphics/textures/Texture.hpp>
+#include <RealEngine/rendering/textures/Texture.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/world/Chunk.hpp>
@@ -15,10 +15,10 @@
 #include <RealWorld/shaders/simulation.hpp>
 
  /**
-  * @brief Ensures that chunks are activated when needed.
-  *
-  * Uploads and downloads chunks from the world texture.
-  */
+ * @brief Ensures that chunks are activated when needed.
+ *
+ * Uploads and downloads chunks from the world texture.
+ */
 class ChunkManager {
 public:
 	/**
@@ -35,9 +35,9 @@ public:
 	 *
 	 * @param seed Seed of the new world.
 	 * @param folderPath Path to the folder that contains the new world.
-	 * @param worldSrf The world surface that will receive the loaded chunks.
+	 * @param worldTex The world texture that will receive the loaded chunks
 	 */
-	void setTarget(int seed, std::string folderPath, RE::Surface* worldSrf);
+	void setTarget(int seed, std::string folderPath, RE::Texture* worldTex);
 
 	/**
 	 * @brief Saves all chunks, keeps them in the memory.
@@ -73,7 +73,7 @@ public:
 	struct ActiveChunksSSBO {
 		glm::ivec4 dynamicsGroupSize;
 		glm::ivec2 offsets[];			//First indexes: offsets of update chunks, in tiles
-										//Following indexes: absolute positions of chunks, in chunks
+		//Following indexes: absolute positions of chunks, in chunks
 	};
 #pragma warning( pop )
 private:
@@ -131,7 +131,7 @@ private:
 
 	std::string m_folderPath;
 	ChunkGenerator& m_chunkGen;
-	RE::Surface* m_worldSrf = nullptr;
+	RE::Texture* m_worldTex = nullptr;
 	glm::ivec2 m_activeChunksMask;
-
+	RE::Buffer m_downloadBuf{uCHUNK_SIZE.x * uCHUNK_SIZE.y * 4u, CLIENT_STORAGE | MAP_READ};
 };

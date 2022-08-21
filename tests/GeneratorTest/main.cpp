@@ -1,34 +1,42 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <chrono>
 #include <optional>
 
-#include <RealEngine/main/room/Room.hpp>
-#include <RealEngine/graphics/cameras/View2D.hpp>
+#include <RealEngine/main/rooms/Room.hpp>
+#include <RealEngine/rendering/cameras/View2D.hpp>
+#include <RealEngine/rendering/Ordering.hpp>
 
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 #include <RealWorld/generation/ChunkGeneratorFBO.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
 
-const glm::ivec2 RESOLUTION = glm::ivec2(1920, 1080);
-const glm::ivec2 ACTIVE_CHUNKS_AREA = glm::ivec2(16, 16);
-const unsigned int FPS_LIMIT = 300u;
-const glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
+constexpr glm::ivec2 RESOLUTION = glm::ivec2(1920, 1080);
+constexpr glm::ivec2 ACTIVE_CHUNKS_AREA = glm::ivec2(16, 16);
+constexpr unsigned int FPS_LIMIT = 300u;
+constexpr glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
+
+constexpr RE::RoomDisplaySettings DISPLAY_SETTINGS{
+	.clearColor = SKY_BLUE,
+	.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
+	.framesPerSecondLimit = FPS_LIMIT,
+	.usingImGui = false
+};
 
 using namespace std::chrono;
 
 class Room : public RE::Room {
 public:
-	Room(RE::CommandLineArguments args) : m_worldDrawer(RESOLUTION) {}
+	Room(RE::CommandLineArguments args) : RE::Room(DISPLAY_SETTINGS), m_worldDrawer(RESOLUTION) {}
 
 	void sessionStart(const RE::RoomTransitionParameters& params) override {
 		resetRecords();
 		//Initialize compute shader generator
 		m_genCS.emplace();
 		m_world.emplace(*m_genCS);
-		WorldSave save{.metadata = MetadataSave{ .seed = static_cast<int>(time(nullptr)) & 65535}};
+		WorldSave save{.metadata = MetadataSave{.seed = static_cast<int>(time(nullptr)) & 65535}};
 		(*m_world).adoptSave(save.metadata, ACTIVE_CHUNKS_AREA);
 		m_worldDrawer.setTarget(ACTIVE_CHUNKS_AREA * iCHUNK_SIZE);
 		std::cout << "Check console once the view stops moving (~1.5 min).\n";
@@ -47,7 +55,7 @@ public:
 		if (activatedChunks > 0) {
 			m_batchN++;
 			if (m_batchN > 0) {
-				glFinish();
+				RE::Ordering::finishWork();
 				auto dur = steady_clock::now() - start;
 				m_total_ns += dur;
 				int N = duration_cast<microseconds>(dur).count() / 1000;
@@ -63,15 +71,15 @@ public:
 					}
 					std::cout << "\nAverage time: " << duration_cast<microseconds>(m_total_ns / m_batchN).count() << "\n";
 					m_state++;
-					if (m_state == 1){
+					if (m_state == 1) {
 						//Switch to framebuffer generator
 						resetRecords();
 						m_world.reset();
 						m_genCS.reset();
 						m_genFBO.emplace();
 						m_world.emplace(*m_genFBO);
-						WorldSave save{.metadata = MetadataSave{ .seed = static_cast<int>(time(nullptr)) & 65535}};
-						(*m_world).adoptSave(save.metadata, RESOLUTION);
+						WorldSave save{.metadata = MetadataSave{.seed = static_cast<int>(time(nullptr)) & 65535}};
+						(*m_world).adoptSave(save.metadata, ACTIVE_CHUNKS_AREA);
 					}
 				}
 			}
@@ -87,20 +95,10 @@ public:
 		m_worldDrawer.drawShadows();
 	}
 
-	const RE::RoomDisplaySettings& getDisplaySettings() override {
-		static RE::RoomDisplaySettings settings{
-			.clearColor = SKY_BLUE,
-			.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
-			.framesPerSecondLimit = FPS_LIMIT,
-			.usingImGui = false
-		};
-		return settings;
-	}
-
-	void resetRecords(){
+	void resetRecords() {
 		m_batchN = -5;
 		m_total_ns = nanoseconds::zero();
-		for (int i = 0; i < 15; i++){
+		for (int i = 0; i < 15; i++) {
 			m_histogram[i] = 0;
 		}
 	}

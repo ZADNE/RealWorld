@@ -6,6 +6,7 @@
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
 WorldRoom::WorldRoom(const GameSettings& gameSettings) :
+	Room(DEFAULT_SETTINGS),
 	m_gameSettings(gameSettings),
 	m_world(m_chunkGen),
 	m_worldDrawer(window()->getDims()),

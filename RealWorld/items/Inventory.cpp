@@ -1,11 +1,11 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/items/Inventory.hpp>
 
 #include <fstream>
 
-#include <RealEngine/main/Error.hpp>
+#include <RealEngine/utility/error.hpp>
 
 
 Inventory::Inventory(const glm::ivec2& size) : InventoryData{size} {

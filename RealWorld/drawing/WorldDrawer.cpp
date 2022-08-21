@@ -5,7 +5,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealEngine/graphics/Vertex.hpp>
+#include <RealEngine/rendering/vertices/vertices.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
@@ -41,7 +41,7 @@ void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
 	m_botLeftPx = botLeftPx;
 	m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx));
-	return ViewEnvelope{.botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi)};
+	return ViewEnvelope{ .botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi) };
 }
 
 void WorldDrawer::beginStep() {

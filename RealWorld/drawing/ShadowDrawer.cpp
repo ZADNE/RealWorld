@@ -3,8 +3,9 @@
  */
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 
-#include <RealEngine/graphics/Vertex.hpp>
-#include <RealEngine/graphics/Surface.hpp>
+#include <RealEngine/rendering/vertices/vertices.hpp>
+#include <RealEngine/rendering/output/Surface.hpp>
+#include <RealEngine/rendering/Ordering.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
@@ -15,7 +16,7 @@
 constexpr int UNIT_MASK = ~(iLIGHT_SCALE * iTILEPx.x - 1);
 constexpr int HALF_UNIT_OFFSET = iTILEPx.x * iLIGHT_SCALE / 2;
 
-const RE::TextureFlags R8_NU_NEAR_LIN_EDGE{
+constexpr RE::TextureFlags R8_NU_NEAR_LIN_EDGE{
 	RE::TextureChannels::R, RE::TextureFormat::NORMALIZED_UNSIGNED, RE::TextureMinFilter::NEAREST_NO_MIPMAPS,
 	RE::TextureMagFilter::LINEAR, RE::TextureWrapStyle::CLAMP_TO_EDGE, RE::TextureWrapStyle::CLAMP_TO_EDGE,
 	RE::TextureBitdepthPerChannel::BITS_8
@@ -58,15 +59,16 @@ void ShadowDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
 }
 
 void ShadowDrawer::calculate(const glm::ivec2& botLeftPx) {
+	using enum RE::IncoherentAccessBarrierFlags;
 	//Add dyanmic lights
 	m_lightsBuf.redefine(m_lights);
 	m_addLightsShd.setUniform(LOC_LIGHT_COUNT, glm::uint(m_lights.size()));
 	glm::ivec2 viewBotLeftPx = (botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK;
 	m_addLightsShd.setUniform(LOC_POSITIONPx, viewBotLeftPx + HALF_UNIT_OFFSET);
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 	m_addLightsShd.dispatchCompute(glm::uvec3{glm::ceil(m_lights.size() / 8.0f), 1u, 1u}, true);
 	//Calculate Shadows
-	glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+	RE::Ordering::issueIncoherentAccessBarrier(TEXTURE_FETCH);
 	m_calcShadowsShd.dispatchCompute(m_.calcShadowsGroupCount, true);
 }
 

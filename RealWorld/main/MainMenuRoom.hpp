@@ -23,17 +23,14 @@ public:
 	void step() override;
 	void render(double interpolationFactor) override;
 
-	const RE::RoomDisplaySettings& getDisplaySettings() override {
-		static RE::RoomDisplaySettings settings{
-			.framesPerSecondLimit = 144,
-			.usingImGui = true
-		};
-		return settings;
-	}
-
 	void keybindCallback(RE::Key newKey);
 
 private:
+	static constexpr RE::RoomDisplaySettings DEFAULT_SETTINGS{
+		.framesPerSecondLimit = 144,
+		.usingImGui = true
+	};
+
 	enum class Menu {
 		MAIN,
 		NEW_WORLD,

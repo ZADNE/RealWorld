@@ -4,8 +4,8 @@
 #pragma once
 #include <string>
 
-#include <RealEngine/graphics/SpriteBatch.hpp>
-#include <RealEngine/graphics/textures/Texture.hpp>
+#include <RealEngine/rendering/batches/SpriteBatch.hpp>
+#include <RealEngine/rendering/textures/Texture.hpp>
 
 #include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
@@ -62,10 +62,11 @@ public:
 	bool saveChunks() const;
 
 	void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
+
 private:
 	void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	RE::Surface m_worldSrf;
+	RE::Texture m_worldTex;
 	int m_seed = 0;
 
 	std::string m_worldName;

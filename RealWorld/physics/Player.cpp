@@ -3,12 +3,12 @@
  */
 #include <RealWorld/physics/Player.hpp>
 
-#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
 #include <RealWorld/items/ItemUser.hpp>
 
 Player::Player(RE::SpriteBatch& spriteBatch) :
-	m_hitbox({0, 0}, {28, 40}, {14, 20}),
+	m_hitbox({ 0, 0 }, { 28, 40 }, { 14, 20 }),
 	m_spriteBatch(spriteBatch) {
 	m_playerMovementShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
 	m_playerMovementShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
@@ -37,7 +37,7 @@ void Player::step(WALK dir, bool jump, bool autojump) {
 		.jump_autojump = glm::vec2(jump, autojump)
 	};
 	m_movementBuf.overwrite(offsetof(PlayerMovementUBO, walkDirection), sizeof(float) + sizeof(glm::vec2), &movement.walkDirection);
-	m_playerMovementShd.dispatchCompute({1, 1, 1}, true);
+	m_playerMovementShd.dispatchCompute({ 1, 1, 1 }, true);
 }
 
 void Player::draw() {

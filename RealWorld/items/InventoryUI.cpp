@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/items/InventoryUI.hpp>
@@ -10,7 +10,7 @@
 #include <glm/geometric.hpp>
 
 #include <RealEngine/resources/ResourceManager.hpp>
-#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
 #include <RealWorld/shaders/common.hpp>
 #include <RealWorld/items/Inventory.hpp>
@@ -26,12 +26,12 @@ InventoryUI::~InventoryUI() {
 	//Disconnecting all inventories
 	forEachConnectedInventory([&](Connection con) {
 		m_inv[con]->connectToDrawer(nullptr, con);
-	});
+		});
 }
 
 void InventoryUI::windowResized(const glm::vec2& newWindowSize) {
 	m_windowSize = newWindowSize;
-	m_slotsSurf.resize({newWindowSize}, 1);
+	m_slotsSurf.resize({ newWindowSize }, 1);
 	reload();
 }
 
@@ -64,7 +64,7 @@ void InventoryUI::reload() {
 	m_invItemSprites[PRIMARY].reserve(invSlotCount(PRIMARY));
 	forEachSlotByIndex(PRIMARY, [&](int i) {
 		m_invItemSprites[PRIMARY].emplace_back((*m_inv[PRIMARY])(i));
-	});
+		});
 
 	//Redraw surface with slots
 	m_slotsSurf.setTarget();
@@ -77,7 +77,7 @@ void InventoryUI::reload() {
 	forEachSlotByPosition(PRIMARY, [&](int x, int y) {
 		pos = m_invBotLeftPx + slotPivot() + (slotDims() + SLOT_PADDING) * glm::vec2(x, y);
 		m_spriteBatch.addSubimage(m_slotTex.get(), pos, 0, glm::vec2(0.0f, 0.0f));
-	});
+		});
 
 	m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
 	m_spriteBatch.draw();
@@ -92,7 +92,8 @@ void InventoryUI::swapUnderCursor(const glm::vec2& cursorPx) {
 		Item& item = (*m_inv[PRIMARY])[x][y];
 		if (item.ID == m_heldItem.ID) {//Same items, dropping under corsor to slot
 			item.merge(m_heldItem, 1.0f);
-		} else {
+		}
+		else {
 			item.swap(m_heldItem);
 			std::swap(m_invItemSprites[PRIMARY][m_inv[PRIMARY]->toIndex(x, y)], m_heldSprite);
 		}
@@ -107,7 +108,8 @@ void InventoryUI::movePortion(const glm::vec2& cursorPx, float portion) {
 		if (!m_heldItem.isEmpty()) {//Dropping portion
 			(*m_inv[PRIMARY])(i).merge(m_heldItem, portion);
 			(*m_inv[PRIMARY])(i).insert(m_heldItem, portion);
-		} else {//Picking up portion
+		}
+		else {//Picking up portion
 			m_heldItem.insert((*m_inv[PRIMARY])(i), portion);
 		}
 		m_heldSprite = ItemSprite(m_heldItem);
@@ -154,8 +156,8 @@ void InventoryUI::step() {
 	forEachConnectedInventory([&](Connection con) {
 		forEachSlotByIndex(con, [&](int i) {
 			m_invItemSprites[con][i].step();
+			});
 		});
-	});
 	m_heldSprite.step();
 }
 
@@ -177,12 +179,13 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
 				m_spriteBatch.addSprite(m_invItemSprites[PRIMARY][i], pos, 1);
 			}
 			i++;
-		});
+			});
 		if (!m_heldItem.isEmpty()) {
 			//Item under cursor
 			m_spriteBatch.addSprite(m_heldSprite, cursorPx, 10);
 		}
-	} else {//CLOSED INVENTORY
+	}
+	else {//CLOSED INVENTORY
 		for (int x = 0; x < invSize(PRIMARY).x; x++) {
 			Item& item = (*m_inv[PRIMARY])[x][0];
 			pos = slot0Px + (slotDims() + SLOT_PADDING) * glm::vec2(x, 0.0f);

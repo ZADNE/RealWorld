@@ -4,8 +4,8 @@
 #pragma once
 #include <array>
 
-#include <RealEngine/graphics/textures/Texture.hpp>
-#include <RealEngine/graphics/ShaderProgram.hpp>
+#include <RealEngine/rendering/textures/Texture.hpp>
+#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/shaders/generation.hpp>
@@ -28,13 +28,13 @@ private:
 	void finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) override;
 
 
-	RE::ShaderProgram m_structureShd = RE::ShaderProgram{{.comp = structure_comp}};
-	RE::ShaderProgram m_consolidationShd = RE::ShaderProgram{{.comp = consolidation_comp}};
-	RE::ShaderProgram m_variantSelectionShd = RE::ShaderProgram{{.comp = variantSelection_comp}};
+	RE::ShaderProgram m_structureShd = RE::ShaderProgram{ {.comp = structure_comp} };
+	RE::ShaderProgram m_consolidationShd = RE::ShaderProgram{ {.comp = consolidation_comp} };
+	RE::ShaderProgram m_variantSelectionShd = RE::ShaderProgram{ {.comp = variantSelection_comp} };
 
 	std::array<RE::Texture, 2> m_tilesTex = {
 		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},
 		RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}}
 	};
-	RE::Texture m_materialGenTex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
+	RE::Texture m_materialGenTex{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE} };
 };

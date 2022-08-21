@@ -18,13 +18,13 @@ ChunkManager::ChunkManager(ChunkGenerator& chunkGen) :
 	m_contAnalyzerShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
-void ChunkManager::setTarget(int seed, std::string folderPath, RE::Surface* worldSrf) {
+void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture* worldTex) {
 	m_folderPath = folderPath;
 	m_chunkGen.setSeed(seed);
-	m_worldSrf = worldSrf;
+	m_worldTex = worldTex;
 
 	//Recalculate active chunks mask and analyzer dispatch size
-	glm::ivec2 activeChunksArea = m_worldSrf->getTexture(0).getTrueDims() / uCHUNK_SIZE;
+	glm::ivec2 activeChunksArea = m_worldTex->getTrueDims() / uCHUNK_SIZE;
 	m_activeChunksMask = activeChunksArea - 1;
 	m_contAnalyzerGroupCount = {activeChunksArea / 8, 1};
 	m_contAnalyzerShd.setUniform("activeChunksArea", activeChunksArea);
@@ -124,13 +124,13 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
 		}
 		catch (...) {
 			//Chunk is not on the disk, it has to be generated
-			m_chunkGen.generateChunk(posCh, m_worldSrf->getTexture(0), chToAt(posCh, m_activeChunksMask));
+			m_chunkGen.generateChunk(posCh, *m_worldTex, chToAt(posCh, m_activeChunksMask));
 		}
 	}
 
 	//The chunk has been uploaded to the world texture
 	//Its position also has to be updated in the active chunks buffer
-	GLintptr mapOffset = offsetof(ActiveChunksSSBO, offsets) + (m_activeChunksMask.x * m_activeChunksMask.y + acIndex) * sizeof(glm::ivec2);
+	int mapOffset = offsetof(ActiveChunksSSBO, offsets) + (m_activeChunksMask.x * m_activeChunksMask.y + acIndex) * sizeof(glm::ivec2);
 	auto* ssbo = m_activeChunksBuf.map<glm::ivec2>(mapOffset, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
 	*ssbo = posCh;
 	m_activeChunksBuf.unmap();
@@ -153,22 +153,23 @@ void ChunkManager::deactivateChunk(const glm::ivec2& posCh) {
 }
 
 std::vector<unsigned char> ChunkManager::downloadChunk(const glm::ivec2& posAt) const {
-	//Allocate memory for the data
-	std::vector<unsigned char> tiles;
-	tiles.resize(iCHUNK_SIZE.x * iCHUNK_SIZE.y * 4);
+	//Copy the chunk to (client-local) pack buffer
+	m_downloadBuf.bind(RE::BufferType::PIXEL_PACK);
+	m_worldTex->getTexels(0, posAt, iCHUNK_SIZE, m_downloadBuf.size(), nullptr);
 
-	//Bind the framebuffer
-	m_worldSrf->setTarget();
-	//Data download (CPU stall -> Pixel Buffer Object todo...)
-	glReadnPixels(posAt.x, posAt.y, iCHUNK_SIZE.x, iCHUNK_SIZE.y,
-		GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, static_cast<GLsizei>(tiles.size()), tiles.data());
-	m_worldSrf->resetTarget();
+	//Map it right away (causes synchronization!)
+	auto* pixels = m_downloadBuf.map<unsigned char>(0u, m_downloadBuf.size(), READ);
+
+	//Copy it the tiles to local vector
+	std::vector<unsigned char> tiles;
+	tiles.assign(pixels, &pixels[iCHUNK_SIZE.x * iCHUNK_SIZE.y * 4]);
+	m_downloadBuf.unmap();
 
 	return tiles;
 }
 
 void ChunkManager::uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
-	m_worldSrf->getTexture(0).setTexelsWithinImage(0, chToAt(posCh, m_activeChunksMask), iCHUNK_SIZE, chunk.data());
+	m_worldTex->setTexels(0, chToAt(posCh, m_activeChunksMask), iCHUNK_SIZE, chunk.data());
 }
 
 void ChunkManager::saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {

@@ -3,13 +3,13 @@
  */
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 
-#include <RealEngine/graphics/Vertex.hpp>
-#include <RealEngine/graphics/Viewport.hpp>
+#include <RealEngine/rendering/vertices/vertices.hpp>
+#include <RealEngine/rendering/output/Viewport.hpp>
 
 
 MinimapDrawer::MinimapDrawer() {
 	//Init VAO
-	GLuint vboBindingPoint = 0u;
+	unsigned int vboBindingPoint = 0u;
 	m_pouvArr.setBindingPoint(vboBindingPoint, m_pouvBuf, 0u, sizeof(VertexPOUV));
 	m_pouvArr.setAttribute(RE::ATTR_POSITION, RE::VertexComponentCount::XY, RE::VertexComponentType::FLOAT, offsetof(VertexPOUV, position));
 	m_pouvArr.setAttribute(RE::ATTR_UV, RE::VertexComponentCount::XY, RE::VertexComponentType::FLOAT, offsetof(VertexPOUV, uv));

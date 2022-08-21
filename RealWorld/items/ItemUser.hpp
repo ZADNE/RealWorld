@@ -1,20 +1,20 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/graphics/GeometryBatch.hpp>
+#include <RealEngine/rendering/batches/GeometryBatch.hpp>
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/physics/Hitbox.hpp>
 
-/**
- * @brief Uses items from an inventory.
- * 
- * Can add or remove tile to the world.
-*/
+ /**
+  * @brief Uses items from an inventory.
+  *
+  * Can add or remove tile to the world.
+ */
 class ItemUser {
 public:
 	const static int PRIMARY_USE = 0;

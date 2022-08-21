@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/save/WorldSaveLoader.hpp>
@@ -12,7 +12,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include <lodepng/lodepng.hpp>
-#include <RealEngine/main/Error.hpp>
+#include <RealEngine/utility/error.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
 

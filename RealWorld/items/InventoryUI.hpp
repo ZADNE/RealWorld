@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -7,9 +7,9 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include <RealEngine/resources/ResourceManager.hpp>
-#include <RealEngine/graphics/Surface.hpp>
-#include <RealEngine/graphics/default_shaders.hpp>
-#include <RealEngine/graphics/SpriteBatch.hpp>
+#include <RealEngine/rendering/output/Surface.hpp>
+#include <RealEngine/rendering/vertices/default_shaders.hpp>
+#include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>

@@ -3,10 +3,14 @@
  */
 #include <RealWorld/world/World.hpp>
 
+#include <RealEngine/rendering/Ordering.hpp>
+
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
- //Xorshift algorithm by George Marsaglia
+using enum RE::IncoherentAccessBarrierFlags;
+
+//Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
 	state ^= state << 13;
 	state ^= state >> 17;
@@ -24,7 +28,7 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
 }
 
 World::World(ChunkGenerator& chunkGen) :
-	m_worldSrf({RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
+	m_worldTex(RE::Raster{{1, 1}}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
 	m_chunkManager(chunkGen),
 	m_rngState(static_cast<uint32_t>(time(nullptr))) {
 	m_fluidDynamicsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
@@ -37,12 +41,13 @@ void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksAr
 	m_seed = save.seed;
 	m_worldName = save.worldName;
 
-	m_worldSrf.resize({iCHUNK_SIZE * activeChunksArea}, 1u);
-	m_worldSrf.getTexture(0).bind(TEX_UNIT_WORLD_TEXTURE);
-	m_worldSrf.getTexture(0).bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
-	m_worldSrf.getTexture(0).clear(RE::Color{0, 0, 0, 0});
+	//Resize the world texture
+	m_worldTex = RE::Texture{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
+	m_worldTex.bind(TEX_UNIT_WORLD_TEXTURE);
+	m_worldTex.bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
+	m_worldTex.clear(RE::Color{0, 0, 0, 0});
 
-	m_chunkManager.setTarget(m_seed, save.path, &m_worldSrf);
+	m_chunkManager.setTarget(m_seed, save.path, &m_worldTex);
 }
 
 void World::gatherSave(MetadataSave& save) const {
@@ -77,7 +82,7 @@ int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
 
 	//Tile transformations
 	m_tileTransformationsShd.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
 	//Fluid dynamics
 	fluidDynamicsStep(botLeftTi, topRightTi);
@@ -117,7 +122,7 @@ void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& top
 		m_worldDynamicsBuf.unmap();
 		//Dispatch
 		m_fluidDynamicsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 	}
 	m_fluidDynamicsShd.unuse();
 }

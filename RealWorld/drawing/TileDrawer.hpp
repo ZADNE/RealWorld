@@ -3,8 +3,8 @@
  */
 #pragma once
 #include <RealEngine/resources/ResourceManager.hpp>
-#include <RealEngine/graphics/VertexArray.hpp>
-#include <RealEngine/graphics/buffers/TypedBuffer.hpp>
+#include <RealEngine/rendering/vertices/VertexArray.hpp>
+#include <RealEngine/rendering/buffers/TypedBuffer.hpp>
 
 #include <RealWorld/shaders/drawing.hpp>
 
@@ -20,5 +20,5 @@ private:
 	RE::TexturePtr m_blockAtlasTex = RE::RM::getTexture("blockAtlas");
 	RE::TexturePtr m_wallAtlasTex = RE::RM::getTexture("wallAtlas");
 
-	RE::ShaderProgram m_drawTilesShd{{.vert = drawTiles_vert, .frag = colorDraw_frag}};
+	RE::ShaderProgram m_drawTilesShd{ {.vert = drawTiles_vert, .frag = colorDraw_frag} };
 };

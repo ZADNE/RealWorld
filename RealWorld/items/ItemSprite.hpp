@@ -1,14 +1,14 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/graphics/Sprite.hpp>
+#include <RealEngine/rendering/batches/Sprite.hpp>
 
 #include <RealWorld/items/Item.hpp>
 
-/**
- * @brief Allows convenient drawing of items in inventory
-*/
+ /**
+  * @brief Allows convenient drawing of items in inventory
+ */
 class ItemSprite : public RE::FullSprite {
 public:
 	ItemSprite();
