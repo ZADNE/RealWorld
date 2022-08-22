@@ -184,7 +184,7 @@ void MainMenuRoom::controlsMenu() {
 
 	ImGui::BeginTable("##controlsTable", 3,
 		ImGuiTableFlags_ScrollY, {0.0f, window()->getDims().y - ImGui::GetFrameHeight() * 4.125f});
-	for (size_t i = 0; i < magic_enum::enum_count<RealWorldKeyBindings>(); i++) {
+	for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::COUNT); i++) {
 		ImGui::PushID(static_cast<int>(i));
 		switch (static_cast<RealWorldKeyBindings>(i)) {
 		case INV_OPEN_CLOSE: controlsCategoryHeader("Inventory"); break;
@@ -196,7 +196,7 @@ void MainMenuRoom::controlsMenu() {
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
-		ImGui::TextUnformatted(KEYBINDER_DESC[i]);
+		ImGui::TextUnformatted(KEYBINDING_INFO[i].desc);
 		ImGui::TableNextColumn();
 
 		RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
@@ -205,7 +205,7 @@ void MainMenuRoom::controlsMenu() {
 			m_drawKeybindListeningPopup = true;
 		}
 
-		if (keybinder(binding) != KEYBINDER_DEFAULT_LIST[i]) {
+		if (keybinder(binding) != KEYBINDING_INFO[i].defaultValue) {
 			ImGui::TableNextColumn();
 			if (ImGui::Button("Reset")) {
 				keybinder().resetBinding(static_cast<RealWorldKeyBindings>(i));

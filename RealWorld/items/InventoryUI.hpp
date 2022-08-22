@@ -2,9 +2,9 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <glm/vec2.hpp>
+#include <optional>
 
-#include <magic_enum/magic_enum.hpp>
+#include <glm/vec2.hpp>
 
 #include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/rendering/output/Surface.hpp>
@@ -23,7 +23,7 @@ class Inventory;
 */
 class InventoryUI {
 public:
-	enum Connection { PRIMARY, SECONDARY, TERTIARY };
+	enum Connection { PRIMARY, SECONDARY, TERTIARY, COUNT };
 	enum class SelectionManner { ABS, RIGHT, LEFT, PREV, LAST_SLOT };
 
 	/**
@@ -96,7 +96,7 @@ private:
 
 	template<typename Func>
 	void forEachConnectedInventory(Func f) {
-		for (int c = PRIMARY; c < magic_enum::enum_count<Connection>(); ++c) {
+		for (int c = PRIMARY; c < static_cast<int>(Connection::COUNT); ++c) {
 			if (m_inv[c]) {//If connected the inventory
 				f(static_cast<Connection>(c));
 			}
@@ -137,7 +137,7 @@ private:
 
 	RE::Color m_amountColor{255u, 255u, 255u, 255u};
 
-	Inventory* m_inv[magic_enum::enum_count<Connection>()] = {nullptr, nullptr, nullptr};
-	std::vector<ItemSprite> m_invItemSprites[magic_enum::enum_count<Connection>()];
+	Inventory* m_inv[static_cast<size_t>(Connection::COUNT)] = {nullptr, nullptr, nullptr};
+	std::vector<ItemSprite> m_invItemSprites[static_cast<size_t>(Connection::COUNT)];
 	bool m_open = false;
 };

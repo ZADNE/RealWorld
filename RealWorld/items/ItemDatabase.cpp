@@ -10,7 +10,7 @@ int i(T enumm) {
 	return static_cast<int>(enumm);
 }
 
-const std::array<ItemMetadata, magic_enum::enum_count<ITEM>()> ItemDatabase::m_itemMetadata = {
+const std::array<ItemMetadata, static_cast<size_t>(ITEM::COUNT)> ItemDatabase::m_itemMetadata = {
 	//Empty		maxStack	texAtlas	spriteIndex		drawScale	type					typeIndex				name
 	ItemMetadata{0,			'B',		0.0f,			1.0f,		ITEM_TYPE::EMPTY,		0,						"Empty"},
 	//Fluids	maxStack	texAtlas	spriteIndex		drawScale	type					typeIndex				name

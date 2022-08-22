@@ -5,8 +5,6 @@
 #include <string>
 #include <array>
 
-#include <magic_enum/magic_enum.hpp>
-
 enum class ITEM : uint16_t {
 	EMPTY,
 	//Fluids
@@ -45,6 +43,8 @@ enum class ITEM : uint16_t {
 	CREATIVE_PICKAXE,
 	///Hammers
 	CREATIVE_HAMMER,
+
+	COUNT
 };
 
 enum class ITEM_TYPE : uint32_t {
@@ -93,5 +93,5 @@ public:
 	const static ItemMetadata& md(ITEM ID);
 private:
 
-	const static std::array<ItemMetadata, magic_enum::enum_count<ITEM>()> m_itemMetadata;
+	const static std::array<ItemMetadata, static_cast<size_t>(ITEM::COUNT)> m_itemMetadata;
 };

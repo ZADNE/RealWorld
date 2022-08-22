@@ -40,94 +40,61 @@ enum class RealWorldKeyBindings {
 	QUIT,
 	MINIMAP,
 	SHADOWS,
-	PERMUTE
+	PERMUTE,
+
+	COUNT
 };
 
-constexpr static std::array KEYBINDER_DESC = {
-	"Open/close",
-	"Take/put all",
-	"Take/put some",
-	"Previous slot",
-	"Left slot",
-	"Right slot",
-	"Slot 1",
-	"Slot 2",
-	"Slot 3",
-	"Slot 4",
-	"Slot 5",
-	"Slot 6",
-	"Slot 7",
-	"Slot 8",
-	"Slot 9",
-	"Slot 10",
+struct BindingInfo {
+	constexpr BindingInfo(RE::Key defaultValue, const char* name, const char* desc) :
+		defaultValue(defaultValue), name(name), desc(desc) {}
 
-	"Primary",
-	"Secondary",
-	"Disc/square",
-	"Hold to resize",
-	"Widen",
-	"Shrink",
-
-	"Walk left",
-	"Walk right",
-	"Jump",
-	"Autojump",
-
-	"Quit",
-	"Draw minimap",
-	"Draw shadows",
-	"Permute order"
+	RE::Key defaultValue;
+	const char* name;
+	const char* desc;
 };
 
-/**
- * @brief Default values for key bindings if saved key bidnings could not be loaded
-*/
-constexpr static RE::KeyBindingValueList<const RealWorldKeyBindings> KEYBINDER_DEFAULT_LIST = {
-	RE::Key::E,
-	RE::Key::LMB,
-	RE::Key::RMB,
-	RE::Key::Q,
-	RE::Key::DMW,
-	RE::Key::UMW,
-	RE::Key::K1,
-	RE::Key::K2,
-	RE::Key::K3,
-	RE::Key::K4,
-	RE::Key::K5,
-	RE::Key::K6,
-	RE::Key::K7,
-	RE::Key::K8,
-	RE::Key::K9,
-	RE::Key::K0,
+constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBindings::COUNT)> KEYBINDING_INFO = {
+	BindingInfo{RE::Key::E,			"INV_OPEN_CLOSE",			"Open/close"},
+	BindingInfo{RE::Key::LMB,		"INV_MOVE_ALL",				"Take/put all"},
+	BindingInfo{RE::Key::RMB,		"INV_MOVE_PORTION",			"Take/put some"},
+	BindingInfo{RE::Key::Q,			"INV_PREV_SLOT",			"Previous slot"},
+	BindingInfo{RE::Key::DMW,		"INV_RIGHT_SLOT",			"Left slot"},
+	BindingInfo{RE::Key::UMW,		"INV_LEFT_SLOT",			"Right slot"},
+	BindingInfo{RE::Key::K1,		"INV_SLOT0",				"Slot 1"},
+	BindingInfo{RE::Key::K2,		"INV_SLOT1",				"Slot 2"},
+	BindingInfo{RE::Key::K3,		"INV_SLOT2",				"Slot 3"},
+	BindingInfo{RE::Key::K4,		"INV_SLOT3",				"Slot 4"},
+	BindingInfo{RE::Key::K5,		"INV_SLOT4",				"Slot 5"},
+	BindingInfo{RE::Key::K6,		"INV_SLOT5",				"Slot 6"},
+	BindingInfo{RE::Key::K7,		"INV_SLOT6",				"Slot 7"},
+	BindingInfo{RE::Key::K8,		"INV_SLOT7",				"Slot 8"},
+	BindingInfo{RE::Key::K9,		"INV_SLOT8",				"Slot 9"},
+	BindingInfo{RE::Key::K0,		"INV_SLOT9",				"Slot 10"},
 
-	RE::Key::LMB,
-	RE::Key::RMB,
-	RE::Key::MMB,
-	RE::Key::LCtrl,
-	RE::Key::UMW,
-	RE::Key::DMW,
+	BindingInfo{RE::Key::LMB,		"ITEMUSER_USE_PRIMARY",		"Primary"},
+	BindingInfo{RE::Key::RMB,		"ITEMUSER_USE_SECONDARY",	"Secondary"},
+	BindingInfo{RE::Key::MMB,		"ITEMUSER_SWITCH_SHAPE",	"Disc/square"},
+	BindingInfo{RE::Key::LCtrl,		"ITEMUSER_HOLD_TO_RESIZE",	"Hold to resize"},
+	BindingInfo{RE::Key::UMW,		"ITEMUSER_WIDEN",			"Widen"},
+	BindingInfo{RE::Key::DMW,		"ITEMUSER_SHRINK",			"Shrink"},
 
-	RE::Key::A,
-	RE::Key::D,
-	RE::Key::Space,
-	RE::Key::LShift,
+	BindingInfo{RE::Key::A,			"PLAYER_LEFT",				"Walk left"},
+	BindingInfo{RE::Key::D,			"PLAYER_RIGHT",				"Walk right"},
+	BindingInfo{RE::Key::Space,		"PLAYER_JUMP",				"Jump"},
+	BindingInfo{RE::Key::LShift,	"PLAYER_AUTOJUMP",			"Autojump"},
 
-	RE::Key::Escape,
-	RE::Key::Numpad1,
-	RE::Key::Numpad2,
-	RE::Key::Numpad3
+	BindingInfo{RE::Key::Escape,	"QUIT",						"Quit"},
+	BindingInfo{RE::Key::Numpad1,	"MINIMAP",					"Draw minimap"},
+	BindingInfo{RE::Key::Numpad2,	"SHADOWS",					"Draw shadows"},
+	BindingInfo{RE::Key::Numpad3,	"PERMUTE",					"Permute order"}
 };
-
-static_assert(KEYBINDER_DEFAULT_LIST.size() == magic_enum::enum_count<RealWorldKeyBindings>()
-			&& KEYBINDER_DESC.size() == magic_enum::enum_count<RealWorldKeyBindings>());
 
 /**
  * @brief Global keybinder object for the RealWorld game
- *
- * Can also be accessed via abbrevation KB macro. KB = keybinder()
 */
 inline auto& keybinder() {
-	static RE::KeyBinder<RealWorldKeyBindings, KEYBINDER_DEFAULT_LIST> kb{};
+	static RE::KeyBinder<RealWorldKeyBindings, BindingInfo, KEYBINDING_INFO> kb{};
 	return kb;
 }
 
