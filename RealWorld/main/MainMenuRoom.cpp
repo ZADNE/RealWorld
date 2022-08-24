@@ -27,9 +27,9 @@ void controlsCategoryHeader(const char* header) {
 }
 
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
-	Room(DEFAULT_SETTINGS),
+	Room(0, DEFAULT_SETTINGS),
 	m_gameSettings(gameSettings) {
-	glm::ivec2 windowSize = window()->getDims();
+	glm::ivec2 windowSize = system().getWindowDims();
 	for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
 		if (windowSize == RESOLUTIONS[i]) {
 			m_selectedResolution = i;
@@ -47,7 +47,7 @@ void MainMenuRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	WorldSaveLoader::getSavedWorlds(m_worlds);
 	m_newWorldName = "";
 	m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
-	window()->setTitle("RealWorld!");
+	system().setWindowTitle("RealWorld!");
 }
 
 void MainMenuRoom::sessionEnd() {
@@ -59,7 +59,7 @@ void MainMenuRoom::step() {
 }
 
 void MainMenuRoom::render(double interpolationFactor) {
-	ImGui::SetNextWindowSize(window()->getDims());
+	ImGui::SetNextWindowSize(system().getWindowDims());
 	ImGui::SetNextWindowPos({0.0f, 0.0f});
 	ImGui::PushFont(m_arial16);
 
@@ -75,7 +75,7 @@ void MainMenuRoom::render(double interpolationFactor) {
 		}
 
 		if (m_menu != MAIN) {
-			ImGui::SetCursorPosY(window()->getDims().y - ImGui::GetFrameHeight() * 2.0f);
+			ImGui::SetCursorPosY(system().getWindowDims().y - ImGui::GetFrameHeight() * 2.0f);
 			ImGui::Separator();
 			if (ImGui::Button("Return to main menu") || keybindReleased(QUIT)) m_menu = MAIN;
 		}
@@ -95,9 +95,9 @@ void MainMenuRoom::mainMenu() {
 	if (ImGui::Button("Display settings")) m_menu = DISPLAY_SETTINGS;
 	if (ImGui::Button("Controls")) m_menu = CONTROLS;
 
-	ImGui::SetCursorPosY(window()->getDims().y - ImGui::GetFrameHeight() * 2.0f);
+	ImGui::SetCursorPosY(system().getWindowDims().y - ImGui::GetFrameHeight() * 2.0f);
 	ImGui::Separator();
-	if (ImGui::Button("Exit") || keybindPressed(QUIT)) program()->scheduleProgramExit();
+	if (ImGui::Button("Exit") || keybindPressed(QUIT)) system().scheduleExit();
 }
 
 void MainMenuRoom::newWorldMenu() {
@@ -108,7 +108,7 @@ void MainMenuRoom::newWorldMenu() {
 	ImGui::TextUnformatted("Seed: "); ImGui::SameLine(); ImGui::InputInt("##seed", &m_newWorldSeed);
 	if (ImGui::Button("Create the world!")) {
 		if (WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed)) {
-			program()->scheduleRoomTransition(1, {m_newWorldName});
+			system().scheduleRoomTransition(1, {m_newWorldName});
 		}
 	}
 }
@@ -121,7 +121,7 @@ void MainMenuRoom::loadWorldMenu() {
 	for (const auto& world : m_worlds) {
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
-		if (ImGui::Button(world.c_str())) program()->scheduleRoomTransition(1, {world});
+		if (ImGui::Button(world.c_str())) system().scheduleRoomTransition(1, {world});
 		ImGui::TableNextColumn();
 		if (ImGui::Button(("Delete##" + world).c_str())) {
 			WorldSaveLoader::deleteWorld(world);
@@ -141,7 +141,7 @@ void MainMenuRoom::displaySettingsMenu() {
 
 	ImGui::TextUnformatted("Fullscreen"); ImGui::SameLine();
 	if (ImGui::ToggleButton("##fullscreen", &m_fullscreen)) {
-		window()->goFullscreen(m_fullscreen, false);
+		system().goFullscreen(m_fullscreen, false);
 		m_unsavedChanges = true;
 	}
 
@@ -149,30 +149,30 @@ void MainMenuRoom::displaySettingsMenu() {
 		ImGui::SameLine();
 		ImGui::TextUnformatted("Borderless"); ImGui::SameLine();
 		if (ImGui::ToggleButton("##borderless", &m_borderless)) {
-			window()->goBorderless(m_borderless, false);
+			system().goBorderless(m_borderless, false);
 			m_unsavedChanges = true;
 		}
 	}
 
 	ImGui::TextUnformatted("VSync"); ImGui::SameLine();
 	if (ImGui::ToggleButton("##vSync", &m_vSync)) {
-		window()->setVSync(m_vSync, false);
+		system().setVSync(m_vSync, false);
 		m_unsavedChanges = true;
 	}
 
-	if (ivec2ComboSelect<RESOLUTIONS>("Resolution", window()->getDims().x * 0.125f, m_selectedResolution)) {
-		program()->resizeWindow(RESOLUTIONS[m_selectedResolution], false);
+	if (ivec2ComboSelect<RESOLUTIONS>("Resolution", system().getWindowDims().x * 0.125f, m_selectedResolution)) {
+		system().setWindowDims(RESOLUTIONS[m_selectedResolution], false);
 		m_unsavedChanges = true;
 	}
 
-	if (ivec2ComboSelect<ACTIVE_CHUNKS_AREAS>("Active chunks area", window()->getDims().x * 0.125f, m_selectedActiveChunksArea)) {
+	if (ivec2ComboSelect<ACTIVE_CHUNKS_AREAS>("Active chunks area", system().getWindowDims().x * 0.125f, m_selectedActiveChunksArea)) {
 		m_gameSettings.setActiveChunksArea(ACTIVE_CHUNKS_AREAS[m_selectedActiveChunksArea]);
 		m_unsavedChanges = true;
 	}
 
 	ImGui::NewLine();
 	if (m_unsavedChanges && ImGui::Button("Save changes")) {
-		window()->save();
+		system().saveWindowSettings();
 		m_gameSettings.save();
 		m_unsavedChanges = false;
 	}
@@ -183,7 +183,7 @@ void MainMenuRoom::controlsMenu() {
 	ImGui::Separator();
 
 	ImGui::BeginTable("##controlsTable", 3,
-		ImGuiTableFlags_ScrollY, {0.0f, window()->getDims().y - ImGui::GetFrameHeight() * 4.125f});
+		ImGuiTableFlags_ScrollY, {0.0f, system().getWindowDims().y - ImGui::GetFrameHeight() * 4.125f});
 	for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::COUNT); i++) {
 		ImGui::PushID(static_cast<int>(i));
 		switch (static_cast<RealWorldKeyBindings>(i)) {
@@ -215,7 +215,7 @@ void MainMenuRoom::controlsMenu() {
 	}
 
 	if (m_drawKeybindListeningPopup) {
-		glm::vec2 display = window()->getDims();
+		glm::vec2 display = system().getWindowDims();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::SetNextWindowContentSize(KEYBIND_NOTICE_SIZE());
 		ImGui::SetNextWindowPos(display * 0.5f - KEYBIND_NOTICE_SIZE() * 0.5f);

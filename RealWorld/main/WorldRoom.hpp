@@ -50,7 +50,7 @@ public:
 	void step() override;
 	void render(double interpolationFactor) override;
 
-	void windowResized(const glm::ivec2& newDims) override;
+	void windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) override;
 
 private:
 	static constexpr RE::RoomDisplaySettings DEFAULT_SETTINGS{
@@ -81,7 +81,7 @@ private:
 	ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
 	//View
-	RE::View2D m_worldView{window()->getDims()};
+	RE::View2D m_worldView{system().getWindowDims()};
 	RE::TypedBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	//Gameplay

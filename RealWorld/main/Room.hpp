@@ -11,20 +11,20 @@
  */
 class Room : public RE::Room {
 public:
-	Room(const RE::RoomDisplaySettings& rds) : RE::Room(rds) {}
+	Room(size_t name, const RE::RoomDisplaySettings& rds) : RE::Room(name, rds) {}
 
 protected:
 	using enum RealWorldKeyBindings;
 
 	int keybindPressed(RealWorldKeyBindings binding) {
-		return input()->wasPressed(keybinder(binding));
+		return input().wasPressed(keybinder(binding));
 	}
 
 	int keybindReleased(RealWorldKeyBindings binding) {
-		return input()->wasReleased(keybinder(binding));
+		return input().wasReleased(keybinder(binding));
 	}
 
 	int keybindDown(RealWorldKeyBindings binding) {
-		return input()->isDown(keybinder(binding));
+		return input().isDown(keybinder(binding));
 	}
 };

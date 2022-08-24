@@ -48,9 +48,9 @@ private:
 	int m_newWorldSeed = 0;							/**< Seed of the world that will be created */
 
 	bool m_unsavedChanges = false;					/**< True if anything has been changed in settings */
-	bool m_fullscreen = window()->isFullscreen();	/**< Current state */
-	bool m_borderless = window()->isBorderless();	/**< Current state */
-	bool m_vSync = window()->isVSynced();			/**< Current state */
+	bool m_fullscreen = system().isFullscreen();	/**< Current state */
+	bool m_borderless = system().isBorderless();	/**< Current state */
+	bool m_vSync = system().isVSynced();			/**< Current state */
 	size_t m_selectedResolution = 0;				/**< Index into the array of supported resolutions */
 	size_t m_selectedActiveChunksArea = 0;			/**< Index into the array of supported active-chunks areas */
 

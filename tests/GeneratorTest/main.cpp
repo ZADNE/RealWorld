@@ -4,6 +4,7 @@
 #include <chrono>
 #include <optional>
 
+#include <RealEngine/main/program/MainProgram.hpp>
 #include <RealEngine/main/rooms/Room.hpp>
 #include <RealEngine/rendering/cameras/View2D.hpp>
 #include <RealEngine/rendering/Ordering.hpp>
@@ -29,9 +30,10 @@ using namespace std::chrono;
 
 class Room : public RE::Room {
 public:
-	Room(RE::CommandLineArguments args) : RE::Room(DISPLAY_SETTINGS), m_worldDrawer(RESOLUTION) {}
+	Room() : RE::Room(0, DISPLAY_SETTINGS), m_worldDrawer(RESOLUTION) {}
 
 	void sessionStart(const RE::RoomTransitionParameters& params) override {
+		system().setWindowDims(RESOLUTION, false);
 		resetRecords();
 		//Initialize compute shader generator
 		m_genCS.emplace();
@@ -112,21 +114,13 @@ private:
 	int m_batchN;
 	nanoseconds m_total_ns;
 	int m_histogram[15];
-	int m_state;
-};
-
-class Program : public RE::MainProgram {
-public:
-	Program(RE::CommandLineArguments args) :
-		m_testRoom(args) {
-		resizeWindow(RESOLUTION, false);
-		m_roomManager.gotoRoom(m_roomManager.addRoom(&m_testRoom), {});
-	}
-
-private:
-	Room m_testRoom;
+	int m_state = 0;
 };
 
 int main(int argc, char* argv[]) {
-	return RE::runProgram<Program>(argc, argv);
+	RE::MainProgram::initialize();
+
+	Room testRoom;
+
+	return RE::MainProgram::run(testRoom, {});
 }
