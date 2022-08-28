@@ -12,6 +12,7 @@
  */
 class GameSettings {
 public:
+
 	/**
 	 * @brief Constructs settings from file that was saved before.
 	 *
@@ -35,5 +36,6 @@ public:
 	void setActiveChunksArea(const glm::ivec2& activeChunksArea) { m_activeChunksArea = activeChunksArea; }
 
 private:
+
 	glm::ivec2 m_activeChunksArea;
 };

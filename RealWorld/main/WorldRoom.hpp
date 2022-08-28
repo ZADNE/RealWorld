@@ -81,7 +81,7 @@ private:
 	ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
 	//View
-	RE::View2D m_worldView{system().getWindowDims()};
+	RE::View2D m_worldView{engine().getWindowDims()};
 	RE::TypedBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
 	//Gameplay

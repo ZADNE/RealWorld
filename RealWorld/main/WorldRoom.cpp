@@ -9,11 +9,11 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings) :
 	Room(1, DEFAULT_SETTINGS),
 	m_gameSettings(gameSettings),
 	m_world(m_chunkGen),
-	m_worldDrawer(system().getWindowDims()),
+	m_worldDrawer(engine().getWindowDims()),
 	m_player(RE::SpriteBatch::std()),
 	m_playerInv({10, 4}),
 	m_itemUser(m_world, m_playerInv, m_player.getHitbox()),
-	m_invUI(RE::SpriteBatch::std(), system().getWindowDims()) {
+	m_invUI(RE::SpriteBatch::std(), engine().getWindowDims()) {
 
 	//InventoryUI connections
 	m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
@@ -24,10 +24,10 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
 	try {
 		const std::string& worldName = std::any_cast<const std::string&>(params[0]);
 		if (!loadWorld(worldName)) {
-			system().scheduleRoomTransition(0, {});
+			engine().scheduleRoomTransition(0, {});
 			return;
 		}
-		system().setWindowTitle("RealWorld! - " + worldName);
+		engine().setWindowTitle("RealWorld! - " + worldName);
 	}
 	catch (...) {
 		RE::fatalError("Bad transition paramaters to start WorldRoom session");
@@ -53,8 +53,8 @@ void WorldRoom::step() {
 	glm::vec2 prevViewPos = m_worldView.getPosition();
 	glm::vec2 targetViewPos = glm::vec2(m_player.getHitbox().getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
 	auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
-	//auto viewPos = prevViewPos + glm::vec2(glm::ivec2(input().getCursorAbs()) - system().getWindowDims() / 2) * 0.03f;
-	m_worldView.setCursorAbs(input().getCursorAbs());
+	//auto viewPos = prevViewPos + glm::vec2(glm::ivec2(engine().getCursorAbs()) - engine().getWindowDims() / 2) * 0.03f;
+	m_worldView.setCursorAbs(engine().getCursorAbs());
 	m_worldView.setPosition(glm::floor(viewPos));
 	m_worldViewUBO.overwrite(0u, m_worldView.getViewMatrix());
 
@@ -79,8 +79,8 @@ void WorldRoom::step() {
 	m_invUI.step();
 	if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); }
 	if (m_invUI.isOpen()) {//Inventory is open
-		if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(input().getCursorAbs()); }
-		if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(input().getCursorAbs(), 0.5f); }
+		if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(engine().getCursorAbs()); }
+		if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(engine().getCursorAbs(), 0.5f); }
 	} else { //Inventory is closed
 		if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
 			if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(1.0f); }
@@ -100,7 +100,7 @@ void WorldRoom::step() {
 	m_worldDrawer.endStep();
 
 	//Toggles & quit
-	if (keybindPressed(QUIT)) { system().scheduleRoomTransition(0, {}); }
+	if (keybindPressed(QUIT)) { engine().scheduleRoomTransition(0, {}); }
 	if (keybindPressed(MINIMAP)) { m_worldDrawer.shouldDrawMinimap(m_minimap = !m_minimap); }
 	if (keybindPressed(SHADOWS)) { m_worldDrawer.shouldDrawShadows(m_shadows = !m_shadows); }
 	if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
@@ -137,7 +137,7 @@ void WorldRoom::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec
 void WorldRoom::drawGUI() {
 	//Inventory
 	RE::SpriteBatch::std().begin();
-	m_invUI.draw(input().getCursorAbs());
+	m_invUI.draw(engine().getCursorAbs());
 	RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
 	RE::SpriteBatch::std().draw();
 	//Minimap
@@ -147,8 +147,8 @@ void WorldRoom::drawGUI() {
 	ImGui::PushFont(m_arial);
 	if (ImGui::Begin("##topLeftMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
 		ImGui::Text("FPS: %u\nMax FT: %i us",
-			system().getFramesPerSecond(),
-			(int)std::chrono::duration_cast<std::chrono::microseconds>(system().getMaxFrameTime()).count());
+			engine().getFramesPerSecond(),
+			(int)std::chrono::duration_cast<std::chrono::microseconds>(engine().getMaxFrameTime()).count());
 		ImGui::Separator();
 		ImGui::TextUnformatted("Minimap:"); ImGui::SameLine();
 		if (ImGui::ToggleButton("##minimap", &m_minimap)) m_worldDrawer.shouldDrawMinimap(m_minimap);

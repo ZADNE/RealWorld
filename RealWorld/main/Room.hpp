@@ -17,14 +17,14 @@ protected:
 	using enum RealWorldKeyBindings;
 
 	int keybindPressed(RealWorldKeyBindings binding) {
-		return input().wasPressed(keybinder(binding));
+		return engine().wasKeyPressed(keybinder(binding));
 	}
 
 	int keybindReleased(RealWorldKeyBindings binding) {
-		return input().wasReleased(keybinder(binding));
+		return engine().wasKeyReleased(keybinder(binding));
 	}
 
 	int keybindDown(RealWorldKeyBindings binding) {
-		return input().isDown(keybinder(binding));
+		return engine().isKeyDown(keybinder(binding));
 	}
 };
