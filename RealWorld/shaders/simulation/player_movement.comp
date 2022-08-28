@@ -1,87 +1,87 @@
 R""(
 #line 3
 
-layout(	local_size_x = 1,
-		local_size_y = 1,
-		local_size_z = 1
+layout( local_size_x = 1,
+        local_size_y = 1,
+        local_size_z = 1
 ) in;
 
 ivec2 pxToTi(vec2 posPx){
-	return ivec2(floor(posPx / TILEPx));
+    return ivec2(floor(posPx / TILEPx));
 }
 
 int pxToTi(float posPx){
-	return int(floor(posPx / TILEPx));
+    return int(floor(posPx / TILEPx));
 }
 
 uint ground(){
-	uint grnd = AIR.BLOCK_TYPE;
-	int yTi = pxToTi(botLeftPx.y - 1.0);
-	for(int xTi = pxToTi(botLeftPx.x); xTi <= pxToTi(botLeftPx.x + dimsPx.x); ++xTi){
-		grnd = min(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);
-	}
-	return grnd;
+    uint grnd = AIR.BLOCK_TYPE;
+    int yTi = pxToTi(botLeftPx.y - 1.0);
+    for(int xTi = pxToTi(botLeftPx.x); xTi <= pxToTi(botLeftPx.x + dimsPx.x); ++xTi){
+        grnd = min(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);
+    }
+    return grnd;
 }
 
 bool overlapsBlocks(vec2 offsetPx){
-	vec2 posPx = botLeftPx + offsetPx;
-	for(int yTi = pxToTi(posPx.y); yTi <= pxToTi(posPx.y + dimsPx.y); ++yTi){
-		for(int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi){
-			if (isSolidBlock(tileLoad(ivec2(xTi, yTi)).BL_T)){
-				return true;
-			}
-		}
-	}
-	return false;
+    vec2 posPx = botLeftPx + offsetPx;
+    for(int yTi = pxToTi(posPx.y); yTi <= pxToTi(posPx.y + dimsPx.y); ++yTi){
+        for(int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi){
+            if (isSolidBlock(tileLoad(ivec2(xTi, yTi)).BL_T)){
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void tryJump(float jumpPower){
-	if (jump_autojump[0] != 0.0 || //Jump
-		(jump_autojump[1] != 0.0 && walkDirection != 0.0 && overlapsBlocks(vec2(velocityPx.x * 4.0, 0.0)))){//Autojump
-		velocityPx.y = jumpVelocity * jumpPower;
-	}
+    if (jump_autojump[0] != 0.0 || //Jump
+        (jump_autojump[1] != 0.0 && walkDirection != 0.0 && overlapsBlocks(vec2(velocityPx.x * 4.0, 0.0)))){//Autojump
+        velocityPx.y = jumpVelocity * jumpPower;
+    }
 }
 
 void main(){
-	if (walkDirection != 0.0){
-		velocityPx.x += walkDirection * acceleration;//Walk
-		velocityPx.x = clamp(velocityPx.x, -maxWalkVelocity, maxWalkVelocity);
-	} else {
-		velocityPx.x -= sign(velocityPx.x);//Friction
-	}
-	
-	uint grnd = ground();
-	if (isSolidBlock(grnd)){//Standing on solid ground
-		tryJump(1.0);
-	} else if (!isAirBlock(grnd)){//Floating in a fluid
-		tryJump(0.75);
-		velocityPx *= 0.9375;
-		velocityPx *= 0.9375;
-		velocityPx.y -= 0.1875;//Gravity
-	} else {//Falling through air
-		velocityPx.y -= 0.1875;//Gravity
-	}
-	
-	vec2 truncVelPx = trunc(velocityPx);
-	if (overlapsBlocks(vec2(velocityPx.x, 0.0))) {
-		float velSign = sign(velocityPx.x);
-		while (!overlapsBlocks(vec2(velSign, 0.0))) {
-			botLeftPx.x += velSign;
-		}
-		velocityPx.x = 0.0;
-	} else {
-		botLeftPx.x += truncVelPx.x;
-	}
+    if (walkDirection != 0.0){
+        velocityPx.x += walkDirection * acceleration;//Walk
+        velocityPx.x = clamp(velocityPx.x, -maxWalkVelocity, maxWalkVelocity);
+    } else {
+        velocityPx.x -= sign(velocityPx.x);//Friction
+    }
+    
+    uint grnd = ground();
+    if (isSolidBlock(grnd)){//Standing on solid ground
+        tryJump(1.0);
+    } else if (!isAirBlock(grnd)){//Floating in a fluid
+        tryJump(0.75);
+        velocityPx *= 0.9375;
+        velocityPx *= 0.9375;
+        velocityPx.y -= 0.1875;//Gravity
+    } else {//Falling through air
+        velocityPx.y -= 0.1875;//Gravity
+    }
+    
+    vec2 truncVelPx = trunc(velocityPx);
+    if (overlapsBlocks(vec2(velocityPx.x, 0.0))) {
+        float velSign = sign(velocityPx.x);
+        while (!overlapsBlocks(vec2(velSign, 0.0))) {
+            botLeftPx.x += velSign;
+        }
+        velocityPx.x = 0.0;
+    } else {
+        botLeftPx.x += truncVelPx.x;
+    }
 
-	if (overlapsBlocks(vec2(0.0, velocityPx.y))) {
-		float velSign = sign(velocityPx.y);
-		while (!overlapsBlocks(vec2(0.0, velSign))) {
-			botLeftPx.y += velSign;
-		}
-		velocityPx.y = 0.0;
-	} else {
-		botLeftPx.y += truncVelPx.y;
-	}
+    if (overlapsBlocks(vec2(0.0, velocityPx.y))) {
+        float velSign = sign(velocityPx.y);
+        while (!overlapsBlocks(vec2(0.0, velSign))) {
+            botLeftPx.y += velSign;
+        }
+        velocityPx.y = 0.0;
+    } else {
+        botLeftPx.y += truncVelPx.y;
+    }
 }
 
 )""

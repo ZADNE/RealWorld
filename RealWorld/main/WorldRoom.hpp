@@ -43,62 +43,64 @@ constexpr glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.904705
 */
 class WorldRoom : public Room {
 public:
-	WorldRoom(const GameSettings& gameSettings);
 
-	void sessionStart(const RE::RoomTransitionParameters& params) override;
-	void sessionEnd() override;
-	void step() override;
-	void render(double interpolationFactor) override;
+    WorldRoom(const GameSettings& gameSettings);
 
-	void windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) override;
+    void sessionStart(const RE::RoomTransitionParameters& params) override;
+    void sessionEnd() override;
+    void step() override;
+    void render(double interpolationFactor) override;
+
+    void windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) override;
 
 private:
-	static constexpr RE::RoomDisplaySettings DEFAULT_SETTINGS{
-		.clearColor = SKY_BLUE,
-		.stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
-		.framesPerSecondLimit = FPS_LIMIT,
-		.usingImGui = true
-	};
 
-	void drawGUI();
+    static constexpr RE::RoomDisplaySettings DEFAULT_SETTINGS{
+        .clearColor = SKY_BLUE,
+        .stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
+        .framesPerSecondLimit = FPS_LIMIT,
+        .usingImGui = true
+    };
 
-	/**
-	 * @brief Loads a world. Previously loaded world is flushed without saving.
-	 *
-	 * @param worldName Filename of the world
-	 * @return True if successful, false otherwise. No change is done to current world then.
-	 */
-	bool loadWorld(const std::string& worldName);
+    void drawGUI();
 
-	/**
-	 * @brief Saves the current world. Makes no changes to the world.
-	 *
-	 * @return True if successful, false otherwise.
-	 */
-	bool saveWorld() const;
+    /**
+     * @brief Loads a world. Previously loaded world is flushed without saving.
+     *
+     * @param worldName Filename of the world
+     * @return True if successful, false otherwise. No change is done to current world then.
+     */
+    bool loadWorld(const std::string& worldName);
 
-	const GameSettings& m_gameSettings;
-	ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
+    /**
+     * @brief Saves the current world. Makes no changes to the world.
+     *
+     * @return True if successful, false otherwise.
+     */
+    bool saveWorld() const;
 
-	//View
-	RE::View2D m_worldView{engine().getWindowDims()};
-	RE::TypedBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+    const GameSettings& m_gameSettings;
+    ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
-	//Gameplay
+    //View
+    RE::View2D m_worldView{engine().getWindowDims()};
+    RE::TypedBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+
+    //Gameplay
 #if CHUNK_GENERATOR == CS_GENERATOR
-	ChunkGeneratorCS m_chunkGen;
+    ChunkGeneratorCS m_chunkGen;
 #elif CHUNK_GENERATOR == FBO_GENERATOR
-	ChunkGeneratorFBO m_chunkGen;
+    ChunkGeneratorFBO m_chunkGen;
 #endif
-	World m_world;
-	WorldDrawer m_worldDrawer;
-	Player m_player;
-	Inventory m_playerInv;
-	ItemUser m_itemUser;
-	InventoryUI m_invUI;
+    World m_world;
+    WorldDrawer m_worldDrawer;
+    Player m_player;
+    Inventory m_playerInv;
+    ItemUser m_itemUser;
+    InventoryUI m_invUI;
 
-	//Toggle states
-	bool m_minimap = false;
-	bool m_shadows = true;
-	bool m_permute = true;
+    //Toggle states
+    bool m_minimap = false;
+    bool m_shadows = true;
+    bool m_permute = true;
 };

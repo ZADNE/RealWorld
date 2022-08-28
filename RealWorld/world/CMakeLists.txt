@@ -1,5 +1,5 @@
 ﻿target_sources(RealWorld PRIVATE 
-	Chunk.hpp				Chunk.cpp
-	ChunkManager.hpp		ChunkManager.cpp
-	World.hpp				World.cpp
+    Chunk.hpp                   Chunk.cpp
+    ChunkManager.hpp            ChunkManager.cpp
+    World.hpp                   World.cpp
 )

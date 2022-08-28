@@ -17,7 +17,7 @@ const RE::BufferTypedIndex STRG_BUF_EXTERNALLIGHTS = { RE::BufferType::SHADER_ST
 
 //UNIFORM BUFFERS
 
-//														0 reserved by RealEngine
+//                                                        0 reserved by RealEngine
 const RE::BufferTypedIndex UNIF_BUF_PLAYERMOVEMENT = { RE::BufferType::UNIFORM, 1u };
 const RE::BufferTypedIndex UNIF_BUF_CHUNKGEN = { RE::BufferType::UNIFORM, 2u };
 const RE::BufferTypedIndex UNIF_BUF_WORLDDRAWER = { RE::BufferType::UNIFORM, 3u };

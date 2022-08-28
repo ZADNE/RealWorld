@@ -1,4 +1,4 @@
 ﻿target_sources(RealWorld PRIVATE 
-	Hitbox.hpp			Hitbox.cpp
-	Player.hpp			Player.cpp
+    Hitbox.hpp                  Hitbox.cpp
+    Player.hpp                  Player.cpp
 )

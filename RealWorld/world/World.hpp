@@ -13,9 +13,9 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 
 enum class MODIFY_SHAPE : unsigned int {
-	SQUARE,
-	DISC,
-	FILL
+    SQUARE,
+    DISC,
+    FILL
 };
 
 /**
@@ -26,70 +26,71 @@ enum class MODIFY_SHAPE : unsigned int {
 class World {
 public:
 
-	/**
-	 * @brief Initializes the world
-	 * @param The generator that will be used to generate new chunks
-	*/
-	World(ChunkGenerator& chunkGen);
+    /**
+     * @brief Initializes the world
+     * @param The generator that will be used to generate new chunks
+    */
+    World(ChunkGenerator& chunkGen);
 
-	/**
-	 * @copydoc ChunkHandler::getNumberOfInactiveChunks
-	*/
-	size_t getNumberOfInactiveChunks();
+    /**
+     * @copydoc ChunkHandler::getNumberOfInactiveChunks
+    */
+    size_t getNumberOfInactiveChunks();
 
-	/**
-	 * @brief Modifies tiles in the world
-	*/
-	void modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile);
+    /**
+     * @brief Modifies tiles in the world
+    */
+    void modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile);
 
-	/**
-	 * @brief Performs a simulation step of the world.
-	 * @param botLeftTi The most bottom-left tile that has to be active
-	 * @param topRightTi The most top-right tile that has to be active
-	 * @return The number of chunks that had to be activated this step
-	*/
-	int step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+    /**
+     * @brief Performs a simulation step of the world.
+     * @param botLeftTi The most bottom-left tile that has to be active
+     * @param topRightTi The most top-right tile that has to be active
+     * @return The number of chunks that had to be activated this step
+    */
+    int step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	/**
-	 * @brief Sets this world class to simulate the world inside the given save
-	 * @param save Save of the world to run
-	 * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8.
-	*/
-	void adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
+    /**
+     * @brief Sets this world class to simulate the world inside the given save
+     * @param save Save of the world to run
+     * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8.
+    */
+    void adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
 
-	void gatherSave(MetadataSave& save) const;
+    void gatherSave(MetadataSave& save) const;
 
-	bool saveChunks() const;
+    bool saveChunks() const;
 
-	void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
+    void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
 
 private:
-	void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	RE::Texture m_worldTex;
-	int m_seed = 0;
+    void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-	std::string m_worldName;
+    RE::Texture m_worldTex;
+    int m_seed = 0;
 
-	struct WorldDynamicsUBO {
-		glm::ivec2 globalPosTi;
-		glm::uint modifyTarget;
-		glm::uint modifyShape;
-		glm::uvec2 modifySetValue;
-		float modifyDiameter;
-		glm::uint timeHash;
-		glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
-	};
-	RE::TypedBuffer m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+    std::string m_worldName;
 
-	RE::ShaderProgram m_fluidDynamicsShd = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
-	RE::ShaderProgram m_tileTransformationsShd = RE::ShaderProgram{{.comp = tileTransformations_comp}};
-	RE::ShaderProgram m_modifyShd = RE::ShaderProgram{{.comp = modify_comp}};
+    struct WorldDynamicsUBO {
+        glm::ivec2 globalPosTi;
+        glm::uint modifyTarget;
+        glm::uint modifyShape;
+        glm::uvec2 modifySetValue;
+        float modifyDiameter;
+        glm::uint timeHash;
+        glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
+    };
+    RE::TypedBuffer m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
-	std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
-	uint32_t m_rngState;
+    RE::ShaderProgram m_fluidDynamicsShd = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
+    RE::ShaderProgram m_tileTransformationsShd = RE::ShaderProgram{{.comp = tileTransformations_comp}};
+    RE::ShaderProgram m_modifyShd = RE::ShaderProgram{{.comp = modify_comp}};
 
-	ChunkManager m_chunkManager;
+    std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
+    uint32_t m_rngState;
 
-	bool m_permuteOrder = true;
+    ChunkManager m_chunkManager;
+
+    bool m_permuteOrder = true;
 };

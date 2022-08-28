@@ -8,12 +8,12 @@
 #include <RealWorld/main/WorldRoom.hpp>
 
 int main(int argc, char* argv[]) {
-	RE::MainProgram::initialize();
+    RE::MainProgram::initialize();
 
-	GameSettings gameSettings{};
+    GameSettings gameSettings{};
 
-	auto* mainMenuRoom = RE::MainProgram::addRoom<MainMenuRoom>(gameSettings);
-	RE::MainProgram::addRoom<WorldRoom>(gameSettings);
+    auto* mainMenuRoom = RE::MainProgram::addRoom<MainMenuRoom>(gameSettings);
+    RE::MainProgram::addRoom<WorldRoom>(gameSettings);
 
-	return RE::MainProgram::run(mainMenuRoom->getName(), {});
+    return RE::MainProgram::run(mainMenuRoom->getName(), {});
 }

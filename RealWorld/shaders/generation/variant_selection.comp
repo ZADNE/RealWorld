@@ -1,36 +1,36 @@
 R""(
 #line 3
-layout(	local_size_x = GEN_CS_GROUP_SIZE,
-		local_size_y = GEN_CS_GROUP_SIZE,
-		local_size_z = 1
+layout( local_size_x = GEN_CS_GROUP_SIZE,
+        local_size_y = GEN_CS_GROUP_SIZE,
+        local_size_z = 1
 ) in;
 
 layout(binding = IMG_UNIT_GEN_TILES0, rgba8ui) uniform restrict writeonly uimage2D tilesImage;
 layout(binding = TEX_UNIT_GEN_TILES0) uniform usampler2D tilesTexture;
 
 const ivec2 OFFSETS[] = {
-				{-1, +2},	{+0, +2},	{+1, +2},
-	{-2, +1}, 	{-1, +1}, 	{+0, +1}, 	{+1, +1},	{+2, +1},
-	{-2, +0}, 	{-1, +0}, 				{+1, +0},	{+2, +0},
-	{-2, -1}, 	{-1, -1}, 	{+0, -1}, 	{+1, -1}, 	{+2, -1},
-				{-1, -2},	{+0, -2},	{+1, -2}
+                {-1, +2},   {+0, +2},   {+1, +2},
+    {-2, +1},   {-1, +1},   {+0, +1},   {+1, +1},   {+2, +1},
+    {-2, +0},   {-1, +0},               {+1, +0},   {+2, +0},
+    {-2, -1},   {-1, -1},   {+0, -1},   {+1, -1},   {+2, -1},
+                {-1, -2},   {+0, -2},   {+1, -2}
 };
-	
+    
 void main() {
-	ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-	uvec2 block_wall = texelFetch(tilesTexture, pTi, 0).TILE_TYPE;
-	
-	bvec2 inner = bvec2(false, false);
-	for (int i = 0; i < OFFSETS.length(); i++){
-		inner = inner || isFluidTile(texelFetch(tilesTexture, pTi + OFFSETS[i], 0).TILE_TYPE);
-	}
-	
-	vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
-	uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
-	
-	uvec2 variation = uvec2(hash22(vec2(chunkOffsetTi + pTi)) * variationRange) + variationOffset;
-	
-	imageStore(tilesImage, ivec2(gl_GlobalInvocationID.xy), uvec4(block_wall.x, variation.x, block_wall.y, variation.y));
+    ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
+    uvec2 block_wall = texelFetch(tilesTexture, pTi, 0).TILE_TYPE;
+    
+    bvec2 inner = bvec2(false, false);
+    for (int i = 0; i < OFFSETS.length(); i++){
+        inner = inner || isFluidTile(texelFetch(tilesTexture, pTi + OFFSETS[i], 0).TILE_TYPE);
+    }
+    
+    vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
+    uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
+    
+    uvec2 variation = uvec2(hash22(vec2(chunkOffsetTi + pTi)) * variationRange) + variationOffset;
+    
+    imageStore(tilesImage, ivec2(gl_GlobalInvocationID.xy), uvec4(block_wall.x, variation.x, block_wall.y, variation.y));
 }
 
 )""

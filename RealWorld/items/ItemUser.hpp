@@ -10,40 +10,43 @@
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/physics/Hitbox.hpp>
 
- /**
-  * @brief Uses items from an inventory.
-  *
-  * Can add or remove tile to the world.
- */
+/**
+ * @brief Uses items from an inventory.
+ *
+ * Can add or remove tile to the world.
+*/
 class ItemUser {
 public:
-	const static int PRIMARY_USE = 0;
-	const static int SECONDARY_USE = 1;
 
-	ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox);
+    const static int PRIMARY_USE = 0;
+    const static int SECONDARY_USE = 1;
 
-	void switchShape();
-	void resizeShape(float change);
+    ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox);
 
-	//Does not check if the slot is inside the inventory!
-	void selectSlot(int slot);
+    void switchShape();
+    void resizeShape(float change);
 
-	void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch& geometryBatch);
+    //Does not check if the slot is inside the inventory!
+    void selectSlot(int slot);
+
+    void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch& geometryBatch);
+
 private:
-	World& m_world;
-	Inventory& m_inv;
-	Hitbox& m_operatorsHitbox;
 
-	int m_chosenSlot = 0;
+    World& m_world;
+    Inventory& m_inv;
+    Hitbox& m_operatorsHitbox;
 
-	MODIFY_SHAPE m_shape = MODIFY_SHAPE::DISC;
-	float m_diameter = 1.5f;
+    int m_chosenSlot = 0;
 
-	// <  -1: steps not using
-	// == -1: just stopped using
-	// == +0: invalid state
-	// >  +1: steps using
-	// == +1: just started using
-	int m_using[2] = {-1, -1};
-	Item* m_item = nullptr;
+    MODIFY_SHAPE m_shape = MODIFY_SHAPE::DISC;
+    float m_diameter = 1.5f;
+
+    // <  -1: steps not using
+    // == -1: just stopped using
+    // == +0: invalid state
+    // >  +1: steps using
+    // == +1: just started using
+    int m_using[2] = {-1, -1};
+    Item* m_item = nullptr;
 };

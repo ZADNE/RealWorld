@@ -4,91 +4,91 @@ const int TRANSFORM_GROUP_SIZE = 4;
 
 const ivec2 INVOC_DISPLACEMENT = CHUNK_SIZE / TRANSFORM_GROUP_SIZE;
 
-layout(	local_size_x = TRANSFORM_GROUP_SIZE,
-		local_size_y = TRANSFORM_GROUP_SIZE,
-		local_size_z = 1
+layout( local_size_x = TRANSFORM_GROUP_SIZE,
+        local_size_y = TRANSFORM_GROUP_SIZE,
+        local_size_z = 1
 ) in;
 
 uint invocHash(){
-	uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
-	return globalIndex ^ timeHash;
+    uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
+    return globalIndex ^ timeHash;
 }
 uint randomState = invocHash();
 
 //Xorshift algorithm by George Marsaglia
 uint random(){
-	randomState ^= randomState << 13;
-	randomState ^= randomState >> 17;
-	randomState ^= randomState << 5;
-	return randomState;
+    randomState ^= randomState << 13;
+    randomState ^= randomState >> 17;
+    randomState ^= randomState << 5;
+    return randomState;
 }
 
 uvec2 random2(){
-	return uvec2(random(), random());
+    return uvec2(random(), random());
 }
 
 const ivec2 OFFSETS[] = {
-				{-1, +2},	{+0, +2},	{+1, +2},
-	{-2, +1}, 	{-1, +1}, 	{+0, +1}, 	{+1, +1},	{+2, +1},
-	{-2, +0}, 	{-1, +0}, 				{+1, +0},	{+2, +0},
-	{-2, -1}, 	{-1, -1}, 	{+0, -1}, 	{+1, -1}, 	{+2, -1},
-				{-1, -2},	{+0, -2},	{+1, -2}
+                {-1, +2},   {+0, +2},   {+1, +2},
+    {-2, +1},   {-1, +1},   {+0, +1},   {+1, +1},   {+2, +1},
+    {-2, +0},   {-1, +0},               {+1, +0},   {+2, +0},
+    {-2, -1},   {-1, -1},   {+0, -1},   {+1, -1},   {+2, -1},
+                {-1, -2},   {+0, -2},   {+1, -2}
 };
 
 bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, uvec4 rule, uvec2 nearbyProperties, bvec2 edgeTile){
-	uint props = nearbyProperties[layer] | mix(0, nearbyProperties[otherLayer], bool(rule.z & MIX_PROPSb));
-	bool requiredNearby = (props & rule.x) == rule.x;
-	bool forbiddenNotNearby = (props & rule.y) == 0;
-	bool edgeRequiredToSpread = bool(rule.z & EDGEb);
-	bool transform = requiredNearby && forbiddenNotNearby && (!edgeRequiredToSpread || edgeTile[layer]);
-	tile[layer * 2] = mix(tile[layer * 2], rule.w, transform);
-	return transform;
+    uint props = nearbyProperties[layer] | mix(0, nearbyProperties[otherLayer], bool(rule.z & MIX_PROPSb));
+    bool requiredNearby = (props & rule.x) == rule.x;
+    bool forbiddenNotNearby = (props & rule.y) == 0;
+    bool edgeRequiredToSpread = bool(rule.z & EDGEb);
+    bool transform = requiredNearby && forbiddenNotNearby && (!edgeRequiredToSpread || edgeTile[layer]);
+    tile[layer * 2] = mix(tile[layer * 2], rule.w, transform);
+    return transform;
 }
 
 void main(){
-	random();
-	ivec2 centerTi = offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
-					+ (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
-					
-	
-	uvec4 tile = tileLoad(centerTi);
-	bvec2 edgeTile = bvec2(false, false);
-	uvec2 nearbyProperties = uvec2(0);
-	for(int i = 0; i < OFFSETS.length(); ++i){//Check all neighbors
-		uvec4 neighbor = tileLoad(centerTi + OFFSETS[i]);
-		//Analyze the neighbor
-		nearbyProperties |= uvec2(BLOCK_PROPERTIES[neighbor.BL_T], WALL_PROPERTIES[neighbor.WL_T]);
-		edgeTile = edgeTile || isFluidTile(neighbor.TL_T);
-	}
-	
-	
-	//Transform block of the tile
-	uvec2 blockRuleIndices = BLOCK_TRANSF_INDICES[tile.BL_T];
-	for (uint i = blockRuleIndices.x; i <= blockRuleIndices.y;++i) {
-		if (layerTransition(tile, 0, 1, BLOCK_TRANSF_RULE[i], nearbyProperties, edgeTile)){
-			break;
-		}
-	}
-	//Transform wall of the tile
-	uvec2 wallRuleIndices = WALL_TRANSF_INDICES[tile.WL_T];
-	for (uint i = wallRuleIndices.x; i <= wallRuleIndices.y;++i) {
-		if (layerTransition(tile, 1, 0, WALL_TRANSF_RULE[i], nearbyProperties, edgeTile)){
-			break;
-		}
-	}
-	
-	//Select variant
-	bvec2 currentlyInner = lessThan(tile.TILE_VAR, uvec2(12));
-	bvec2 isSolid = isSolidTile(tile.TILE_TYPE);
-	bvec2 switchToInner = (!edgeTile && !currentlyInner) && isSolid;
-	bvec2 switchToOuter = (edgeTile && currentlyInner) && isSolid;
-	tile.TILE_VAR =
-		mix(tile.TILE_VAR, uvec2(0), switchToInner || switchToOuter)
-		+ mix(uvec2(0), random2() % 12, switchToInner)
-		+ mix(uvec2(0), random2() % 4 + 12, switchToOuter);
-	
-	//Store the transformed tile
-	tileStore(centerTi, tile);
+    random();
+    ivec2 centerTi = offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
+                    + (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
+                    
+    
+    uvec4 tile = tileLoad(centerTi);
+    bvec2 edgeTile = bvec2(false, false);
+    uvec2 nearbyProperties = uvec2(0);
+    for(int i = 0; i < OFFSETS.length(); ++i){//Check all neighbors
+        uvec4 neighbor = tileLoad(centerTi + OFFSETS[i]);
+        //Analyze the neighbor
+        nearbyProperties |= uvec2(BLOCK_PROPERTIES[neighbor.BL_T], WALL_PROPERTIES[neighbor.WL_T]);
+        edgeTile = edgeTile || isFluidTile(neighbor.TL_T);
+    }
+    
+    
+    //Transform block of the tile
+    uvec2 blockRuleIndices = BLOCK_TRANSF_INDICES[tile.BL_T];
+    for (uint i = blockRuleIndices.x; i <= blockRuleIndices.y;++i) {
+        if (layerTransition(tile, 0, 1, BLOCK_TRANSF_RULE[i], nearbyProperties, edgeTile)){
+            break;
+        }
+    }
+    //Transform wall of the tile
+    uvec2 wallRuleIndices = WALL_TRANSF_INDICES[tile.WL_T];
+    for (uint i = wallRuleIndices.x; i <= wallRuleIndices.y;++i) {
+        if (layerTransition(tile, 1, 0, WALL_TRANSF_RULE[i], nearbyProperties, edgeTile)){
+            break;
+        }
+    }
+    
+    //Select variant
+    bvec2 currentlyInner = lessThan(tile.TILE_VAR, uvec2(12));
+    bvec2 isSolid = isSolidTile(tile.TILE_TYPE);
+    bvec2 switchToInner = (!edgeTile && !currentlyInner) && isSolid;
+    bvec2 switchToOuter = (edgeTile && currentlyInner) && isSolid;
+    tile.TILE_VAR =
+        mix(tile.TILE_VAR, uvec2(0), switchToInner || switchToOuter)
+        + mix(uvec2(0), random2() % 12, switchToInner)
+        + mix(uvec2(0), random2() % 4 + 12, switchToOuter);
+    
+    //Store the transformed tile
+    tileStore(centerTi, tile);
 }
 
 )""

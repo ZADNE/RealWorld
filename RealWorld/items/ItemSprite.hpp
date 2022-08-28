@@ -11,13 +11,15 @@
  */
 class ItemSprite : public RE::FullSprite {
 public:
-	ItemSprite();
-	ItemSprite(ITEM ID);
-	ItemSprite(ItemSample item);
+
+    ItemSprite();
+    ItemSprite(ITEM ID);
+    ItemSprite(ItemSample item);
 
 private:
-	/**
-	 * Filenames of all item atlases must begin with this prefix
-	*/
-	static inline const std::string ATLAS_PREFIX = "itemAtlas";
+
+    /**
+     * @brief Filenames of all item atlases must begin with this prefix
+    */
+    static inline const std::string ATLAS_PREFIX = "itemAtlas";
 };

@@ -4,15 +4,15 @@
 #include <RealWorld/items/ItemSample.hpp>
 
 bool ItemSample::operator==(const ItemSample& other) const {
-	if (ID != other.ID || special != special) {
-		return false;
-	}
-	return true;
+    if (ID != other.ID || special != special) {
+        return false;
+    }
+    return true;
 }
 
 bool ItemSample::isEmpty() const {
-	if (ID == ITEM::EMPTY) {
-		return true;
-	}
-	return false;
+    if (ID == ITEM::EMPTY) {
+        return true;
+    }
+    return false;
 }
