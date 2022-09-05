@@ -28,5 +28,5 @@ private:
     /**
      * @brief Filenames of all item atlases must begin with this prefix
     */
-    static inline constexpr std::string ATLAS_PREFIX = "itemAtlas";
+    static inline const std::string ATLAS_PREFIX = "itemAtlas";
 };

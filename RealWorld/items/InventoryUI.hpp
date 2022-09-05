@@ -6,8 +6,6 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/rendering/output/Surface.hpp>
-#include <RealEngine/rendering/basic_shaders.hpp>
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
 #include <RealWorld/items/Item.hpp>
@@ -37,7 +35,7 @@ public:
     /**
      * @brief Contructs a UI that is not connected to any inventories
     */
-    InventoryUI(RE::SpriteBatch<R>& spriteBatch, const glm::vec2& windowSize);
+    InventoryUI(RE::SpriteBatch<R>& sb, const glm::vec2& windowSize);
     ~InventoryUI();
 
     InventoryUI(const InventoryUI<R>&) = delete;
@@ -75,17 +73,15 @@ public:
 
     void swapUnderCursor(const glm::vec2& cursorPx);
     void movePortion(const glm::vec2& cursorPx, float portion);
-    //Try to choose a number (may fail if tried to choose a slot outside inventory)
-    //For some constants, number is irrelevant (e.md. LAST_SLOT, PREV)
 
     /**
      * @brief Selects a slot from the first row of the inventory.
      *
      * The item in the selected slot is used by connected item user.
      * @param selectionManner Specifies interpretation of number parameter
-     * @param number The slot to select
+     * @param number The slot to select (for some manners irrelevant)
     */
-    void selectSlot(SlotSelectionManner selectionManner, int number);
+    void selectSlot(SlotSelectionManner selectionManner, int number = 0);
 
     void step();
     void draw(const glm::vec2& cursorPx);
@@ -127,7 +123,7 @@ private:
         }
     }
 
-    RE::SpriteBatch<R>& m_spriteBatch;
+    RE::SpriteBatch<R>& m_sb;
     ItemUser<R>* m_itemUser = nullptr;
 
     glm::vec2 m_windowSize;
@@ -139,11 +135,6 @@ private:
 
     int m_chosenSlot = 0;//Is signed but never should be negative
     int m_chosenSlotPrev = 0;//Is signed but never should be negative
-
-    RE::Surface<R> m_slotsSurf{{RE::TextureFlags::RGBA8_NU_NEAR_NEAR_EDGE}, true};
-    //0 texture: slots below dynamic sprites
-
-    RE::Color m_amountColor{255u, 255u, 255u, 255u};
 
     Inventory<R>* m_inv[static_cast<size_t>(Connection::COUNT)] = {nullptr, nullptr, nullptr};
     std::vector<ItemSprite<R>> m_invItemSprites[static_cast<size_t>(Connection::COUNT)];

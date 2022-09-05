@@ -11,7 +11,7 @@
 template<RE::Renderer R>
 Player<R>::Player(RE::SpriteBatch<R>& spriteBatch) :
     m_hitbox({ 0, 0 }, { 28, 40 }, { 14, 20 }),
-    m_spriteBatch(spriteBatch) {
+    m_sb(spriteBatch) {
     m_playerMovementShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
     m_playerMovementShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
 }
@@ -48,7 +48,7 @@ void Player<R>::step(WALK dir, bool jump, bool autojump) {
 
 template<RE::Renderer R>
 void Player<R>::draw() {
-    m_spriteBatch.addTexture(m_playerTex, m_hitbox.getBotLeft(), 0);
+    m_sb.addTexture(m_playerTex, m_hitbox.getBotLeft(), 0);
 }
 
 template Player<RE::RendererGL46>;

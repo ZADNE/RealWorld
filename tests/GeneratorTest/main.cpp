@@ -28,12 +28,14 @@ constexpr RE::RoomDisplaySettings DISPLAY_SETTINGS{
 
 using namespace std::chrono;
 
+template<RE::Renderer R>
 class Room : public RE::Room {
 public:
+
     Room() : RE::Room(0, DISPLAY_SETTINGS), m_worldDrawer(RESOLUTION) {}
 
     void sessionStart(const RE::RoomTransitionParameters& params) override {
-        system().setWindowDims(RESOLUTION, false);
+        engine().setWindowDims(RESOLUTION, false);
         resetRecords();
         //Initialize compute shader generator
         m_genCS.emplace();
@@ -57,7 +59,7 @@ public:
         if (activatedChunks > 0) {
             m_batchN++;
             if (m_batchN > 0) {
-                RE::Ordering::finishWork();
+                RE::Ordering<R>::finishWork();
                 auto dur = steady_clock::now() - start;
                 m_total_ns += dur;
                 int N = duration_cast<microseconds>(dur).count() / 1000;
@@ -107,10 +109,10 @@ public:
 
 private:
     RE::View2D m_worldView{RESOLUTION};
-    std::optional<ChunkGeneratorCS> m_genCS;
-    std::optional<ChunkGeneratorFBO> m_genFBO;
-    std::optional<World> m_world;
-    WorldDrawer m_worldDrawer{RESOLUTION};
+    std::optional<ChunkGeneratorCS<R>> m_genCS;
+    std::optional<ChunkGeneratorFBO<R>> m_genFBO;
+    std::optional<World<R>> m_world;
+    WorldDrawer<R> m_worldDrawer{RESOLUTION};
     int m_batchN;
     nanoseconds m_total_ns;
     int m_histogram[15];
@@ -120,7 +122,7 @@ private:
 int main(int argc, char* argv[]) {
     RE::MainProgram::initialize();
 
-    Room testRoom;
+    RE::MainProgram::addRoom<Room>();
 
-    return RE::MainProgram::run(testRoom, {});
+    return RE::MainProgram::run(0, {});
 }

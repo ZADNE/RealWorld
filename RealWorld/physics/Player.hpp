@@ -41,7 +41,7 @@ private:
     using enum RE::BufferUsageFlags;
     using enum RE::BufferMapUsageFlags;
 
-    RE::SpriteBatch<R>& m_spriteBatch;
+    RE::SpriteBatch<R>& m_sb;
 
     Hitbox m_hitbox;
 

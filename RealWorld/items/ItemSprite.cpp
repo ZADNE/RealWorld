@@ -14,7 +14,7 @@ ItemSprite<R>::ItemSprite() :
 
 template<RE::Renderer R>
 ItemSprite<R>::ItemSprite(ITEM ID) :
-    m_tex(RE::RM::texture(ATLAS_PREFIX + ItemDatabase::md(ID).textureAtlas)),
+    m_tex(RE::RM::texture({.file = ATLAS_PREFIX + ItemDatabase::md(ID).textureAtlas})),
     m_sprite{
         m_tex->get<R>(),
         ItemDatabase::md(ID).spriteIndex, 0.0f, 1.0f,
