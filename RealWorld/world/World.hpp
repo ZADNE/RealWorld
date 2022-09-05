@@ -23,6 +23,7 @@ enum class MODIFY_SHAPE : unsigned int {
  *
  * Also runs tile transformation and fluid dynamics simulation.
  */
+template<RE::Renderer R>
 class World {
 public:
 
@@ -30,7 +31,7 @@ public:
      * @brief Initializes the world
      * @param The generator that will be used to generate new chunks
     */
-    World(ChunkGenerator& chunkGen);
+    World(ChunkGenerator<R>& chunkGen);
 
     /**
      * @copydoc ChunkHandler::getNumberOfInactiveChunks
@@ -67,7 +68,7 @@ private:
 
     void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-    RE::Texture m_worldTex;
+    RE::Texture<R> m_worldTex;
     int m_seed = 0;
 
     std::string m_worldName;
@@ -81,16 +82,16 @@ private:
         glm::uint timeHash;
         glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
     };
-    RE::TypedBuffer m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+    RE::BufferTyped<R> m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
-    RE::ShaderProgram m_fluidDynamicsShd = RE::ShaderProgram{{.comp = fluidDynamics_comp}};
-    RE::ShaderProgram m_tileTransformationsShd = RE::ShaderProgram{{.comp = tileTransformations_comp}};
-    RE::ShaderProgram m_modifyShd = RE::ShaderProgram{{.comp = modify_comp}};
+    RE::ShaderProgram<R> m_fluidDynamicsShd{{.comp = fluidDynamics_comp}};
+    RE::ShaderProgram<R> m_tileTransformationsShd{{.comp = tileTransformations_comp}};
+    RE::ShaderProgram<R> m_modifyShd{{.comp = modify_comp}};
 
     std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
     uint32_t m_rngState;
 
-    ChunkManager m_chunkManager;
+    ChunkManager<R> m_chunkManager;
 
     bool m_permuteOrder = true;
 };

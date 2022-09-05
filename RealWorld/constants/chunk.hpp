@@ -21,7 +21,7 @@ static_assert(std::has_single_bit(uCHUNK_SIZE.x) && std::has_single_bit(uCHUNK_S
 /**
  * @brief Converts a position in tiles to position in chunks
 */
-inline glm::ivec2 tiToCh(const glm::ivec2& posTi) {
+constexpr inline glm::ivec2 tiToCh(const glm::ivec2& posTi) {
     constexpr glm::ivec2 CHUNK_LOW_ZERO_BITS = glm::ivec2(std::countr_zero(uCHUNK_SIZE.x), std::countr_zero(uCHUNK_SIZE.x));
     return posTi >> CHUNK_LOW_ZERO_BITS;
 }
@@ -29,7 +29,7 @@ inline glm::ivec2 tiToCh(const glm::ivec2& posTi) {
 /**
  * @brief Converts a position in chunks to position in tiles
 */
-inline glm::ivec2 chToTi(const glm::ivec2& posCh) {
+constexpr inline glm::ivec2 chToTi(const glm::ivec2& posCh) {
     constexpr glm::ivec2 CHUNK_LOW_ZERO_BITS = glm::ivec2(std::countr_zero(uCHUNK_SIZE.x), std::countr_zero(uCHUNK_SIZE.x));
     return posCh << CHUNK_LOW_ZERO_BITS;
 }
@@ -37,17 +37,17 @@ inline glm::ivec2 chToTi(const glm::ivec2& posCh) {
 /**
  * @brief Converts a position in chunks to its active form equivalent
 */
-inline glm::ivec2 chToAc(const glm::ivec2& posCh, const glm::ivec2& activeChunksMask) {
+constexpr inline glm::ivec2 chToAc(const glm::ivec2& posCh, const glm::ivec2& activeChunksMask) {
     return posCh & activeChunksMask;
 }
 
 /**
  * @brief Converts a position in chunks to its active form measured in tiles
 */
-inline glm::ivec2 chToAt(const glm::ivec2& posCh, const glm::ivec2& activeChunksMask) {
+constexpr inline glm::ivec2 chToAt(const glm::ivec2& posCh, const glm::ivec2& activeChunksMask) {
     return chToTi(chToAc(posCh, activeChunksMask));
 }
 
-inline int acToIndex(const glm::ivec2& posAc, const glm::ivec2& activeChunks) {
+constexpr inline int acToIndex(const glm::ivec2& posAc, const glm::ivec2& activeChunks) {
     return posAc.y * activeChunks.x + posAc.x;
 }

@@ -6,35 +6,42 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/rendering/output/Surface.hpp>
-#include <RealEngine/rendering/vertices/default_shaders.hpp>
+#include <RealEngine/rendering/basic_shaders.hpp>
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
 #include <RealWorld/shaders/common.hpp>
 
-class ItemUser;
-class Inventory;
+template<RE::Renderer> class ItemUser;
+template<RE::Renderer> class Inventory;
+
+enum class SlotSelectionManner {
+    ABS,
+    RIGHT,
+    LEFT,
+    PREV,
+    LAST_SLOT
+};
 
 /**
  * @brief Renders and manipulates inventories.
 */
+template<RE::Renderer R>
 class InventoryUI {
 public:
 
     enum Connection { PRIMARY, SECONDARY, TERTIARY, COUNT };
-    enum class SelectionManner { ABS, RIGHT, LEFT, PREV, LAST_SLOT };
 
     /**
      * @brief Contructs a UI that is not connected to any inventories
     */
-    InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize);
+    InventoryUI(RE::SpriteBatch<R>& spriteBatch, const glm::vec2& windowSize);
     ~InventoryUI();
 
-    InventoryUI(const InventoryUI&) = delete;
-    InventoryUI& operator=(const InventoryUI&) = delete;
+    InventoryUI(const InventoryUI<R>&) = delete;
+    InventoryUI<R>& operator=(const InventoryUI<R>&) = delete;
 
     /**
      * @brief Notifies the UI that the window has been resized
@@ -43,20 +50,18 @@ public:
 
     /**
      * @brief Connects the UI with given inventory (connection is mutual)
-     *
-     * Disconnects the previous inventory.
      * @param inventory The inventory to connect with. nullptr effectively disconnects the previous inventory
      * @param connection The type of conenction that is to be established
+     *
+     * Simultaneously disconnects the previous inventory.
     */
-    void connectToInventory(Inventory* inventory, Connection connection);
+    void connectToInventory(Inventory<R>* inventory, Connection connection);
 
     /**
-     * @brief Connects the UI with given item user
-     *
-     * Disconnects the previous item user.
+     * @brief Connects the UI with given item user (disconnects the previous)
      * @param itemUser The item user to connect with. nullptr effectively disconnects the previous item user
     */
-    void connectToItemUser(ItemUser* itemUser) { m_itemUser = itemUser; }
+    void connectToItemUser(ItemUser<R>* itemUser) { m_itemUser = itemUser; }
 
     /**
      * @brief Switches the inventory to the oposite state
@@ -80,7 +85,7 @@ public:
      * @param selectionManner Specifies interpretation of number parameter
      * @param number The slot to select
     */
-    void selectSlot(SelectionManner selectionManner, int number);
+    void selectSlot(SlotSelectionManner selectionManner, int number);
 
     void step();
     void draw(const glm::vec2& cursorPx);
@@ -89,8 +94,8 @@ private:
 
     static constexpr glm::vec2 SLOT_PADDING = glm::vec2(8.0f, 8.0f);
 
-    inline glm::vec2 slotDims() const { return m_slotTex->getSubimageDims(); }
-    inline glm::vec2 slotPivot() const { return m_slotTex->getPivot(); }
+    inline glm::vec2 slotDims() const { return m_slotTex.getSubimageDims(); }
+    inline glm::vec2 slotPivot() const { return m_slotTex.getPivot(); }
 
     inline glm::ivec2 invSize(Connection con) const;
     inline int invSlotCount(Connection con) const;
@@ -122,25 +127,25 @@ private:
         }
     }
 
-    RE::SpriteBatch& m_spriteBatch;
-    ItemUser* m_itemUser = nullptr;
+    RE::SpriteBatch<R>& m_spriteBatch;
+    ItemUser<R>* m_itemUser = nullptr;
 
     glm::vec2 m_windowSize;
-    RE::TexturePtr m_slotTex = RE::RM::getTexture("slot");
+    RE::Texture<R> m_slotTex{{.file = "slot"}};
     glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
 
     Item m_heldItem{};
-    ItemSprite m_heldSprite{};
+    ItemSprite<R> m_heldSprite{};
 
     int m_chosenSlot = 0;//Is signed but never should be negative
     int m_chosenSlotPrev = 0;//Is signed but never should be negative
 
-    RE::Surface m_slotsSurf{{RE::TextureFlags::RGBA8_NU_NEAR_NEAR_EDGE}, true, false};
+    RE::Surface<R> m_slotsSurf{{RE::TextureFlags::RGBA8_NU_NEAR_NEAR_EDGE}, true};
     //0 texture: slots below dynamic sprites
 
     RE::Color m_amountColor{255u, 255u, 255u, 255u};
 
-    Inventory* m_inv[static_cast<size_t>(Connection::COUNT)] = {nullptr, nullptr, nullptr};
-    std::vector<ItemSprite> m_invItemSprites[static_cast<size_t>(Connection::COUNT)];
+    Inventory<R>* m_inv[static_cast<size_t>(Connection::COUNT)] = {nullptr, nullptr, nullptr};
+    std::vector<ItemSprite<R>> m_invItemSprites[static_cast<size_t>(Connection::COUNT)];
     bool m_open = false;
 };

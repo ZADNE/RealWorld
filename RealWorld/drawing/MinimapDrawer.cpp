@@ -6,8 +6,11 @@
 #include <RealEngine/rendering/vertices/vertices.hpp>
 #include <RealEngine/rendering/output/Viewport.hpp>
 
+#include <RealWorld/reserved_units/buffers.hpp>
 
-MinimapDrawer::MinimapDrawer() {
+
+template<RE::Renderer R>
+MinimapDrawer<R>::MinimapDrawer() {
     //Init VAO
     unsigned int vboBindingPoint = 0u;
     m_pouvArr.setBindingPoint(vboBindingPoint, m_pouvBuf, 0u, sizeof(VertexPOUV));
@@ -16,18 +19,21 @@ MinimapDrawer::MinimapDrawer() {
     m_pouvArr.connectAttributeToBindingPoint(RE::ATTR_POSITION, vboBindingPoint);
     m_pouvArr.connectAttributeToBindingPoint(RE::ATTR_UV, vboBindingPoint);
 
-    m_minimapShd.backInterfaceBlock(0u, RE::UNIF_BUF_VIEWPORT_MATRIX);
+    m_minimapShd.backInterfaceBlock(0u, UNIF_BUF_VIEWPORT_MATRIX);
 }
 
-void MinimapDrawer::setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx) {
+template<RE::Renderer R>
+void MinimapDrawer<R>::setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx) {
     updateArrayBuffers(worldTexSize, viewSizePx);
 }
 
-void MinimapDrawer::resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx) {
+template<RE::Renderer R>
+void MinimapDrawer<R>::resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx) {
     updateArrayBuffers(worldTexSize, viewSizePx);
 }
 
-void MinimapDrawer::draw() {
+template<RE::Renderer R>
+void MinimapDrawer<R>::draw() {
     m_pouvArr.bind();
     m_minimapShd.use();
     m_pouvArr.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);
@@ -35,7 +41,8 @@ void MinimapDrawer::draw() {
     m_pouvArr.unbind();
 }
 
-void MinimapDrawer::updateArrayBuffers(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx) {
+template<RE::Renderer R>
+void MinimapDrawer<R>::updateArrayBuffers(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx) {
     VertexPOUV vertices[4];
 
     //Minimap rectangle
@@ -50,3 +57,5 @@ void MinimapDrawer::updateArrayBuffers(const glm::ivec2& worldTexSize, const glm
 
     m_pouvBuf.overwrite(0, sizeof(vertices), vertices);
 }
+
+template MinimapDrawer<RE::RendererGL46>;

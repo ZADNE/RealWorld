@@ -7,6 +7,7 @@
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
+#include <RealEngine/rendering/basic_shaders.hpp>
 #include <RealEngine/rendering/cameras/View2D.hpp>
 #include <RealEngine/rendering/output/Viewport.hpp>
 
@@ -30,17 +31,10 @@
 #error "No chunk generator has been selected!"
 #endif
 
-#ifdef _DEBUG
-constexpr unsigned int FPS_LIMIT = 300u;
-#else
-constexpr unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
-#endif // _DEBUG
-
-constexpr glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
-
 /**
  * @brief Holds all gameplay-related objects.
 */
+template<RE::Renderer R>
 class WorldRoom : public Room {
 public:
 
@@ -54,13 +48,6 @@ public:
     void windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) override;
 
 private:
-
-    static constexpr RE::RoomDisplaySettings DEFAULT_SETTINGS{
-        .clearColor = SKY_BLUE,
-        .stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
-        .framesPerSecondLimit = FPS_LIMIT,
-        .usingImGui = true
-    };
 
     void drawGUI();
 
@@ -79,25 +66,31 @@ private:
      */
     bool saveWorld() const;
 
+    glm::mat4 windowMatrix() const;
+
     const GameSettings& m_gameSettings;
     ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
+    RE::SpriteBatch<R> m_sb{{.vert = RE::sprite_vert, .frag = RE::sprite_frag}};
+    RE::GeometryBatch<R> m_gb{{.vert = RE::geometry_vert, .frag = RE::geometry_frag}};
+
     //View
     RE::View2D m_worldView{engine().getWindowDims()};
-    RE::TypedBuffer m_worldViewUBO{RE::UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, sizeof(glm::mat4), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+    RE::BufferTyped<R> m_worldViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, m_worldView.getViewMatrix()};
+    RE::BufferTyped<R> m_guiViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, windowMatrix()};
 
     //Gameplay
 #if CHUNK_GENERATOR == CS_GENERATOR
-    ChunkGeneratorCS m_chunkGen;
+    ChunkGeneratorCS<R> m_chunkGen;
 #elif CHUNK_GENERATOR == FBO_GENERATOR
-    ChunkGeneratorFBO m_chunkGen;
+    ChunkGeneratorFBO<R> m_chunkGen;
 #endif
-    World m_world;
-    WorldDrawer m_worldDrawer;
-    Player m_player;
-    Inventory m_playerInv;
-    ItemUser m_itemUser;
-    InventoryUI m_invUI;
+    World<R> m_world;
+    WorldDrawer<R> m_worldDrawer;
+    Player<R> m_player;
+    Inventory<R> m_playerInv;
+    ItemUser<R> m_itemUser;
+    InventoryUI<R> m_invUI;
 
     //Toggle states
     bool m_minimap = false;

@@ -10,16 +10,17 @@
 /**
  * @brief Is a clever container for items.
 */
+template<RE::Renderer R>
 class Inventory : public InventoryData {
-    friend class InventoryUI;
+    friend class InventoryUI<R>;
     friend class ItemCombinator;
 public:
 
     Inventory(const glm::ivec2& size);
     ~Inventory();
 
-    Inventory(const Inventory&) = delete;
-    Inventory& operator=(const Inventory&) = delete;
+    Inventory(const Inventory<R>&) = delete;
+    Inventory<R>& operator=(const Inventory<R>&) = delete;
 
     //New slots are empty
     //Contents of removed slots are lost
@@ -53,8 +54,8 @@ public:
 private:
 
     //Should only be called from InventoryUI::connectToInventory()
-    void connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection);
+    void connectToDrawer(InventoryUI<R>* inventoryDrawer, InventoryUI<R>::Connection connection);
 
-    InventoryUI* m_UI = nullptr;
-    InventoryUI::Connection m_UIConnection;//Defines the type of connection to UI
+    InventoryUI<R>* m_UI = nullptr;
+    InventoryUI<R>::Connection m_UIConnection;//Defines the type of connection to UI
 };

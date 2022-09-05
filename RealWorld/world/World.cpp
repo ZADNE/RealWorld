@@ -27,7 +27,8 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
     }
 }
 
-World::World(ChunkGenerator& chunkGen) :
+template<RE::Renderer R>
+World<R>::World(ChunkGenerator<R>& chunkGen) :
     m_worldTex(RE::Raster{{1, 1}}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
     m_chunkManager(chunkGen),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
@@ -37,12 +38,13 @@ World::World(ChunkGenerator& chunkGen) :
     m_tileTransformationsShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
-void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
+template<RE::Renderer R>
+void World<R>::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
     m_seed = save.seed;
     m_worldName = save.worldName;
 
     //Resize the world texture
-    m_worldTex = RE::Texture{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
+    m_worldTex = RE::Texture<R>{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
     m_worldTex.bind(TEX_UNIT_WORLD_TEXTURE);
     m_worldTex.bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
     m_worldTex.clear(RE::Color{0, 0, 0, 0});
@@ -50,20 +52,24 @@ void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksAr
     m_chunkManager.setTarget(m_seed, save.path, &m_worldTex);
 }
 
-void World::gatherSave(MetadataSave& save) const {
+template<RE::Renderer R>
+void World<R>::gatherSave(MetadataSave& save) const {
     save.seed = m_seed;
     save.worldName = m_worldName;
 }
 
-bool World::saveChunks() const {
+template<RE::Renderer R>
+bool World<R>::saveChunks() const {
     return m_chunkManager.saveChunks();
 }
 
-size_t World::getNumberOfInactiveChunks() {
+template<RE::Renderer R>
+size_t World<R>::getNumberOfInactiveChunks() {
     return m_chunkManager.getNumberOfInactiveChunks();
 }
 
-void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
+template<RE::Renderer R>
+void World<R>::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
     using enum RE::BufferMapUsageFlags;
     auto* buffer = m_worldDynamicsBuf.map<WorldDynamicsUBO>(0u, offsetof(WorldDynamicsUBO, timeHash), WRITE | INVALIDATE_RANGE);
     buffer->globalPosTi = posTi;
@@ -75,14 +81,15 @@ void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::i
     m_modifyShd.dispatchCompute({1, 1, 1}, true);
 }
 
-int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+template<RE::Renderer R>
+int World<R>::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     //Chunk manager
     int activatedChunks = m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
     m_chunkManager.step();
 
     //Tile transformations
-    m_tileTransformationsShd.dispatchCompute(offsetof(ChunkManager::ActiveChunksSSBO, dynamicsGroupSize), true);
-    RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+    m_tileTransformationsShd.dispatchCompute(offsetof(ChunkManager<R>::ActiveChunksSSBO, dynamicsGroupSize), true);
+    RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
     //Fluid dynamics
     fluidDynamicsStep(botLeftTi, topRightTi);
@@ -90,7 +97,8 @@ int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     return activatedChunks;
 }
 
-void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+template<RE::Renderer R>
+void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     using enum RE::BufferMapUsageFlags;
     //Convert positions to chunks
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
@@ -122,7 +130,9 @@ void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& top
         m_worldDynamicsBuf.unmap();
         //Dispatch
         m_fluidDynamicsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
-        RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+        RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     }
     m_fluidDynamicsShd.unuse();
 }
+
+template World<RE::RendererGL46>;

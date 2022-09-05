@@ -6,13 +6,15 @@
 
 #include <glm/vec2.hpp>
 
+#include <RealEngine/rendering/Renderer.hpp>
+
 #include <RealWorld/items/Item.hpp>
 
 /**
  * @brief Is a data structure that holds items.
 */
 class InventoryData {
-    friend class Inventory;
+    template<RE::Renderer> friend class Inventory;
 public:
 
     InventoryData() {}

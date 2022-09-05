@@ -59,6 +59,6 @@ inline glm::vec2 pxToTi(const glm::vec2& posPx) {
 /**
  * @brief Converts a position in tiles to position in pixels
  */
-inline glm::vec2 tiToPx(const glm::vec2& posTi) {
+constexpr inline glm::vec2 tiToPx(const glm::vec2& posTi) {
     return posTi * TILEPx;
 }

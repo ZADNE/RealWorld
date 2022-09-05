@@ -3,16 +3,19 @@
  */
 #include <RealWorld/generation/ChunkGenerator.hpp>
 
-ChunkGenerator::ChunkGenerator() {
+template<RE::Renderer R>
+ChunkGenerator<R>::ChunkGenerator() {
 
 }
 
-void ChunkGenerator::setSeed(int seed) {
+template<RE::Renderer R>
+void ChunkGenerator<R>::setSeed(int seed) {
     m_seed = seed;
     m_chunkUniformBuf.overwrite(offsetof(ChunkUniforms, seed), sizeof(seed), &seed);
 }
 
-void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
+template<RE::Renderer R>
+void ChunkGenerator<R>::generateChunk(const glm::ivec2& posCh, const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) {
     //Update chunk offset within the uniform buffer
     glm::ivec2 offsetTi = posCh * iCHUNK_SIZE;
     m_chunkUniformBuf.overwrite(offsetof(ChunkUniforms, chunkOffsetTi), sizeof(offsetTi), &offsetTi);
@@ -26,3 +29,5 @@ void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& d
 
     finishGeneration(destinationTexture, destinationOffset);
 }
+
+template ChunkGenerator<RE::RendererGL46>;

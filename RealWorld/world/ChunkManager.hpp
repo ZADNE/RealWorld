@@ -19,6 +19,7 @@
  *
  * Uploads and downloads chunks from the world texture.
  */
+template<RE::Renderer R>
 class ChunkManager {
 public:
 
@@ -27,7 +28,7 @@ public:
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(ChunkGenerator& chunkGen);
+    ChunkManager(ChunkGenerator<R>& chunkGen);
 
     /**
      * @brief Retargets the chunk manager to a new world.
@@ -38,7 +39,7 @@ public:
      * @param folderPath Path to the folder that contains the new world.
      * @param worldTex The world texture that will receive the loaded chunks
      */
-    void setTarget(int seed, std::string folderPath, RE::Texture* worldTex);
+    void setTarget(int seed, std::string folderPath, RE::Texture<R>* worldTex);
 
     /**
      * @brief Saves all chunks, keeps them in the memory.
@@ -125,14 +126,14 @@ private:
     std::vector<glm::ivec2> m_activeChunks;
 
     using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
-    RE::TypedBuffer m_activeChunksBuf{STRG_BUF_ACTIVECHUNKS, 1u, NO_FLAGS};
+    RE::BufferTyped<R> m_activeChunksBuf{STRG_BUF_ACTIVECHUNKS, 1u, NO_FLAGS};
 
-    RE::ShaderProgram m_contAnalyzerShd{{.comp = continuityAnalyzer_comp}};
+    RE::ShaderProgram<R> m_contAnalyzerShd{{.comp = continuityAnalyzer_comp}};
     glm::uvec3 m_contAnalyzerGroupCount;
 
     std::string m_folderPath;
-    ChunkGenerator& m_chunkGen;
-    RE::Texture* m_worldTex = nullptr;
+    ChunkGenerator<R>& m_chunkGen;
+    RE::Texture<R>* m_worldTex = nullptr;
     glm::ivec2 m_activeChunksMask;
-    RE::Buffer m_downloadBuf{uCHUNK_SIZE.x * uCHUNK_SIZE.y * 4u, CLIENT_STORAGE | MAP_READ};
+    RE::Buffer<R> m_downloadBuf{uCHUNK_SIZE.x * uCHUNK_SIZE.y * 4u, CLIENT_STORAGE | MAP_READ};
 };

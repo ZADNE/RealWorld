@@ -8,7 +8,9 @@
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
-ChunkGeneratorFBO::ChunkGeneratorFBO() {
+
+template<RE::Renderer R>
+ChunkGeneratorFBO<R>::ChunkGeneratorFBO() {
     m_structureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
     m_consolidationShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
     m_variantSelectionShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
@@ -18,26 +20,29 @@ ChunkGeneratorFBO::ChunkGeneratorFBO() {
     m_genSurf[0].getTexture(1).bind(TEX_UNIT_GEN_MATERIAL);
 }
 
-void ChunkGeneratorFBO::prepareToGenerate() {
-    m_VAO.bind();
+template<RE::Renderer R>
+void ChunkGeneratorFBO<R>::prepareToGenerate() {
+    m_va.bind();
     m_genSurf[0].setTarget();
 }
 
-void ChunkGeneratorFBO::generateBasicTerrain() {
+template<RE::Renderer R>
+void ChunkGeneratorFBO<R>::generateBasicTerrain() {
     m_structureShd.use();
-    m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
+    m_va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);
     m_structureShd.unuse();
 }
 
-void ChunkGeneratorFBO::consolidateEdges() {
+template<RE::Renderer R>
+void ChunkGeneratorFBO<R>::consolidateEdges() {
     unsigned int cycleN = 0u;
     auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
         m_consolidationShd.setUniform(LOC_THRESHOLDS, thresholds);
         for (size_t i = 0; i < passes; i++) {
             m_consolidationShd.setUniform(LOC_CYCLE_N, cycleN++);
             m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
-            RE::Ordering::issueDrawBarrier();
-            m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
+            RE::Ordering<R>::issueDrawBarrier();
+            m_va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);
         }
     };
     auto doublePass = [pass](const glm::ivec2& firstThresholds, const glm::ivec2& secondThresholds, size_t passes) {
@@ -60,18 +65,22 @@ void ChunkGeneratorFBO::consolidateEdges() {
     m_genSurf[0].setTarget();
     outputs.push_back(RE::FramebufferOutput::TO_COLOR1);
     m_genSurf[0].associateTexturesWithOutputs(outputs);
-    assert(static_cast<int>(cycleN) <= BORDER_WIDTH);
+    assert(static_cast<int>(cycleN) <= GEN_BORDER_WIDTH);
 }
 
-void ChunkGeneratorFBO::selectVariants() {
-    RE::Ordering::issueDrawBarrier();
+template<RE::Renderer R>
+void ChunkGeneratorFBO<R>::selectVariants() {
+    RE::Ordering<R>::issueDrawBarrier();
     m_variantSelectionShd.use();
-    m_VAO.renderArrays(TRIANGLE_STRIP, 0, 4);
+    m_va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);
     m_variantSelectionShd.unuse();
 }
 
-void ChunkGeneratorFBO::finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
+template<RE::Renderer R>
+void ChunkGeneratorFBO<R>::finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) {
     m_genSurf[0].resetTarget();
-    m_VAO.unbind();
-    m_genSurf[0].getTexture().copyTexels(0, glm::ivec2{BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
+    m_va.unbind();
+    m_genSurf[0].getTexture().copyTexels(0, glm::ivec2{GEN_BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 }
+
+template ChunkGeneratorFBO<RE::RendererGL46>;

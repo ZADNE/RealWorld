@@ -10,20 +10,23 @@
 /**
  * @brief Renders minimap of the world
 */
+template<RE::Renderer R>
 class MinimapDrawer {
 public:
+
     MinimapDrawer();
 
     void setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
     void resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx);
 
     void draw();
+
 private:
+
     void updateArrayBuffers(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
 
-    RE::ShaderProgram m_minimapShd{ {.vert = minimap_vert, .frag = minimap_frag} };
-
-    RE::VertexArray m_pouvArr;
+    RE::ShaderProgram<R> m_minimapShd{{.vert = minimap_vert, .frag = minimap_frag}};
+    RE::VertexArray<R> m_pouvArr;
 
     struct VertexPOUV {
         VertexPOUV() {}
@@ -34,5 +37,5 @@ private:
         glm::vec2 position;
         glm::vec2 uv;
     };
-    RE::Buffer m_pouvBuf{ sizeof(VertexPOUV) * 4, RE::BufferUsageFlags::DYNAMIC_STORAGE };
+    RE::Buffer<R> m_pouvBuf{ sizeof(VertexPOUV) * 4, RE::BufferUsageFlags::DYNAMIC_STORAGE };
 };

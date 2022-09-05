@@ -18,15 +18,15 @@ protected:
 
     using enum RealWorldKeyBindings;
 
-    int keybindPressed(RealWorldKeyBindings binding) {
+    auto keybindPressed(RealWorldKeyBindings binding) {
         return engine().wasKeyPressed(keybinder(binding));
     }
 
-    int keybindReleased(RealWorldKeyBindings binding) {
+    auto keybindReleased(RealWorldKeyBindings binding) {
         return engine().wasKeyReleased(keybinder(binding));
     }
 
-    int keybindDown(RealWorldKeyBindings binding) {
+    auto keybindDown(RealWorldKeyBindings binding) {
         return engine().isKeyDown(keybinder(binding));
     }
 };

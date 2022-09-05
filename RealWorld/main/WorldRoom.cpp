@@ -3,24 +3,43 @@
  */
 #include <RealWorld/main/WorldRoom.hpp>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
-WorldRoom::WorldRoom(const GameSettings& gameSettings) :
-    Room(1, DEFAULT_SETTINGS),
+#ifdef _DEBUG
+constexpr unsigned int FPS_LIMIT = 300u;
+#else
+constexpr unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
+#endif // _DEBUG
+
+constexpr glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
+
+constexpr RE::RoomDisplaySettings INITIAL_SETTINGS{
+    .clearColor = SKY_BLUE,
+    .stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
+    .framesPerSecondLimit = FPS_LIMIT,
+    .usingImGui = true
+};
+
+template<RE::Renderer R>
+WorldRoom<R>::WorldRoom(const GameSettings& gameSettings) :
+    Room(1, INITIAL_SETTINGS),
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
     m_worldDrawer(engine().getWindowDims()),
-    m_player(RE::SpriteBatch::std()),
+    m_player(m_sb),
     m_playerInv({10, 4}),
     m_itemUser(m_world, m_playerInv, m_player.getHitbox()),
-    m_invUI(RE::SpriteBatch::std(), engine().getWindowDims()) {
+    m_invUI(m_sb, engine().getWindowDims()) {
 
     //InventoryUI connections
-    m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
+    m_invUI.connectToInventory(&m_playerInv, InventoryUI<R>::Connection::PRIMARY);
     m_invUI.connectToItemUser(&m_itemUser);
 }
 
-void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
+template<RE::Renderer R>
+void WorldRoom<R>::sessionStart(const RE::RoomTransitionParameters& params) {
     try {
         const std::string& worldName = std::any_cast<const std::string&>(params[0]);
         if (!loadWorld(worldName)) {
@@ -36,13 +55,16 @@ void WorldRoom::sessionStart(const RE::RoomTransitionParameters& params) {
     m_worldView.setPosition(glm::vec2(m_player.getHitbox().getCenter()));
 }
 
-void WorldRoom::sessionEnd() {
+template<RE::Renderer R>
+void WorldRoom<R>::sessionEnd() {
     //saveWorld();
 }
 
-void WorldRoom::step() {
-    RE::GeometryBatch::std().begin();
-    using enum InventoryUI::SelectionManner;
+template<RE::Renderer R>
+void WorldRoom<R>::step() {
+    using enum SlotSelectionManner;
+
+    m_gb.begin();
 
     //Player
     int walkDir = keybindDown(PLAYER_LEFT) ? -1 : 0;
@@ -56,7 +78,7 @@ void WorldRoom::step() {
     //auto viewPos = prevViewPos + glm::vec2(glm::ivec2(engine().getCursorAbs()) - engine().getWindowDims() / 2) * 0.03f;
     m_worldView.setCursorAbs(engine().getCursorAbs());
     m_worldView.setPosition(glm::floor(viewPos));
-    m_worldViewUBO.overwrite(0u, m_worldView.getViewMatrix());
+    m_worldViewBuf.overwrite(0u, m_worldView.getViewMatrix());
 
     //World
     auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
@@ -67,7 +89,7 @@ void WorldRoom::step() {
     m_itemUser.step(
         keybindDown(ITEMUSER_USE_PRIMARY) && !m_invUI.isOpen(),
         keybindDown(ITEMUSER_USE_SECONDARY) && !m_invUI.isOpen(),
-        m_worldView.getCursorRel(), RE::GeometryBatch::std()
+        m_worldView.getCursorRel(), m_gb
     );
 
     static float rad = 0.0f;
@@ -105,15 +127,16 @@ void WorldRoom::step() {
     if (keybindPressed(SHADOWS)) { m_worldDrawer.shouldDrawShadows(m_shadows = !m_shadows); }
     if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
 
-    RE::GeometryBatch::std().end();
+    m_gb.end();
 }
 
-void WorldRoom::render(double interpolationFactor) {
-    m_worldViewUBO.bindIndexed();
+template<RE::Renderer R>
+void WorldRoom<R>::render(double interpolationFactor) {
+    m_worldViewBuf.bindIndexed();
 
     m_worldDrawer.drawTiles();
 
-    auto& sb = RE::SpriteBatch::std();
+    auto& sb = m_sb;
     sb.begin();
     m_player.draw();
     sb.end(RE::GlyphSortType::TEXTURE);
@@ -121,25 +144,28 @@ void WorldRoom::render(double interpolationFactor) {
 
     m_worldDrawer.drawShadows();
 
-    RE::GeometryBatch::std().draw();
+    m_gb.draw();
 
-    RE::Viewport::getWindowMatrixUniformBuffer().bindIndexed();
+    m_guiViewBuf.bindIndexed();
 
     drawGUI();
 }
 
-void WorldRoom::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) {
+template<RE::Renderer R>
+void WorldRoom<R>::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) {
     m_worldView.resizeView(newSize);
     m_worldDrawer.resizeView(newSize);
     m_invUI.windowResized(newSize);
+    m_guiViewBuf.overwrite(0, windowMatrix());
 }
 
-void WorldRoom::drawGUI() {
+template<RE::Renderer R>
+void WorldRoom<R>::drawGUI() {
     //Inventory
-    RE::SpriteBatch::std().begin();
+    m_sb.begin();
     m_invUI.draw(engine().getCursorAbs());
-    RE::SpriteBatch::std().end(RE::GlyphSortType::POS_TOP);
-    RE::SpriteBatch::std().draw();
+    m_sb.end(RE::GlyphSortType::POS_TOP);
+    m_sb.draw();
     //Minimap
     m_worldDrawer.drawMinimap();
     //Top-left menu
@@ -161,7 +187,8 @@ void WorldRoom::drawGUI() {
     ImGui::PopFont();
 }
 
-bool WorldRoom::loadWorld(const std::string& worldName) {
+template<RE::Renderer R>
+bool WorldRoom<R>::loadWorld(const std::string& worldName) {
     WorldSave save{};
 
     if (!WorldSaveLoader::loadWorld(save, worldName)) return false;
@@ -174,7 +201,8 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     return true;
 }
 
-bool WorldRoom::saveWorld() const {
+template<RE::Renderer R>
+bool WorldRoom<R>::saveWorld() const {
     WorldSave save{};
     m_world.gatherSave(save.metadata);
     m_player.gatherSave(save.player);
@@ -182,3 +210,11 @@ bool WorldRoom::saveWorld() const {
     if (!WorldSaveLoader::saveWorld(save, save.metadata.worldName, false)) return false;
     return m_world.saveChunks();
 }
+
+template<RE::Renderer R>
+glm::mat4 WorldRoom<R>::windowMatrix() const {
+    glm::vec2 window = engine().getWindowDims();
+    return glm::ortho(0.0f, window.x, 0.0f, window.y);
+}
+
+template WorldRoom<RE::RendererGL46>;

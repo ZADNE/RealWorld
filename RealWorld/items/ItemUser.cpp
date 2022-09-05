@@ -4,7 +4,8 @@
 #include <RealWorld/items/ItemUser.hpp>
 
 
-ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox) :
+template<RE::Renderer R>
+ItemUser<R>::ItemUser(World<R>& world, Inventory<R>& inventory, Hitbox& operatorsHitbox) :
     m_world(world),
     m_inv(inventory),
     m_operatorsHitbox(operatorsHitbox) {
@@ -12,20 +13,24 @@ ItemUser::ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox) 
     m_item = &m_inv[m_chosenSlot][0];
 }
 
-void ItemUser::switchShape() {
+template<RE::Renderer R>
+void ItemUser<R>::switchShape() {
     m_shape = m_shape == MODIFY_SHAPE::DISC ? MODIFY_SHAPE::SQUARE : MODIFY_SHAPE::DISC;
 }
 
-void ItemUser::resizeShape(float change) {
+template<RE::Renderer R>
+void ItemUser<R>::resizeShape(float change) {
     m_diameter = glm::clamp(m_diameter + change, 0.5f, 7.5f);
 }
 
-void ItemUser::selectSlot(int slot) {
+template<RE::Renderer R>
+void ItemUser<R>::selectSlot(int slot) {
     m_chosenSlot = slot;
     m_item = &m_inv[m_chosenSlot][0];
 }
 
-void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch& gb) {
+template<RE::Renderer R>
+void ItemUser<R>::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch<R>& gb) {
     bool use[2] = {usePrimary, useSecondary};
 
     //Update usage
@@ -85,3 +90,5 @@ void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCur
         }
     }
 }
+
+template ItemUser<RE::RendererGL46>;

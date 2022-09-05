@@ -15,13 +15,14 @@
  *
  * Can add or remove tile to the world.
 */
+template<RE::Renderer R>
 class ItemUser {
 public:
 
-    const static int PRIMARY_USE = 0;
-    const static int SECONDARY_USE = 1;
+    static constexpr int PRIMARY_USE = 0;
+    static constexpr int SECONDARY_USE = 1;
 
-    ItemUser(World& world, Inventory& inventory, Hitbox& operatorsHitbox);
+    ItemUser(World<R>& world, Inventory<R>& inventory, Hitbox& operatorsHitbox);
 
     void switchShape();
     void resizeShape(float change);
@@ -29,12 +30,12 @@ public:
     //Does not check if the slot is inside the inventory!
     void selectSlot(int slot);
 
-    void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch& geometryBatch);
+    void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch<R>& geometryBatch);
 
 private:
 
-    World& m_world;
-    Inventory& m_inv;
+    World<R>& m_world;
+    Inventory<R>& m_inv;
     Hitbox& m_operatorsHitbox;
 
     int m_chosenSlot = 0;

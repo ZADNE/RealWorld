@@ -7,27 +7,33 @@
 
 #include <RealWorld/items/ItemUser.hpp>
 
-Player::Player(RE::SpriteBatch& spriteBatch) :
+
+template<RE::Renderer R>
+Player<R>::Player(RE::SpriteBatch<R>& spriteBatch) :
     m_hitbox({ 0, 0 }, { 28, 40 }, { 14, 20 }),
     m_spriteBatch(spriteBatch) {
     m_playerMovementShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
     m_playerMovementShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
 }
 
-void Player::adoptSave(const PlayerSave& save) {
+template<RE::Renderer R>
+void Player<R>::adoptSave(const PlayerSave& save) {
     m_hitbox.botLeft() = save.pos;
     m_hitboxBuf.overwrite(offsetof(PlayerHitboxSSBO, botLeftPx), glm::vec2(save.pos));
 }
 
-void Player::gatherSave(PlayerSave& save) const {
+template<RE::Renderer R>
+void Player<R>::gatherSave(PlayerSave& save) const {
     save.pos = m_hitbox.getBotLeft();
 }
 
-Hitbox& Player::getHitbox() {
+template<RE::Renderer R>
+Hitbox& Player<R>::getHitbox() {
     return m_hitbox;
 }
 
-void Player::step(WALK dir, bool jump, bool autojump) {
+template<RE::Renderer R>
+void Player<R>::step(WALK dir, bool jump, bool autojump) {
     const auto* hitboxSSBO = m_hitboxBuf.map<PlayerHitboxSSBO>(offsetof(PlayerHitboxSSBO, botLeftPx), sizeof(PlayerHitboxSSBO), READ);
     m_hitbox.botLeft() = hitboxSSBO->botLeftPx;
     m_hitboxBuf.unmap();
@@ -40,6 +46,9 @@ void Player::step(WALK dir, bool jump, bool autojump) {
     m_playerMovementShd.dispatchCompute({ 1, 1, 1 }, true);
 }
 
-void Player::draw() {
-    m_spriteBatch.addTexture(m_playerTex.get(), m_hitbox.getBotLeft(), 0);
+template<RE::Renderer R>
+void Player<R>::draw() {
+    m_spriteBatch.addTexture(m_playerTex, m_hitbox.getBotLeft(), 0);
 }
+
+template Player<RE::RendererGL46>;

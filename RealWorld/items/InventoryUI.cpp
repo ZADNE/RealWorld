@@ -9,7 +9,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/geometric.hpp>
 
-#include <RealEngine/resources/ResourceManager.hpp>
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
 #include <RealWorld/shaders/common.hpp>
@@ -17,25 +16,29 @@
 #include <RealWorld/items/ItemUser.hpp>
 
 
-InventoryUI::InventoryUI(RE::SpriteBatch& spriteBatch, const glm::vec2& windowSize) :
+template<RE::Renderer R>
+InventoryUI<R>::InventoryUI(RE::SpriteBatch<R>& spriteBatch, const glm::vec2& windowSize) :
     m_spriteBatch(spriteBatch) {
     windowResized(windowSize);
 }
 
-InventoryUI::~InventoryUI() {
+template<RE::Renderer R>
+InventoryUI<R>::~InventoryUI() {
     //Disconnecting all inventories
     forEachConnectedInventory([&](Connection con) {
         m_inv[con]->connectToDrawer(nullptr, con);
     });
 }
 
-void InventoryUI::windowResized(const glm::vec2& newWindowSize) {
+template<RE::Renderer R>
+void InventoryUI<R>::windowResized(const glm::vec2& newWindowSize) {
     m_windowSize = newWindowSize;
     m_slotsSurf.resize({ newWindowSize }, 1);
     reload();
 }
 
-void InventoryUI::connectToInventory(Inventory* inventory, Connection connection) {
+template<RE::Renderer R>
+void InventoryUI<R>::connectToInventory(Inventory<R>* inventory, Connection connection) {
     if (m_inv[(size_t)connection]) {//Disconnect the current inventory
         m_inv[(size_t)connection]->connectToDrawer(nullptr, connection);
     }
@@ -46,13 +49,15 @@ void InventoryUI::connectToInventory(Inventory* inventory, Connection connection
     reload();
 }
 
-void InventoryUI::openOrClose() {
+template<RE::Renderer R>
+void InventoryUI<R>::openOrClose() {
     if (m_heldItem.isEmpty()) {//Not holding anything in hand
         m_open = !m_open;
     }
 }
 
-void InventoryUI::reload() {
+template<RE::Renderer R>
+void InventoryUI<R>::reload() {
     if (!m_inv[PRIMARY]) return;
 
     glm::vec2 invSizePx = glm::vec2(invSize(PRIMARY)) * slotDims() + (glm::vec2(invSize(PRIMARY)) - 1.0f) * SLOT_PADDING;
@@ -76,7 +81,7 @@ void InventoryUI::reload() {
 
     forEachSlotByPosition(PRIMARY, [&](int x, int y) {
         pos = m_invBotLeftPx + slotPivot() + (slotDims() + SLOT_PADDING) * glm::vec2(x, y);
-        m_spriteBatch.addSubimage(m_slotTex.get(), pos, 0, glm::vec2(0.0f, 0.0f));
+        m_spriteBatch.addSubimage(m_slotTex, pos, 0, glm::vec2(0.0f, 0.0f));
     });
 
     m_spriteBatch.end(RE::GlyphSortType::TEXTURE);
@@ -85,7 +90,8 @@ void InventoryUI::reload() {
     m_slotsSurf.resetTarget();
 }
 
-void InventoryUI::swapUnderCursor(const glm::vec2& cursorPx) {
+template<RE::Renderer R>
+void InventoryUI<R>::swapUnderCursor(const glm::vec2& cursorPx) {
     auto slot = cursorToSlot(cursorPx);
     if (slot) {
         int x = slot->x; int y = slot->y;
@@ -101,7 +107,8 @@ void InventoryUI::swapUnderCursor(const glm::vec2& cursorPx) {
     }
 }
 
-void InventoryUI::movePortion(const glm::vec2& cursorPx, float portion) {
+template<RE::Renderer R>
+void InventoryUI<R>::movePortion(const glm::vec2& cursorPx, float portion) {
     auto slot = cursorToSlot(cursorPx);
     if (slot) {
         int i = m_inv[PRIMARY]->toIndex(slot->x, slot->y);
@@ -112,38 +119,39 @@ void InventoryUI::movePortion(const glm::vec2& cursorPx, float portion) {
         else {//Picking up portion
             m_heldItem.insert((*m_inv[PRIMARY])(i), portion);
         }
-        m_heldSprite = ItemSprite(m_heldItem);
+        m_heldSprite = ItemSprite<R>(m_heldItem);
         m_inv[PRIMARY]->wasChanged();
     }
 }
 
-void InventoryUI::selectSlot(SelectionManner selectionManner, int number) {
+template<RE::Renderer R>
+void InventoryUI<R>::selectSlot(SlotSelectionManner selectionManner, int number) {
     if (m_open) { return; }
 
     switch (selectionManner) {
-    case SelectionManner::ABS:
+    case SlotSelectionManner::ABS:
         m_chosenSlotPrev = m_chosenSlot;
         m_chosenSlot = glm::clamp(number, 0, invSize(PRIMARY).x - 1);
         break;
-    case SelectionManner::RIGHT:
+    case SlotSelectionManner::RIGHT:
         m_chosenSlotPrev = m_chosenSlot;
         m_chosenSlot += number;
         while (m_chosenSlot > (invSize(PRIMARY).x - 1)) {
             m_chosenSlot -= invSize(PRIMARY).x;
         }
         break;
-    case SelectionManner::LEFT:
+    case SlotSelectionManner::LEFT:
         m_chosenSlotPrev = m_chosenSlot;
         m_chosenSlot -= number;
         while (m_chosenSlot < 0) {
             m_chosenSlot += invSize(PRIMARY).x;
         }
         break;
-    case SelectionManner::LAST_SLOT:
+    case SlotSelectionManner::LAST_SLOT:
         m_chosenSlotPrev = m_chosenSlot;
         m_chosenSlot = invSize(PRIMARY).x - 1;
         break;
-    case SelectionManner::PREV:
+    case SlotSelectionManner::PREV:
         std::swap(m_chosenSlot, m_chosenSlotPrev);
         break;
     }
@@ -151,17 +159,19 @@ void InventoryUI::selectSlot(SelectionManner selectionManner, int number) {
     if (m_itemUser) m_itemUser->selectSlot(m_chosenSlot);
 }
 
-void InventoryUI::step() {
+template<RE::Renderer R>
+void InventoryUI<R>::step() {
     //Increment subimage of all sprites
     forEachConnectedInventory([&](Connection con) {
         forEachSlotByIndex(con, [&](int i) {
-            m_invItemSprites[con][i].step();
+            m_invItemSprites[con][i].sprite().step();
         });
     });
-    m_heldSprite.step();
+    m_heldSprite.sprite().step();
 }
 
-void InventoryUI::draw(const glm::vec2& cursorPx) {
+template<RE::Renderer R>
+void InventoryUI<R>::draw(const glm::vec2& cursorPx) {
     if (!m_inv[PRIMARY]) { return; }
 
     glm::vec2 pos;
@@ -176,39 +186,42 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
             Item& item = (*m_inv[PRIMARY])[x][y];
             if (!item.isEmpty()) {
                 pos = slot0Px + (slotDims() + SLOT_PADDING) * glm::vec2(x, y);
-                m_spriteBatch.addSprite(m_invItemSprites[PRIMARY][i], pos, 1);
+                m_spriteBatch.addSprite(m_invItemSprites[PRIMARY][i].sprite(), pos, 1);
             }
             i++;
             });
         if (!m_heldItem.isEmpty()) {
             //Item under cursor
-            m_spriteBatch.addSprite(m_heldSprite, cursorPx, 10);
+            m_spriteBatch.addSprite(m_heldSprite.sprite(), cursorPx, 10);
         }
     } else {//CLOSED INVENTORY
         for (int x = 0; x < invSize(PRIMARY).x; x++) {
             Item& item = (*m_inv[PRIMARY])[x][0];
             pos = slot0Px + (slotDims() + SLOT_PADDING) * glm::vec2(x, 0.0f);
             //Slot
-            m_spriteBatch.addSubimage(m_slotTex.get(), pos, 0, glm::vec2(0.0f, 0.0f));
+            m_spriteBatch.addSubimage(m_slotTex, pos, 0, glm::vec2(0.0f, 0.0f));
             if (!item.isEmpty()) {
                 //Item sprite
-                m_spriteBatch.addSprite(m_invItemSprites[PRIMARY][x], pos, 1);
+                m_spriteBatch.addSprite(m_invItemSprites[PRIMARY][x].sprite(), pos, 1);
             }
         };
         //The selected slot indicator
-        m_spriteBatch.addSubimage(m_slotTex.get(), glm::vec2(slot0Px.x + (glm::ivec2(slotDims()).x + SLOT_PADDING.x) * (float)m_chosenSlot, slot0Px.y), 2, glm::vec2(1.0f, 0.0f));
+        m_spriteBatch.addSubimage(m_slotTex, glm::vec2(slot0Px.x + (glm::ivec2(slotDims()).x + SLOT_PADDING.x) * (float)m_chosenSlot, slot0Px.y), 2, glm::vec2(1.0f, 0.0f));
     }
 }
 
-inline glm::ivec2 InventoryUI::invSize(Connection con) const {
+template<RE::Renderer R>
+inline glm::ivec2 InventoryUI<R>::invSize(Connection con) const {
     return m_inv[con]->getSize();
 }
 
-inline int InventoryUI::invSlotCount(Connection con) const {
+template<RE::Renderer R>
+inline int InventoryUI<R>::invSlotCount(Connection con) const {
     return m_inv[con]->slotCount();
 }
 
-std::optional<glm::ivec2> InventoryUI::cursorToSlot(const glm::vec2& cursorPx) const {
+template<RE::Renderer R>
+std::optional<glm::ivec2> InventoryUI<R>::cursorToSlot(const glm::vec2& cursorPx) const {
     if (m_open && m_inv[PRIMARY]) {
         glm::vec2 posWithinInv = cursorPx - m_invBotLeftPx;
         glm::vec2 slotPos = posWithinInv / (slotDims() + SLOT_PADDING);
@@ -223,3 +236,5 @@ std::optional<glm::ivec2> InventoryUI::cursorToSlot(const glm::vec2& cursorPx) c
     }
     return std::nullopt;
 }
+
+template InventoryUI<RE::RendererGL46>;

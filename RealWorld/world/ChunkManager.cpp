@@ -13,12 +13,14 @@ int calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
         sizeof(glm::ivec2) * (activeChunksArea.x * activeChunksArea.y + maxContinuous.x * maxContinuous.y);
 }
 
-ChunkManager::ChunkManager(ChunkGenerator& chunkGen) :
+template<RE::Renderer R>
+ChunkManager<R>::ChunkManager(ChunkGenerator<R>& chunkGen) :
     m_chunkGen(chunkGen) {
     m_contAnalyzerShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
-void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture* worldTex) {
+template<RE::Renderer R>
+void ChunkManager<R>::setTarget(int seed, std::string folderPath, RE::Texture<R>* worldTex) {
     m_folderPath = folderPath;
     m_chunkGen.setSeed(seed);
     m_worldTex = worldTex;
@@ -35,7 +37,7 @@ void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture* worl
     m_activeChunks.resize(activeChunksArea.x * activeChunksArea.y, NO_ACTIVE_CHUNK);
 
     //Reset SSBO
-    m_activeChunksBuf = RE::TypedBuffer{STRG_BUF_ACTIVECHUNKS, calcActiveChunksBufSize(activeChunksArea), MAP_WRITE};
+    m_activeChunksBuf = RE::BufferTyped<R>{STRG_BUF_ACTIVECHUNKS, calcActiveChunksBufSize(activeChunksArea), MAP_WRITE};
     auto* ssbo = m_activeChunksBuf.map<ActiveChunksSSBO>(0, calcActiveChunksBufSize(activeChunksArea), WRITE | INVALIDATE_BUFFER);
     ssbo->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_activeChunksMask.x * m_activeChunksMask.y;
@@ -49,7 +51,8 @@ void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture* worl
     m_inactiveChunks.clear();
 }
 
-bool ChunkManager::saveChunks() const {
+template<RE::Renderer R>
+bool ChunkManager<R>::saveChunks() const {
     //Save all inactive chunks
     for (auto& pair : m_inactiveChunks) {
         saveChunk(pair.second.data(), pair.first);
@@ -64,11 +67,13 @@ bool ChunkManager::saveChunks() const {
     return true;
 }
 
-size_t ChunkManager::getNumberOfInactiveChunks() {
+template<RE::Renderer R>
+size_t ChunkManager<R>::getNumberOfInactiveChunks() {
     return m_inactiveChunks.size();
 }
 
-void ChunkManager::step() {
+template<RE::Renderer R>
+void ChunkManager<R>::step() {
     for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {//For each inactive chunk
         if (it->second.step() >= PHYSICS_STEPS_PER_SECOND * 60) {//If the chunk has not been used for a minute
             saveChunk(it->second.data(), it->first);//Save the chunk to disk
@@ -77,7 +82,8 @@ void ChunkManager::step() {
     }
 }
 
-int ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+template<RE::Renderer R>
+int ChunkManager<R>::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
 
@@ -100,7 +106,8 @@ int ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm
     return activatedChunks;
 }
 
-int ChunkManager::activateChunk(const glm::ivec2& posCh) {
+template<RE::Renderer R>
+int ChunkManager<R>::activateChunk(const glm::ivec2& posCh) {
     //Check if it is not already active
     auto acIndex = acToIndex(chToAc(posCh, m_activeChunksMask), m_activeChunksMask + 1);
     auto& chunk = m_activeChunks[acIndex];
@@ -139,7 +146,8 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
     return 1;
 }
 
-void ChunkManager::deactivateChunk(const glm::ivec2& posCh) {
+template<RE::Renderer R>
+void ChunkManager<R>::deactivateChunk(const glm::ivec2& posCh) {
     //Get the chunk that is to be deactivated
     auto posAc = chToAc(posCh, m_activeChunksMask);
     auto& chunk = m_activeChunks[acToIndex(posAc, m_activeChunksMask + 1)];
@@ -152,7 +160,8 @@ void ChunkManager::deactivateChunk(const glm::ivec2& posCh) {
     }
 }
 
-std::vector<unsigned char> ChunkManager::downloadChunk(const glm::ivec2& posAt) const {
+template<RE::Renderer R>
+std::vector<unsigned char> ChunkManager<R>::downloadChunk(const glm::ivec2& posAt) const {
     //Copy the chunk to (client-local) pack buffer
     m_downloadBuf.bind(RE::BufferType::PIXEL_PACK);
     m_worldTex->getTexels(0, posAt, iCHUNK_SIZE, m_downloadBuf.size(), nullptr);
@@ -168,10 +177,14 @@ std::vector<unsigned char> ChunkManager::downloadChunk(const glm::ivec2& posAt) 
     return tiles;
 }
 
-void ChunkManager::uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
+template<RE::Renderer R>
+void ChunkManager<R>::uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
     m_worldTex->setTexels(0, chToAt(posCh, m_activeChunksMask), iCHUNK_SIZE, chunk.data());
 }
 
-void ChunkManager::saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
+template<RE::Renderer R>
+void ChunkManager<R>::saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const {
     ChunkLoader::saveChunk(m_folderPath, posCh, iCHUNK_SIZE, chunk);
 }
+
+template ChunkManager<RE::RendererGL46>;

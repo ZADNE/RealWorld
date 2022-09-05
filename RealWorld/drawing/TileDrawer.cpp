@@ -8,16 +8,18 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 
 
-TileDrawer::TileDrawer(const glm::uvec2& viewSizeTi) {
+template<RE::Renderer R>
+TileDrawer<R>::TileDrawer(const glm::uvec2& viewSizeTi) {
     //Bind textures to their reserved texture units
-    m_blockAtlasTex->bind(TEX_UNIT_BLOCK_ATLAS);
-    m_wallAtlasTex->bind(TEX_UNIT_WALL_ATLAS);
+    m_blockAtlasTex.bind(TEX_UNIT_BLOCK_ATLAS);
+    m_wallAtlasTex.bind(TEX_UNIT_WALL_ATLAS);
 
     //Init shader
     m_drawTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
 }
 
-void TileDrawer::draw(const RE::VertexArray& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
+template<RE::Renderer R>
+void TileDrawer<R>::draw(const RE::VertexArray<R>& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
     vao.bind();
     m_drawTilesShd.use();
     m_drawTilesShd.setUniform(LOC_POSITIONPx, glm::mod(botLeftPx, TILEPx));
@@ -26,3 +28,5 @@ void TileDrawer::draw(const RE::VertexArray& vao, const glm::vec2& botLeftPx, co
     m_drawTilesShd.unuse();
     vao.unbind();
 }
+
+template TileDrawer<RE::RendererGL46>;

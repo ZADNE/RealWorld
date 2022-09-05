@@ -9,12 +9,12 @@
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/shaders/generation.hpp>
-#include <RealWorld/constants/chunk.hpp>
 
 /**
  * @brief Generates new chunks by compute shaders.
 */
-class ChunkGeneratorCS : public ChunkGenerator {
+template<RE::Renderer R>
+class ChunkGeneratorCS : public ChunkGenerator<R> {
 public:
 
     ChunkGeneratorCS();
@@ -25,16 +25,16 @@ private:
     void generateBasicTerrain() override;
     void consolidateEdges() override;
     void selectVariants() override;
-    void finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) override;
+    void finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) override;
 
 
-    RE::ShaderProgram m_structureShd = RE::ShaderProgram{ {.comp = structure_comp} };
-    RE::ShaderProgram m_consolidationShd = RE::ShaderProgram{ {.comp = consolidation_comp} };
-    RE::ShaderProgram m_variantSelectionShd = RE::ShaderProgram{ {.comp = variantSelection_comp} };
+    RE::ShaderProgram<R> m_structureShd{{.comp = structure_comp}};
+    RE::ShaderProgram<R> m_consolidationShd{{.comp = consolidation_comp}};
+    RE::ShaderProgram<R> m_variantSelectionShd{{.comp = variantSelection_comp}};
 
-    std::array<RE::Texture, 2> m_tilesTex = {
-        RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},
-        RE::Texture{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}}
+    std::array<RE::Texture<R>, 2> m_tilesTex = {
+        RE::Texture<R>{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},
+        RE::Texture<R>{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}}
     };
-    RE::Texture m_materialGenTex{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE} };
+    RE::Texture<R> m_materialGenTex{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE} };
 };

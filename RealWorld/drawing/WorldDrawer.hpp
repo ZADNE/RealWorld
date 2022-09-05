@@ -10,6 +10,7 @@
 /**
  * @brief Renders the world (i.e. tiles, shadows, minimap)
 */
+template<RE::Renderer R>
 class WorldDrawer {
 public:
 
@@ -69,11 +70,11 @@ private:
         glm::ivec2 worldTexMask;
         int viewWidthTi;
     };
-    RE::TypedBuffer m_uniformBuf{UNIF_BUF_WORLDDRAWER, sizeof(WorldDrawerUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+    RE::BufferTyped<R> m_uniformBuf{UNIF_BUF_WORLDDRAWER, sizeof(WorldDrawerUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
-    RE::VertexArray m_vao;//Attribute-less vertex array
+    RE::VertexArray<R> m_vao;//Attribute-less vertex array
 
-    TileDrawer m_tileDrawer;
-    ShadowDrawer m_shadowDrawer;
-    MinimapDrawer m_minimapDrawer;
+    TileDrawer<R> m_tileDrawer;
+    ShadowDrawer<R> m_shadowDrawer;
+    MinimapDrawer<R> m_minimapDrawer;
 };
