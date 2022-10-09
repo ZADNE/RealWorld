@@ -3,7 +3,7 @@
  */
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 
-#include <RealEngine/rendering/vertices/vertices.hpp>
+#include <RealEngine/rendering/vertices/Vertex.hpp>
 #include <RealEngine/rendering/output/Viewport.hpp>
 
 #include <RealWorld/reserved_units/buffers.hpp>
@@ -58,4 +58,5 @@ void MinimapDrawer<R>::updateArrayBuffers(const glm::ivec2& worldTexSize, const 
     m_pouvBuf.overwrite(0, sizeof(vertices), vertices);
 }
 
-template MinimapDrawer<RE::RendererGL46>;
+template class MinimapDrawer<RE::RendererVK13>;
+template class MinimapDrawer<RE::RendererGL46>;

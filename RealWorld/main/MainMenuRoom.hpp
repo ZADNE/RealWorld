@@ -19,7 +19,7 @@ public:
 
     MainMenuRoom(GameSettings& gameSettings);
 
-    void sessionStart(const RE::RoomTransitionParameters& params) override;
+    void sessionStart(const RE::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
     void render(double interpolationFactor) override;

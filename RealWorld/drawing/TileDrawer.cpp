@@ -29,4 +29,5 @@ void TileDrawer<R>::draw(const RE::VertexArray<R>& vao, const glm::vec2& botLeft
     vao.unbind();
 }
 
-template TileDrawer<RE::RendererGL46>;
+template class TileDrawer<RE::RendererVK13>;
+template class TileDrawer<RE::RendererGL46>;

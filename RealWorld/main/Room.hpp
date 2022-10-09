@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/main/rooms/Room.hpp>
+#include <RealEngine/rooms/Room.hpp>
 
 #include <RealWorld/main/settings/KeyBinder.hpp>
 

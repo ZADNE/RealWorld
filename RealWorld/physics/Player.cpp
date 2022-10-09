@@ -34,7 +34,7 @@ Hitbox& Player<R>::getHitbox() {
 
 template<RE::Renderer R>
 void Player<R>::step(WALK dir, bool jump, bool autojump) {
-    const auto* hitboxSSBO = m_hitboxBuf.map<PlayerHitboxSSBO>(offsetof(PlayerHitboxSSBO, botLeftPx), sizeof(PlayerHitboxSSBO), READ);
+    const auto* hitboxSSBO = m_hitboxBuf.template map<PlayerHitboxSSBO>(offsetof(PlayerHitboxSSBO, botLeftPx), sizeof(PlayerHitboxSSBO), READ);
     m_hitbox.botLeft() = hitboxSSBO->botLeftPx;
     m_hitboxBuf.unmap();
 
@@ -51,4 +51,5 @@ void Player<R>::draw() {
     m_sb.addTexture(m_playerTex, m_hitbox.getBotLeft(), 0);
 }
 
-template Player<RE::RendererGL46>;
+template class Player<RE::RendererVK13>;
+template class Player<RE::RendererGL46>;

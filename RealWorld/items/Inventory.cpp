@@ -5,7 +5,7 @@
 
 #include <fstream>
 
-#include <RealEngine/utility/error.hpp>
+#include <RealEngine/utility/Error.hpp>
 
 
 template<RE::Renderer R>
@@ -140,4 +140,5 @@ int Inventory<R>::operator-=(const Item& item) {
     return remove(item);
 }
 
-template Inventory<RE::RendererGL46>;
+template class Inventory<RE::RendererVK13>;
+template class Inventory<RE::RendererGL46>;

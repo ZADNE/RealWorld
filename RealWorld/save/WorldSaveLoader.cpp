@@ -11,7 +11,7 @@
 #include <nlohmann/json.hpp>
 
 #include <lodepng/lodepng.hpp>
-#include <RealEngine/utility/error.hpp>
+#include <RealEngine/utility/Error.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
 

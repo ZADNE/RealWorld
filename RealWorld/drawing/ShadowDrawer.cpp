@@ -3,7 +3,7 @@
  */
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 
-#include <RealEngine/rendering/vertices/vertices.hpp>
+#include <RealEngine/rendering/vertices/Vertex.hpp>
 #include <RealEngine/rendering/output/Surface.hpp>
 #include <RealEngine/rendering/Ordering.hpp>
 
@@ -108,4 +108,5 @@ ShadowDrawer<R>::ViewSizeDependent::ViewSizeDependent(const glm::uvec2& viewSize
     shadowsTex.bindImage(IMG_UNIT_SHADOWS, 0, RE::ImageAccess::WRITE_ONLY);
 }
 
-template ShadowDrawer<RE::RendererGL46>;
+template class ShadowDrawer<RE::RendererVK13>;
+template class ShadowDrawer<RE::RendererGL46>;

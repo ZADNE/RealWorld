@@ -38,7 +38,7 @@ void ChunkManager<R>::setTarget(int seed, std::string folderPath, RE::Texture<R>
 
     //Reset SSBO
     m_activeChunksBuf = RE::BufferTyped<R>{STRG_BUF_ACTIVECHUNKS, calcActiveChunksBufSize(activeChunksArea), MAP_WRITE};
-    auto* ssbo = m_activeChunksBuf.map<ActiveChunksSSBO>(0, calcActiveChunksBufSize(activeChunksArea), WRITE | INVALIDATE_BUFFER);
+    auto* ssbo = m_activeChunksBuf.template map<ChunkManager<R>::ActiveChunksSSBO>(0, calcActiveChunksBufSize(activeChunksArea), WRITE | INVALIDATE_BUFFER);
     ssbo->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_activeChunksMask.x * m_activeChunksMask.y;
     for (int i = maxNumberOfUpdateChunks; i < (maxNumberOfUpdateChunks + activeChunksArea.x * activeChunksArea.y); i++) {
@@ -97,7 +97,7 @@ int ChunkManager<R>::forceActivationOfChunks(const glm::ivec2& botLeftTi, const 
 
     if (activatedChunks > 0) {//If at least one chunk has been activated
         //Reset the number of update chunks to zero
-        auto* numberOfUpdateChunks = m_activeChunksBuf.map<int>(0, sizeof(int), WRITE | INVALIDATE_RANGE);
+        auto* numberOfUpdateChunks = m_activeChunksBuf.template map<int>(0, sizeof(int), WRITE | INVALIDATE_RANGE);
         *numberOfUpdateChunks = 0;
         m_activeChunksBuf.unmap();
         //And analyze the world texture
@@ -138,7 +138,7 @@ int ChunkManager<R>::activateChunk(const glm::ivec2& posCh) {
     //The chunk has been uploaded to the world texture
     //Its position also has to be updated in the active chunks buffer
     int mapOffset = offsetof(ActiveChunksSSBO, offsets) + (m_activeChunksMask.x * m_activeChunksMask.y + acIndex) * sizeof(glm::ivec2);
-    auto* ssbo = m_activeChunksBuf.map<glm::ivec2>(mapOffset, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
+    auto* ssbo = m_activeChunksBuf.template map<glm::ivec2>(mapOffset, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
     *ssbo = posCh;
     m_activeChunksBuf.unmap();
 
@@ -167,7 +167,7 @@ std::vector<unsigned char> ChunkManager<R>::downloadChunk(const glm::ivec2& posA
     m_worldTex->getTexels(0, posAt, iCHUNK_SIZE, m_downloadBuf.size(), nullptr);
 
     //Map it right away (causes synchronization!)
-    auto* pixels = m_downloadBuf.map<unsigned char>(0u, m_downloadBuf.size(), READ);
+    auto* pixels = m_downloadBuf.template map<unsigned char>(0u, m_downloadBuf.size(), READ);
 
     //Copy it the tiles to local vector
     std::vector<unsigned char> tiles;
@@ -187,4 +187,5 @@ void ChunkManager<R>::saveChunk(const std::vector<unsigned char>& chunk, glm::iv
     ChunkLoader::saveChunk(m_folderPath, posCh, iCHUNK_SIZE, chunk);
 }
 
-template ChunkManager<RE::RendererGL46>;
+template class ChunkManager<RE::RendererVK13>;
+template class ChunkManager<RE::RendererGL46>;

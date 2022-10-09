@@ -39,9 +39,9 @@ WorldRoom<R>::WorldRoom(const GameSettings& gameSettings) :
 }
 
 template<RE::Renderer R>
-void WorldRoom<R>::sessionStart(const RE::RoomTransitionParameters& params) {
+void WorldRoom<R>::sessionStart(const RE::RoomTransitionArguments& args) {
     try {
-        const std::string& worldName = std::any_cast<const std::string&>(params[0]);
+        const std::string& worldName = std::any_cast<const std::string&>(args[0]);
         if (!loadWorld(worldName)) {
             engine().scheduleRoomTransition(0, {});
             return;
@@ -217,4 +217,5 @@ glm::mat4 WorldRoom<R>::windowMatrix() const {
     return glm::ortho(0.0f, window.x, 0.0f, window.y);
 }
 
-template WorldRoom<RE::RendererGL46>;
+template class WorldRoom<RE::RendererVK13>;
+template class WorldRoom<RE::RendererGL46>;

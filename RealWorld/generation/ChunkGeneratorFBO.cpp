@@ -83,4 +83,5 @@ void ChunkGeneratorFBO<R>::finishGeneration(const RE::Texture<R>& destinationTex
     m_genSurf[0].getTexture().copyTexels(0, glm::ivec2{GEN_BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 }
 
-template ChunkGeneratorFBO<RE::RendererGL46>;
+template class ChunkGeneratorFBO<RE::RendererVK13>;
+template class ChunkGeneratorFBO<RE::RendererGL46>;

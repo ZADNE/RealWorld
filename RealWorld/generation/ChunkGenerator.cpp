@@ -30,4 +30,5 @@ void ChunkGenerator<R>::generateChunk(const glm::ivec2& posCh, const RE::Texture
     finishGeneration(destinationTexture, destinationOffset);
 }
 
-template ChunkGenerator<RE::RendererGL46>;
+template class ChunkGenerator<RE::RendererVK13>;
+template class ChunkGenerator<RE::RendererGL46>;

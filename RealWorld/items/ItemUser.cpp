@@ -91,4 +91,5 @@ void ItemUser<R>::step(bool usePrimary, bool useSecondary, const glm::ivec2& rel
     }
 }
 
-template ItemUser<RE::RendererGL46>;
+template class ItemUser<RE::RendererVK13>;
+template class ItemUser<RE::RendererGL46>;

@@ -34,7 +34,7 @@ constexpr std::array ACTIVE_CHUNKS_AREAS = {
     glm::ivec2{64, 64}
 };
 
-inline constexpr std::string ivec2ToString(const glm::ivec2& vec) {
+std::string ivec2ToString(const glm::ivec2& vec) {
     return std::to_string(vec.x) + "x" + std::to_string(vec.y);
 }
 

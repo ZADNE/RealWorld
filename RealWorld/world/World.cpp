@@ -71,7 +71,7 @@ size_t World<R>::getNumberOfInactiveChunks() {
 template<RE::Renderer R>
 void World<R>::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
     using enum RE::BufferMapUsageFlags;
-    auto* buffer = m_worldDynamicsBuf.map<WorldDynamicsUBO>(0u, offsetof(WorldDynamicsUBO, timeHash), WRITE | INVALIDATE_RANGE);
+    auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUBO>(0u, offsetof(WorldDynamicsUBO, timeHash), WRITE | INVALIDATE_RANGE);
     buffer->globalPosTi = posTi;
     buffer->modifyTarget = static_cast<glm::uint>(layer);
     buffer->modifyShape = static_cast<glm::uint>(shape);
@@ -88,7 +88,7 @@ int World<R>::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     m_chunkManager.step();
 
     //Tile transformations
-    m_tileTransformationsShd.dispatchCompute(offsetof(ChunkManager<R>::ActiveChunksSSBO, dynamicsGroupSize), true);
+    m_tileTransformationsShd.dispatchCompute(offsetof(typename ChunkManager<R>::ActiveChunksSSBO, dynamicsGroupSize), true);
     RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
     //Fluid dynamics
@@ -107,7 +107,7 @@ void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& 
     //Permute the orders
     m_fluidDynamicsShd.use();
     if (m_permuteOrder) {
-        auto* timeHash = m_worldDynamicsBuf.map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
+        auto* timeHash = m_worldDynamicsBuf.template map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
             sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
         *timeHash = m_rngState;
         glm::ivec4* updateOrder = reinterpret_cast<glm::ivec4*>(&timeHash[1]);
@@ -125,7 +125,7 @@ void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& 
     glm::ivec2 dynBotLeftTi = botLeftCh * iCHUNK_SIZE + iCHUNK_SIZE / 2;
     for (unsigned int i = 0; i < 4u; i++) {
         //Update offset of the groups
-        auto* offset = m_worldDynamicsBuf.map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
+        auto* offset = m_worldDynamicsBuf.template map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
         *offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i]) * iCHUNK_SIZE / 2;
         m_worldDynamicsBuf.unmap();
         //Dispatch
@@ -135,4 +135,5 @@ void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& 
     m_fluidDynamicsShd.unuse();
 }
 
-template World<RE::RendererGL46>;
+template class World<RE::RendererVK13>;
+template class World<RE::RendererGL46>;

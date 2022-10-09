@@ -6,7 +6,7 @@
 Chunk::Chunk(const glm::ivec2& chunkPosCh, std::vector<unsigned char> data) :
     m_chunkPosCh(chunkPosCh), m_data(data) {
     if (data.size() < (static_cast<size_t>(iCHUNK_SIZE.x) * iCHUNK_SIZE.y * 4ull)) {
-        throw std::exception("Not enough bytes provided to construct a chunk!");
+        throw std::runtime_error("Not enough bytes provided to construct a chunk!");
     }
 }
 

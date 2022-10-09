@@ -1,7 +1,7 @@
 ﻿/*! 
  *  @author    Dubsky Tomas
  */
-#include <RealEngine/main/program/MainProgram.hpp>
+#include <RealEngine/program/MainProgram.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>

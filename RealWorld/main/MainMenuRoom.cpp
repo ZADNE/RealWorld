@@ -42,7 +42,7 @@ MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
     }
 }
 
-void MainMenuRoom::sessionStart(const RE::RoomTransitionParameters& params) {
+void MainMenuRoom::sessionStart(const RE::RoomTransitionArguments& args) {
     m_menu = MAIN;
     WorldSaveLoader::getSavedWorlds(m_worlds);
     m_newWorldName = "";

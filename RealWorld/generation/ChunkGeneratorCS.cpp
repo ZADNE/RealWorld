@@ -72,4 +72,5 @@ void ChunkGeneratorCS<R>::finishGeneration(const RE::Texture<R>& destinationText
     m_tilesTex[0].copyTexels(0, glm::ivec2{GEN_BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 }
 
-template ChunkGeneratorCS<RE::RendererGL46>;
+template class ChunkGeneratorCS<RE::RendererVK13>;
+template class ChunkGeneratorCS<RE::RendererGL46>;

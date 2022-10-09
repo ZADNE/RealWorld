@@ -5,7 +5,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealEngine/rendering/vertices/vertices.hpp>
+#include <RealEngine/rendering/vertices/Vertex.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
@@ -97,4 +97,5 @@ glm::uvec2 WorldDrawer<R>::viewSizeTi(const glm::vec2& viewSizePx) const {
     return glm::uvec2(glm::ceil(viewSizePx / TILEPx)) + 1u;
 }
 
-template WorldDrawer<RE::RendererGL46>;
+template class WorldDrawer<RE::RendererVK13>;
+template class WorldDrawer<RE::RendererGL46>;

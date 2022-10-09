@@ -7,7 +7,7 @@
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
-#include <RealEngine/rendering/basic_shaders.hpp>
+#include <RealEngine/rendering/BasicShaders.hpp>
 #include <RealEngine/rendering/cameras/View2D.hpp>
 #include <RealEngine/rendering/output/Viewport.hpp>
 
@@ -40,7 +40,7 @@ public:
 
     WorldRoom(const GameSettings& gameSettings);
 
-    void sessionStart(const RE::RoomTransitionParameters& params) override;
+    void sessionStart(const RE::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
     void render(double interpolationFactor) override;
@@ -48,6 +48,8 @@ public:
     void windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) override;
 
 private:
+
+    using enum RealWorldKeyBindings;
 
     void drawGUI();
 

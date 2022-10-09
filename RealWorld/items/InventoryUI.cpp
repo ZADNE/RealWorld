@@ -215,4 +215,5 @@ std::optional<glm::ivec2> InventoryUI<R>::cursorToSlot(const glm::vec2& cursorPx
     return std::nullopt;
 }
 
-template InventoryUI<RE::RendererGL46>;
+template class InventoryUI<RE::RendererVK13>;
+template class InventoryUI<RE::RendererGL46>;

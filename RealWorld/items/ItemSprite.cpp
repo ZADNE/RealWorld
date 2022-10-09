@@ -34,4 +34,5 @@ RE::SpriteComplex<R>& ItemSprite<R>::sprite() {
     return m_sprite;
 }
 
-template ItemSprite<RE::RendererGL46>;
+template class ItemSprite<RE::RendererVK13>;
+template class ItemSprite<RE::RendererGL46>;
