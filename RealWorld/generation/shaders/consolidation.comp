@@ -1,0 +1,60 @@
+#version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/reserved_units/textures.glsl>
+#include <RealWorld/reserved_units/images.glsl>
+
+layout( local_size_x = GEN_CS_GROUP_SIZE,
+        local_size_y = GEN_CS_GROUP_SIZE,
+        local_size_z = 1
+) in;
+
+layout(binding = IMG_UNIT_GEN_TILES0, rgba8ui) uniform restrict writeonly uimage2D tilesImage[2];
+layout(binding = TEX_UNIT_GEN_TILES0) uniform usampler2D tilesTexture[2];
+layout(binding = TEX_UNIT_GEN_MATERIAL) uniform usampler2D materialTexture;
+
+layout(location = 33) uniform ivec2 thresholds;
+const int LOW = 0;
+const int HIGH = 1;
+layout(location = 34) uniform uint cycleN;
+
+const ivec2 NEIGHBORHOOD[] = {
+    {-1, +1},     {+0, +1},     {+1, +1},
+    {-1, +0},                   {+1, +0},
+    {-1, -1},     {+0, -1},     {+1, -1}
+};
+
+void main() {
+    const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
+    const uint read = cycleN % 2;
+    const uint write = (cycleN + 1) % 2;
+    const uvec4 previous = texelFetch(tilesTexture[read], pTi, 0);
+    
+    //If there are more cycles to be done on this tile
+    if (previous.g > cycleN){
+        //Check neighbors
+        int neighborsN = 0;
+        for (int i = 0; i < NEIGHBORHOOD.length(); i++){
+            neighborsN += int(!isAirBlock(texelFetch(tilesTexture[read], pTi + NEIGHBORHOOD[i], 0).BL_T));
+        }
+        
+        if (previous.BL_T == AIR_BL){
+            if (neighborsN > thresholds[HIGH]){
+                //Surrounded air -> promote to material
+                uvec4 material = texelFetch(materialTexture, pTi, 0);
+                imageStore(tilesImage[write], pTi, uvec4(material.BL_T, previous.gba));
+            } else {
+                imageStore(tilesImage[write], pTi, previous);
+            }
+        } else {
+            if (neighborsN < thresholds[LOW]){
+                //Lonely solid -> reduce to air
+                imageStore(tilesImage[write], pTi, uvec4(AIR.BL_T, previous.gba));
+            } else {
+                imageStore(tilesImage[write], pTi, previous);
+            }
+        }
+    } else {
+        imageStore(tilesImage[write], pTi, previous);
+    }
+}

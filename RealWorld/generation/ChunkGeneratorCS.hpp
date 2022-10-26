@@ -8,7 +8,7 @@
 #include <RealEngine/rendering/vertices/ShaderProgram.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/shaders/generation.hpp>
+#include <RealWorld/generation/shaders/AllShaders.hpp>
 
 /**
  * @brief Generates new chunks by compute shaders.

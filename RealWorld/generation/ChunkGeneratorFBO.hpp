@@ -9,8 +9,7 @@
 #include <RealEngine/rendering/vertices/VertexArray.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/shaders/generation.hpp>
-#include <RealWorld/reserved_units/buffers.hpp>
+#include <RealWorld/generation/shaders/AllShaders.hpp>
 
 /**
  * @brief Generates new chunks by switching framebuffers.

@@ -1,7 +1,7 @@
 #version 460
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/generation/ChunkUIB.glsl>
+#include <RealWorld/generation/shaders/ChunkUIB.glsl>
 
 layout(location = 0) out vec2 inChunkPosTi;
 
@@ -20,5 +20,6 @@ const vec2 TILE_CORNERS[] = {
 };
 
 void main() {
-
+    gl_Position = vec4(NDC_CORNERS[gl_VertexID], 0.0, 1.0);
+    inChunkPosTi = TILE_CORNERS[gl_VertexID];
 }

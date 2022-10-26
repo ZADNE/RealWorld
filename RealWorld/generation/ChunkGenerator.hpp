@@ -8,7 +8,6 @@
 #include <RealEngine/rendering/output/Surface.hpp>
 #include <RealEngine/rendering/vertices/VertexArray.hpp>
 
-#include <RealWorld/shaders/generation.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/generation.hpp>
 
