@@ -6,6 +6,7 @@
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
+#include <RealWorld/shaders/drawing.hpp>
 
 
 template<RE::Renderer R>

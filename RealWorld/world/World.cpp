@@ -32,10 +32,10 @@ World<R>::World(ChunkGenerator<R>& chunkGen) :
     m_worldTex(RE::Raster{{1, 1}}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
     m_chunkManager(chunkGen),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
-    m_fluidDynamicsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_tileTransformationsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_modifyShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_tileTransformationsShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
+    m_simulateFluidsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+    m_transformTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+    m_modifyTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+    m_transformTilesShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
 template<RE::Renderer R>
@@ -78,7 +78,7 @@ void World<R>::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm
     buffer->modifyDiameter = diameter;
     buffer->modifySetValue = tile;
     m_worldDynamicsBuf.unmap();
-    m_modifyShd.dispatchCompute({1, 1, 1}, true);
+    m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);
 }
 
 template<RE::Renderer R>
@@ -88,7 +88,7 @@ int World<R>::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     m_chunkManager.step();
 
     //Tile transformations
-    m_tileTransformationsShd.dispatchCompute(offsetof(typename ChunkManager<R>::ActiveChunksSSBO, dynamicsGroupSize), true);
+    m_transformTilesShd.dispatchCompute(offsetof(typename ChunkManager<R>::ActiveChunksSSBO, dynamicsGroupSize), true);
     RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
     //Fluid dynamics
@@ -105,7 +105,7 @@ void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& 
     glm::ivec2 topRightCh = tiToCh(topRightTi);
 
     //Permute the orders
-    m_fluidDynamicsShd.use();
+    m_simulateFluidsShd.use();
     if (m_permuteOrder) {
         auto* timeHash = m_worldDynamicsBuf.template map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
             sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
@@ -129,10 +129,10 @@ void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& 
         *offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i]) * iCHUNK_SIZE / 2;
         m_worldDynamicsBuf.unmap();
         //Dispatch
-        m_fluidDynamicsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
+        m_simulateFluidsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
         RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     }
-    m_fluidDynamicsShd.unuse();
+    m_simulateFluidsShd.unuse();
 }
 
 template class World<RE::RendererVK13>;

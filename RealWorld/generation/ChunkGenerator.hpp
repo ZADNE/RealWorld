@@ -4,8 +4,7 @@
 #pragma once
 #include <array>
 
-#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
-#include <RealEngine/rendering/output/Surface.hpp>
+#include <RealEngine/rendering/textures/Texture.hpp>
 #include <RealEngine/rendering/vertices/VertexArray.hpp>
 
 #include <RealWorld/reserved_units/buffers.hpp>
@@ -47,7 +46,7 @@ protected:
     virtual void prepareToGenerate() = 0;
     virtual void generateBasicTerrain() = 0;
     virtual void consolidateEdges() = 0;
-    virtual void selectVariants() = 0;
+    virtual void selectVariant() = 0;
     virtual void finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) = 0;
 
     int m_seed = 0;

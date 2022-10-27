@@ -10,7 +10,6 @@
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
-#include <RealWorld/shaders/common.hpp>
 
 template<RE::Renderer> class ItemUser;
 template<RE::Renderer> class Inventory;

@@ -7,6 +7,9 @@
 
 #include <RealWorld/save/ChunkLoader.hpp>
 
+constexpr int LOC_ACTIVE_CHUNKS_MASK = 0;
+constexpr int LOC_ACTIVE_CHUNKS_AREA = 1;
+
 int calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
     glm::ivec2 maxContinuous = activeChunksArea - 1;
     return sizeof(glm::ivec4) +
@@ -16,7 +19,7 @@ int calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
 template<RE::Renderer R>
 ChunkManager<R>::ChunkManager(ChunkGenerator<R>& chunkGen) :
     m_chunkGen(chunkGen) {
-    m_contAnalyzerShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
+    m_analyzeContinuityShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
 template<RE::Renderer R>
@@ -28,9 +31,9 @@ void ChunkManager<R>::setTarget(int seed, std::string folderPath, RE::Texture<R>
     //Recalculate active chunks mask and analyzer dispatch size
     glm::ivec2 activeChunksArea = m_worldTex->getTrueDims() / uCHUNK_SIZE;
     m_activeChunksMask = activeChunksArea - 1;
-    m_contAnalyzerGroupCount = {activeChunksArea / 8, 1};
-    m_contAnalyzerShd.setUniform("activeChunksArea", activeChunksArea);
-    m_contAnalyzerShd.setUniform("activeChunksMask", m_activeChunksMask);
+    m_analyzeContinuityGroupCount = {activeChunksArea / 8, 1};
+    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_MASK, activeChunksArea);
+    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_AREA, m_activeChunksMask);
 
     //Reset active chunks
     m_activeChunks.clear();
@@ -101,7 +104,7 @@ int ChunkManager<R>::forceActivationOfChunks(const glm::ivec2& botLeftTi, const 
         *numberOfUpdateChunks = 0;
         m_activeChunksBuf.unmap();
         //And analyze the world texture
-        m_contAnalyzerShd.dispatchCompute(m_contAnalyzerGroupCount, true);
+        m_analyzeContinuityShd.dispatchCompute(m_analyzeContinuityGroupCount, true);
     }
     return activatedChunks;
 }

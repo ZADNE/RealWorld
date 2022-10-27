@@ -12,7 +12,7 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
-
+#include <RealWorld/shaders/drawing.hpp>
 
 constexpr int UNIT_MASK = ~(iLIGHT_SCALE * iTILEPx.x - 1);
 constexpr int HALF_UNIT_OFFSET = iTILEPx.x * iLIGHT_SCALE / 2;
@@ -41,7 +41,7 @@ ShadowDrawer<R>::ShadowDrawer(const glm::uvec2& viewSizeTi) :
     m_blockLightAtlasTex.bind(TEX_UNIT_BLOCK_LIGHT_ATLAS);
     m_wallLightAtlasTex.bind(TEX_UNIT_WALL_LIGHT_ATLAS);
 
-    m_analysisShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
+    m_analyzeTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
     m_drawShadowsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
     m_addLightsShd.backInterfaceBlock(0u, STRG_BUF_EXTERNALLIGHTS);
 }
@@ -53,8 +53,8 @@ void ShadowDrawer<R>::resizeView(const glm::uvec2& viewSizeTi) {
 
 template<RE::Renderer R>
 void ShadowDrawer<R>::analyze(const glm::ivec2& botLeftTi) {
-    m_analysisShd.setUniform(LOC_POSITIONTi, (botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi)) & ~LIGHT_SCALE_BITS);
-    m_analysisShd.dispatchCompute(m_.analysisGroupCount, true);
+    m_analyzeTilesShd.setUniform(LOC_POSITIONTi, (botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi)) & ~LIGHT_SCALE_BITS);
+    m_analyzeTilesShd.dispatchCompute(m_.analysisGroupCount, true);
     m_lights.clear();
 }
 

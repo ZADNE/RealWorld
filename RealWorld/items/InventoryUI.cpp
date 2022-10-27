@@ -11,7 +11,6 @@
 
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
-#include <RealWorld/shaders/common.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemUser.hpp>
 

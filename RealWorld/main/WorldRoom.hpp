@@ -7,14 +7,14 @@
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
-#include <RealEngine/rendering/BasicShaders.hpp>
+#include <RealEngine/rendering/basic_shaders/AllShaders.hpp>
 #include <RealEngine/rendering/cameras/View2D.hpp>
 #include <RealEngine/rendering/output/Viewport.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
-#include <RealWorld/physics/Player.hpp>
+#include <RealWorld/player/Player.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/items/InventoryUI.hpp>

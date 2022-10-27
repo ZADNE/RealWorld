@@ -3,9 +3,8 @@
  */
 #pragma once
 #include <RealEngine/rendering/vertices/VertexArray.hpp>
-#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
 
-#include <RealWorld/shaders/drawing.hpp>
+#include <RealWorld/drawing/shaders/AllShaders.hpp>
 
 /**
  * @brief Renders minimap of the world
@@ -25,7 +24,7 @@ private:
 
     void updateArrayBuffers(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
 
-    RE::ShaderProgram<R> m_minimapShd{{.vert = minimap_vert, .frag = minimap_frag}};
+    RE::ShaderProgram<R> m_minimapShd{{.vert = drawMinimap_vert, .frag = drawMinimap_frag}};
     RE::VertexArray<R> m_pouvArr;
 
     struct VertexPOUV {

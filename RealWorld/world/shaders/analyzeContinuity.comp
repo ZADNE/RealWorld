@@ -1,0 +1,35 @@
+#version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/world/shaders/ActiveChunksSSIB.glsl>
+
+layout( local_size_x = 8,
+        local_size_y = 8,
+        local_size_z = 1
+) in;
+
+layout(location = 0) uniform ivec2 activeChunksMask;
+layout(location = 1) uniform ivec2 activeChunksArea;
+
+int maxNumberOfUpdateChunks = activeChunksMask.x * activeChunksMask.y;
+
+ivec2 getActiveChunk(ivec2 pos){
+    return offsets[maxNumberOfUpdateChunks + pos.y * activeChunksArea.x + pos.x];
+}
+
+void main(){
+    //Gather chunks
+    const ivec2 posCh = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 ch00 = getActiveChunk(posCh);
+    ivec2 ch01 = getActiveChunk((posCh + ivec2(0, 1)) & activeChunksMask);
+    ivec2 ch10 = getActiveChunk((posCh + ivec2(1, 0)) & activeChunksMask);
+    ivec2 ch11 = getActiveChunk((posCh + ivec2(1, 1)) & activeChunksMask);
+    
+    //Test their continuity
+    if ((ch00 + ivec2(0, 1)) == ch01 &&
+        (ch10 + ivec2(0, 1)) == ch11 && 
+        (ch00 + ivec2(1, 0)) == ch10){
+        //The update chunk is continous
+        int i = atomicAdd(dynamicsGroupSize.x, 1);
+        offsets[i] = posCh * CHUNK_SIZE + CHUNK_SIZE / 2;
+    }
+}

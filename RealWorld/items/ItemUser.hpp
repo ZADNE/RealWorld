@@ -8,7 +8,7 @@
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/physics/Hitbox.hpp>
+#include <RealWorld/player/Hitbox.hpp>
 
 /**
  * @brief Uses items from an inventory.

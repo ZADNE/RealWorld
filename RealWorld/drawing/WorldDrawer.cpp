@@ -9,7 +9,6 @@
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
-#include <RealWorld/shaders/common.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 

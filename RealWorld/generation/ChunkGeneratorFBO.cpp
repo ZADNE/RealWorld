@@ -7,13 +7,13 @@
 
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
-
+#include <RealWorld/shaders/generation.hpp>
 
 template<RE::Renderer R>
 ChunkGeneratorFBO<R>::ChunkGeneratorFBO() {
-    m_structureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
-    m_consolidationShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
-    m_variantSelectionShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+    m_generateStructureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+    m_consolidateEdgesShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+    m_selectVariantShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
 
     m_genSurf[0].getTexture(0).bind(TEX_UNIT_GEN_TILES[0]);
     m_genSurf[1].getTexture(0).bind(TEX_UNIT_GEN_TILES[1]);
@@ -28,18 +28,18 @@ void ChunkGeneratorFBO<R>::prepareToGenerate() {
 
 template<RE::Renderer R>
 void ChunkGeneratorFBO<R>::generateBasicTerrain() {
-    m_structureShd.use();
+    m_generateStructureShd.use();
     m_va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);
-    m_structureShd.unuse();
+    m_generateStructureShd.unuse();
 }
 
 template<RE::Renderer R>
 void ChunkGeneratorFBO<R>::consolidateEdges() {
     unsigned int cycleN = 0u;
     auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
-        m_consolidationShd.setUniform(LOC_THRESHOLDS, thresholds);
+        m_consolidateEdgesShd.setUniform(LOC_THRESHOLDS, thresholds);
         for (size_t i = 0; i < passes; i++) {
-            m_consolidationShd.setUniform(LOC_CYCLE_N, cycleN++);
+            m_consolidateEdgesShd.setUniform(LOC_CYCLE_N, cycleN++);
             m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
             RE::Ordering<R>::issueDrawBarrier();
             m_va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);
@@ -58,9 +58,9 @@ void ChunkGeneratorFBO<R>::consolidateEdges() {
 
     m_genSurf[0].associateTexturesWithOutputs(outputs);
 
-    m_consolidationShd.use();
+    m_consolidateEdgesShd.use();
     doublePass({3, 4}, {4, 5}, 4);
-    m_consolidationShd.unuse();
+    m_consolidateEdgesShd.unuse();
 
     m_genSurf[0].setTarget();
     outputs.push_back(RE::FramebufferOutput::TO_COLOR1);
@@ -69,11 +69,11 @@ void ChunkGeneratorFBO<R>::consolidateEdges() {
 }
 
 template<RE::Renderer R>
-void ChunkGeneratorFBO<R>::selectVariants() {
+void ChunkGeneratorFBO<R>::selectVariant() {
     RE::Ordering<R>::issueDrawBarrier();
-    m_variantSelectionShd.use();
+    m_selectVariantShd.use();
     m_va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);
-    m_variantSelectionShd.unuse();
+    m_selectVariantShd.unuse();
 }
 
 template<RE::Renderer R>

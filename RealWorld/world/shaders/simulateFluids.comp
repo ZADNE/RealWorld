@@ -1,0 +1,146 @@
+#version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/reserved_units/images.glsl>
+#include <RealWorld/world/shaders/WorldDynamicsUIB.glsl>
+#include <RealWorld/world/shaders/tileLoadStore.glsl>
+#include <RealWorld/world/shaders/tile_properties/fluidProperties.glsl>
+
+const int DYN_GROUP_SIZE = 16;
+
+layout( local_size_x = DYN_GROUP_SIZE,
+        local_size_y = DYN_GROUP_SIZE,
+        local_size_z = 1
+) in;
+
+uint invocHash(){
+    uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
+    return globalIndex ^ timeHash;
+}
+uint randomState = invocHash();
+
+//Xorshift algorithm by George Marsaglia
+uint random(){
+    randomState ^= randomState << 13;
+    randomState ^= randomState >> 17;
+    randomState ^= randomState << 5;
+    return randomState;
+}
+
+bool probTest1023(uint probability){ return (random() & 1023) < probability; }
+bool probTest65535(uint probability){ return (random() & 65535) < probability; }
+uvec2 blockRandomVariant(uint blockType){
+    return uvec2(blockType, isFluidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
+}
+
+ivec2 extractVelocity(uint var){
+    ivec2 vel = ivec2(var & 0xF, (var >> 4) & 0xF);
+    return vel - 7;
+}
+
+uint constructVelocity(ivec2 velocity){
+    velocity = clamp(velocity + 7, 0, 14);
+    return (uint(velocity.x) & 0xF) | (uint(velocity.y & 0xF) << 4);
+}
+
+ivec2 randomStateDirection2D(){
+    return ivec2(
+        bool(randomState & 1) ? +1 : -1,
+        bool(randomState & 2) ? +1 : -1
+    );
+}
+int randomStateToDirection1D(){
+    return bool(randomState & 1) ? +1 : -1;
+}
+
+uint fluidIndex(uint fluid){ return fluid & ~FIRST_FLUID_BL; }
+
+void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
+    uvec4 surroundings[3];
+    int leaningSide = bool(fluid.BL_V & 1) ? 1 : -1;
+    uint fi = fluidIndex(fluid.BL_T);
+    //Compute surroundings positions
+    ivec2 surrPosIm[3] = {
+        imPos(posIm + ivec2(+0, PRIM_MOVE_DIR[fi])),
+        imPos(posIm + ivec2(leaningSide, PRIM_MOVE_DIR[fi])),
+        imPos(posIm + ivec2(leaningSide, 0))
+    };
+    int first_move = probTest1023(PRIM_MOVE_PROB[fi]) ? 0 : 2;
+    int last_move = probTest1023(FLUIDITY[fi]) ? 2 : 0;
+    //Fetch surroundings
+    for(int i = first_move; i <= last_move; ++i){
+        surroundings[i] = tileLoadIm(surrPosIm[i]);
+    }
+    //Look for a swap
+    for(int i = first_move; i <= last_move; ++i){
+        const uvec4 n = surroundings[i];//The neighbor
+        //If touched the trigger tile and passed probability test
+        if (n.BL_T == TRIGGER_CONV[fi].z && probTest1023(TRIGGER_CONV[fi].x)){
+            tileStoreIm(posIm, uvec4(blockRandomVariant(TRIGGER_CONV[fi].y), fluid.WL));
+            return;
+        } else if (isFluidBlock(n.BL_T) && n.BL_T != fluid.BL_T){//If can swap
+            tileStoreIm(surrPosIm[i], uvec4(fluid.BL, n.WL));
+            tileStoreIm(posIm, uvec4(n.BL, fluid.WL));
+            return;
+        }
+    }
+    
+    if (probTest65535(RANDOM_CONV[fi].x)){//Random conversion 1
+        fluid.BL = blockRandomVariant(RANDOM_CONV[fi].y);
+    } else if (probTest65535(RANDOM_CONV[fi].z)) {//Random conversion 2
+        fluid.BL = blockRandomVariant(RANDOM_CONV[fi].w);
+    } else if (last_move == 2) {//If could not move horizontally
+        fluid.BL_V ^= 1;//Invert the leaning side
+    }
+    tileStoreIm(posIm, fluid);
+}
+
+void velocityFluidDynamics(uvec4 water, ivec2 posIm){
+    ivec2 velocity = extractVelocity(water.y);
+    uvec4 tileBelow = tileLoadIm(posIm + ivec2(+0, -1));
+    if (tileBelow.BL_T == AIR.BL_T){
+        velocity.y -= 1;//bool(random() & 3) ? 0 : 1;
+        velocity.x -= sign(velocity.x);//bool(random() & 3) ? 0 : sign(velocity.x);
+    } else {
+        velocity.x += int(velocity.x == 0) * randomStateToDirection1D() * 5;//Shake my direction
+    }
+    ivec2 shift = ivec2(greaterThan(abs(velocity), ivec2(random() % 7, random() % 7))) * sign(velocity);
+    
+    if (shift != ivec2(0, 0)){//If the particle should shift
+        ivec2 neighborIm = imPos(posIm + shift);
+        uvec4 neighbor = tileLoadIm(neighborIm);
+        if (neighbor.BL_T == AIR.BL_T){//Can move
+            tileStoreIm(posIm, uvec4(AIR.BL, water.WL));
+            tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
+        } else if (neighbor.BL_T == WATER.BL_T){//Collision with another water particle
+            tileStoreIm(posIm, uvec4(neighbor.BL_T, neighbor.y, water.WL));//Swap velocities
+            tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
+        } else {//Collision with solid block
+            ivec2 newVelocity = abs(velocity.yx) * ivec2(equal(shift, ivec2(0, 0))) * randomStateToDirection1D();
+            tileStoreIm(posIm, uvec4(water.BL_T, constructVelocity(newVelocity), water.WL));
+        }
+    } else {//Do not shift the particle, only add gravity
+        tileStoreIm(posIm, uvec4(water.BL_T, constructVelocity(velocity), water.WL));
+    }
+}
+
+void main(){
+    const ivec2 invocOffset = globalPosTi
+                    + ivec2(gl_WorkGroupID.xy) * CHUNK_SIZE
+                    + ivec2(gl_LocalInvocationID.xy) * 4;
+    
+    for (uint inGroup = 0; inGroup < 4; inGroup++){
+        ivec2 inGroupOffset = updateOrder[inGroup] * 2;
+        uint inQuadOrderOffset = (random() & 3) * 4;
+        for (uint inQuad = 0; inQuad < 4; inQuad++){
+            ivec2 posIm = imPos(invocOffset + inGroupOffset + updateOrder[inQuad + inQuadOrderOffset]);
+            uvec4 tile = tileLoadIm(posIm);
+            if (tile.BL_T >= WATER_BL && tile.BL_T <= SMOKE_BL){
+                leaningFluidDynamics(tile, posIm);
+            } else if (tile.BL_T == ACID_BL){
+                velocityFluidDynamics(tile, posIm);
+            }
+        }
+        groupMemoryBarrier();
+        barrier();
+    }
+}

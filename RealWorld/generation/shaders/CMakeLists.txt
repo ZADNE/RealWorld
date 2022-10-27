@@ -1,8 +1,8 @@
 ﻿target_shaders(RealWorld PRIVATE 
-    columnValues.glsl           
-    consolidation.frag          consolidation.comp
-    gen.vert                    
+    applyToWholeChunk.vert      
+    consolidateEdges.frag       consolidateEdges.comp
+    generateColumnValues.glsl   
+    generateStructure.frag      generateStructure.comp      generateStructure.glsl
     ChunkUIB.glsl               
-    structure.glsl              structure.frag              structure.comp
-    variantSelection.frag       variantSelection.comp
+    selectVariant.frag          selectVariant.comp
 )

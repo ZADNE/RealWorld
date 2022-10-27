@@ -12,7 +12,7 @@
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/world/Chunk.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
-#include <RealWorld/shaders/simulation.hpp>
+#include <RealWorld/world/shaders/AllShaders.hpp>
 
  /**
  * @brief Ensures that chunks are activated when needed.
@@ -128,8 +128,8 @@ private:
     using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
     RE::BufferTyped<R> m_activeChunksBuf{STRG_BUF_ACTIVECHUNKS, 1u, NO_FLAGS};
 
-    RE::ShaderProgram<R> m_contAnalyzerShd{{.comp = continuityAnalyzer_comp}};
-    glm::uvec3 m_contAnalyzerGroupCount;
+    RE::ShaderProgram<R> m_analyzeContinuityShd{{.comp = analyzeContinuity_comp}};
+    glm::uvec3 m_analyzeContinuityGroupCount;
 
     std::string m_folderPath;
     ChunkGenerator<R>& m_chunkGen;

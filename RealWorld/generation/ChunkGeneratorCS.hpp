@@ -5,7 +5,6 @@
 #include <array>
 
 #include <RealEngine/rendering/textures/Texture.hpp>
-#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
@@ -24,13 +23,13 @@ private:
     void prepareToGenerate() override;
     void generateBasicTerrain() override;
     void consolidateEdges() override;
-    void selectVariants() override;
+    void selectVariant() override;
     void finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) override;
 
 
-    RE::ShaderProgram<R> m_structureShd{{.comp = structure_comp}};
-    RE::ShaderProgram<R> m_consolidationShd{{.comp = consolidation_comp}};
-    RE::ShaderProgram<R> m_variantSelectionShd{{.comp = variantSelection_comp}};
+    RE::ShaderProgram<R> m_generateStructureShd{{.comp = generateStructure_comp}};
+    RE::ShaderProgram<R> m_consolidateEdgesShd{{.comp = consolidateEdges_comp}};
+    RE::ShaderProgram<R> m_selectVariantShd{{.comp = selectVariant_comp}};
 
     std::array<RE::Texture<R>, 2> m_tilesTex = {
         RE::Texture<R>{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},

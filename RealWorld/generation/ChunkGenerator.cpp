@@ -25,7 +25,7 @@ void ChunkGenerator<R>::generateChunk(const glm::ivec2& posCh, const RE::Texture
     //Actual generation
     generateBasicTerrain();
     consolidateEdges();
-    selectVariants();
+    selectVariant();
 
     finishGeneration(destinationTexture, destinationOffset);
 }

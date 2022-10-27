@@ -4,11 +4,10 @@
 #pragma once
 #include <vector>
 
-#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
 #include <RealEngine/rendering/vertices/VertexArray.hpp>
 
+#include <RealWorld/drawing/shaders/AllShaders.hpp>
 #include <RealWorld/drawing/ExternalLight.hpp>
-#include <RealWorld/shaders/drawing.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 
 /**
@@ -47,10 +46,10 @@ private:
     RE::Texture<R> m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
     RE::Texture<R> m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
 
-    RE::ShaderProgram<R> m_analysisShd{{.comp = analysis_comp}};
+    RE::ShaderProgram<R> m_analyzeTilesShd{{.comp = analyzeTiles_comp}};
     RE::ShaderProgram<R> m_addLightsShd{{.comp = addDynamicLights_comp}};
-    RE::ShaderProgram<R> m_calcShadowsShd{{.comp = calcShadows_comp}};
-    RE::ShaderProgram<R> m_drawShadowsShd{{.vert = drawShadows_vert, .frag = colorDraw_frag}};
+    RE::ShaderProgram<R> m_calcShadowsShd{{.comp = calculateShadows_comp}};
+    RE::ShaderProgram<R> m_drawShadowsShd{{.vert = drawShadows_vert, .frag = drawColor_frag}};
 
     std::vector<ExternalLight> m_lights;
     RE::BufferTyped<R> m_lightsBuf{ STRG_BUF_EXTERNALLIGHTS, sizeof(ExternalLight) * 8, RE::BufferAccessFrequency::DYNAMIC, RE::BufferAccessNature::DRAW, nullptr };

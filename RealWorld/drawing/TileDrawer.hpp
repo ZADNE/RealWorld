@@ -4,9 +4,8 @@
 #pragma once
 #include <RealEngine/rendering/vertices/VertexArray.hpp>
 #include <RealEngine/rendering/textures/Texture.hpp>
-#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
 
-#include <RealWorld/shaders/drawing.hpp>
+#include <RealWorld/drawing/shaders/AllShaders.hpp>
 
 /**
  * @brief Renders tiles of the world
@@ -24,5 +23,5 @@ private:
     RE::Texture<R> m_blockAtlasTex{{.file = "blockAtlas"}};
     RE::Texture<R> m_wallAtlasTex{{.file = "wallAtlas"}};
 
-    RE::ShaderProgram<R> m_drawTilesShd{ {.vert = drawTiles_vert, .frag = colorDraw_frag} };
+    RE::ShaderProgram<R> m_drawTilesShd{ {.vert = drawTiles_vert, .frag = drawColor_frag} };
 };

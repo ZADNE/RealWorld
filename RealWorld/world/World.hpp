@@ -9,7 +9,7 @@
 
 #include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/shaders/simulation.hpp>
+#include <RealWorld/world/shaders/AllShaders.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 
 enum class MODIFY_SHAPE : unsigned int {
@@ -84,9 +84,9 @@ private:
     };
     RE::BufferTyped<R> m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
 
-    RE::ShaderProgram<R> m_fluidDynamicsShd{{.comp = fluidDynamics_comp}};
-    RE::ShaderProgram<R> m_tileTransformationsShd{{.comp = tileTransformations_comp}};
-    RE::ShaderProgram<R> m_modifyShd{{.comp = modify_comp}};
+    RE::ShaderProgram<R> m_simulateFluidsShd{{.comp = simulateFluids_comp}};
+    RE::ShaderProgram<R> m_transformTilesShd{{.comp = transformTiles_comp}};
+    RE::ShaderProgram<R> m_modifyTilesShd{{.comp = modifyTiles_comp}};
 
     std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
     uint32_t m_rngState;
