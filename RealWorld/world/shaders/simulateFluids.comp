@@ -3,7 +3,7 @@
 #include <RealWorld/reserved_units/images.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsUIB.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
-#include <RealWorld/world/shaders/tile_properties/fluidProperties.glsl>
+#include <RealWorld/constants/tile_properties/fluidProperties.glsl>
 
 const int DYN_GROUP_SIZE = 16;
 

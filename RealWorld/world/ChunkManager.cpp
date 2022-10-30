@@ -32,8 +32,8 @@ void ChunkManager<R>::setTarget(int seed, std::string folderPath, RE::Texture<R>
     glm::ivec2 activeChunksArea = m_worldTex->getTrueDims() / uCHUNK_SIZE;
     m_activeChunksMask = activeChunksArea - 1;
     m_analyzeContinuityGroupCount = {activeChunksArea / 8, 1};
-    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_MASK, activeChunksArea);
-    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_AREA, m_activeChunksMask);
+    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_MASK, m_activeChunksMask);
+    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_AREA, activeChunksArea);
 
     //Reset active chunks
     m_activeChunks.clear();

@@ -17,6 +17,7 @@ constexpr RE::BufferTypedIndex UNIF_BUF_PLAYERMOVEMENT = { RE::BufferType::UNIFO
 constexpr RE::BufferTypedIndex UNIF_BUF_CHUNKGEN = { RE::BufferType::UNIFORM, 2u };
 constexpr RE::BufferTypedIndex UNIF_BUF_WORLDDRAWER = { RE::BufferType::UNIFORM, 3u };
 constexpr RE::BufferTypedIndex UNIF_BUF_WORLDDYNAMICS = { RE::BufferType::UNIFORM, 4u };
+constexpr RE::BufferTypedIndex UNIF_BUF_TILEPROPERTIES = {RE::BufferType::UNIFORM, 5u};
 
 //TRANSFORM FEEDBACK BUFFERS
 

@@ -7,6 +7,10 @@
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 #include <RealEngine/rendering/textures/Texture.hpp>
 
+#include <RealWorld/constants/tile_properties/blockTransformationProperties.hpp>
+#include <RealWorld/constants/tile_properties/blockTransformationRules.hpp>
+#include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
+#include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
@@ -83,6 +87,26 @@ private:
         glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
     };
     RE::BufferTyped<R> m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+
+    struct TilePropertiesUIB {
+        //x = properties
+        //yz = indices of first and last transformation rule
+        std::array<glm::uvec4, 256> blockTransformationProperties;
+        std::array<glm::uvec4, 256> wallTransformationProperties;
+
+        //x = The properties that neighbors MUST have to transform
+        //y = The properties that neighbors MUST NOT have to transform
+        //z = Properties of the transformation
+        //w = The wall that it will be transformed into
+        std::array<glm::uvec4, 16> blockTransformationRules;
+        std::array<glm::uvec4, 16> wallTransformationRules;
+    };
+    RE::BufferTyped<R> m_tilePropertiesBuf{UNIF_BUF_TILEPROPERTIES, RE::BufferUsageFlags::NO_FLAGS, TilePropertiesUIB{
+        .blockTransformationProperties = BLOCK_TRANSFORMATION_PROPERTIES,
+        .wallTransformationProperties = WALL_TRANSFORMATION_PROPERTIES,
+        .blockTransformationRules = BLOCK_TRANSFORMATION_RULES,
+        .wallTransformationRules = WALL_TRANSFORMATION_RULES
+    }};
 
     RE::ShaderProgram<R> m_simulateFluidsShd{{.comp = simulateFluids_comp}};
     RE::ShaderProgram<R> m_transformTilesShd{{.comp = transformTiles_comp}};

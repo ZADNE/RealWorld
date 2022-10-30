@@ -2,14 +2,9 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/reserved_units/images.glsl>
 #include <RealWorld/world/shaders/ActiveChunksSSIB.glsl>
-#include <RealWorld/world/shaders/WorldDynamicsUIB.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
-#include <RealWorld/world/shaders/tile_properties/blockProperties.glsl>
-#include <RealWorld/world/shaders/tile_properties/wallProperties.glsl>
-#include <RealWorld/world/shaders/tile_properties/blockTransformationRules.glsl>
-#include <RealWorld/world/shaders/tile_properties/wallTransformationRules.glsl>
-#include <RealWorld/world/shaders/tile_properties/blockTransformationIndices.glsl>
-#include <RealWorld/world/shaders/tile_properties/wallTransformationIndices.glsl>
+#include <RealWorld/world/shaders/WorldDynamicsUIB.glsl>
+#include <RealWorld/world/shaders/TilePropertiesUIB.glsl>
 
 const int TRANSFORM_GROUP_SIZE = 4;
 
@@ -38,7 +33,7 @@ uvec2 random2(){
     return uvec2(random(), random());
 }
 
-const ivec2 OFFSETS[] = {
+const ivec2 NEARBY_OFFSETS[] = {
                 {-1, +2},   {+0, +2},   {+1, +2},
     {-2, +1},   {-1, +1},   {+0, +1},   {+1, +1},   {+2, +1},
     {-2, +0},   {-1, +0},               {+1, +0},   {+2, +0},
@@ -64,24 +59,24 @@ void main(){
     uvec4 tile = tileLoad(centerTi);
     uvec2 edgeTile = uvec2(0);
     uvec2 nearbyProperties = uvec2(0);
-    for(int i = 0; i < OFFSETS.length(); ++i){//Check all neighbors
-        uvec4 neighbor = tileLoad(centerTi + OFFSETS[i]);
+    for(int i = 0; i < NEARBY_OFFSETS.length(); ++i){//Check all neighbors
+        uvec4 neighbor = tileLoad(centerTi + NEARBY_OFFSETS[i]);
         //Analyze the neighbor
-        nearbyProperties |= uvec2(BLOCK_PROPERTIES[neighbor.BL_T], WALL_PROPERTIES[neighbor.WL_T]);
+        nearbyProperties |= uvec2(u_blockProperties[neighbor.BL_T].x, u_wallProperties[neighbor.WL_T].x);
         edgeTile |= uvec2(isFluidTile(neighbor.TL_T));
     }
-    
+
     //Transform block of the tile
-    uvec2 blockRuleIndices = BLOCK_TRANSF_INDICES[tile.BL_T];
+    uvec2 blockRuleIndices = u_blockProperties[tile.BL_T].yz;
     for (uint i = blockRuleIndices.x; i <= blockRuleIndices.y;++i) {
-        if (layerTransition(tile, 0, 1, BLOCK_TRANSF_RULE[i], nearbyProperties, edgeTile)){
+        if (layerTransition(tile, 0, 1, u_blockTransformationRules[i], nearbyProperties, edgeTile)){
             break;
         }
     }
     //Transform wall of the tile
-    uvec2 wallRuleIndices = WALL_TRANSF_INDICES[tile.WL_T];
+    uvec2 wallRuleIndices = u_wallProperties[tile.WL_T].yz;
     for (uint i = wallRuleIndices.x; i <= wallRuleIndices.y;++i) {
-        if (layerTransition(tile, 1, 0, WALL_TRANSF_RULE[i], nearbyProperties, edgeTile)){
+        if (layerTransition(tile, 1, 0, u_wallTransformationRules[i], nearbyProperties, edgeTile)){
             break;
         }
     }
