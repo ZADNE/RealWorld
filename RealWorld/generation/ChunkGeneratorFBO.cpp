@@ -7,7 +7,9 @@
 
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
-#include <RealWorld/shaders/generation.hpp>
+
+constexpr int LOC_THRESHOLDS = 33;
+constexpr int LOC_CYCLE_N = 34;
 
 template<RE::Renderer R>
 ChunkGeneratorFBO<R>::ChunkGeneratorFBO() {

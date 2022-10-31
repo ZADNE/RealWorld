@@ -7,9 +7,11 @@
 
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
-#include <RealWorld/shaders/generation.hpp>
 
-const int GEN_CS_GROUP_SIZE = 16;
+constexpr int GEN_CS_GROUP_SIZE = 16;
+
+constexpr int LOC_THRESHOLDS = 33;
+constexpr int LOC_CYCLE_N = 34;
 
 template<RE::Renderer R>
 ChunkGeneratorCS<R>::ChunkGeneratorCS() {

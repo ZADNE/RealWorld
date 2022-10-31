@@ -1,4 +1,4 @@
-layout(std140, binding = 0) restrict uniform WorldDynamicsUIB {
+layout(std140, binding = 0) restrict uniform _0WorldDynamicsUIB {
     ivec2 globalPosTi;
     uint modifyTarget;
     uint modifyShape;

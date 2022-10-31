@@ -12,7 +12,10 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
-#include <RealWorld/shaders/drawing.hpp>
+
+constexpr int LOC_POSITIONPx = 3;
+constexpr int LOC_POSITIONTi = 4;
+constexpr int LOC_LIGHT_COUNT = 5;
 
 constexpr int UNIT_MASK = ~(iLIGHT_SCALE * iTILEPx.x - 1);
 constexpr int HALF_UNIT_OFFSET = iTILEPx.x * iLIGHT_SCALE / 2;

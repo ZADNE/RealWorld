@@ -33,8 +33,8 @@ World<R>::World(ChunkGenerator<R>& chunkGen) :
     m_chunkManager(chunkGen),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
     m_simulateFluidsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_transformTilesShd.backInterfaceBlock(1u, UNIF_BUF_WORLDDYNAMICS);
-    m_transformTilesShd.backInterfaceBlock(0u, UNIF_BUF_TILEPROPERTIES);
+    m_transformTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+    m_transformTilesShd.backInterfaceBlock(1u, UNIF_BUF_TILEPROPERTIES);
     m_modifyTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
     m_transformTilesShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }

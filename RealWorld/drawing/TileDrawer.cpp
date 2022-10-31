@@ -6,8 +6,10 @@
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
-#include <RealWorld/shaders/drawing.hpp>
 
+constexpr int LOC_POSITIONPx = 3;
+constexpr int LOC_POSITIONTi = 4;
+constexpr int LOC_LIGHT_COUNT = 5;
 
 template<RE::Renderer R>
 TileDrawer<R>::TileDrawer(const glm::uvec2& viewSizeTi) {
