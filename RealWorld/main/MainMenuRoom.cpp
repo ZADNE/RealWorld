@@ -9,7 +9,6 @@
 
 #include <glm/common.hpp>
 
-#include <RealWorld/main/settings/combos.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
 const char* KEYBIND_NOTICE = "Press a key to change the keybind.\nOr press Delete to cancel.";
@@ -28,18 +27,11 @@ void controlsCategoryHeader(const char* header) {
 
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
     Room(0, DEFAULT_SETTINGS),
-    m_gameSettings(gameSettings) {
-    glm::ivec2 windowSize = engine().getWindowDims();
-    for (size_t i = 0; i < RESOLUTIONS.size(); ++i) {
-        if (windowSize == RESOLUTIONS[i]) {
-            m_selectedResolution = i;
-        }
-    }
-    for (size_t i = 0; i < ACTIVE_CHUNKS_AREAS.size(); ++i) {
-        if (m_gameSettings.getActiveChunksArea() == ACTIVE_CHUNKS_AREAS[i]) {
-            m_selectedActiveChunksArea = i;
-        }
-    }
+    m_gameSettings(gameSettings),
+    m_resolution(std::find(RESOLUTIONS.begin(), RESOLUTIONS.end(), engine().getWindowDims())),
+    m_renderer(std::find(RENDERERS.begin(), RENDERERS.end(), engine().getUsedRenderer())),
+    m_activeChunksArea(std::find(ACTIVE_CHUNKS_AREAS.begin(), ACTIVE_CHUNKS_AREAS.end(), m_gameSettings.getActiveChunksArea())) {
+
 }
 
 void MainMenuRoom::sessionStart(const RE::RoomTransitionArguments& args) {
@@ -141,40 +133,35 @@ void MainMenuRoom::displaySettingsMenu() {
 
     ImGui::TextUnformatted("Fullscreen"); ImGui::SameLine();
     if (ImGui::ToggleButton("##fullscreen", &m_fullscreen)) {
-        engine().setWindowFullscreen(m_fullscreen, false);
-        m_unsavedChanges = true;
+        engine().setWindowFullscreen(m_fullscreen, true);
     }
 
     if (!m_fullscreen) {
-        ImGui::SameLine();
-        ImGui::TextUnformatted("Borderless"); ImGui::SameLine();
+        ImGui::SameLine(); ImGui::TextUnformatted("Borderless"); ImGui::SameLine();
         if (ImGui::ToggleButton("##borderless", &m_borderless)) {
-            engine().setWindowBorderless(m_borderless, false);
-            m_unsavedChanges = true;
+            engine().setWindowBorderless(m_borderless, true);
         }
     }
 
-    ImGui::TextUnformatted("VSync"); ImGui::SameLine();
+    ImGui::SameLine(); ImGui::TextUnformatted("VSync"); ImGui::SameLine();
     if (ImGui::ToggleButton("##vSync", &m_vSync)) {
-        engine().setWindowVSync(m_vSync, false);
-        m_unsavedChanges = true;
+        engine().setWindowVSync(m_vSync, true);
     }
 
-    if (ivec2ComboSelect<RESOLUTIONS>("Resolution", engine().getWindowDims().x * 0.125f, m_selectedResolution)) {
-        engine().setWindowDims(RESOLUTIONS[m_selectedResolution], false);
-        m_unsavedChanges = true;
+    auto width = engine().getWindowDims().x * 0.2f;
+    if (comboSelect(RESOLUTIONS, "Resolution", width, m_resolution, ivec2ToString)) {
+        engine().setWindowDims(*m_resolution, true);
     }
 
-    if (ivec2ComboSelect<ACTIVE_CHUNKS_AREAS>("Active chunks area", engine().getWindowDims().x * 0.125f, m_selectedActiveChunksArea)) {
-        m_gameSettings.setActiveChunksArea(ACTIVE_CHUNKS_AREAS[m_selectedActiveChunksArea]);
-        m_unsavedChanges = true;
+    if (comboSelect(RENDERERS, "Preferred renderer", width, m_renderer, rendererToString)) {
+        engine().setPreferredRenderer(*m_renderer, true);
     }
+    std::string currRenderer = "(requires restart; current: " + rendererToString(RENDERERS[static_cast<size_t>(engine().getUsedRenderer())]) + ")";
+    ImGui::SameLine(); ImGui::TextUnformatted(currRenderer.c_str());
 
-    ImGui::NewLine();
-    if (m_unsavedChanges && ImGui::Button("Save changes")) {
-        engine().saveWindowSettings();
+    if (comboSelect(ACTIVE_CHUNKS_AREAS, "Active chunks area", width, m_activeChunksArea, ivec2ToString)) {
+        m_gameSettings.setActiveChunksArea(*m_activeChunksArea);
         m_gameSettings.save();
-        m_unsavedChanges = false;
     }
 }
 

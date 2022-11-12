@@ -10,10 +10,11 @@
 #include <ImGui/imgui_stdlib.h>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
+#include <RealWorld/main/settings/combos.hpp>
 
-/**
- * @brief Holds the main menu and related objects.
-*/
+ /**
+  * @brief Holds the main menu and related objects.
+ */
 class MainMenuRoom : public Room {
 public:
 
@@ -49,12 +50,12 @@ private:
     std::string m_newWorldName;                         /**< Name of the world that will be created */
     int m_newWorldSeed = 0;                             /**< Seed of the world that will be created */
 
-    bool m_unsavedChanges = false;                      /**< True if anything has been changed in settings */
-    bool m_fullscreen = engine().isWindowFullscreen();  /**< Current state */
-    bool m_borderless = engine().isWindowBorderless();  /**< Current state */
-    bool m_vSync = engine().isWindowVSynced();          /**< Current state */
-    size_t m_selectedResolution = 0;                    /**< Index into the array of supported resolutions */
-    size_t m_selectedActiveChunksArea = 0;              /**< Index into the array of supported active-chunks areas */
+    bool m_fullscreen = engine().isWindowFullscreen();
+    bool m_borderless = engine().isWindowBorderless();
+    bool m_vSync = engine().isWindowVSynced();
+    decltype(RESOLUTIONS)::const_iterator m_resolution;
+    decltype(RENDERERS)::const_iterator m_renderer;
+    decltype(ACTIVE_CHUNKS_AREAS)::const_iterator m_activeChunksArea;
 
     bool m_drawKeybindListeningPopup = false;           /**< True if currently listening */
 
