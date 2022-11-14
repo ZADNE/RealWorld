@@ -59,7 +59,7 @@ bool comboSelect(const std::array<T, N>& combos, const char* label, float width,
     ImGui::SetNextItemWidth(width);
     bool changedSelection = false;
     std::string hiddenlabel = std::string("##") + label;
-    if (ImGui::BeginCombo(hiddenlabel.c_str(), toString(*selected).c_str())) {
+    if (ImGui::BeginCombo(hiddenlabel.c_str(), selected != combos.end() ? toString(*selected).c_str() : "")) {
         for (auto it = combos.begin(); it != combos.end(); ++it) {
             if (ImGui::Selectable(toString(*it).c_str(), it == selected)) {
                 selected = it;
