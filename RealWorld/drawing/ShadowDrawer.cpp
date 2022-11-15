@@ -70,7 +70,7 @@ void ShadowDrawer<R>::calculate(const RE::BufferTyped<R>& uniformBuf, const glm:
 
     //Add dynamic lights
     m_lightsBuf.redefine(m_lights);
-    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, addLightOffsetPx), (botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK + HALF_UNIT_OFFSET);
+    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, addLightOffsetPx), ((botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK) + HALF_UNIT_OFFSET);
     uniformBuf.overwrite(offsetof(WorldDrawerUniforms, lightCount), glm::uint(m_lights.size()));
     RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     m_addLightsShd.dispatchCompute(glm::uvec3{glm::ceil(m_lights.size() / 8.0f), 1u, 1u}, true);
