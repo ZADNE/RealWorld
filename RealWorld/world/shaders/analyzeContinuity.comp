@@ -7,9 +7,6 @@ layout( local_size_x = 8,
         local_size_z = 1
 ) in;
 
-layout(location = 0) uniform ivec2 activeChunksMask;
-layout(location = 1) uniform ivec2 activeChunksArea;
-
 int maxNumberOfUpdateChunks = activeChunksMask.x * activeChunksMask.y;
 
 ivec2 getActiveChunk(ivec2 pos){

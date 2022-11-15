@@ -3,7 +3,7 @@
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/constants/biomes.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
-#include <RealWorld/generation/shaders/ChunkUIB.glsl>
+#include <RealWorld/generation/shaders/GenerationUIB.glsl>
 
 float age(vec2 posPx, float seed){
     float age = snoise(posPx * (1.0 / 8192.0), seed);

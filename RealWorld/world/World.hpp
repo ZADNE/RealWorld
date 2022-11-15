@@ -22,6 +22,16 @@ enum class MODIFY_SHAPE : unsigned int {
     FILL
 };
 
+struct WorldDynamicsUniforms {
+    glm::ivec2 globalPosTi;
+    glm::uint modifyTarget;
+    glm::uint modifyShape;
+    glm::uvec2 modifySetValue;
+    float modifyDiameter;
+    glm::uint timeHash;
+    glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
+};
+
 /**
  * @brief Represents the world as an endless grid of tiles.
  *
@@ -76,17 +86,7 @@ private:
     int m_seed = 0;
 
     std::string m_worldName;
-
-    struct WorldDynamicsUBO {
-        glm::ivec2 globalPosTi;
-        glm::uint modifyTarget;
-        glm::uint modifyShape;
-        glm::uvec2 modifySetValue;
-        float modifyDiameter;
-        glm::uint timeHash;
-        glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
-    };
-    RE::BufferTyped<R> m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUBO), RE::BufferUsageFlags::MAP_WRITE};
+    RE::BufferTyped<R> m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUniforms), RE::BufferUsageFlags::MAP_WRITE};
 
     struct TilePropertiesUIB {
         //x = properties

@@ -3,6 +3,6 @@
     consolidateEdges.frag       consolidateEdges.comp
     generateColumnValues.glsl   
     generateStructure.frag      generateStructure.comp      generateStructure.glsl
-    ChunkUIB.glsl               
+    GenerationUIB.glsl          
     selectVariant.frag          selectVariant.comp
 )

@@ -10,9 +10,9 @@
 #include <RealWorld/drawing/ExternalLight.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 
-/**
- * @brief Renders shadows of the world
-*/
+ /**
+  * @brief Renders shadows of the world
+ */
 template<RE::Renderer R>
 class ShadowDrawer {
 public:
@@ -21,13 +21,13 @@ public:
 
     void resizeView(const glm::uvec2& viewSizeTi);
 
-    void analyze(const glm::ivec2& botLeftTi);
+    void analyze(const RE::BufferTyped<R>& uniformBuf, const glm::ivec2& botLeftTi);
 
     void addExternalLight(const glm::ivec2& posPx, RE::Color col);
 
-    void calculate(const glm::ivec2& botLeftPx);
+    void calculate(const RE::BufferTyped<R>& uniformBuf, const glm::ivec2& botLeftPx);
 
-    void draw(const RE::VertexArray<R>& va, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
+    void draw(const RE::BufferTyped<R>& uniformBuf, const RE::VertexArray<R>& va, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
 
 private:
 
@@ -52,5 +52,5 @@ private:
     RE::ShaderProgram<R> m_drawShadowsShd{{.vert = drawShadows_vert, .frag = drawColor_frag}};
 
     std::vector<ExternalLight> m_lights;
-    RE::BufferTyped<R> m_lightsBuf{ STRG_BUF_EXTERNALLIGHTS, sizeof(ExternalLight) * 8, RE::BufferAccessFrequency::DYNAMIC, RE::BufferAccessNature::DRAW, nullptr };
+    RE::BufferTyped<R> m_lightsBuf{STRG_BUF_EXTERNALLIGHTS, sizeof(ExternalLight) * 8, RE::BufferAccessFrequency::DYNAMIC, RE::BufferAccessNature::DRAW, nullptr};
 };

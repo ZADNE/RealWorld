@@ -12,10 +12,7 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
-
-constexpr int LOC_POSITIONPx = 3;
-constexpr int LOC_POSITIONTi = 4;
-constexpr int LOC_LIGHT_COUNT = 5;
+#include <RealWorld/drawing/WorldDrawerUniforms.hpp>
 
 constexpr int UNIT_MASK = ~(iLIGHT_SCALE * iTILEPx.x - 1);
 constexpr int HALF_UNIT_OFFSET = iTILEPx.x * iLIGHT_SCALE / 2;
@@ -46,6 +43,7 @@ ShadowDrawer<R>::ShadowDrawer(const glm::uvec2& viewSizeTi) :
 
     m_analyzeTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
     m_drawShadowsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
+    m_addLightsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDRAWER);
     m_addLightsShd.backInterfaceBlock(0u, STRG_BUF_EXTERNALLIGHTS);
 }
 
@@ -55,8 +53,8 @@ void ShadowDrawer<R>::resizeView(const glm::uvec2& viewSizeTi) {
 }
 
 template<RE::Renderer R>
-void ShadowDrawer<R>::analyze(const glm::ivec2& botLeftTi) {
-    m_analyzeTilesShd.setUniform(LOC_POSITIONTi, (botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi)) & ~LIGHT_SCALE_BITS);
+void ShadowDrawer<R>::analyze(const RE::BufferTyped<R>& uniformBuf, const glm::ivec2& botLeftTi) {
+    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, analysisOffsetTi), (botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi)) & ~LIGHT_SCALE_BITS);
     m_analyzeTilesShd.dispatchCompute(m_.analysisGroupCount, true);
     m_lights.clear();
 }
@@ -67,14 +65,13 @@ void ShadowDrawer<R>::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
 }
 
 template<RE::Renderer R>
-void ShadowDrawer<R>::calculate(const glm::ivec2& botLeftPx) {
+void ShadowDrawer<R>::calculate(const RE::BufferTyped<R>& uniformBuf, const glm::ivec2& botLeftPx) {
     using enum RE::IncoherentAccessBarrierFlags;
 
-    //Add dyanmic lights
+    //Add dynamic lights
     m_lightsBuf.redefine(m_lights);
-    m_addLightsShd.setUniform(LOC_LIGHT_COUNT, glm::uint(m_lights.size()));
-    glm::ivec2 viewBotLeftPx = (botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK;
-    m_addLightsShd.setUniform(LOC_POSITIONPx, viewBotLeftPx + HALF_UNIT_OFFSET);
+    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, addLightOffsetPx), (botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK + HALF_UNIT_OFFSET);
+    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, lightCount), glm::uint(m_lights.size()));
     RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     m_addLightsShd.dispatchCompute(glm::uvec3{glm::ceil(m_lights.size() / 8.0f), 1u, 1u}, true);
 
@@ -84,12 +81,10 @@ void ShadowDrawer<R>::calculate(const glm::ivec2& botLeftPx) {
 }
 
 template<RE::Renderer R>
-void ShadowDrawer<R>::draw(const RE::VertexArray<R>& va, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
+void ShadowDrawer<R>::draw(const RE::BufferTyped<R>& uniformBuf, const RE::VertexArray<R>& va, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
+    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, drawShadowsReadOffsetTi), glm::ivec2(pxToTi(botLeftPx)) & LIGHT_SCALE_BITS);
     va.bind();
     m_drawShadowsShd.use();
-    m_drawShadowsShd.setUniform(LOC_POSITIONPx, glm::mod(botLeftPx, TILEPx));
-    glm::ivec2 botLeftTi = pxToTi(botLeftPx);
-    m_drawShadowsShd.setUniform(LOC_POSITIONTi, botLeftTi & LIGHT_SCALE_BITS);
     va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4, viewSizeTi.x * viewSizeTi.y);
     m_drawShadowsShd.unuse();
     va.unbind();

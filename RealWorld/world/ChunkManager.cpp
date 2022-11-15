@@ -7,12 +7,9 @@
 
 #include <RealWorld/save/ChunkLoader.hpp>
 
-constexpr int LOC_ACTIVE_CHUNKS_MASK = 0;
-constexpr int LOC_ACTIVE_CHUNKS_AREA = 1;
-
 int calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
     glm::ivec2 maxContinuous = activeChunksArea - 1;
-    return sizeof(glm::ivec4) +
+    return sizeof(ActiveChunksSSBO) +
         sizeof(glm::ivec2) * (activeChunksArea.x * activeChunksArea.y + maxContinuous.x * maxContinuous.y);
 }
 
@@ -32,8 +29,6 @@ void ChunkManager<R>::setTarget(int seed, std::string folderPath, RE::Texture<R>
     glm::ivec2 activeChunksArea = m_worldTex->getTrueDims() / uCHUNK_SIZE;
     m_activeChunksMask = activeChunksArea - 1;
     m_analyzeContinuityGroupCount = {activeChunksArea / 8, 1};
-    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_MASK, m_activeChunksMask);
-    m_analyzeContinuityShd.setUniform(LOC_ACTIVE_CHUNKS_AREA, activeChunksArea);
 
     //Reset active chunks
     m_activeChunks.clear();
@@ -41,7 +36,9 @@ void ChunkManager<R>::setTarget(int seed, std::string folderPath, RE::Texture<R>
 
     //Reset SSBO
     m_activeChunksBuf = RE::BufferTyped<R>{STRG_BUF_ACTIVECHUNKS, calcActiveChunksBufSize(activeChunksArea), MAP_WRITE};
-    auto* ssbo = m_activeChunksBuf.template map<ChunkManager<R>::ActiveChunksSSBO>(0, calcActiveChunksBufSize(activeChunksArea), WRITE | INVALIDATE_BUFFER);
+    auto* ssbo = m_activeChunksBuf.template map<ActiveChunksSSBO>(0, calcActiveChunksBufSize(activeChunksArea), WRITE | INVALIDATE_BUFFER);
+    ssbo->activeChunksMask = m_activeChunksMask;
+    ssbo->activeChunksArea = activeChunksArea;
     ssbo->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_activeChunksMask.x * m_activeChunksMask.y;
     for (int i = maxNumberOfUpdateChunks; i < (maxNumberOfUpdateChunks + activeChunksArea.x * activeChunksArea.y); i++) {
@@ -100,7 +97,7 @@ int ChunkManager<R>::forceActivationOfChunks(const glm::ivec2& botLeftTi, const 
 
     if (activatedChunks > 0) {//If at least one chunk has been activated
         //Reset the number of update chunks to zero
-        auto* numberOfUpdateChunks = m_activeChunksBuf.template map<int>(0, sizeof(int), WRITE | INVALIDATE_RANGE);
+        auto* numberOfUpdateChunks = m_activeChunksBuf.template map<int>(offsetof(ActiveChunksSSBO, dynamicsGroupSize), sizeof(int), WRITE | INVALIDATE_RANGE);
         *numberOfUpdateChunks = 0;
         m_activeChunksBuf.unmap();
         //And analyze the world texture

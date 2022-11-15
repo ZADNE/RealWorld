@@ -10,13 +10,11 @@
 
 constexpr int GEN_CS_GROUP_SIZE = 16;
 
-constexpr int LOC_THRESHOLDS = 33;
-constexpr int LOC_CYCLE_N = 34;
-
 template<RE::Renderer R>
 ChunkGeneratorCS<R>::ChunkGeneratorCS() {
-    m_generateStructureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
-    m_selectVariantShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+    m_generateStructureShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
+    m_consolidateEdgesShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
+    m_selectVariantShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
 
     m_tilesTex[0].bind(TEX_UNIT_GEN_TILES[0]);
     m_tilesTex[1].bind(TEX_UNIT_GEN_TILES[1]);
@@ -38,13 +36,13 @@ void ChunkGeneratorCS<R>::generateBasicTerrain() {
 }
 
 template<RE::Renderer R>
-void ChunkGeneratorCS<R>::consolidateEdges() {
+void ChunkGeneratorCS<R>::consolidateEdges(const RE::BufferTyped<R>& generationBuf) {
     using enum RE::IncoherentAccessBarrierFlags;
-    unsigned int cycleN = 0u;
-    auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
-        m_consolidateEdgesShd.setUniform(LOC_THRESHOLDS, thresholds);
+    glm::uint cycleN = 0u;
+    auto pass = [this, &cycleN, &generationBuf](const glm::ivec2& thresholds, size_t passes) {
+        generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, edgeConsolidationThresholds), thresholds);
         for (size_t i = 0; i < passes; i++) {
-            m_consolidateEdgesShd.setUniform(LOC_CYCLE_N, cycleN++);
+            generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, edgeConsolidationCycle), cycleN++);
             RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
             m_consolidateEdgesShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
         }

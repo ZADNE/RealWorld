@@ -3,6 +3,7 @@
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/reserved_units/textures.glsl>
 #include <RealWorld/reserved_units/images.glsl>
+#include <RealWorld/generation/shaders/GenerationUIB.glsl>
 
 layout( local_size_x = GEN_CS_GROUP_SIZE,
         local_size_y = GEN_CS_GROUP_SIZE,
@@ -13,10 +14,8 @@ layout(binding = IMG_UNIT_GEN_TILES0, rgba8ui) uniform restrict writeonly uimage
 layout(binding = TEX_UNIT_GEN_TILES0) uniform usampler2D tilesTexture[2];
 layout(binding = TEX_UNIT_GEN_MATERIAL) uniform usampler2D materialTexture;
 
-layout(location = 33) uniform ivec2 thresholds;
 const int LOW = 0;
 const int HIGH = 1;
-layout(location = 34) uniform uint cycleN;
 
 const ivec2 NEIGHBORHOOD[] = {
     {-1, +1},     {+0, +1},     {+1, +1},
@@ -26,12 +25,12 @@ const ivec2 NEIGHBORHOOD[] = {
 
 void main() {
     const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-    const uint read = cycleN % 2;
-    const uint write = (cycleN + 1) % 2;
+    const uint read = edgeConsolidationCycle % 2;
+    const uint write = (edgeConsolidationCycle + 1) % 2;
     const uvec4 previous = texelFetch(tilesTexture[read], pTi, 0);
     
     //If there are more cycles to be done on this tile
-    if (previous.g > cycleN){
+    if (previous.g > edgeConsolidationCycle){
         //Check neighbors
         int neighborsN = 0;
         for (int i = 0; i < NEIGHBORHOOD.length(); i++){
@@ -39,7 +38,7 @@ void main() {
         }
         
         if (previous.BL_T == AIR_BL){
-            if (neighborsN > thresholds[HIGH]){
+            if (neighborsN > edgeConsolidationThresholds[HIGH]){
                 //Surrounded air -> promote to material
                 uvec4 material = texelFetch(materialTexture, pTi, 0);
                 imageStore(tilesImage[write], pTi, uvec4(material.BL_T, previous.gba));
@@ -47,7 +46,7 @@ void main() {
                 imageStore(tilesImage[write], pTi, previous);
             }
         } else {
-            if (neighborsN < thresholds[LOW]){
+            if (neighborsN < edgeConsolidationThresholds[LOW]){
                 //Lonely solid -> reduce to air
                 imageStore(tilesImage[write], pTi, uvec4(AIR.BL_T, previous.gba));
             } else {

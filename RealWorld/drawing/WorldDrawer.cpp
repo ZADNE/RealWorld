@@ -20,22 +20,20 @@ WorldDrawer<R>::WorldDrawer(const glm::uvec2& viewSizePx) :
     m_tileDrawer(m_viewSizeTi),
     m_shadowDrawer(m_viewSizeTi),
     m_minimapDrawer() {
-
-    updateUniformBuffer();
 }
 
 template<RE::Renderer R>
 void WorldDrawer<R>::setTarget(const glm::ivec2& worldTexSize) {
     m_worldTexSize = worldTexSize;
     m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
-    updateUniformBuffer();
+    updateViewSizeDependentUniforms();
 }
 
 template<RE::Renderer R>
 void WorldDrawer<R>::resizeView(const glm::uvec2& viewSizePx) {
     m_viewSizePx = viewSizePx;
     m_viewSizeTi = viewSizeTi(viewSizePx);
-    updateUniformBuffer();
+    updateViewSizeDependentUniforms();
     m_shadowDrawer.resizeView(m_viewSizeTi);
     m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
 }
@@ -44,12 +42,12 @@ template<RE::Renderer R>
 WorldDrawer<R>::ViewEnvelope WorldDrawer<R>::setPosition(const glm::vec2& botLeftPx) {
     m_botLeftPx = botLeftPx;
     m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx));
-    return ViewEnvelope{ .botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi) };
+    return ViewEnvelope{.botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi)};
 }
 
 template<RE::Renderer R>
 void WorldDrawer<R>::beginStep() {
-    m_shadowDrawer.analyze(m_botLeftTi);
+    m_shadowDrawer.analyze(m_uniformBuf, m_botLeftTi);
 }
 
 template<RE::Renderer R>
@@ -59,18 +57,18 @@ void WorldDrawer<R>::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
 
 template<RE::Renderer R>
 void WorldDrawer<R>::endStep() {
-    m_shadowDrawer.calculate(m_botLeftPx);
+    m_shadowDrawer.calculate(m_uniformBuf, m_botLeftPx);
 }
 
 template<RE::Renderer R>
 void WorldDrawer<R>::drawTiles() {
-    m_tileDrawer.draw(m_vao, m_botLeftPx, m_viewSizeTi);
+    m_tileDrawer.draw(m_uniformBuf, m_vao, m_botLeftPx, m_viewSizeTi);
 }
 
 template<RE::Renderer R>
 void WorldDrawer<R>::drawShadows() {
     if (m_drawShadows) {
-        m_shadowDrawer.draw(m_vao, m_botLeftPx, m_viewSizeTi);
+        m_shadowDrawer.draw(m_uniformBuf, m_vao, m_botLeftPx, m_viewSizeTi);
     }
 }
 
@@ -82,7 +80,7 @@ void WorldDrawer<R>::drawMinimap() {
 }
 
 template<RE::Renderer R>
-void WorldDrawer<R>::updateUniformBuffer() {
+void WorldDrawer<R>::updateViewSizeDependentUniforms() {
     WorldDrawerUniforms wdu{
         .viewMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y),
         .worldTexMask = m_worldTexSize - 1,

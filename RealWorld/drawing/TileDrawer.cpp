@@ -6,10 +6,7 @@
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
-
-constexpr int LOC_POSITIONPx = 3;
-constexpr int LOC_POSITIONTi = 4;
-constexpr int LOC_LIGHT_COUNT = 5;
+#include <RealWorld/drawing/WorldDrawerUniforms.hpp>
 
 template<RE::Renderer R>
 TileDrawer<R>::TileDrawer(const glm::uvec2& viewSizeTi) {
@@ -22,11 +19,11 @@ TileDrawer<R>::TileDrawer(const glm::uvec2& viewSizeTi) {
 }
 
 template<RE::Renderer R>
-void TileDrawer<R>::draw(const RE::VertexArray<R>& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
+void TileDrawer<R>::draw(const RE::BufferTyped<R>& uniformBuf, const RE::VertexArray<R>& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi) {
+    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, botLeftPxModTilePx), glm::mod(botLeftPx, TILEPx));
+    uniformBuf.overwrite(offsetof(WorldDrawerUniforms, botLeftTi), glm::ivec2(pxToTi(botLeftPx)));
     vao.bind();
     m_drawTilesShd.use();
-    m_drawTilesShd.setUniform(LOC_POSITIONPx, glm::mod(botLeftPx, TILEPx));
-    m_drawTilesShd.setUniform(LOC_POSITIONTi, glm::ivec2(pxToTi(botLeftPx)));
     vao.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4, viewSizeTi.x * viewSizeTi.y);
     m_drawTilesShd.unuse();
     vao.unbind();

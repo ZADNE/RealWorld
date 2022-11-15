@@ -8,14 +8,13 @@
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
-constexpr int LOC_THRESHOLDS = 33;
-constexpr int LOC_CYCLE_N = 34;
+constexpr auto OVERWRITE = RE::BufferMapUsageFlags::WRITE | RE::BufferMapUsageFlags::INVALIDATE_RANGE;
 
 template<RE::Renderer R>
 ChunkGeneratorFBO<R>::ChunkGeneratorFBO() {
-    m_generateStructureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
-    m_consolidateEdgesShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
-    m_selectVariantShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
+    m_generateStructureShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
+    m_consolidateEdgesShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
+    m_selectVariantShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
 
     m_genSurf[0].getTexture(0).bind(TEX_UNIT_GEN_TILES[0]);
     m_genSurf[1].getTexture(0).bind(TEX_UNIT_GEN_TILES[1]);
@@ -36,12 +35,12 @@ void ChunkGeneratorFBO<R>::generateBasicTerrain() {
 }
 
 template<RE::Renderer R>
-void ChunkGeneratorFBO<R>::consolidateEdges() {
+void ChunkGeneratorFBO<R>::consolidateEdges(const RE::BufferTyped<R>& generationBuf) {
     unsigned int cycleN = 0u;
-    auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
-        m_consolidateEdgesShd.setUniform(LOC_THRESHOLDS, thresholds);
+    auto pass = [this, &cycleN, &generationBuf](const glm::ivec2& thresholds, size_t passes) {
+        generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, edgeConsolidationThresholds), thresholds);
         for (size_t i = 0; i < passes; i++) {
-            m_consolidateEdgesShd.setUniform(LOC_CYCLE_N, cycleN++);
+            generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, edgeConsolidationCycle), cycleN++);
             m_genSurf[(cycleN + 1) % m_genSurf.size()].setTarget();
             RE::Ordering<R>::issueDrawBarrier();
             m_va.renderArrays(RE::Primitive::TRIANGLE_STRIP, 0, 4);

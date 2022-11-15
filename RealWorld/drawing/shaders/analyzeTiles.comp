@@ -14,13 +14,12 @@ layout(binding = TEX_UNIT_BLOCK_LIGHT_ATLAS) uniform sampler2D blockLightTexture
 layout(binding = TEX_UNIT_WALL_LIGHT_ATLAS) uniform sampler2D wallLightTexture;
 layout(binding = IMG_UNIT_LIGHT, rgba8) uniform restrict writeonly image2D lightImage;
 layout(binding = IMG_UNIT_TRANSLU, r8) uniform restrict writeonly image2D transluImage;
-layout(location = 4) uniform ivec2 botLeftTi;
 
 const float TO_UNIT_SCALE = 1.0 / (LIGHT_SCALE * LIGHT_SCALE);
 
 void main(){
     //Calculate position and init variables
-    const ivec2 readBasePosTi = botLeftTi + (ivec2(gl_GlobalInvocationID) << LIGHT_SCALE_BITS);
+    const ivec2 readBasePosTi = analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << LIGHT_SCALE_BITS);
     vec4 light = vec4(0.0);//RGB = color of the light, A = intensity of the light
     vec4 translu = vec4(0.0);//R = translucency of the unit
     //Analyze the thread's area

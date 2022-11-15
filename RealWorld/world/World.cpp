@@ -72,7 +72,7 @@ size_t World<R>::getNumberOfInactiveChunks() {
 template<RE::Renderer R>
 void World<R>::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
     using enum RE::BufferMapUsageFlags;
-    auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUBO>(0u, offsetof(WorldDynamicsUBO, timeHash), WRITE | INVALIDATE_RANGE);
+    auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUniforms>(0u, offsetof(WorldDynamicsUniforms, timeHash), WRITE | INVALIDATE_RANGE);
     buffer->globalPosTi = posTi;
     buffer->modifyTarget = static_cast<glm::uint>(layer);
     buffer->modifyShape = static_cast<glm::uint>(shape);
@@ -89,7 +89,7 @@ int World<R>::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     m_chunkManager.step();
 
     //Tile transformations
-    m_transformTilesShd.dispatchCompute(offsetof(typename ChunkManager<R>::ActiveChunksSSBO, dynamicsGroupSize), true);
+    m_transformTilesShd.dispatchCompute(offsetof(ActiveChunksSSBO, dynamicsGroupSize), true);
     RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
     //Fluid dynamics
@@ -108,8 +108,8 @@ void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& 
     //Permute the orders
     m_simulateFluidsShd.use();
     if (m_permuteOrder) {
-        auto* timeHash = m_worldDynamicsBuf.template map<glm::uint>(offsetof(WorldDynamicsUBO, timeHash),
-            sizeof(WorldDynamicsUBO::timeHash) + sizeof(WorldDynamicsUBO::updateOrder), WRITE | INVALIDATE_RANGE);
+        auto* timeHash = m_worldDynamicsBuf.template map<glm::uint>(offsetof(WorldDynamicsUniforms, timeHash),
+            sizeof(WorldDynamicsUniforms::timeHash) + sizeof(WorldDynamicsUniforms::updateOrder), WRITE | INVALIDATE_RANGE);
         *timeHash = m_rngState;
         glm::ivec4* updateOrder = reinterpret_cast<glm::ivec4*>(&timeHash[1]);
         //4 random orders, the threads randomly select from these

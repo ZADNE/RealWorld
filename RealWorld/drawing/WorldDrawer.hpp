@@ -3,13 +3,14 @@
  */
 #pragma once
 #include <RealWorld/reserved_units/buffers.hpp>
+#include <RealWorld/drawing/WorldDrawerUniforms.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 
-/**
- * @brief Renders the world (i.e. tiles, shadows, minimap)
-*/
+ /**
+  * @brief Renders the world (i.e. tiles, shadows, minimap)
+ */
 template<RE::Renderer R>
 class WorldDrawer {
 public:
@@ -24,7 +25,6 @@ public:
         glm::vec2 topRightTi;
     };
     ViewEnvelope setPosition(const glm::vec2& botLeftPx);
-
 
     /**
      * @brief External lights have to be added between beginStep() and endStep()
@@ -51,7 +51,7 @@ public:
 
 private:
 
-    void updateUniformBuffer();
+    void updateViewSizeDependentUniforms();
 
     glm::vec2 m_botLeftPx;//Bottom-left corner of the view
     glm::ivec2 m_botLeftTi;//Bottom-left corner of the view in tiles
@@ -65,11 +65,6 @@ private:
     bool m_drawShadows = true;
     bool m_drawMinimap = false;
 
-    struct WorldDrawerUniforms {
-        glm::mat4 viewMat;
-        glm::ivec2 worldTexMask;
-        int viewWidthTi;
-    };
     RE::BufferTyped<R> m_uniformBuf{UNIF_BUF_WORLDDRAWER, sizeof(WorldDrawerUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
     RE::VertexArray<R> m_vao;//Attribute-less vertex array

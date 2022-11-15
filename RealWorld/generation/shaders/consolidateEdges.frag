@@ -1,16 +1,15 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/reserved_units/textures.glsl>
+#include <RealWorld/generation/shaders/GenerationUIB.glsl>
 
 layout(location = 0) out uvec4 result;
 
 layout(binding = TEX_UNIT_GEN_TILES0) uniform usampler2D tilesTexture[2];
 layout(binding = TEX_UNIT_GEN_MATERIAL) uniform usampler2D materialTexture;
 
-layout(location = 33) uniform ivec2 thresholds;
 const int LOW = 0;
 const int HIGH = 1;
-layout(location = 34) uniform uint cycleN;
 
 const ivec2 offsets[] = ivec2[](
     ivec2(-1, -1),     ivec2(+0, -1),   ivec2(+1, -1),
@@ -20,7 +19,7 @@ const ivec2 offsets[] = ivec2[](
 
 
 void main() {
-    const uint read = cycleN % 2;
+    const uint read = edgeConsolidationCycle % 2;
 
     ivec2 pos = ivec2(gl_FragCoord.xy);
     uvec4 previous = texelFetch(tilesTexture[read], pos, 0);
@@ -38,9 +37,9 @@ void main() {
         uvec4 resultAir = uvec4(AIR.r, previous.gba);
         
         if (previous.BL_T == AIR_BL){
-            result = neighborsN > thresholds[HIGH] ? resultMaterial : previous;
+            result = neighborsN > edgeConsolidationThresholds[HIGH] ? resultMaterial : previous;
         } else {
-            result = neighborsN < thresholds[LOW] ? resultAir : previous;
+            result = neighborsN < edgeConsolidationThresholds[LOW] ? resultAir : previous;
         }
     } else {//No more cycles to be done on this cell
         result = previous;

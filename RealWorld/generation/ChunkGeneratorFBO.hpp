@@ -10,9 +10,9 @@
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
 
-/**
- * @brief Generates new chunks by switching framebuffers.
-*/
+ /**
+  * @brief Generates new chunks by switching framebuffers.
+ */
 template<RE::Renderer R>
 class ChunkGeneratorFBO : public ChunkGenerator<R> {
 public:
@@ -23,7 +23,7 @@ private:
 
     void prepareToGenerate() override;
     void generateBasicTerrain() override;
-    void consolidateEdges() override;
+    void consolidateEdges(const RE::BufferTyped<R>& generationBuf) override;
     void selectVariant() override;
     void finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) override;
 
@@ -33,7 +33,7 @@ private:
     RE::ShaderProgram<R> m_selectVariantShd{{.vert = applyToWholeChunk_vert, .frag = selectVariant_frag}};
 
     std::array<RE::Surface<R>, 2> m_genSurf = {
-        RE::Surface<R>{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 2, true},
-        RE::Surface<R>{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 1, true}
+        RE::Surface<R>{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 2, true},
+        RE::Surface<R>{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}, 1, true}
     };
 };

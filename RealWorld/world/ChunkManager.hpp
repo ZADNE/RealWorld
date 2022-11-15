@@ -14,11 +14,23 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
 
- /**
- * @brief Ensures that chunks are activated when needed.
- *
- * Uploads and downloads chunks from the world texture.
- */
+
+#pragma warning( push )
+#pragma warning( disable : 4200 )
+struct ActiveChunksSSBO {
+    glm::ivec2 activeChunksMask;
+    glm::ivec2 activeChunksArea;
+    glm::ivec4 dynamicsGroupSize;
+    glm::ivec2 offsets[];            //First indexes: offsets of update chunks, in tiles
+    //Following indexes: absolute positions of chunks, in chunks
+};
+#pragma warning( pop )
+
+/**
+* @brief Ensures that chunks are activated when needed.
+*
+* Uploads and downloads chunks from the world texture.
+*/
 template<RE::Renderer R>
 class ChunkManager {
 public:
@@ -70,14 +82,6 @@ public:
     */
     int forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-#pragma warning( push )
-#pragma warning( disable : 4200 )
-    struct ActiveChunksSSBO {
-        glm::ivec4 dynamicsGroupSize;
-        glm::ivec2 offsets[];            //First indexes: offsets of update chunks, in tiles
-        //Following indexes: absolute positions of chunks, in chunks
-    };
-#pragma warning( pop )
 private:
 
     /**

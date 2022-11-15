@@ -4,7 +4,7 @@
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/reserved_units/textures.glsl>
 #include <RealWorld/reserved_units/images.glsl>
-#include <RealWorld/generation/shaders/ChunkUIB.glsl>
+#include <RealWorld/generation/shaders/GenerationUIB.glsl>
 
 layout( local_size_x = GEN_CS_GROUP_SIZE,
         local_size_y = GEN_CS_GROUP_SIZE,

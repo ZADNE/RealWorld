@@ -10,6 +10,13 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/generation.hpp>
 
+struct ChunkGeneratorUniforms {
+    glm::ivec2 chunkOffsetTi;
+    int seed;
+    glm::uint edgeConsolidationCycle;
+    glm::ivec2 edgeConsolidationThresholds;
+};
+
 /**
  * @brief Is an interface for chunk generators.
 */
@@ -37,15 +44,11 @@ public:
 
 protected:
 
-    struct ChunkUniforms {
-        glm::ivec2 chunkOffsetTi;
-        int seed;
-    };
-    RE::BufferTyped<R> m_chunkUniformBuf{UNIF_BUF_CHUNKGEN, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+    RE::BufferTyped<R> m_generationBuf{UNIF_BUF_GENERATION, sizeof(ChunkGeneratorUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
     virtual void prepareToGenerate() = 0;
     virtual void generateBasicTerrain() = 0;
-    virtual void consolidateEdges() = 0;
+    virtual void consolidateEdges(const RE::BufferTyped<R>& generationBuf) = 0;
     virtual void selectVariant() = 0;
     virtual void finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) = 0;
 
