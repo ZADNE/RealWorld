@@ -1,4 +1,4 @@
-layout(std140, binding = 0) uniform GenerationUIB {
+layout(std430, push_constant) uniform GenerationUIB {
     ivec2 chunkOffsetTi;
     int seed;
     uint edgeConsolidationCycle;

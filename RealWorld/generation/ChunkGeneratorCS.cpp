@@ -3,15 +3,12 @@
  */
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 
-#include <RealEngine/rendering/Ordering.hpp>
-
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
 constexpr int GEN_CS_GROUP_SIZE = 16;
 
-template<RE::Renderer R>
-ChunkGeneratorCS<R>::ChunkGeneratorCS() {
+ChunkGeneratorCS::ChunkGeneratorCS() {
     m_generateStructureShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
     m_consolidateEdgesShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
     m_selectVariantShd.backInterfaceBlock(0u, UNIF_BUF_GENERATION);
@@ -25,25 +22,22 @@ ChunkGeneratorCS<R>::ChunkGeneratorCS() {
     m_materialGenTex.bindImage(IMG_UNIT_GEN_MATERIAL, 0, RE::ImageAccess::READ_WRITE);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::prepareToGenerate() {
+void ChunkGeneratorCS::prepareToGenerate() {
 
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::generateBasicTerrain() {
+void ChunkGeneratorCS::generateBasicTerrain() {
     m_generateStructureShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::consolidateEdges(const RE::BufferTyped<R>& generationBuf) {
+void ChunkGeneratorCS::consolidateEdges() {
     using enum RE::IncoherentAccessBarrierFlags;
     glm::uint cycleN = 0u;
     auto pass = [this, &cycleN, &generationBuf](const glm::ivec2& thresholds, size_t passes) {
         generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, edgeConsolidationThresholds), thresholds);
         for (size_t i = 0; i < passes; i++) {
             generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, edgeConsolidationCycle), cycleN++);
-            RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+            RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
             m_consolidateEdgesShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
         }
     };
@@ -61,17 +55,12 @@ void ChunkGeneratorCS<R>::consolidateEdges(const RE::BufferTyped<R>& generationB
     assert(static_cast<int>(cycleN) <= GEN_BORDER_WIDTH);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::selectVariant() {
+void ChunkGeneratorCS::selectVariant() {
     using enum RE::IncoherentAccessBarrierFlags;
-    RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+    RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     m_selectVariantShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) {
+void ChunkGeneratorCS::finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
     m_tilesTex[0].copyTexels(0, glm::ivec2{GEN_BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
 }
-
-template class ChunkGeneratorCS<RE::RendererVK13>;
-template class ChunkGeneratorCS<RE::RendererGL46>;

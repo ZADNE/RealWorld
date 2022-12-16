@@ -3,14 +3,10 @@
  */
 #include <RealWorld/world/World.hpp>
 
-#include <RealEngine/rendering/Ordering.hpp>
-
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
-using enum RE::IncoherentAccessBarrierFlags;
-
-//Xorshift algorithm by George Marsaglia
+ //Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
     state ^= state << 13;
     state ^= state >> 17;
@@ -27,8 +23,7 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
     }
 }
 
-template<RE::Renderer R>
-World<R>::World(ChunkGenerator<R>& chunkGen) :
+World::World(ChunkGenerator& chunkGen) :
     m_worldTex(RE::Raster{{1, 1}}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
     m_chunkManager(chunkGen),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
@@ -39,13 +34,12 @@ World<R>::World(ChunkGenerator<R>& chunkGen) :
     m_transformTilesShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
 }
 
-template<RE::Renderer R>
-void World<R>::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
+void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
     m_seed = save.seed;
     m_worldName = save.worldName;
 
     //Resize the world texture
-    m_worldTex = RE::Texture<R>{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
+    m_worldTex = RE::Texture{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
     m_worldTex.bind(TEX_UNIT_WORLD_TEXTURE);
     m_worldTex.bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
     m_worldTex.clear(RE::Color{0, 0, 0, 0});
@@ -53,24 +47,20 @@ void World<R>::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunk
     m_chunkManager.setTarget(m_seed, save.path, &m_worldTex);
 }
 
-template<RE::Renderer R>
-void World<R>::gatherSave(MetadataSave& save) const {
+void World::gatherSave(MetadataSave& save) const {
     save.seed = m_seed;
     save.worldName = m_worldName;
 }
 
-template<RE::Renderer R>
-bool World<R>::saveChunks() const {
+bool World::saveChunks() const {
     return m_chunkManager.saveChunks();
 }
 
-template<RE::Renderer R>
-size_t World<R>::getNumberOfInactiveChunks() {
+size_t World::getNumberOfInactiveChunks() {
     return m_chunkManager.getNumberOfInactiveChunks();
 }
 
-template<RE::Renderer R>
-void World<R>::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
+void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
     using enum RE::BufferMapUsageFlags;
     auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUniforms>(0u, offsetof(WorldDynamicsUniforms, timeHash), WRITE | INVALIDATE_RANGE);
     buffer->globalPosTi = posTi;
@@ -82,15 +72,14 @@ void World<R>::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm
     m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);
 }
 
-template<RE::Renderer R>
-int World<R>::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     //Chunk manager
     int activatedChunks = m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
     m_chunkManager.step();
 
     //Tile transformations
     m_transformTilesShd.dispatchCompute(offsetof(ActiveChunksSSBO, dynamicsGroupSize), true);
-    RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+    RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
     //Fluid dynamics
     fluidDynamicsStep(botLeftTi, topRightTi);
@@ -98,8 +87,7 @@ int World<R>::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     return activatedChunks;
 }
 
-template<RE::Renderer R>
-void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     using enum RE::BufferMapUsageFlags;
     //Convert positions to chunks
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
@@ -131,10 +119,7 @@ void World<R>::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& 
         m_worldDynamicsBuf.unmap();
         //Dispatch
         m_simulateFluidsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
-        RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+        RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     }
     m_simulateFluidsShd.unuse();
 }
-
-template class World<RE::RendererVK13>;
-template class World<RE::RendererGL46>;

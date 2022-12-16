@@ -9,7 +9,6 @@
 
 #include <RealEngine/rendering/basic_shaders/AllShaders.hpp>
 #include <RealEngine/rendering/cameras/View2D.hpp>
-#include <RealEngine/rendering/output/Viewport.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/world/World.hpp>
@@ -34,7 +33,6 @@
 /**
  * @brief Holds all gameplay-related objects.
 */
-template<RE::Renderer R>
 class WorldRoom : public Room {
 public:
 
@@ -43,7 +41,7 @@ public:
     void sessionStart(const RE::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
-    void render(double interpolationFactor) override;
+    void render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) override;
 
     void windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) override;
 
@@ -73,26 +71,26 @@ private:
     const GameSettings& m_gameSettings;
     ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
-    RE::SpriteBatch<R> m_sb{{.vert = RE::sprite_vert, .frag = RE::sprite_frag}};
-    RE::GeometryBatch<R> m_gb{{.vert = RE::geometry_vert, .frag = RE::geometry_frag}};
+    RE::SpriteBatch m_sb{{.vert = RE::sprite_vert, .frag = RE::sprite_frag}};
+    RE::GeometryBatch m_gb{{.vert = RE::geometry_vert, .frag = RE::geometry_frag}};
 
     //View
     RE::View2D m_worldView{engine().getWindowDims()};
-    RE::BufferTyped<R> m_worldViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, m_worldView.getViewMatrix()};
-    RE::BufferTyped<R> m_guiViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, windowMatrix()};
+    RE::BufferTyped m_worldViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, m_worldView.getViewMatrix()};
+    RE::BufferTyped m_guiViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, windowMatrix()};
 
     //Gameplay
 #if CHUNK_GENERATOR == CS_GENERATOR
-    ChunkGeneratorCS<R> m_chunkGen;
+    ChunkGeneratorCS m_chunkGen;
 #elif CHUNK_GENERATOR == FBO_GENERATOR
-    ChunkGeneratorFBO<R> m_chunkGen;
+    ChunkGeneratorFBO m_chunkGen;
 #endif
-    World<R> m_world;
-    WorldDrawer<R> m_worldDrawer;
-    Player<R> m_player;
-    Inventory<R> m_playerInv;
-    ItemUser<R> m_itemUser;
-    InventoryUI<R> m_invUI;
+    World m_world;
+    WorldDrawer m_worldDrawer;
+    Player m_player;
+    Inventory m_playerInv;
+    ItemUser m_itemUser;
+    InventoryUI m_invUI;
 
     //Toggle states
     bool m_minimap = false;

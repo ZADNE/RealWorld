@@ -37,7 +37,6 @@ struct WorldDynamicsUniforms {
  *
  * Also runs tile transformation and fluid dynamics simulation.
  */
-template<RE::Renderer R>
 class World {
 public:
 
@@ -45,7 +44,7 @@ public:
      * @brief Initializes the world
      * @param The generator that will be used to generate new chunks
     */
-    World(ChunkGenerator<R>& chunkGen);
+    World(ChunkGenerator& chunkGen);
 
     /**
      * @copydoc ChunkHandler::getNumberOfInactiveChunks
@@ -82,11 +81,11 @@ private:
 
     void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-    RE::Texture<R> m_worldTex;
+    RE::Texture m_worldTex;
     int m_seed = 0;
 
     std::string m_worldName;
-    RE::BufferTyped<R> m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUniforms), RE::BufferUsageFlags::MAP_WRITE};
+    RE::BufferTyped m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUniforms), RE::BufferUsageFlags::MAP_WRITE};
 
     struct TilePropertiesUIB {
         //x = properties
@@ -101,21 +100,21 @@ private:
         std::array<glm::uvec4, 16> blockTransformationRules;
         std::array<glm::uvec4, 16> wallTransformationRules;
     };
-    RE::BufferTyped<R> m_tilePropertiesBuf{UNIF_BUF_TILEPROPERTIES, RE::BufferUsageFlags::NO_FLAGS, TilePropertiesUIB{
+    RE::BufferTyped m_tilePropertiesBuf{UNIF_BUF_TILEPROPERTIES, RE::BufferUsageFlags::NO_FLAGS, TilePropertiesUIB{
         .blockTransformationProperties = BLOCK_TRANSFORMATION_PROPERTIES,
         .wallTransformationProperties = WALL_TRANSFORMATION_PROPERTIES,
         .blockTransformationRules = BLOCK_TRANSFORMATION_RULES,
         .wallTransformationRules = WALL_TRANSFORMATION_RULES
     }};
 
-    RE::ShaderProgram<R> m_simulateFluidsShd{{.comp = simulateFluids_comp}};
-    RE::ShaderProgram<R> m_transformTilesShd{{.comp = transformTiles_comp}};
-    RE::ShaderProgram<R> m_modifyTilesShd{{.comp = modifyTiles_comp}};
+    RE::ShaderProgram m_simulateFluidsShd{{.comp = simulateFluids_comp}};
+    RE::ShaderProgram m_transformTilesShd{{.comp = transformTiles_comp}};
+    RE::ShaderProgram m_modifyTilesShd{{.comp = modifyTiles_comp}};
 
     std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
     uint32_t m_rngState;
 
-    ChunkManager<R> m_chunkManager;
+    ChunkManager m_chunkManager;
 
     bool m_permuteOrder = true;
 };

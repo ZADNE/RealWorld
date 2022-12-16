@@ -3,32 +3,26 @@
  */
 #include <RealWorld/generation/ChunkGenerator.hpp>
 
-template<RE::Renderer R>
-ChunkGenerator<R>::ChunkGenerator() {
+#include <RealEngine/rendering/CommandBuffer.hpp>
+
+
+ChunkGenerator::ChunkGenerator() {
 
 }
 
-template<RE::Renderer R>
-void ChunkGenerator<R>::setSeed(int seed) {
-    m_seed = seed;
-    m_generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, seed), sizeof(seed), &seed);
+void ChunkGenerator::setSeed(int seed) {
+    m_pushConstants.seed = seed;
 }
 
-template<RE::Renderer R>
-void ChunkGenerator<R>::generateChunk(const glm::ivec2& posCh, const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) {
-    //Update chunk offset within the uniform buffer
-    glm::ivec2 offsetTi = posCh * iCHUNK_SIZE;
-    m_generationBuf.overwrite(offsetof(ChunkGeneratorUniforms, chunkOffsetTi), sizeof(offsetTi), &offsetTi);
+void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
+    m_pushConstants.chunkOffsetTi = posCh * iCHUNK_SIZE;
 
     prepareToGenerate();
 
     //Actual generation
     generateBasicTerrain();
-    consolidateEdges(m_generationBuf);
+    consolidateEdges();
     selectVariant();
 
     finishGeneration(destinationTexture, destinationOffset);
 }
-
-template class ChunkGenerator<RE::RendererVK13>;
-template class ChunkGenerator<RE::RendererGL46>;

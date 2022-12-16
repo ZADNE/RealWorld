@@ -22,8 +22,7 @@ constexpr RE::RoomDisplaySettings INITIAL_SETTINGS{
     .usingImGui = true
 };
 
-template<RE::Renderer R>
-WorldRoom<R>::WorldRoom(const GameSettings& gameSettings) :
+WorldRoom::WorldRoom(const GameSettings& gameSettings) :
     Room(1, INITIAL_SETTINGS),
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
@@ -34,12 +33,11 @@ WorldRoom<R>::WorldRoom(const GameSettings& gameSettings) :
     m_invUI(m_sb, engine().getWindowDims()) {
 
     //InventoryUI connections
-    m_invUI.connectToInventory(&m_playerInv, InventoryUI<R>::Connection::PRIMARY);
+    m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
     m_invUI.connectToItemUser(&m_itemUser);
 }
 
-template<RE::Renderer R>
-void WorldRoom<R>::sessionStart(const RE::RoomTransitionArguments& args) {
+void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
     try {
         const std::string& worldName = std::any_cast<const std::string&>(args[0]);
         if (!loadWorld(worldName)) {
@@ -55,13 +53,11 @@ void WorldRoom<R>::sessionStart(const RE::RoomTransitionArguments& args) {
     m_worldView.setPosition(glm::vec2(m_player.getHitbox().getCenter()));
 }
 
-template<RE::Renderer R>
-void WorldRoom<R>::sessionEnd() {
+void WorldRoom::sessionEnd() {
     //saveWorld();
 }
 
-template<RE::Renderer R>
-void WorldRoom<R>::step() {
+void WorldRoom::step() {
     using enum SlotSelectionManner;
 
     m_gb.begin();
@@ -130,8 +126,7 @@ void WorldRoom<R>::step() {
     m_gb.end();
 }
 
-template<RE::Renderer R>
-void WorldRoom<R>::render(double interpolationFactor) {
+void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {
     m_worldViewBuf.bindIndexed();
 
     m_worldDrawer.drawTiles();
@@ -140,32 +135,30 @@ void WorldRoom<R>::render(double interpolationFactor) {
     sb.begin();
     m_player.draw();
     sb.end(RE::GlyphSortType::TEXTURE);
-    sb.draw();
+    sb.draw({});
 
     m_worldDrawer.drawShadows();
 
-    m_gb.draw();
+    m_gb.draw(commandBuffer, {});
 
     m_guiViewBuf.bindIndexed();
 
     drawGUI();
 }
 
-template<RE::Renderer R>
-void WorldRoom<R>::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) {
+void WorldRoom::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) {
     m_worldView.resizeView(newSize);
     m_worldDrawer.resizeView(newSize);
     m_invUI.windowResized(newSize);
     m_guiViewBuf.overwrite(0, windowMatrix());
 }
 
-template<RE::Renderer R>
-void WorldRoom<R>::drawGUI() {
+void WorldRoom::drawGUI() {
     //Inventory
     m_sb.begin();
     m_invUI.draw(engine().getCursorAbs());
     m_sb.end(RE::GlyphSortType::POS_TOP);
-    m_sb.draw();
+    m_sb.draw({});
     //Minimap
     m_worldDrawer.drawMinimap();
     //Top-left menu
@@ -187,8 +180,7 @@ void WorldRoom<R>::drawGUI() {
     ImGui::PopFont();
 }
 
-template<RE::Renderer R>
-bool WorldRoom<R>::loadWorld(const std::string& worldName) {
+bool WorldRoom::loadWorld(const std::string& worldName) {
     WorldSave save{};
 
     if (!WorldSaveLoader::loadWorld(save, worldName)) return false;
@@ -201,8 +193,7 @@ bool WorldRoom<R>::loadWorld(const std::string& worldName) {
     return true;
 }
 
-template<RE::Renderer R>
-bool WorldRoom<R>::saveWorld() const {
+bool WorldRoom::saveWorld() const {
     WorldSave save{};
     m_world.gatherSave(save.metadata);
     m_player.gatherSave(save.player);
@@ -211,11 +202,7 @@ bool WorldRoom<R>::saveWorld() const {
     return m_world.saveChunks();
 }
 
-template<RE::Renderer R>
-glm::mat4 WorldRoom<R>::windowMatrix() const {
+glm::mat4 WorldRoom::windowMatrix() const {
     glm::vec2 window = engine().getWindowDims();
     return glm::ortho(0.0f, window.x, 0.0f, window.y);
 }
-
-template class WorldRoom<RE::RendererVK13>;
-template class WorldRoom<RE::RendererGL46>;

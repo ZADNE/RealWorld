@@ -5,22 +5,14 @@
 #include <array>
 
 #include <RealEngine/rendering/textures/Texture.hpp>
-#include <RealEngine/rendering/vertices/VertexArray.hpp>
+#include <RealEngine/rendering/Pipeline.hpp>
 
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/generation.hpp>
 
-struct ChunkGeneratorUniforms {
-    glm::ivec2 chunkOffsetTi;
-    int seed;
-    glm::uint edgeConsolidationCycle;
-    glm::ivec2 edgeConsolidationThresholds;
-};
-
-/**
- * @brief Is an interface for chunk generators.
-*/
-template<RE::Renderer R>
+ /**
+  * @brief Is an interface for chunk generators.
+ */
 class ChunkGenerator {
 public:
 
@@ -40,17 +32,22 @@ public:
      * @param destinationTexture The texture that will receive the generated chunk
      * @param destinationOffset Offset within destinationTexture where the texels/tiles will be copied
      */
-    void generateChunk(const glm::ivec2& posCh, const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset);
+    void generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset);
 
 protected:
 
-    RE::BufferTyped<R> m_generationBuf{UNIF_BUF_GENERATION, sizeof(ChunkGeneratorUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+    struct PushConstants {
+        glm::ivec2 chunkOffsetTi;
+        int seed;
+        glm::uint edgeConsolidationCycle;
+        glm::ivec2 edgeConsolidationThresholds;
+    };
+
+    PushConstants m_pushConstants;
 
     virtual void prepareToGenerate() = 0;
     virtual void generateBasicTerrain() = 0;
-    virtual void consolidateEdges(const RE::BufferTyped<R>& generationBuf) = 0;
+    virtual void consolidateEdges() = 0;
     virtual void selectVariant() = 0;
-    virtual void finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) = 0;
-
-    int m_seed = 0;
+    virtual void finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) = 0;
 };
