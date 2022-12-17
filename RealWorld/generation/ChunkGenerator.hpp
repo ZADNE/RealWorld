@@ -29,10 +29,10 @@ public:
      * @brief Generates a chunk. The pixels are stored inside given texture at given position.
      *
      * @param posCh Position of the chunk (measured in chunks)
-     * @param destinationTexture The texture that will receive the generated chunk
-     * @param destinationOffset Offset within destinationTexture where the texels/tiles will be copied
+     * @param dstTex The texture that will receive the generated chunk
+     * @param dstOffset Offset within dstTex where the texels/tiles will be copied to
      */
-    void generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset);
+    void generateChunk(const glm::ivec2& posCh, const RE::Texture& dstTex, const glm::ivec2& dstOffset);
 
 protected:
 
@@ -49,5 +49,5 @@ protected:
     virtual void generateBasicTerrain() = 0;
     virtual void consolidateEdges() = 0;
     virtual void selectVariant() = 0;
-    virtual void finishGeneration(const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) = 0;
+    virtual void finishGeneration(const RE::Texture& dstTex, const glm::ivec2& dstOffset) = 0;
 };
