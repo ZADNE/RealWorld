@@ -2,27 +2,27 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/rendering/vertices/VertexArray.hpp>
 #include <RealEngine/rendering/textures/Texture.hpp>
-#include <RealEngine/rendering/buffers/BufferTyped.hpp>
+#include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
+#include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
 
  /**
   * @brief Renders tiles of the world
  */
-template<RE::Renderer R>
 class TileDrawer {
 public:
 
-    TileDrawer(const glm::uvec2& viewSizeTi);
+    TileDrawer(WorldDrawerPushConstants& pushConstants, const glm::uvec2& viewSizeTi);
 
-    void draw(const RE::BufferTyped<R>& uniformBuf, const RE::VertexArray<R>& vao, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
+    void draw(const vk::CommandBuffer& commandBuffer, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
 
 private:
 
-    RE::Texture<R> m_blockAtlasTex{{.file = "blockAtlas"}};
-    RE::Texture<R> m_wallAtlasTex{{.file = "wallAtlas"}};
+    WorldDrawerPushConstants& m_pushConstants;
+    RE::Texture m_blockAtlasTex{{.file = "blockAtlas"}};
+    RE::Texture m_wallAtlasTex{{.file = "wallAtlas"}};
 
-    RE::ShaderProgram<R> m_drawTilesShd{{.vert = drawTiles_vert, .frag = drawColor_frag}};
+    RE::Pipeline m_drawTilesPl{{}, {{}, vk::PrimitiveTopology::eTriangleStrip}, {.vert = drawTiles_vert, .frag = drawColor_frag}};
 };

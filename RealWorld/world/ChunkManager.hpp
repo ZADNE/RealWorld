@@ -3,11 +3,14 @@
  */
 #pragma once
 #include <unordered_map>
+#include <optional>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
+#include <RealEngine/rendering/buffers/Buffer.hpp>
 #include <RealEngine/rendering/textures/Texture.hpp>
+#include <RealEngine/rendering/CommandBuffer.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/world/Chunk.hpp>
@@ -31,7 +34,6 @@ struct ActiveChunksSSBO {
 *
 * Uploads and downloads chunks from the world texture.
 */
-template<RE::Renderer R>
 class ChunkManager {
 public:
 
@@ -40,7 +42,7 @@ public:
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(ChunkGenerator<R>& chunkGen);
+    ChunkManager(RE::CommandBuffer& commandBuffer, ChunkGenerator& chunkGen);
 
     /**
      * @brief Retargets the chunk manager to a new world.
@@ -51,7 +53,7 @@ public:
      * @param folderPath Path to the folder that contains the new world.
      * @param worldTex The world texture that will receive the loaded chunks
      */
-    void setTarget(int seed, std::string folderPath, RE::Texture<R>* worldTex);
+    void setTarget(int seed, std::string folderPath, RE::Texture* worldTex);
 
     /**
      * @brief Saves all chunks, keeps them in the memory.
@@ -129,15 +131,18 @@ private:
     const static inline glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
     std::vector<glm::ivec2> m_activeChunks;
 
-    using enum RE::BufferUsageFlags; using enum RE::BufferMapUsageFlags;
-    RE::BufferTyped<R> m_activeChunksBuf{STRG_BUF_ACTIVECHUNKS, 1u, NO_FLAGS};
+    RE::CommandBuffer& m_commandBuffer;
+    std::optional<RE::Buffer> m_activeChunksBuf;
+    std::optional<RE::Buffer> m_activeChunksStageBuf;
+    ActiveChunksSSBO* m_activeChunksStageMapped = nullptr;
 
-    RE::ShaderProgram<R> m_analyzeContinuityShd{{.comp = analyzeContinuity_comp}};
-    glm::uvec3 m_analyzeContinuityGroupCount;
+    RE::Pipeline m_analyzeContinuityPl{analyzeContinuity_comp};
+    glm::uvec2 m_analyzeContinuityGroupCount;
 
     std::string m_folderPath;
-    ChunkGenerator<R>& m_chunkGen;
-    RE::Texture<R>* m_worldTex = nullptr;
+    ChunkGenerator& m_chunkGen;
+    RE::Texture* m_worldTex = nullptr;
     glm::ivec2 m_activeChunksMask;
-    RE::Buffer<R> m_downloadBuf{uCHUNK_SIZE.x * uCHUNK_SIZE.y * 4u, CLIENT_STORAGE | MAP_READ};
+    RE::Buffer m_tilesStageBuf;
+    unsigned char* m_tilesStageMapped = m_tilesStageBuf.map<unsigned char>(0u, uCHUNK_SIZE.x * uCHUNK_SIZE.y * 4u);
 };

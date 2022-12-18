@@ -22,16 +22,6 @@ enum class MODIFY_SHAPE : unsigned int {
     FILL
 };
 
-struct WorldDynamicsUniforms {
-    glm::ivec2 globalPosTi;
-    glm::uint modifyTarget;
-    glm::uint modifyShape;
-    glm::uvec2 modifySetValue;
-    float modifyDiameter;
-    glm::uint timeHash;
-    glm::ivec4 updateOrder[16];//Only the first two components are valid, the other two are padding required for std140 layout
-};
-
 /**
  * @brief Represents the world as an endless grid of tiles.
  *
@@ -79,39 +69,37 @@ public:
 
 private:
 
+    struct DynamicsUniforms {
+        glm::ivec2 globalPosTi;
+        glm::uint modifyTarget;
+        glm::uint modifyShape;
+        glm::uvec2 modifySetValue;
+        float modifyDiameter;
+        glm::uint timeHash;
+        glm::ivec2 updateOrder[16];
+    };
+
     void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
+    RE::CommandBuffer m_commandBuffer{vk::CommandBufferLevel::ePrimary};
     RE::Texture m_worldTex;
     int m_seed = 0;
 
     std::string m_worldName;
-    RE::BufferTyped m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUniforms), RE::BufferUsageFlags::MAP_WRITE};
+    //RE::Buffer m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUniforms), RE::BufferUsageFlags::MAP_WRITE};
 
-    struct TilePropertiesUIB {
-        //x = properties
-        //yz = indices of first and last transformation rule
-        std::array<glm::uvec4, 256> blockTransformationProperties;
-        std::array<glm::uvec4, 256> wallTransformationProperties;
+    RE::Buffer m_tilePropertiesBuf;
 
-        //x = The properties that neighbors MUST have to transform
-        //y = The properties that neighbors MUST NOT have to transform
-        //z = Properties of the transformation
-        //w = The wall that it will be transformed into
-        std::array<glm::uvec4, 16> blockTransformationRules;
-        std::array<glm::uvec4, 16> wallTransformationRules;
+    //RE::Pipeline m_simulateFluidsShd{simulateFluids_comp};
+    //RE::Pipeline m_transformTilesShd{transformTiles_comp};
+    //RE::Pipeline m_modifyTilesShd{modifyTiles_comp};
+
+    std::array<glm::ivec2, 4> m_dynamicsUpdateOrder = {
+        glm::ivec2{0, 0},
+        glm::ivec2{1, 0},
+        glm::ivec2{0, 1},
+        glm::ivec2{1, 1}
     };
-    RE::BufferTyped m_tilePropertiesBuf{UNIF_BUF_TILEPROPERTIES, RE::BufferUsageFlags::NO_FLAGS, TilePropertiesUIB{
-        .blockTransformationProperties = BLOCK_TRANSFORMATION_PROPERTIES,
-        .wallTransformationProperties = WALL_TRANSFORMATION_PROPERTIES,
-        .blockTransformationRules = BLOCK_TRANSFORMATION_RULES,
-        .wallTransformationRules = WALL_TRANSFORMATION_RULES
-    }};
-
-    RE::ShaderProgram m_simulateFluidsShd{{.comp = simulateFluids_comp}};
-    RE::ShaderProgram m_transformTilesShd{{.comp = transformTiles_comp}};
-    RE::ShaderProgram m_modifyTilesShd{{.comp = modifyTiles_comp}};
-
-    std::array<glm::ivec4, 4> m_dynamicsUpdateOrder = {glm::ivec4{0, 0, 0, 0}, glm::ivec4{1, 0, 1, 0}, glm::ivec4{0, 1, 0, 1}, glm::ivec4{1, 1, 1, 1}};
     uint32_t m_rngState;
 
     ChunkManager m_chunkManager;

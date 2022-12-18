@@ -4,6 +4,7 @@ struct DynamicLight{
     uint padding;
 };
 
-layout(std430, binding = 0) readonly restrict buffer DynamicLightsSSIB {
+#include <RealWorld/reserved_units/buffers.glsl>
+layout(std430, binding = STRG_BUF_EXTERNALLIGHTS) readonly restrict buffer DynamicLightsSSIB {
     DynamicLight lights[];
 };

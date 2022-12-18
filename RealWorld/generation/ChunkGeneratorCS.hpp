@@ -29,9 +29,9 @@ private:
     void finishGeneration(const RE::Texture& dstTex, const glm::ivec2& dstOffset) override;
 
     RE::CommandBuffer m_commandBuffer{vk::CommandBufferLevel::ePrimary};
-    RE::Pipeline m_generateStructurePl{{}, {}, {.comp = generateStructure_comp}};
-    RE::Pipeline m_consolidateEdgesPl{{}, {}, {.comp = consolidateEdges_comp}};
-    RE::Pipeline m_selectVariantPl{{}, {}, {.comp = selectVariant_comp}};
+    RE::Pipeline m_generateStructurePl{generateStructure_comp};
+    RE::Pipeline m_consolidateEdgesPl{consolidateEdges_comp};
+    RE::Pipeline m_selectVariantPl{selectVariant_comp};
 
     std::array<RE::Texture, 2> m_tilesTex = {
         RE::Texture{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},

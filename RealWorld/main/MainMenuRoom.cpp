@@ -50,7 +50,7 @@ void MainMenuRoom::step() {
     //GUI only room...
 }
 
-void MainMenuRoom::render(double interpolationFactor) {
+void MainMenuRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {
     ImGui::SetNextWindowSize(engine().getWindowDims());
     ImGui::SetNextWindowPos({0.0f, 0.0f});
     ImGui::PushFont(m_arial16);

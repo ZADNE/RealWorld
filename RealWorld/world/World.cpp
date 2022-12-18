@@ -15,7 +15,7 @@ uint32_t xorshift32(uint32_t& state) {
 }
 
 //Fisher–Yates shuffle algorithm
-void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
+void permuteOrder(uint32_t& state, std::array<glm::ivec2, 4>& order) {
     for (size_t i = 0; i < order.size() - 1; i++) {
         size_t j = i + xorshift32(state) % (order.size() - i);
         std::swap(order[i].x, order[j].x);
@@ -23,15 +23,37 @@ void permuteOrder(uint32_t& state, std::array<glm::ivec4, 4>& order) {
     }
 }
 
+struct TilePropertiesUIB {
+    //x = properties
+    //yz = indices of first and last transformation rule
+    std::array<glm::uvec4, 256> blockTransformationProperties;
+    std::array<glm::uvec4, 256> wallTransformationProperties;
+
+    //x = The properties that neighbors MUST have to transform
+    //y = The properties that neighbors MUST NOT have to transform
+    //z = Properties of the transformation
+    //w = The wall that it will be transformed into
+    std::array<glm::uvec4, 16> blockTransformationRules;
+    std::array<glm::uvec4, 16> wallTransformationRules;
+};
+
+static constexpr TilePropertiesUIB TILE_PROPERTIES = TilePropertiesUIB{
+    .blockTransformationProperties = BLOCK_TRANSFORMATION_PROPERTIES,
+    .wallTransformationProperties = WALL_TRANSFORMATION_PROPERTIES,
+    .blockTransformationRules = BLOCK_TRANSFORMATION_RULES,
+    .wallTransformationRules = WALL_TRANSFORMATION_RULES
+};
+
 World::World(ChunkGenerator& chunkGen) :
     m_worldTex(RE::Raster{{1, 1}}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
-    m_chunkManager(chunkGen),
+    m_chunkManager(m_commandBuffer, chunkGen),
+    m_tilePropertiesBuf(sizeof(TilePropertiesUIB), vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, &TILE_PROPERTIES),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
-    m_simulateFluidsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
+    /*m_simulateFluidsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
     m_transformTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
     m_transformTilesShd.backInterfaceBlock(1u, UNIF_BUF_TILEPROPERTIES);
     m_modifyTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_transformTilesShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);
+    m_transformTilesShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);*/
 }
 
 void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
@@ -40,9 +62,6 @@ void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksAr
 
     //Resize the world texture
     m_worldTex = RE::Texture{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
-    m_worldTex.bind(TEX_UNIT_WORLD_TEXTURE);
-    m_worldTex.bindImage(IMG_UNIT_WORLD, 0, RE::ImageAccess::READ_WRITE);
-    m_worldTex.clear(RE::Color{0, 0, 0, 0});
 
     m_chunkManager.setTarget(m_seed, save.path, &m_worldTex);
 }
@@ -61,7 +80,7 @@ size_t World::getNumberOfInactiveChunks() {
 }
 
 void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
-    using enum RE::BufferMapUsageFlags;
+    /*using enum RE::BufferMapUsageFlags;
     auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUniforms>(0u, offsetof(WorldDynamicsUniforms, timeHash), WRITE | INVALIDATE_RANGE);
     buffer->globalPosTi = posTi;
     buffer->modifyTarget = static_cast<glm::uint>(layer);
@@ -69,7 +88,7 @@ void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::i
     buffer->modifyDiameter = diameter;
     buffer->modifySetValue = tile;
     m_worldDynamicsBuf.unmap();
-    m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);
+    m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);*/
 }
 
 int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
@@ -78,17 +97,17 @@ int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     m_chunkManager.step();
 
     //Tile transformations
-    m_transformTilesShd.dispatchCompute(offsetof(ActiveChunksSSBO, dynamicsGroupSize), true);
-    RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+    //m_transformTilesShd.dispatchCompute(offsetof(ActiveChunksSSBO, dynamicsGroupSize), true);
+    //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
     //Fluid dynamics
-    fluidDynamicsStep(botLeftTi, topRightTi);
+    //fluidDynamicsStep(botLeftTi, topRightTi);
 
     return activatedChunks;
 }
 
 void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
-    using enum RE::BufferMapUsageFlags;
+    /*using enum RE::BufferMapUsageFlags;
     //Convert positions to chunks
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
@@ -99,7 +118,7 @@ void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& top
         auto* timeHash = m_worldDynamicsBuf.template map<glm::uint>(offsetof(WorldDynamicsUniforms, timeHash),
             sizeof(WorldDynamicsUniforms::timeHash) + sizeof(WorldDynamicsUniforms::updateOrder), WRITE | INVALIDATE_RANGE);
         *timeHash = m_rngState;
-        glm::ivec4* updateOrder = reinterpret_cast<glm::ivec4*>(&timeHash[1]);
+        glm::ivec2* updateOrder = reinterpret_cast<glm::ivec2*>(&timeHash[1]);
         //4 random orders, the threads randomly select from these
         for (unsigned int i = 0; i < 4; i++) {
             permuteOrder(m_rngState, m_dynamicsUpdateOrder);
@@ -121,5 +140,5 @@ void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& top
         m_simulateFluidsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
         RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     }
-    m_simulateFluidsShd.unuse();
+    m_simulateFluidsShd.unuse();*/
 }

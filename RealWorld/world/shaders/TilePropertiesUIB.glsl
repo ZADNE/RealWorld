@@ -9,7 +9,8 @@ const uint HALLOWb =    1 << 4;
 const uint EDGEb =      1 << 0;
 const uint MIX_PROPSb = 1 << 1;//Mix properties with the other layer 
 
-layout(std140, binding = 1) restrict uniform _1TilePropertiesUIB {
+#include <RealWorld/reserved_units/buffers.glsl>
+layout(std140, binding = UNIF_BUF_TILEPROPERTIES) restrict uniform TilePropertiesUIB {
     //x = properties
     //yz = indices of first and last transformation rule
     uvec4 u_blockProperties[256];

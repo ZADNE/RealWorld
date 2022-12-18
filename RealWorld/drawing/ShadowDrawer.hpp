@@ -46,9 +46,9 @@ private:
     RE::Texture<R> m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
     RE::Texture<R> m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
 
-    RE::ShaderProgram<R> m_analyzeTilesShd{{.comp = analyzeTiles_comp}};
-    RE::ShaderProgram<R> m_addLightsShd{{.comp = addDynamicLights_comp}};
-    RE::ShaderProgram<R> m_calcShadowsShd{{.comp = calculateShadows_comp}};
+    RE::ShaderProgram<R> m_analyzeTilesShd{analyzeTiles_comp};
+    RE::ShaderProgram<R> m_addLightsShd{addDynamicLights_comp};
+    RE::ShaderProgram<R> m_calcShadowsShd{calculateShadows_comp};
     RE::ShaderProgram<R> m_drawShadowsShd{{.vert = drawShadows_vert, .frag = drawColor_frag}};
 
     std::vector<ExternalLight> m_lights;

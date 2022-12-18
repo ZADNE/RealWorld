@@ -1,4 +1,5 @@
-layout(std140, binding = 0) uniform PlayerMovementUIB {
+#extension GL_EXT_scalar_block_layout : require
+layout(std430, push_constant) uniform PlayerMovementUIB {
     float acceleration;
     float maxWalkVelocity;
     float jumpVelocity;

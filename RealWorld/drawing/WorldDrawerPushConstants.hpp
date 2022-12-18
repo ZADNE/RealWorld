@@ -5,9 +5,9 @@
 #include <glm/mat4x4.hpp>
 
  /**
-  * @brief Contains all uniforms needed for drawing
+  * @brief Contains all push constants needed for drawing
  */
-struct WorldDrawerUniforms {
+struct WorldDrawerPushConstants {
     //Updated when view / world texture changes \|/
     glm::mat4 viewMat;
     glm::ivec2 worldTexMask;

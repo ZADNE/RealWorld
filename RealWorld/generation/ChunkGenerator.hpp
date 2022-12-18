@@ -5,7 +5,7 @@
 #include <array>
 
 #include <RealEngine/rendering/textures/Texture.hpp>
-#include <RealEngine/rendering/Pipeline.hpp>
+#include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/generation.hpp>

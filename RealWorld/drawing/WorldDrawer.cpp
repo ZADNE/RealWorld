@@ -5,7 +5,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealEngine/rendering/vertices/Vertex.hpp>
+#include <RealEngine/rendering/pipelines/Vertex.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
@@ -13,86 +13,68 @@
 #include <RealWorld/reserved_units/images.hpp>
 
 
-template<RE::Renderer R>
-WorldDrawer<R>::WorldDrawer(const glm::uvec2& viewSizePx) :
+WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) :
     m_viewSizePx(viewSizePx),
     m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_tileDrawer(m_viewSizeTi),
+    m_tileDrawer(m_pushConstants, m_viewSizeTi)/*,
     m_shadowDrawer(m_viewSizeTi),
-    m_minimapDrawer() {
+    m_minimapDrawer()*/ {
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::setTarget(const glm::ivec2& worldTexSize) {
+void WorldDrawer::setTarget(const glm::ivec2& worldTexSize) {
     m_worldTexSize = worldTexSize;
-    m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
+    //m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
     updateViewSizeDependentUniforms();
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::resizeView(const glm::uvec2& viewSizePx) {
+void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
     m_viewSizePx = viewSizePx;
     m_viewSizeTi = viewSizeTi(viewSizePx);
     updateViewSizeDependentUniforms();
-    m_shadowDrawer.resizeView(m_viewSizeTi);
-    m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
+    //m_shadowDrawer.resizeView(m_viewSizeTi);
+    //m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
 }
 
-template<RE::Renderer R>
-WorldDrawer<R>::ViewEnvelope WorldDrawer<R>::setPosition(const glm::vec2& botLeftPx) {
+WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
     m_botLeftPx = botLeftPx;
     m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx));
     return ViewEnvelope{.botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi)};
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::beginStep() {
-    m_shadowDrawer.analyze(m_uniformBuf, m_botLeftTi);
+void WorldDrawer::beginStep() {
+    //m_shadowDrawer.analyze(m_uniformBuf, m_botLeftTi);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
-    m_shadowDrawer.addExternalLight(posPx, col);
+void WorldDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
+    //m_shadowDrawer.addExternalLight(posPx, col);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::endStep() {
-    m_shadowDrawer.calculate(m_uniformBuf, m_botLeftPx);
+void WorldDrawer::endStep() {
+    //m_shadowDrawer.calculate(m_uniformBuf, m_botLeftPx);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::drawTiles() {
-    m_tileDrawer.draw(m_uniformBuf, m_vao, m_botLeftPx, m_viewSizeTi);
+void WorldDrawer::drawTiles(const vk::CommandBuffer& commandBuffer) {
+    m_tileDrawer.draw(commandBuffer, m_botLeftPx, m_viewSizeTi);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::drawShadows() {
+void WorldDrawer::drawShadows(const vk::CommandBuffer& commandBuffer) {
     if (m_drawShadows) {
-        m_shadowDrawer.draw(m_uniformBuf, m_vao, m_botLeftPx, m_viewSizeTi);
+        //m_shadowDrawer.draw(commandBuffer, m_uniformBuf, m_botLeftPx, m_viewSizeTi);
     }
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::drawMinimap() {
+void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
     if (m_drawMinimap) {
-        m_minimapDrawer.draw();
+        //m_minimapDrawer.draw(commandBuffer);
     }
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::updateViewSizeDependentUniforms() {
-    WorldDrawerUniforms wdu{
-        .viewMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y),
-        .worldTexMask = m_worldTexSize - 1,
-        .viewWidthTi = static_cast<int>(m_viewSizeTi.x)
-    };
-    m_uniformBuf.overwrite(0u, wdu);
+void WorldDrawer::updateViewSizeDependentUniforms() {
+    m_pushConstants.viewMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y);
+    m_pushConstants.worldTexMask = m_worldTexSize - 1;
+    m_pushConstants.viewWidthTi = static_cast<int>(m_viewSizeTi.x);
 }
 
-template<RE::Renderer R>
-glm::uvec2 WorldDrawer<R>::viewSizeTi(const glm::vec2& viewSizePx) const {
+glm::uvec2 WorldDrawer::viewSizeTi(const glm::vec2& viewSizePx) const {
     return glm::uvec2(glm::ceil(viewSizePx / TILEPx)) + 1u;
 }
-
-template class WorldDrawer<RE::RendererVK13>;
-template class WorldDrawer<RE::RendererGL46>;

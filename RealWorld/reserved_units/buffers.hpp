@@ -2,22 +2,18 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/rendering/buffers/BufferTyped.hpp>
+#include <cstdint>
 
- //ATOMIC COUNTER BUFFERS
-
- //SHADER STORAGE BUFFERS
-constexpr RE::BufferTypedIndex STRG_BUF_PLAYER = {RE::BufferType::SHADER_STORAGE, 0u};
-constexpr RE::BufferTypedIndex STRG_BUF_ACTIVECHUNKS = {RE::BufferType::SHADER_STORAGE, 1u};
-constexpr RE::BufferTypedIndex STRG_BUF_EXTERNALLIGHTS = {RE::BufferType::SHADER_STORAGE, 2u};
+ //STORAGE BUFFERS
+constexpr uint32_t STRG_BUF_PLAYER = 10u;
+constexpr uint32_t STRG_BUF_ACTIVECHUNKS = 11u;
+constexpr uint32_t STRG_BUF_EXTERNALLIGHTS = 12u;
 
 //UNIFORM BUFFERS
-constexpr RE::BufferTypedIndex UNIF_BUF_VIEWPORT_MATRIX = {RE::BufferType::UNIFORM, 0u};
-constexpr RE::BufferTypedIndex UNIF_BUF_PLAYERMOVEMENT = {RE::BufferType::UNIFORM, 1u};
-constexpr RE::BufferTypedIndex UNIF_BUF_GENERATION = {RE::BufferType::UNIFORM, 2u};
-constexpr RE::BufferTypedIndex UNIF_BUF_WORLDDRAWER = {RE::BufferType::UNIFORM, 3u};
-constexpr RE::BufferTypedIndex UNIF_BUF_WORLDDYNAMICS = {RE::BufferType::UNIFORM, 4u};
-constexpr RE::BufferTypedIndex UNIF_BUF_TILEPROPERTIES = {RE::BufferType::UNIFORM, 5u};
-
-//TRANSFORM FEEDBACK BUFFERS
+constexpr uint32_t UNIF_BUF_VIEWPORT_MATRIX = 13u;
+constexpr uint32_t UNIF_BUF_PLAYERMOVEMENT = 14u;
+constexpr uint32_t UNIF_BUF_GENERATION = 15u;
+constexpr uint32_t UNIF_BUF_WORLDDRAWER = 16u;
+constexpr uint32_t UNIF_BUF_WORLDDYNAMICS = 17u;
+constexpr uint32_t UNIF_BUF_TILEPROPERTIES = 18u;
 

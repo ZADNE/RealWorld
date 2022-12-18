@@ -27,14 +27,14 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings) :
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
     m_worldDrawer(engine().getWindowDims()),
-    m_player(m_sb),
+    m_player(m_sb)/*,
     m_playerInv({10, 4}),
     m_itemUser(m_world, m_playerInv, m_player.getHitbox()),
-    m_invUI(m_sb, engine().getWindowDims()) {
+    m_invUI(m_sb, engine().getWindowDims())*/ {
 
     //InventoryUI connections
-    m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
-    m_invUI.connectToItemUser(&m_itemUser);
+    //m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
+    //m_invUI.connectToItemUser(&m_itemUser);
 }
 
 void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
@@ -50,7 +50,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
         RE::fatalError("Bad transition paramaters to start WorldRoom session");
     }
 
-    m_worldView.setPosition(glm::vec2(m_player.getHitbox().getCenter()));
+    m_worldView.setPosition(glm::vec2(m_player.getCenter()));
 }
 
 void WorldRoom::sessionEnd() {
@@ -58,23 +58,23 @@ void WorldRoom::sessionEnd() {
 }
 
 void WorldRoom::step() {
-    using enum SlotSelectionManner;
+    //using enum SlotSelectionManner;
 
-    m_gb.begin();
+    //m_gb.begin();
 
     //Player
     int walkDir = keybindDown(PLAYER_LEFT) ? -1 : 0;
     walkDir += keybindDown(PLAYER_RIGHT) ? +1 : 0;
-    m_player.step(static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
+    m_player.step(m_computeCommandBuffer, static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
 
     //View
     glm::vec2 prevViewPos = m_worldView.getPosition();
-    glm::vec2 targetViewPos = glm::vec2(m_player.getHitbox().getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
+    glm::vec2 targetViewPos = glm::vec2(m_player.getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
     auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
     //auto viewPos = prevViewPos + glm::vec2(glm::ivec2(engine().getCursorAbs()) - engine().getWindowDims() / 2) * 0.03f;
     m_worldView.setCursorAbs(engine().getCursorAbs());
     m_worldView.setPosition(glm::floor(viewPos));
-    m_worldViewBuf.overwrite(0u, m_worldView.getViewMatrix());
+    //m_worldViewBuf.overwrite(0u, m_worldView.getViewMatrix());
 
     //World
     auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
@@ -82,19 +82,19 @@ void WorldRoom::step() {
     m_worldDrawer.beginStep();
 
     //Item user
-    m_itemUser.step(
+    /*m_itemUser.step(
         keybindDown(ITEMUSER_USE_PRIMARY) && !m_invUI.isOpen(),
         keybindDown(ITEMUSER_USE_SECONDARY) && !m_invUI.isOpen(),
         m_worldView.getCursorRel(), m_gb
-    );
+    );*/
 
     static float rad = 0.0f;
     rad += 0.01f;
     m_worldDrawer.addExternalLight(m_worldView.getCursorRel() + glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f, RE::Color{0u, 0u, 0u, 255u});
-    m_worldDrawer.addExternalLight(m_player.getHitbox().getCenter(), RE::Color{0u, 0u, 0u, 100u});
+    m_worldDrawer.addExternalLight(m_player.getCenter(), RE::Color{0u, 0u, 0u, 100u});
 
     //Inventory
-    m_invUI.step();
+    /*m_invUI.step();
     if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); }
     if (m_invUI.isOpen()) {//Inventory is open
         if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(engine().getCursorAbs()); }
@@ -114,7 +114,7 @@ void WorldRoom::step() {
             if (keybindPressed(static_cast<RealWorldKeyBindings>(SLOT0_INT + i))) { m_invUI.selectSlot(ABS, i); }
         }
         if (keybindPressed(ITEMUSER_SWITCH_SHAPE)) { m_itemUser.switchShape(); }
-    }
+    }*/
     m_worldDrawer.endStep();
 
     //Toggles & quit
@@ -123,25 +123,25 @@ void WorldRoom::step() {
     if (keybindPressed(SHADOWS)) { m_worldDrawer.shouldDrawShadows(m_shadows = !m_shadows); }
     if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
 
-    m_gb.end();
+    //m_gb.end();
 }
 
 void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {
-    m_worldViewBuf.bindIndexed();
+    //m_worldViewBuf.bindIndexed();
 
-    m_worldDrawer.drawTiles();
+    m_worldDrawer.drawTiles(commandBuffer);
 
-    auto& sb = m_sb;
+    /*auto& sb = m_sb;
     sb.begin();
     m_player.draw();
     sb.end(RE::GlyphSortType::TEXTURE);
-    sb.draw({});
+    sb.draw({});*/
 
-    m_worldDrawer.drawShadows();
+    //m_worldDrawer.drawShadows(commandBuffer);
 
-    m_gb.draw(commandBuffer, {});
+    //m_gb.draw(commandBuffer, {});
 
-    m_guiViewBuf.bindIndexed();
+    //m_guiViewBuf.bindIndexed();
 
     drawGUI();
 }
@@ -149,18 +149,18 @@ void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolat
 void WorldRoom::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec2& newSize) {
     m_worldView.resizeView(newSize);
     m_worldDrawer.resizeView(newSize);
-    m_invUI.windowResized(newSize);
-    m_guiViewBuf.overwrite(0, windowMatrix());
+    //m_invUI.windowResized(newSize);
+    //m_guiViewBuf.overwrite(0, windowMatrix());
 }
 
 void WorldRoom::drawGUI() {
     //Inventory
-    m_sb.begin();
+    /*m_sb.begin();
     m_invUI.draw(engine().getCursorAbs());
     m_sb.end(RE::GlyphSortType::POS_TOP);
-    m_sb.draw({});
+    m_sb.draw({});*/
     //Minimap
-    m_worldDrawer.drawMinimap();
+    //m_worldDrawer.drawMinimap(commandBuffer);
     //Top-left menu
     ImGui::SetNextWindowPos({0.0f, 0.0f});
     ImGui::PushFont(m_arial);
@@ -187,7 +187,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
     m_world.adoptSave(save.metadata, m_gameSettings.getActiveChunksArea());
     m_player.adoptSave(save.player);
-    m_playerInv.adoptInventoryData(save.inventory);
+    //m_playerInv.adoptInventoryData(save.inventory);
 
     m_worldDrawer.setTarget(m_gameSettings.getActiveChunksArea() * iCHUNK_SIZE);
     return true;
@@ -197,7 +197,7 @@ bool WorldRoom::saveWorld() const {
     WorldSave save{};
     m_world.gatherSave(save.metadata);
     m_player.gatherSave(save.player);
-    m_playerInv.gatherInventoryData(save.inventory);
+    //m_playerInv.gatherInventoryData(save.inventory);
     if (!WorldSaveLoader::saveWorld(save, save.metadata.worldName, false)) return false;
     return m_world.saveChunks();
 }

@@ -9,30 +9,20 @@
 
 #include <RealEngine/rendering/basic_shaders/AllShaders.hpp>
 #include <RealEngine/rendering/cameras/View2D.hpp>
+#include <RealEngine/rendering/CommandBuffer.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
+#include <RealWorld/generation/ChunkGeneratorCS.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
 #include <RealWorld/player/Player.hpp>
-#include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/items/ItemUser.hpp>
-#include <RealWorld/items/InventoryUI.hpp>
+ //#include <RealWorld/items/Inventory.hpp>
+ //#include <RealWorld/items/ItemUser.hpp>
+ //#include <RealWorld/items/InventoryUI.hpp>
 
- //Use this to swap generators
-#define FBO_GENERATOR 1
-#define CS_GENERATOR 2
-#define CHUNK_GENERATOR CS_GENERATOR
-#if CHUNK_GENERATOR == CS_GENERATOR
-#include <RealWorld/generation/ChunkGeneratorCS.hpp>
-#elif CHUNK_GENERATOR == FBO_GENERATOR
-#include <RealWorld/generation/ChunkGeneratorFBO.hpp>
-#else
-#error "No chunk generator has been selected!"
-#endif
-
-/**
- * @brief Holds all gameplay-related objects.
-*/
+  /**
+   * @brief Holds all gameplay-related objects.
+  */
 class WorldRoom : public Room {
 public:
 
@@ -71,26 +61,23 @@ private:
     const GameSettings& m_gameSettings;
     ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
+    RE::CommandBuffer m_computeCommandBuffer{vk::CommandBufferLevel::ePrimary};
     RE::SpriteBatch m_sb{{.vert = RE::sprite_vert, .frag = RE::sprite_frag}};
-    RE::GeometryBatch m_gb{{.vert = RE::geometry_vert, .frag = RE::geometry_frag}};
+    //RE::GeometryBatch m_gb{{.vert = RE::geometry_vert, .frag = RE::geometry_frag}};
 
     //View
     RE::View2D m_worldView{engine().getWindowDims()};
-    RE::BufferTyped m_worldViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, m_worldView.getViewMatrix()};
-    RE::BufferTyped m_guiViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, windowMatrix()};
+    //RE::BufferTyped m_worldViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, m_worldView.getViewMatrix()};
+    //RE::BufferTyped m_guiViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, windowMatrix()};
 
     //Gameplay
-#if CHUNK_GENERATOR == CS_GENERATOR
     ChunkGeneratorCS m_chunkGen;
-#elif CHUNK_GENERATOR == FBO_GENERATOR
-    ChunkGeneratorFBO m_chunkGen;
-#endif
     World m_world;
     WorldDrawer m_worldDrawer;
     Player m_player;
-    Inventory m_playerInv;
-    ItemUser m_itemUser;
-    InventoryUI m_invUI;
+    //Inventory m_playerInv;
+    //ItemUser m_itemUser;
+    //InventoryUI m_invUI;
 
     //Toggle states
     bool m_minimap = false;

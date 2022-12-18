@@ -3,15 +3,14 @@
  */
 #pragma once
 #include <RealWorld/reserved_units/buffers.hpp>
-#include <RealWorld/drawing/WorldDrawerUniforms.hpp>
+#include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
-#include <RealWorld/drawing/ShadowDrawer.hpp>
-#include <RealWorld/drawing/MinimapDrawer.hpp>
+ //#include <RealWorld/drawing/ShadowDrawer.hpp>
+ //#include <RealWorld/drawing/MinimapDrawer.hpp>
 
  /**
-  * @brief Renders the world (i.e. tiles, shadows, minimap)
+ * @brief Renders the world (i.e. tiles, shadows, minimap)
  */
-template<RE::Renderer R>
 class WorldDrawer {
 public:
 
@@ -41,13 +40,13 @@ public:
     */
     void endStep();
 
-    void drawTiles();
+    void drawTiles(const vk::CommandBuffer& commandBuffer);
 
     void shouldDrawShadows(bool should) { m_drawShadows = should; }
-    void drawShadows();
+    void drawShadows(const vk::CommandBuffer& commandBuffer);
 
     void shouldDrawMinimap(bool should) { m_drawMinimap = should; }
-    void drawMinimap();
+    void drawMinimap(const vk::CommandBuffer& commandBuffer);
 
 private:
 
@@ -65,11 +64,9 @@ private:
     bool m_drawShadows = true;
     bool m_drawMinimap = false;
 
-    RE::BufferTyped<R> m_uniformBuf{UNIF_BUF_WORLDDRAWER, sizeof(WorldDrawerUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
+    WorldDrawerPushConstants m_pushConstants;
 
-    RE::VertexArray<R> m_vao;//Attribute-less vertex array
-
-    TileDrawer<R> m_tileDrawer;
-    ShadowDrawer<R> m_shadowDrawer;
-    MinimapDrawer<R> m_minimapDrawer;
+    TileDrawer m_tileDrawer;
+    //ShadowDrawer m_shadowDrawer;
+    //MinimapDrawer m_minimapDrawer;
 };

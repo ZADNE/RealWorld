@@ -23,7 +23,7 @@ public:
     void sessionStart(const RE::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
-    void render(double interpolationFactor) override;
+    void render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) override;
 
     void keybindCallback(RE::Key newKey);
 
