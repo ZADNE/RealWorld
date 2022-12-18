@@ -58,6 +58,7 @@ void WorldRoom::sessionEnd() {
 }
 
 void WorldRoom::step() {
+    m_computeCommandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
     //using enum SlotSelectionManner;
 
     //m_gb.begin();
@@ -124,6 +125,9 @@ void WorldRoom::step() {
     if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
 
     //m_gb.end();
+
+    m_computeCommandBuffer->end();
+    m_computeCommandBuffer.submitToComputeQueue();
 }
 
 void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {

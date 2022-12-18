@@ -64,4 +64,5 @@ private:
     PlayerHitboxSSBO* m_hitboxStageMapped = m_hitboxStageBuf.map<PlayerHitboxSSBO>(0u, sizeof(PlayerHitboxSSBO));
 
     RE::Pipeline m_movePlayerPl{movePlayer_comp};
+    RE::DescriptorSet m_descriptorSet{m_movePlayerPl};
 };

@@ -7,9 +7,10 @@
 
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
+#include <RealWorld/reserved_units/images.hpp>
+
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
-
 
 Player::Player(RE::SpriteBatch& spriteBatch) :
     m_sb(spriteBatch),
@@ -21,8 +22,9 @@ Player::Player(RE::SpriteBatch& spriteBatch) :
         .dimsPx = glm::ivec2(m_playerTex.getTrueDims()) - glm::ivec2(1),
         .velocityPx = glm::vec2(0.0f, 0.0f)
     }) {
-    //m_movePlayerShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
-    //m_movePlayerShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
+    m_descriptorSet.write(vk::DescriptorType::eStorageImage, IMG_UNIT_WORLD, )
+        //m_movePlayerShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
+        //m_movePlayerShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
 }
 
 void Player::adoptSave(const PlayerSave& save) {
@@ -40,7 +42,8 @@ glm::vec2 Player::getCenter() const {
 void Player::step(RE::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump) {
     m_pushConstants.walkDirection = glm::sign(static_cast<float>(dir));
     m_pushConstants.jump_autojump = glm::vec2(jump, autojump);
-    m_movePlayerPl.bind(vk::PipelineBindPoint::eCompute);
+    commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, m_movePlayerPl.pipeline());
+    commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, m_movePlayerPl.pipelineLayout(), 0u, m_descriptorSet.descriptorSet(), {});
     commandBuffer->pushConstants<MovementPushConstants>(m_movePlayerPl.pipelineLayout(), vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
     commandBuffer->dispatch(1u, 1u, 1u);
 }

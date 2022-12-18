@@ -56,7 +56,7 @@ World::World(ChunkGenerator& chunkGen) :
     m_transformTilesShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);*/
 }
 
-void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
+const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
     m_seed = save.seed;
     m_worldName = save.worldName;
 
@@ -64,6 +64,8 @@ void World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksAr
     m_worldTex = RE::Texture{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
 
     m_chunkManager.setTarget(m_seed, save.path, &m_worldTex);
+
+    return m_worldTex;
 }
 
 void World::gatherSave(MetadataSave& save) const {

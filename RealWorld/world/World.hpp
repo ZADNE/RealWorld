@@ -59,7 +59,7 @@ public:
      * @param save Save of the world to run
      * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8.
     */
-    void adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
+    const RE::Texture& adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
 
     void gatherSave(MetadataSave& save) const;
 
