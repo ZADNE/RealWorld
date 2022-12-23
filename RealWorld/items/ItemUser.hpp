@@ -8,21 +8,19 @@
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/player/Hitbox.hpp>
 
-/**
- * @brief Uses items from an inventory.
- *
- * Can add or remove tile to the world.
-*/
-template<RE::Renderer R>
+ /**
+  * @brief Uses items from an inventory.
+  *
+  * Can add or remove tile to the world.
+ */
 class ItemUser {
 public:
 
     static constexpr int PRIMARY_USE = 0;
     static constexpr int SECONDARY_USE = 1;
 
-    ItemUser(World<R>& world, Inventory<R>& inventory, Hitbox& operatorsHitbox);
+    ItemUser(World& world, Inventory& inventory);
 
     void switchShape();
     void resizeShape(float change);
@@ -30,13 +28,12 @@ public:
     //Does not check if the slot is inside the inventory!
     void selectSlot(int slot);
 
-    void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch<R>& geometryBatch);
+    void step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx);
 
 private:
 
-    World<R>& m_world;
-    Inventory<R>& m_inv;
-    Hitbox& m_operatorsHitbox;
+    World& m_world;
+    Inventory& m_inv;
 
     int m_chosenSlot = 0;
 

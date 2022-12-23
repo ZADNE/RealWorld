@@ -41,14 +41,12 @@ inline std::string ivec2ToString(const glm::ivec2& vec) {
 }
 
 constexpr std::array RENDERERS = {
-    RE::RendererID::VULKAN13,
-    RE::RendererID::OPENGL46
+    RE::RendererID::VULKAN13
 };
 
 inline std::string rendererToString(RE::RendererID id) {
     constexpr std::array names = std::to_array({
-        "Vulkan 1.3",
-        "OpenGL 4.6"
+        "Vulkan 1.3"
     });
     return names[static_cast<size_t>(id)];
 }

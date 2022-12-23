@@ -7,22 +7,20 @@
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
-#include <RealEngine/rendering/basic_shaders/AllShaders.hpp>
 #include <RealEngine/rendering/cameras/View2D.hpp>
-#include <RealEngine/rendering/CommandBuffer.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
 #include <RealWorld/player/Player.hpp>
- //#include <RealWorld/items/Inventory.hpp>
- //#include <RealWorld/items/ItemUser.hpp>
- //#include <RealWorld/items/InventoryUI.hpp>
+#include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/items/ItemUser.hpp>
+#include <RealWorld/items/InventoryUI.hpp>
 
-  /**
-   * @brief Holds all gameplay-related objects.
-  */
+ /**
+  * @brief Holds all gameplay-related objects.
+ */
 class WorldRoom : public Room {
 public:
 
@@ -39,7 +37,7 @@ private:
 
     using enum RealWorldKeyBindings;
 
-    void drawGUI();
+    void drawGUI(const vk::CommandBuffer& commandBuffer);
 
     /**
      * @brief Loads a world. Previously loaded world is flushed without saving.
@@ -56,28 +54,27 @@ private:
      */
     bool saveWorld() const;
 
-    glm::mat4 windowMatrix() const;
+    glm::mat4 calculateWindowViewMat(const glm::vec2& windowDims) const;
 
     const GameSettings& m_gameSettings;
     ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
     RE::CommandBuffer m_computeCommandBuffer{vk::CommandBufferLevel::ePrimary};
-    RE::SpriteBatch m_sb{{.vert = RE::sprite_vert, .frag = RE::sprite_frag}};
-    //RE::GeometryBatch m_gb{{.vert = RE::geometry_vert, .frag = RE::geometry_frag}};
+    RE::SpriteBatch m_sb{64, 64};
+    RE::GeometryBatch m_gb{vk::PrimitiveTopology::eLineList, 1024};
 
     //View
     RE::View2D m_worldView{engine().getWindowDims()};
-    //RE::BufferTyped m_worldViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, m_worldView.getViewMatrix()};
-    //RE::BufferTyped m_guiViewBuf{UNIF_BUF_VIEWPORT_MATRIX, RE::BindNow::NO, RE::BufferUsageFlags::DYNAMIC_STORAGE, windowMatrix()};
+    glm::mat4 m_windowViewMat = calculateWindowViewMat(engine().getWindowDims());
 
     //Gameplay
     ChunkGeneratorCS m_chunkGen;
     World m_world;
     WorldDrawer m_worldDrawer;
     Player m_player;
-    //Inventory m_playerInv;
-    //ItemUser m_itemUser;
-    //InventoryUI m_invUI;
+    Inventory m_playerInv;
+    ItemUser m_itemUser;
+    InventoryUI m_invUI;
 
     //Toggle states
     bool m_minimap = false;

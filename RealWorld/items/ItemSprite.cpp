@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/items/ItemSprite.hpp>
@@ -7,16 +7,14 @@
 
 #include <RealWorld/items/Item.hpp>
 
-template<RE::Renderer R>
-ItemSprite<R>::ItemSprite() :
-    ItemSprite<R>{ITEM::EMPTY} {
+ItemSprite::ItemSprite() :
+    ItemSprite{ITEM::EMPTY} {
 }
 
-template<RE::Renderer R>
-ItemSprite<R>::ItemSprite(ITEM ID) :
+ItemSprite::ItemSprite(ITEM ID) :
     m_tex(RE::RM::texture({.file = ATLAS_PREFIX + ItemDatabase::md(ID).textureAtlas})),
     m_sprite{
-        m_tex->get<R>(),
+        *m_tex,
         ItemDatabase::md(ID).spriteIndex, 0.0f, 1.0f,
         RE::Color{255u, 255u, 255u, 255u},
         glm::vec2(ItemDatabase::md(ID).drawScale)
@@ -24,15 +22,11 @@ ItemSprite<R>::ItemSprite(ITEM ID) :
 
 }
 
-template<RE::Renderer R>
-ItemSprite<R>::ItemSprite(ItemSample item) :
-    ItemSprite<R>{item.ID} {
+ItemSprite::ItemSprite(ItemSample item) :
+    ItemSprite{item.ID} {
 }
 
-template<RE::Renderer R>
-RE::SpriteComplex<R>& ItemSprite<R>::sprite() {
+RE::SpriteComplex& ItemSprite::sprite() {
     return m_sprite;
 }
 
-template class ItemSprite<RE::RendererVK13>;
-template class ItemSprite<RE::RendererGL46>;

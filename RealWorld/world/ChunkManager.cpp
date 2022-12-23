@@ -101,10 +101,11 @@ int ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm
             vk::BufferCopy{
                 offsetof(ActiveChunksSSBO, dynamicsGroupSize),
                 offsetof(ActiveChunksSSBO, dynamicsGroupSize),
-                sizeof(int)}
+                sizeof(int)
+            }
         );
         //And analyze the world texture
-        m_analyzeContinuityPl.bind(vk::PipelineBindPoint::eCompute);
+        m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
         m_commandBuffer->dispatch(m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1);
     }
     return activatedChunks;

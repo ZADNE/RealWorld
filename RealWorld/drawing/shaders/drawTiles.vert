@@ -1,5 +1,4 @@
 #version 460
-#include <RealEngine/rendering/basic_shaders/cross.glsl>
 #include <RealWorld/reserved_units/textures.glsl>
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/drawing/shaders/WorldDrawerUIB.glsl>
@@ -15,8 +14,8 @@ const vec2 POS[4] = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}, {1.0, 1.0}};
 
 void main() {
     //Calculate positions and offsets
-    ivec2 offsetTi = ivec2(InstanceIndex % viewWidthTi, InstanceIndex / viewWidthTi);
-    vec2 posTi = POS[VertexIndex] + vec2(offsetTi);
+    ivec2 offsetTi = ivec2(gl_InstanceIndex % viewWidthTi, gl_InstanceIndex / viewWidthTi);
+    vec2 posTi = POS[gl_VertexIndex] + vec2(offsetTi);
     
     //Fetch the tile
     uvec4 tile = texelFetch(worldTexture, (botLeftTi + offsetTi) & worldTexMask, 0);

@@ -25,4 +25,3 @@ target_link_libraries(RealWorld_GeneratorTest PUBLIC RealWorld)
 
 #Add subdirectories
 add_subdirectory(RealWorld)
-add_subdirectory(tests)

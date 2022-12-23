@@ -8,22 +8,19 @@
 #include <RealEngine/utility/Error.hpp>
 
 
-template<RE::Renderer R>
-Inventory<R>::Inventory(const glm::ivec2& size) :
+Inventory::Inventory(const glm::ivec2& size) :
     InventoryData{size} {
 
 }
 
-template<RE::Renderer R>
-Inventory<R>::~Inventory() {
+Inventory::~Inventory() {
     //Disconnecting connected objects (to avoid dangling pointers)
     if (m_UI) {
         m_UI->connectToInventory(nullptr, m_UIConnection);
     }
 }
 
-template<RE::Renderer R>
-void Inventory<R>::resize(const glm::ivec2& newSize) {
+void Inventory::resize(const glm::ivec2& newSize) {
     InventoryData::resize(newSize);
 
     //Notifying connected objects about the change
@@ -32,14 +29,12 @@ void Inventory<R>::resize(const glm::ivec2& newSize) {
     }
 }
 
-template<RE::Renderer R>
-void Inventory<R>::connectToDrawer(InventoryUI<R>* inventoryDrawer, InventoryUI<R>::Connection connection) {
+void Inventory::connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection) {
     m_UI = inventoryDrawer;
     m_UIConnection = connection;
 }
 
-template<RE::Renderer R>
-bool Inventory<R>::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
+bool Inventory::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
     if (item.amount <= 0) { return true; }
     int target = item.amount - (int)(std::ceil((float)item.amount * portion));
     for (int y = startSlot.y; y < m_size.y; y++) {
@@ -60,8 +55,7 @@ bool Inventory<R>::insert(Item& item, float portion/* = 1.0f*/, const glm::ivec2
     return false;
 }
 
-template<RE::Renderer R>
-bool Inventory<R>::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
+bool Inventory::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
     if (item.amount <= 0) { return true; }
     int target = item.amount - (int)((float)item.amount * portion);
     //Filling already existing stacks
@@ -88,8 +82,7 @@ bool Inventory<R>::fill(Item& item, float portion/* = 1.0f*/, const glm::ivec2& 
     return false;
 }
 
-template<RE::Renderer R>
-int Inventory<R>::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
+int Inventory::remove(const Item& item, const glm::ivec2& startSlot/* = glm::ivec2(0, 0)*/, bool reload/* = true*/) {
     if (item.amount <= 0) { return 0; }
     int leftToRemove = item.amount;
     for (int y = startSlot.y; y < m_size.y; y++) {
@@ -110,35 +103,28 @@ int Inventory<R>::remove(const Item& item, const glm::ivec2& startSlot/* = glm::
     return leftToRemove;
 }
 
-template<RE::Renderer R>
-void Inventory<R>::wasChanged() const {
+void Inventory::wasChanged() const {
     if (m_UI) {//If connected to any
         m_UI->reload();
     }
 }
 
-template<RE::Renderer R>
-void Inventory<R>::adoptInventoryData(const InventoryData& id) {
+void Inventory::adoptInventoryData(const InventoryData& id) {
     m_size = id.m_size;
     m_items = id.m_items;
     wasChanged();
 }
 
-template<RE::Renderer R>
-void Inventory<R>::gatherInventoryData(InventoryData& id) const {
+void Inventory::gatherInventoryData(InventoryData& id) const {
     id.m_size = m_size;
     id.m_items = m_items;
 }
 
-template<RE::Renderer R>
-void Inventory<R>::operator+=(Item& item) {
+void Inventory::operator+=(Item& item) {
     fill(item, 1.0f);
 }
 
-template<RE::Renderer R>
-int Inventory<R>::operator-=(const Item& item) {
+int Inventory::operator-=(const Item& item) {
     return remove(item);
 }
 
-template class Inventory<RE::RendererVK13>;
-template class Inventory<RE::RendererGL46>;

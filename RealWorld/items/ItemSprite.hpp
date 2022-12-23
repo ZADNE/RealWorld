@@ -7,10 +7,9 @@
 
 #include <RealWorld/items/Item.hpp>
 
-/**
- * @brief Allows convenient drawing of items in inventory
-*/
-template<RE::Renderer R>
+ /**
+  * @brief Allows convenient drawing of items in inventory
+ */
 class ItemSprite {
 public:
 
@@ -18,12 +17,12 @@ public:
     ItemSprite(ITEM ID);
     ItemSprite(ItemSample item);
 
-    RE::SpriteComplex<R>& sprite();
+    RE::SpriteComplex& sprite();
 
 private:
 
     RE::SharedTexture m_tex;
-    RE::SpriteComplex<R> m_sprite;
+    RE::SpriteComplex m_sprite;
 
     /**
      * @brief Filenames of all item atlases must begin with this prefix

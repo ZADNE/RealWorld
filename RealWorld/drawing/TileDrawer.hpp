@@ -24,5 +24,5 @@ private:
     RE::Texture m_blockAtlasTex{{.file = "blockAtlas"}};
     RE::Texture m_wallAtlasTex{{.file = "wallAtlas"}};
 
-    RE::Pipeline m_drawTilesPl{{}, {{}, vk::PrimitiveTopology::eTriangleStrip}, {.vert = drawTiles_vert, .frag = drawColor_frag}};
+    RE::Pipeline m_drawTilesPl{{.topology = vk::PrimitiveTopology::eTriangleStrip}, {.vert = drawTiles_vert, .frag = drawColor_frag}};
 };

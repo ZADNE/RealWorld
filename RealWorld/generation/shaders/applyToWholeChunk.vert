@@ -1,5 +1,4 @@
 #version 460
-#include <RealEngine/rendering/basic_shaders/cross.glsl>
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/generation/shaders/GenerationUIB.glsl>
@@ -21,6 +20,6 @@ const vec2 TILE_CORNERS[] = {
 };
 
 void main() {
-    gl_Position = vec4(NDC_CORNERS[VertexIndex], 0.0, 1.0);
-    inChunkPosTi = TILE_CORNERS[VertexIndex];
+    gl_Position = vec4(NDC_CORNERS[gl_VertexIndex], 0.0, 1.0);
+    inChunkPosTi = TILE_CORNERS[gl_VertexIndex];
 }

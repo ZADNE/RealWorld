@@ -27,7 +27,7 @@ void ChunkGeneratorCS::prepareToGenerate() {
 }
 
 void ChunkGeneratorCS::generateBasicTerrain() {
-    m_generateStructurePl.bind(vk::PipelineBindPoint::eCompute);
+    m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
     m_commandBuffer->pushConstants<PushConstants>(m_generateStructurePl.pipelineLayout(), eCompute, 0u, m_pushConstants);
     m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
 }
@@ -50,7 +50,7 @@ void ChunkGeneratorCS::consolidateEdges() {
         }
     };
 
-    m_consolidateEdgesPl.bind(vk::PipelineBindPoint::eCompute);
+    m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
     doublePass({3, 4}, {4, 5}, 4);
 
     assert(static_cast<int>(cycleN) <= GEN_BORDER_WIDTH);
@@ -58,7 +58,7 @@ void ChunkGeneratorCS::consolidateEdges() {
 
 void ChunkGeneratorCS::selectVariant() {
     //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
-    m_selectVariantPl.bind(vk::PipelineBindPoint::eCompute);
+    m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
     m_commandBuffer->pushConstants<PushConstants>(m_selectVariantPl.pipelineLayout(), eCompute, 0u, m_pushConstants);
     m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
 }
@@ -74,5 +74,5 @@ void ChunkGeneratorCS::finishGeneration(const RE::Texture& dstTex, const glm::iv
         }
     );
     m_commandBuffer->end();
-    m_commandBuffer.submitToGraphicsQueue();
+    m_commandBuffer.submitToComputeQueue();
 }

@@ -22,9 +22,9 @@ Player::Player(RE::SpriteBatch& spriteBatch) :
         .dimsPx = glm::ivec2(m_playerTex.getTrueDims()) - glm::ivec2(1),
         .velocityPx = glm::vec2(0.0f, 0.0f)
     }) {
-    m_descriptorSet.write(vk::DescriptorType::eStorageImage, IMG_UNIT_WORLD, )
-        //m_movePlayerShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
-        //m_movePlayerShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
+    //m_descriptorSet.write(vk::DescriptorType::eStorageImage, IMG_UNIT_WORLD, )
+    //m_movePlayerShd.backInterfaceBlock(0u, UNIF_BUF_PLAYERMOVEMENT);
+    //m_movePlayerShd.backInterfaceBlock(0u, STRG_BUF_PLAYER);
 }
 
 void Player::adoptSave(const PlayerSave& save) {

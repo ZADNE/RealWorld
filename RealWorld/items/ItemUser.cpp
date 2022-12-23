@@ -1,36 +1,30 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/items/ItemUser.hpp>
 
 
-template<RE::Renderer R>
-ItemUser<R>::ItemUser(World<R>& world, Inventory<R>& inventory, Hitbox& operatorsHitbox) :
+ItemUser::ItemUser(World& world, Inventory& inventory) :
     m_world(world),
-    m_inv(inventory),
-    m_operatorsHitbox(operatorsHitbox) {
+    m_inv(inventory) {
 
     m_item = &m_inv[m_chosenSlot][0];
 }
 
-template<RE::Renderer R>
-void ItemUser<R>::switchShape() {
+void ItemUser::switchShape() {
     m_shape = m_shape == MODIFY_SHAPE::DISC ? MODIFY_SHAPE::SQUARE : MODIFY_SHAPE::DISC;
 }
 
-template<RE::Renderer R>
-void ItemUser<R>::resizeShape(float change) {
+void ItemUser::resizeShape(float change) {
     m_diameter = glm::clamp(m_diameter + change, 0.5f, 7.5f);
 }
 
-template<RE::Renderer R>
-void ItemUser<R>::selectSlot(int slot) {
+void ItemUser::selectSlot(int slot) {
     m_chosenSlot = slot;
     m_item = &m_inv[m_chosenSlot][0];
 }
 
-template<RE::Renderer R>
-void ItemUser<R>::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx, RE::GeometryBatch<R>& gb) {
+void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx) {
     bool use[2] = {usePrimary, useSecondary};
 
     //Update usage
@@ -71,13 +65,13 @@ void ItemUser<R>::step(bool usePrimary, bool useSecondary, const glm::ivec2& rel
         }
     }
 
-    
-    if (md.type != ITEM_TYPE::EMPTY) {//Draw
+    //TODO
+    /*if (md.type != ITEM_TYPE::EMPTY) {//Draw
         RE::Color col{255, 255, 255, 255};
         glm::vec2 c = tiToPx(pxToTi(relCursorPosPx)) + TILEPx * 0.5f;
         float dia = m_diameter * TILEPx.x;
         if (m_shape == MODIFY_SHAPE::DISC) {
-            RE::CirclePOCO circ{RE::CirclePO{c, dia, false}, col};
+            RE::CirclePOCO circ{RE::CirclePO{c, dia, false}, col}; TODO
             gb.addCircles(0u, 1u, &circ);
         } else {
             RE::VertexPOCO square[4] = {
@@ -88,8 +82,6 @@ void ItemUser<R>::step(bool usePrimary, bool useSecondary, const glm::ivec2& rel
             };
             gb.addPrimitives(RE::PRIM::LINE_LOOP, 0, 4, square);
         }
-    }
+    }*/
 }
 
-template class ItemUser<RE::RendererVK13>;
-template class ItemUser<RE::RendererGL46>;
