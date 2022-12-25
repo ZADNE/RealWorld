@@ -24,7 +24,7 @@ enum class WALK : int {
 class Player {
 public:
 
-    Player(RE::SpriteBatch& spriteBatch);
+    Player(const RE::Texture& worldTexture);
 
     void adoptSave(const PlayerSave& save);
     void gatherSave(PlayerSave& save) const;
@@ -33,13 +33,11 @@ public:
 
     void step(RE::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump);
 
-    void draw();
+    void draw(RE::SpriteBatch& spriteBatch);
 
 private:
 
-    RE::SpriteBatch& m_sb;
-
-    RE::Texture m_playerTex{{.file = "player"}};
+    RE::TextureShaped m_playerTex{{.file = "player"}};
 
     struct MovementPushConstants {
         float acceleration;
@@ -54,14 +52,14 @@ private:
         .jumpVelocity = 7.0f
     };
 
-    struct PlayerHitboxSSBO {
+    struct PlayerHitboxSB {
         glm::vec2 botLeftPx;
         glm::vec2 dimsPx;
         glm::vec2 velocityPx;
     };
     RE::Buffer m_hitboxBuf;
     RE::Buffer m_hitboxStageBuf;
-    PlayerHitboxSSBO* m_hitboxStageMapped = m_hitboxStageBuf.map<PlayerHitboxSSBO>(0u, sizeof(PlayerHitboxSSBO));
+    PlayerHitboxSB* m_hitboxStageMapped = m_hitboxStageBuf.map<PlayerHitboxSB>(0u, sizeof(PlayerHitboxSB));
 
     RE::Pipeline m_movePlayerPl{movePlayer_comp};
     RE::DescriptorSet m_descriptorSet{m_movePlayerPl};

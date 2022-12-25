@@ -1,9 +1,10 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/reserved_units/images.glsl>
+const uint worldImage_BINDING = 0u;
 #include <RealWorld/world/shaders/tileLoad.glsl>
-#include <RealWorld/player/shaders/PlayerHitboxSSIB.glsl>
-#include <RealWorld/player/shaders/PlayerMovementUIB.glsl>
+const uint PlayerHitboxSB_BINDING = 1u;
+#include <RealWorld/player/shaders/PlayerHitboxSB.glsl>
+#include <RealWorld/player/shaders/PlayerMovementPC.glsl>
 
 layout( local_size_x = 1,
         local_size_y = 1,

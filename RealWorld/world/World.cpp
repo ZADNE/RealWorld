@@ -45,7 +45,6 @@ static constexpr TilePropertiesUIB TILE_PROPERTIES = TilePropertiesUIB{
 };
 
 World::World(ChunkGenerator& chunkGen) :
-    m_worldTex(RE::Raster{{1, 1}}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}),
     m_chunkManager(m_commandBuffer, chunkGen),
     m_tilePropertiesBuf(sizeof(TilePropertiesUIB), vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, &TILE_PROPERTIES),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
@@ -61,11 +60,14 @@ const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& 
     m_worldName = save.worldName;
 
     //Resize the world texture
-    m_worldTex = RE::Texture{{iCHUNK_SIZE * activeChunksArea}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
+    glm::uvec2 texSize = iCHUNK_SIZE * activeChunksArea;
+    m_worldTex = RE::Texture{RE::TextureCreateInfo{
+        .extent = vk::Extent3D{texSize.x, texSize.y, 1u}
+    }};
 
-    m_chunkManager.setTarget(m_seed, save.path, &m_worldTex);
+    m_chunkManager.setTarget(m_seed, save.path, *m_worldTex, activeChunksArea);
 
-    return m_worldTex;
+    return *m_worldTex;
 }
 
 void World::gatherSave(MetadataSave& save) const {

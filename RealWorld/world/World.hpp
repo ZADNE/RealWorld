@@ -3,6 +3,7 @@
  */
 #pragma once
 #include <string>
+#include <optional>
 
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 #include <RealEngine/rendering/textures/Texture.hpp>
@@ -57,7 +58,7 @@ public:
     /**
      * @brief Sets this world class to simulate the world inside the given save
      * @param save Save of the world to run
-     * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8.
+     * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8
     */
     const RE::Texture& adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
 
@@ -66,6 +67,8 @@ public:
     bool saveChunks() const;
 
     void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
+
+    const RE::Texture& worldTexture() const { return *m_worldTex; }
 
 private:
 
@@ -82,7 +85,7 @@ private:
     void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
     RE::CommandBuffer m_commandBuffer{vk::CommandBufferLevel::ePrimary};
-    RE::Texture m_worldTex;
+    std::optional<RE::Texture> m_worldTex;
     int m_seed = 0;
 
     std::string m_worldName;

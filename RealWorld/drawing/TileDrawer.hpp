@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/rendering/textures/Texture.hpp>
+#include <RealEngine/rendering/textures/TextureShaped.hpp>
 #include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
 #include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
@@ -21,8 +21,8 @@ public:
 private:
 
     WorldDrawerPushConstants& m_pushConstants;
-    RE::Texture m_blockAtlasTex{{.file = "blockAtlas"}};
-    RE::Texture m_wallAtlasTex{{.file = "wallAtlas"}};
+    RE::TextureShaped m_blockAtlasTex{{.file = "blockAtlas"}};
+    RE::TextureShaped m_wallAtlasTex{{.file = "wallAtlas"}};
 
     RE::Pipeline m_drawTilesPl{{.topology = vk::PrimitiveTopology::eTriangleStrip}, {.vert = drawTiles_vert, .frag = drawColor_frag}};
 };

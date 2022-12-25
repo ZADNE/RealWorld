@@ -27,10 +27,10 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings) :
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
     m_worldDrawer(engine().getWindowDims()),
-    m_player(m_sb),
+    m_player(m_world.worldTexture()),
     m_playerInv({10, 4}),
     m_itemUser(m_world, m_playerInv),
-    m_invUI(m_sb, engine().getWindowDims()) {
+    m_invUI(engine().getWindowDims()) {
 
     //InventoryUI connections
     m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
@@ -73,7 +73,6 @@ void WorldRoom::step() {
     //auto viewPos = prevViewPos + glm::vec2(glm::ivec2(engine().getCursorAbs()) - engine().getWindowDims() / 2) * 0.03f;
     m_worldView.setCursorAbs(engine().getCursorAbs());
     m_worldView.setPosition(glm::floor(viewPos));
-    //m_worldViewBuf.overwrite(0u, m_worldView.getViewMatrix());
 
     //World
     auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
@@ -131,10 +130,10 @@ void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolat
 
     m_worldDrawer.drawTiles(commandBuffer);
 
-    m_sb.begin();
-    m_player.draw();
-    m_sb.end();
-    m_sb.draw(commandBuffer, m_worldView.getViewMatrix());
+    m_spriteBatch.begin();
+    m_player.draw(m_spriteBatch);
+    m_spriteBatch.end();
+    m_spriteBatch.draw(commandBuffer, m_worldView.getViewMatrix());
 
     //m_worldDrawer.drawShadows(commandBuffer);
 
@@ -154,10 +153,10 @@ void WorldRoom::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec
 
 void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     //Inventory
-    m_sb.begin();
-    m_invUI.draw(engine().getCursorAbs());
-    m_sb.end();
-    m_sb.draw(commandBuffer, m_windowViewMat);
+    m_spriteBatch.begin();
+    m_invUI.draw(m_spriteBatch, engine().getCursorAbs());
+    m_spriteBatch.end();
+    m_spriteBatch.draw(commandBuffer, m_windowViewMat);
     //Minimap
     //m_worldDrawer.drawMinimap(commandBuffer);
     //Top-left menu

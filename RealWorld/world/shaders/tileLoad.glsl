@@ -1,4 +1,4 @@
-layout(binding = IMG_UNIT_WORLD, rgba8ui) uniform restrict readonly uimage2D worldImage;
+layout(binding = worldImage_BINDING, rgba8ui) uniform restrict readonly uimage2D worldImage;
 
 //Converts world position to image position
 ivec2 imPos(ivec2 posTi){

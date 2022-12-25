@@ -52,8 +52,9 @@ public:
      * @param seed Seed of the new world.
      * @param folderPath Path to the folder that contains the new world.
      * @param worldTex The world texture that will receive the loaded chunks
+     * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8
      */
-    void setTarget(int seed, std::string folderPath, RE::Texture* worldTex);
+    void setTarget(int seed, std::string folderPath, RE::Texture& worldTex, const glm::ivec2& activeChunksArea);
 
     /**
      * @brief Saves all chunks, keeps them in the memory.

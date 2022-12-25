@@ -33,7 +33,7 @@ public:
     /**
      * @brief Contructs a UI that is not connected to any inventories
     */
-    InventoryUI(RE::SpriteBatch& sb, const glm::vec2& windowSize);
+    InventoryUI(const glm::vec2& windowSize);
     ~InventoryUI();
 
     InventoryUI(const InventoryUI&) = delete;
@@ -82,14 +82,14 @@ public:
     void selectSlot(SlotSelectionManner selectionManner, int number = 0);
 
     void step();
-    void draw(const glm::vec2& cursorPx);
+    void draw(RE::SpriteBatch& spriteBatch, const glm::vec2& cursorPx);
 
 private:
 
     static constexpr glm::vec2 SLOT_PADDING = glm::vec2(8.0f, 8.0f);
 
-    inline glm::vec2 slotDims() const { return m_slotTex.getSubimageDims(); }
-    inline glm::vec2 slotPivot() const { return m_slotTex.getPivot(); }
+    inline glm::vec2 slotDims() const { return m_slotTex.subimageDims(); }
+    inline glm::vec2 slotPivot() const { return m_slotTex.pivot(); }
 
     inline glm::ivec2 invSize(Connection con) const;
     inline int invSlotCount(Connection con) const;
@@ -121,11 +121,10 @@ private:
         }
     }
 
-    RE::SpriteBatch& m_sb;
     ItemUser* m_itemUser = nullptr;
 
     glm::vec2 m_windowSize;
-    RE::Texture m_slotTex{{.file = "slot"}};
+    RE::TextureShaped m_slotTex{{.file = "slot"}};
     glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
 
     Item m_heldItem{};

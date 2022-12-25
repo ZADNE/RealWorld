@@ -15,8 +15,7 @@
 #include <RealWorld/items/ItemUser.hpp>
 
 
-InventoryUI::InventoryUI(RE::SpriteBatch& sb, const glm::vec2& windowSize) :
-    m_sb(sb) {
+InventoryUI::InventoryUI(const glm::vec2& windowSize) {
     windowResized(windowSize);
 }
 
@@ -138,7 +137,7 @@ void InventoryUI::step() {
     m_heldSprite.sprite().step();
 }
 
-void InventoryUI::draw(const glm::vec2& cursorPx) {
+void InventoryUI::draw(RE::SpriteBatch& spriteBatch, const glm::vec2& cursorPx) {
     if (!m_inv[PRIMARY]) { return; }
 
     glm::vec2 pos;
@@ -150,29 +149,29 @@ void InventoryUI::draw(const glm::vec2& cursorPx) {
         forEachSlotByPosition(PRIMARY, [&](int x, int y) {
             pos = slot0Px + (slotDims() + SLOT_PADDING) * glm::vec2(x, y);
         Item& item = (*m_inv[PRIMARY])[x][y];
+        spriteBatch.addSubimage(m_slotTex, pos, glm::vec2(0.0f, 0.0f));
         if (!item.isEmpty()) {
-            m_sb.addSprite(m_invItemSprites[PRIMARY][i].sprite(), pos, 1);
+            spriteBatch.addSprite(m_invItemSprites[PRIMARY][i].sprite(), pos);
         }
-        m_sb.addSubimage(m_slotTex, pos, 0, glm::vec2(0.0f, 0.0f));
         i++;
             });
         if (!m_heldItem.isEmpty()) {
             //Item under cursor
-            m_sb.addSprite(m_heldSprite.sprite(), cursorPx, 10);
+            spriteBatch.addSprite(m_heldSprite.sprite(), cursorPx);
         }
     } else {//CLOSED INVENTORY
         for (int x = 0; x < invSize(PRIMARY).x; x++) {
             Item& item = (*m_inv[PRIMARY])[x][0];
             pos = slot0Px + (slotDims() + SLOT_PADDING) * glm::vec2(x, 0.0f);
             //Slot
-            m_sb.addSubimage(m_slotTex, pos, 0, glm::vec2(0.0f, 0.0f));
+            spriteBatch.addSubimage(m_slotTex, pos, glm::vec2(0.0f, 0.0f));
             if (!item.isEmpty()) {
                 //Item sprite
-                m_sb.addSprite(m_invItemSprites[PRIMARY][x].sprite(), pos, 1);
+                spriteBatch.addSprite(m_invItemSprites[PRIMARY][x].sprite(), pos);
             }
         };
         //The selected slot indicator
-        m_sb.addSubimage(m_slotTex, glm::vec2(slot0Px.x + (glm::ivec2(slotDims()).x + SLOT_PADDING.x) * (float)m_chosenSlot, slot0Px.y), 2, glm::vec2(1.0f, 0.0f));
+        spriteBatch.addSubimage(m_slotTex, glm::vec2(slot0Px.x + (glm::ivec2(slotDims()).x + SLOT_PADDING.x) * (float)m_chosenSlot, slot0Px.y), glm::vec2(1.0f, 0.0f));
     }
 }
 

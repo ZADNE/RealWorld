@@ -33,9 +33,13 @@ private:
     RE::Pipeline m_consolidateEdgesPl{consolidateEdges_comp};
     RE::Pipeline m_selectVariantPl{selectVariant_comp};
 
-    std::array<RE::Texture, 2> m_tilesTex = {
-        RE::Texture{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}},
-        RE::Texture{ {GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}}
-    };
-    RE::Texture m_materialGenTex{{GEN_CHUNK_SIZE}, {RE::TextureFlags::RGBA8_IU_NEAR_NEAR_EDGE}};
+    RE::Texture m_tilesTex{RE::TextureCreateInfo{
+        .extent = {GEN_CHUNK_SIZE.x, GEN_CHUNK_SIZE.y, 1u},
+        .layers = 2,
+        .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc
+    }};
+    RE::Texture m_materialTex{RE::TextureCreateInfo{
+        .extent = {GEN_CHUNK_SIZE.x, GEN_CHUNK_SIZE.y, 1u},
+        .usage = vk::ImageUsageFlagBits::eStorage
+    }};
 };

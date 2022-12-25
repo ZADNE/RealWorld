@@ -2,6 +2,8 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <RealEngine/rendering/pipelines/Vertex.hpp>
+
 #include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>

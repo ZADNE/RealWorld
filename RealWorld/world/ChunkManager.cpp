@@ -22,13 +22,12 @@ ChunkManager::ChunkManager(RE::CommandBuffer& commandBuffer, ChunkGenerator& chu
     m_tilesStageBuf(uCHUNK_SIZE.x* uCHUNK_SIZE.y * 4u, eTransferDst, eHostVisible | eHostCoherent) {
 }
 
-void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture* worldTex) {
+void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture& worldTex, const glm::ivec2& activeChunksArea) {
     m_folderPath = folderPath;
     m_chunkGen.setSeed(seed);
-    m_worldTex = worldTex;
+    m_worldTex = &worldTex;
 
     //Recalculate active chunks mask and analyzer dispatch size
-    glm::ivec2 activeChunksArea = m_worldTex->getTrueDims() / uCHUNK_SIZE;
     m_activeChunksMask = activeChunksArea - 1;
     m_analyzeContinuityGroupCount = activeChunksArea / 8;
 

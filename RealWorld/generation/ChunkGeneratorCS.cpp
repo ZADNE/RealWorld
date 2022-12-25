@@ -65,7 +65,7 @@ void ChunkGeneratorCS::selectVariant() {
 
 void ChunkGeneratorCS::finishGeneration(const RE::Texture& dstTex, const glm::ivec2& dstOffset) {
     m_commandBuffer->copyImage(
-        m_tilesTex[0].image(), vk::ImageLayout::eTransferSrcOptimal,                                            //Src
+        m_tilesTex.image(), vk::ImageLayout::eTransferSrcOptimal,                                               //Src
         dstTex.image(), vk::ImageLayout::eTransferDstOptimal,                                                   //Dst
         vk::ImageCopy{
             vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u}, vk::Offset3D{GEN_BORDER_WIDTH, GEN_BORDER_WIDTH, 0},//Src
