@@ -44,7 +44,7 @@ static constexpr TilePropertiesUIB TILE_PROPERTIES = TilePropertiesUIB{
     .wallTransformationRules = WALL_TRANSFORMATION_RULES
 };
 
-World::World(ChunkGenerator& chunkGen) :
+World::World(ChunkGenerator& chunkGen):
     m_chunkManager(m_commandBuffer, chunkGen),
     m_tilePropertiesBuf(sizeof(TilePropertiesUIB), vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, &TILE_PROPERTIES),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
@@ -61,8 +61,11 @@ const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& 
 
     //Resize the world texture
     glm::uvec2 texSize = iCHUNK_SIZE * activeChunksArea;
+    using enum vk::ImageUsageFlagBits;
     m_worldTex = RE::Texture{RE::TextureCreateInfo{
-        .extent = vk::Extent3D{texSize.x, texSize.y, 1u}
+        .extent = vk::Extent3D{texSize.x, texSize.y, 1u},
+        .usage = eStorage | eTransferSrc | eTransferDst,
+        .initialLayout = vk::ImageLayout::eGeneral
     }};
 
     m_chunkManager.setTarget(m_seed, save.path, *m_worldTex, activeChunksArea);

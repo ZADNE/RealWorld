@@ -59,6 +59,7 @@ public:
      * @brief Sets this world class to simulate the world inside the given save
      * @param save Save of the world to run
      * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8
+     * @returns The world texture
     */
     const RE::Texture& adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
 
@@ -67,8 +68,6 @@ public:
     bool saveChunks() const;
 
     void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
-
-    const RE::Texture& worldTexture() const { return *m_worldTex; }
 
 private:
 

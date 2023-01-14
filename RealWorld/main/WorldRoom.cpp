@@ -27,7 +27,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings) :
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
     m_worldDrawer(engine().getWindowDims()),
-    m_player(m_world.worldTexture()),
+    m_player(),
     m_playerInv({10, 4}),
     m_itemUser(m_world, m_playerInv),
     m_invUI(engine().getWindowDims()) {
@@ -183,8 +183,8 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
     if (!WorldSaveLoader::loadWorld(save, worldName)) return false;
 
-    m_world.adoptSave(save.metadata, m_gameSettings.getActiveChunksArea());
-    m_player.adoptSave(save.player);
+    const auto& worldTex = m_world.adoptSave(save.metadata, m_gameSettings.getActiveChunksArea());
+    m_player.adoptSave(save.player, worldTex);
     m_playerInv.adoptInventoryData(save.inventory);
 
     m_worldDrawer.setTarget(m_gameSettings.getActiveChunksArea() * iCHUNK_SIZE);

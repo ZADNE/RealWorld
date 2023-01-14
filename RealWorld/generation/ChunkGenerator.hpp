@@ -36,14 +36,15 @@ public:
 
 protected:
 
-    struct PushConstants {
+    struct GenerationPC {
         glm::ivec2 chunkOffsetTi;
         int seed;
-        glm::uint edgeConsolidationCycle;
-        glm::ivec2 edgeConsolidationThresholds;
+        glm::uint storeLayer;
+        glm::uint edgeConsolidationPromote;
+        glm::uint edgeConsolidationReduce;
     };
 
-    PushConstants m_pushConstants;
+    GenerationPC m_pushConstants;
 
     virtual void prepareToGenerate() = 0;
     virtual void generateBasicTerrain() = 0;

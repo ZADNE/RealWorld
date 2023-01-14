@@ -24,9 +24,9 @@ enum class WALK : int {
 class Player {
 public:
 
-    Player(const RE::Texture& worldTexture);
+    Player();
 
-    void adoptSave(const PlayerSave& save);
+    void adoptSave(const PlayerSave& save, const RE::Texture& worldTexture);
     void gatherSave(PlayerSave& save) const;
 
     glm::vec2 getCenter() const;
@@ -39,14 +39,14 @@ private:
 
     RE::TextureShaped m_playerTex{{.file = "player"}};
 
-    struct MovementPushConstants {
+    struct PlayerMovementPC {
         float acceleration;
         float maxWalkVelocity;
         float jumpVelocity;
         float walkDirection;
         glm::vec2 jump_autojump;
     };
-    MovementPushConstants m_pushConstants{
+    PlayerMovementPC m_pushConstants{
         .acceleration = 0.5f,
         .maxWalkVelocity = 6.0f,
         .jumpVelocity = 7.0f

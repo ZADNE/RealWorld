@@ -1,14 +1,13 @@
 #version 460
 #include <RealWorld/generation/shaders/generateStructure.glsl>
-#include <RealWorld/reserved_units/images.glsl>
 
 layout( local_size_x = GEN_CS_GROUP_SIZE,
         local_size_y = GEN_CS_GROUP_SIZE,
         local_size_z = 1
 ) in;
 
-layout(binding = IMG_UNIT_GEN_TILES0, rgba8ui) uniform restrict writeonly uimage2D tilesImage;
-layout(binding = IMG_UNIT_GEN_MATERIAL, rgba8ui) uniform restrict writeonly uimage2D materialImage;
+layout(binding = 0, rgba8ui) uniform restrict writeonly uimage2DArray tilesImage;
+layout(binding = 1, rgba8ui) uniform restrict writeonly uimage2D materialImage;
 
 void main(){
     //Compute position
@@ -16,11 +15,11 @@ void main(){
     vec2 pPx = vec2(pTi) * TILEPx;
     
     //Compute terrain
-    uvec4 material;
     uvec4 tile;
-    basicTerrain(pPx, material, tile);
+    uvec4 material;
+    basicTerrain(pPx, tile, material);
     
     //Store the terrain
+    imageStore(tilesImage, ivec3(gl_GlobalInvocationID), tile);
     imageStore(materialImage, ivec2(gl_GlobalInvocationID.xy), material);
-    imageStore(tilesImage, ivec2(gl_GlobalInvocationID.xy), tile);
 }

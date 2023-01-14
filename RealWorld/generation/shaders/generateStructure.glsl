@@ -3,7 +3,7 @@
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/constants/biomes.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
-#include <RealWorld/generation/shaders/GenerationUIB.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
 
 float age(vec2 posPx, float seed){
     float age = snoise(posPx * (1.0 / 8192.0), seed);
@@ -107,7 +107,7 @@ float horizonProximityFactor(float horizon, float y, float width, float low, flo
     return clamp(1.0 - (horizon - y) / width, low, high);
 }
 
-void basicTerrain(in vec2 pPx, out uvec4 material, out uvec4 tile){
+void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
     float age = age(pPx, seed);
     float solidity = solidity(pPx, age, seed);
     vec2 biomeClimate = biomeClimate(pPx.x, seed);
