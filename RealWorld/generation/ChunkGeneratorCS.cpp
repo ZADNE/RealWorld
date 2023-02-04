@@ -17,7 +17,7 @@ ChunkGeneratorCS::ChunkGeneratorCS() {
 void ChunkGeneratorCS::prepareToGenerate() {
     m_commandBuffer->begin(vk::CommandBufferBeginInfo{
         vk::CommandBufferUsageFlagBits::eOneTimeSubmit
-                           });
+    });
     m_commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, m_generateStructurePl.pipelineLayout(), 0u, *m_descSet, {});
 }
 

@@ -26,7 +26,7 @@ Player::Player() :
 
 void Player::adoptSave(const PlayerSave& save, const RE::Texture& worldTexture) {
     m_hitboxStageMapped->botLeftPx = save.pos;
-    m_descriptorSet.write(vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture);
+    m_descriptorSet.write(vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral);
 }
 
 void Player::gatherSave(PlayerSave& save) const {
