@@ -38,11 +38,11 @@ glm::vec2 Player::getCenter() const {
 }
 
 void Player::step(RE::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump) {
-    commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, m_movePlayerPl.pipeline());
-    commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, m_movePlayerPl.pipelineLayout(), 0u, m_descriptorSet.descriptorSet(), {});
+    commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
+    commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
     m_pushConstants.walkDirection = glm::sign(static_cast<float>(dir));
     m_pushConstants.jump_autojump = glm::vec2(jump, autojump);
-    commandBuffer->pushConstants<PlayerMovementPC>(m_movePlayerPl.pipelineLayout(), vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
+    commandBuffer->pushConstants<PlayerMovementPC>(*m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
     commandBuffer->dispatch(1u, 1u, 1u);
 }
 

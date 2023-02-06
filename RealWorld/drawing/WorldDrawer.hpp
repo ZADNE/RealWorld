@@ -2,6 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
 #include <RealEngine/rendering/pipelines/Vertex.hpp>
 
 #include <RealWorld/reserved_units/buffers.hpp>
@@ -67,6 +68,7 @@ private:
     bool m_drawMinimap = false;
 
     WorldDrawerPushConstants m_pushConstants;
+    RE::PipelineLayout m_pipelineLayout{{}, {.vert = drawTiles_vert}};
 
     TileDrawer m_tileDrawer;
     //ShadowDrawer m_shadowDrawer;

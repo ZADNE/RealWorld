@@ -12,7 +12,7 @@
 #include <RealWorld/player/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
-enum class WALK : int {
+enum class WALK: int {
     LEFT = -1,
     STAY = 0,
     RIGHT = 1
@@ -61,6 +61,9 @@ private:
     RE::Buffer m_hitboxStageBuf;
     PlayerHitboxSB* m_hitboxStageMapped = m_hitboxStageBuf.map<PlayerHitboxSB>(0u, sizeof(PlayerHitboxSB));
 
-    RE::Pipeline m_movePlayerPl{movePlayer_comp};
-    RE::DescriptorSet m_descriptorSet{m_movePlayerPl};
+    RE::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
+    RE::Pipeline m_movePlayerPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = movePlayer_comp}
+    };
+    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
 };

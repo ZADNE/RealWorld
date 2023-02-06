@@ -13,10 +13,10 @@
 #include <RealWorld/reserved_units/images.hpp>
 
 
-WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx) :
+WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx):
     m_viewSizePx(viewSizePx),
     m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_tileDrawer(m_pushConstants, m_viewSizeTi)/*,
+    m_tileDrawer(m_pipelineLayout)/*,
     m_shadowDrawer(m_viewSizeTi),
     m_minimapDrawer()*/ {
 }
@@ -38,7 +38,10 @@ void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
     m_botLeftPx = botLeftPx;
     m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx));
-    return ViewEnvelope{.botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi)};
+    return ViewEnvelope{
+        .botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi),
+        .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi)
+    };
 }
 
 void WorldDrawer::beginStep() {
@@ -54,7 +57,7 @@ void WorldDrawer::endStep() {
 }
 
 void WorldDrawer::drawTiles(const vk::CommandBuffer& commandBuffer) {
-    m_tileDrawer.draw(commandBuffer, m_botLeftPx, m_viewSizeTi);
+    m_tileDrawer.draw(m_pushConstants, m_pipelineLayout, commandBuffer, m_botLeftPx, m_viewSizeTi);
 }
 
 void WorldDrawer::drawShadows(const vk::CommandBuffer& commandBuffer) {

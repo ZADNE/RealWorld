@@ -2,6 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
 #include <RealEngine/rendering/textures/TextureShaped.hpp>
 #include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
@@ -14,15 +15,20 @@
 class TileDrawer {
 public:
 
-    TileDrawer(WorldDrawerPushConstants& pushConstants, const glm::uvec2& viewSizeTi);
+    TileDrawer(const RE::PipelineLayout& pipelineLayout);
 
-    void draw(const vk::CommandBuffer& commandBuffer, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
+    void draw(
+        WorldDrawerPushConstants& pushConstants,
+        RE::PipelineLayout& pipelineLayout,
+        const vk::CommandBuffer& commandBuffer,
+        const glm::vec2& botLeftPx,
+        const glm::uvec2& viewSizeTi
+    );
 
 private:
 
-    WorldDrawerPushConstants& m_pushConstants;
     RE::TextureShaped m_blockAtlasTex{{.file = "blockAtlas"}};
     RE::TextureShaped m_wallAtlasTex{{.file = "wallAtlas"}};
 
-    RE::Pipeline m_drawTilesPl{{.topology = vk::PrimitiveTopology::eTriangleStrip}, {.vert = drawTiles_vert, .frag = drawColor_frag}};
+    RE::Pipeline m_drawTilesPl;
 };

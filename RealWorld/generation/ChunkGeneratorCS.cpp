@@ -15,15 +15,13 @@ ChunkGeneratorCS::ChunkGeneratorCS() {
 }
 
 void ChunkGeneratorCS::prepareToGenerate() {
-    m_commandBuffer->begin(vk::CommandBufferBeginInfo{
-        vk::CommandBufferUsageFlagBits::eOneTimeSubmit
-    });
-    m_commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, m_generateStructurePl.pipelineLayout(), 0u, *m_descSet, {});
+    m_commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    m_commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet, {});
 }
 
 void ChunkGeneratorCS::generateBasicTerrain() {
     m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
-    m_commandBuffer->pushConstants<GenerationPC>(m_generateStructurePl.pipelineLayout(), eCompute, 0u, m_pushConstants);
+    m_commandBuffer->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
     m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
     m_pushConstants.storeLayer = 1;
 }
@@ -33,7 +31,7 @@ void ChunkGeneratorCS::consolidateEdges() {
         m_pushConstants.edgeConsolidationPromote = thresholds.x;
         m_pushConstants.edgeConsolidationReduce = thresholds.y;
         for (size_t i = 0; i < passes; i++) {
-            m_commandBuffer->pushConstants<GenerationPC>(m_consolidateEdgesPl.pipelineLayout(), eCompute, 0u, m_pushConstants);
+            m_commandBuffer->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
             //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
             m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
             m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
@@ -53,7 +51,6 @@ void ChunkGeneratorCS::consolidateEdges() {
 void ChunkGeneratorCS::selectVariant() {
     //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
     m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
-    m_commandBuffer->pushConstants<GenerationPC>(m_selectVariantPl.pipelineLayout(), eCompute, 0u, m_pushConstants);
     m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
 }
 

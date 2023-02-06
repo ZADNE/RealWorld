@@ -8,6 +8,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
+#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
 #include <RealEngine/rendering/buffers/Buffer.hpp>
 #include <RealEngine/rendering/textures/Texture.hpp>
 #include <RealEngine/rendering/CommandBuffer.hpp>
@@ -137,7 +138,10 @@ private:
     std::optional<RE::Buffer> m_activeChunksStageBuf;
     ActiveChunksSSBO* m_activeChunksStageMapped = nullptr;
 
-    RE::Pipeline m_analyzeContinuityPl{analyzeContinuity_comp};
+    RE::PipelineLayout m_pipelineLayout{{}, {.comp = analyzeContinuity_comp}};
+    RE::Pipeline m_analyzeContinuityPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = analyzeContinuity_comp}
+    };
     glm::uvec2 m_analyzeContinuityGroupCount;
 
     std::string m_folderPath;
