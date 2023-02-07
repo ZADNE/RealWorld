@@ -4,7 +4,6 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/rendering/CommandBuffer.hpp>
 #include <RealEngine/rendering/pipelines/Pipeline.hpp>
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
@@ -31,7 +30,7 @@ public:
 
     glm::vec2 getCenter() const;
 
-    void step(RE::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump);
+    void step(const vk::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump);
 
     void draw(RE::SpriteBatch& spriteBatch);
 

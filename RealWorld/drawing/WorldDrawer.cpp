@@ -16,13 +16,14 @@
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx):
     m_viewSizePx(viewSizePx),
     m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_tileDrawer(m_pipelineLayout)/*,
+    m_tileDrawer(m_pipelineLayout, m_descriptorSet)/*,
     m_shadowDrawer(m_viewSizeTi),
     m_minimapDrawer()*/ {
 }
 
-void WorldDrawer::setTarget(const glm::ivec2& worldTexSize) {
+void WorldDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
     m_worldTexSize = worldTexSize;
+    m_descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 0u, 0u, worldTexture);
     //m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
     updateViewSizeDependentUniforms();
 }
@@ -44,7 +45,7 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
     };
 }
 
-void WorldDrawer::beginStep() {
+void WorldDrawer::beginStep(const vk::CommandBuffer& commandBuffer) {
     //m_shadowDrawer.analyze(m_uniformBuf, m_botLeftTi);
 }
 
@@ -56,20 +57,20 @@ void WorldDrawer::endStep() {
     //m_shadowDrawer.calculate(m_uniformBuf, m_botLeftPx);
 }
 
+void WorldDrawer::beginDrawing(const vk::CommandBuffer& commandBuffer) {
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {});
+}
+
 void WorldDrawer::drawTiles(const vk::CommandBuffer& commandBuffer) {
     m_tileDrawer.draw(m_pushConstants, m_pipelineLayout, commandBuffer, m_botLeftPx, m_viewSizeTi);
 }
 
 void WorldDrawer::drawShadows(const vk::CommandBuffer& commandBuffer) {
-    if (m_drawShadows) {
-        //m_shadowDrawer.draw(commandBuffer, m_uniformBuf, m_botLeftPx, m_viewSizeTi);
-    }
+    //m_shadowDrawer.draw(commandBuffer, m_uniformBuf, m_botLeftPx, m_viewSizeTi);
 }
 
 void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
-    if (m_drawMinimap) {
-        //m_minimapDrawer.draw(commandBuffer);
-    }
+    //m_minimapDrawer.draw(commandBuffer);
 }
 
 void WorldDrawer::updateViewSizeDependentUniforms() {

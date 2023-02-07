@@ -22,13 +22,12 @@ public:
 
 private:
 
-    void prepareToGenerate() override;
-    void generateBasicTerrain() override;
-    void consolidateEdges() override;
-    void selectVariant() override;
-    void finishGeneration(const RE::Texture& dstTex, const glm::ivec2& dstOffset) override;
+    void prepareToGenerate(const vk::CommandBuffer& commandBuffer) override;
+    void generateBasicTerrain(const vk::CommandBuffer& commandBuffer) override;
+    void consolidateEdges(const vk::CommandBuffer& commandBuffer) override;
+    void selectVariant(const vk::CommandBuffer& commandBuffer) override;
+    void finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) override;
 
-    RE::CommandBuffer m_commandBuffer{vk::CommandBufferLevel::ePrimary};
     RE::PipelineLayout m_pipelineLayout{
         {},
         {.comp = generateStructure_comp}

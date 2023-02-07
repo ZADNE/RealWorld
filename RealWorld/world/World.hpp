@@ -17,7 +17,7 @@
 #include <RealWorld/world/shaders/AllShaders.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 
-enum class MODIFY_SHAPE : unsigned int {
+enum class MODIFY_SHAPE: unsigned int {
     SQUARE,
     DISC,
     FILL
@@ -48,12 +48,24 @@ public:
     void modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile);
 
     /**
+     * @brief Performs layout transitions necessary to simulate the world
+    */
+    void beginStep(const vk::CommandBuffer& commandBuffer);
+
+    /**
      * @brief Performs a simulation step of the world.
+     * @param commandBuffer Command buffer that will be used to record computation commands
      * @param botLeftTi The most bottom-left tile that has to be active
      * @param topRightTi The most top-right tile that has to be active
      * @return The number of chunks that had to be activated this step
     */
-    int step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+    int step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+
+
+    /**
+     * @brief Performs layout transitions necessary to draw the world
+    */
+    void endStep(const vk::CommandBuffer& commandBuffer);
 
     /**
      * @brief Sets this world class to simulate the world inside the given save
@@ -83,7 +95,6 @@ private:
 
     void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
-    RE::CommandBuffer m_commandBuffer{vk::CommandBufferLevel::ePrimary};
     std::optional<RE::Texture> m_worldTex;
     int m_seed = 0;
 

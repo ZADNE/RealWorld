@@ -12,7 +12,7 @@
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
 
-Player::Player() :
+Player::Player():
     m_hitboxBuf(sizeof(PlayerHitboxSB), eStorageBuffer | eTransferDst | eTransferSrc, eDeviceLocal, PlayerHitboxSB{
         .dimsPx = glm::ivec2(m_playerTex.subimageDims()) - glm::ivec2(1),
         .velocityPx = glm::vec2(0.0f, 0.0f)
@@ -37,13 +37,13 @@ glm::vec2 Player::getCenter() const {
     return m_hitboxStageMapped->botLeftPx + m_hitboxStageMapped->dimsPx * 0.5f;
 }
 
-void Player::step(RE::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump) {
-    commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
-    commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
+void Player::step(const vk::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump) {
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
     m_pushConstants.walkDirection = glm::sign(static_cast<float>(dir));
     m_pushConstants.jump_autojump = glm::vec2(jump, autojump);
-    commandBuffer->pushConstants<PlayerMovementPC>(*m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
-    commandBuffer->dispatch(1u, 1u, 1u);
+    commandBuffer.pushConstants<PlayerMovementPC>(*m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
+    commandBuffer.dispatch(1u, 1u, 1u);
 }
 
 void Player::draw(RE::SpriteBatch& spriteBatch) {

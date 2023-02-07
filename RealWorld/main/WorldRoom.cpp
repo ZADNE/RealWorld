@@ -22,7 +22,7 @@ constexpr RE::RoomDisplaySettings INITIAL_SETTINGS{
     .usingImGui = true
 };
 
-WorldRoom::WorldRoom(const GameSettings& gameSettings) :
+WorldRoom::WorldRoom(const GameSettings& gameSettings):
     Room(1, INITIAL_SETTINGS),
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
@@ -45,8 +45,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
             return;
         }
         engine().setWindowTitle("RealWorld! - " + worldName);
-    }
-    catch (...) {
+    } catch (...) {
         RE::fatalError("Bad transition paramaters to start WorldRoom session");
     }
 
@@ -58,13 +57,19 @@ void WorldRoom::sessionEnd() {
 }
 
 void WorldRoom::step() {
+    m_computeCommandBuffer->reset();
     m_computeCommandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
     using enum SlotSelectionManner;
+
+    //World
+    auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
+    m_world.beginStep(*m_computeCommandBuffer);
+    m_world.step(*m_computeCommandBuffer, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
 
     //Player
     int walkDir = keybindDown(PLAYER_LEFT) ? -1 : 0;
     walkDir += keybindDown(PLAYER_RIGHT) ? +1 : 0;
-    m_player.step(m_computeCommandBuffer, static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
+    m_player.step(*m_computeCommandBuffer, static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
 
     //View
     glm::vec2 prevViewPos = m_worldView.getPosition();
@@ -74,10 +79,8 @@ void WorldRoom::step() {
     m_worldView.setCursorAbs(engine().getCursorAbs());
     m_worldView.setPosition(glm::floor(viewPos));
 
-    //World
-    auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
-    m_world.step(viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
-    m_worldDrawer.beginStep();
+    //World drawer
+    m_worldDrawer.beginStep(*m_computeCommandBuffer);
 
     //Item user
     m_itemUser.step(
@@ -117,16 +120,19 @@ void WorldRoom::step() {
 
     //Toggles & quit
     if (keybindPressed(QUIT)) { engine().scheduleRoomTransition(0, {}); }
-    if (keybindPressed(MINIMAP)) { m_worldDrawer.shouldDrawMinimap(m_minimap = !m_minimap); }
-    if (keybindPressed(SHADOWS)) { m_worldDrawer.shouldDrawShadows(m_shadows = !m_shadows); }
+    if (keybindPressed(MINIMAP)) { m_minimap = !m_minimap; }
+    if (keybindPressed(SHADOWS)) { m_shadows = !m_shadows; }
     if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
+
+    //World
+    m_world.endStep(*m_computeCommandBuffer);
 
     m_computeCommandBuffer->end();
     m_computeCommandBuffer.submitToComputeQueue();
 }
 
 void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {
-    //m_worldViewBuf.bindIndexed();
+    m_worldDrawer.beginDrawing(commandBuffer);
 
     m_worldDrawer.drawTiles(commandBuffer);
 
@@ -135,11 +141,9 @@ void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolat
     m_spriteBatch.end();
     m_spriteBatch.draw(commandBuffer, m_worldView.getViewMatrix());
 
-    //m_worldDrawer.drawShadows(commandBuffer);
-
-    //m_gb.draw(commandBuffer, {});
-
-    //m_guiViewBuf.bindIndexed();
+    if (m_shadows) {
+        m_worldDrawer.drawShadows(commandBuffer);
+    }
 
     drawGUI(commandBuffer);
 }
@@ -158,7 +162,9 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     m_spriteBatch.end();
     m_spriteBatch.draw(commandBuffer, m_windowViewMat);
     //Minimap
-    //m_worldDrawer.drawMinimap(commandBuffer);
+    if (m_minimap) {
+        m_worldDrawer.drawMinimap(commandBuffer);
+    }
     //Top-left menu
     ImGui::SetNextWindowPos({0.0f, 0.0f});
     ImGui::PushFont(m_arial);
@@ -168,9 +174,9 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
             (int)std::chrono::duration_cast<std::chrono::microseconds>(engine().getMaxFrameTime()).count());
         ImGui::Separator();
         ImGui::TextUnformatted("Minimap:"); ImGui::SameLine();
-        if (ImGui::ToggleButton("##minimap", &m_minimap)) m_worldDrawer.shouldDrawMinimap(m_minimap);
+        ImGui::ToggleButton("##minimap", &m_minimap);
         ImGui::TextUnformatted("Shadows:"); ImGui::SameLine();
-        if (ImGui::ToggleButton("##shadows", &m_shadows)) m_worldDrawer.shouldDrawShadows(m_shadows);
+        ImGui::ToggleButton("##shadows", &m_shadows);
         ImGui::TextUnformatted("Permute:"); ImGui::SameLine();
         if (ImGui::ToggleButton("##shadows", &m_permute)) m_world.shouldPermuteOrder(m_permute);
     }
@@ -187,7 +193,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     m_player.adoptSave(save.player, worldTex);
     m_playerInv.adoptInventoryData(save.inventory);
 
-    m_worldDrawer.setTarget(m_gameSettings.getActiveChunksArea() * iCHUNK_SIZE);
+    m_worldDrawer.setTarget(worldTex, m_gameSettings.getActiveChunksArea() * iCHUNK_SIZE);
     return true;
 }
 

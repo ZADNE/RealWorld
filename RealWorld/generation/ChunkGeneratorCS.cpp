@@ -14,26 +14,25 @@ ChunkGeneratorCS::ChunkGeneratorCS() {
     m_descSet.write(vk::DescriptorType::eStorageImage, 1u, 0u, m_materialTex, vk::ImageLayout::eGeneral);
 }
 
-void ChunkGeneratorCS::prepareToGenerate() {
-    m_commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
-    m_commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet, {});
+void ChunkGeneratorCS::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet, {});
 }
 
-void ChunkGeneratorCS::generateBasicTerrain() {
-    m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
-    m_commandBuffer->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
-    m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
+void ChunkGeneratorCS::generateBasicTerrain(const vk::CommandBuffer& commandBuffer) {
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
+    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
+    commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
     m_pushConstants.storeLayer = 1;
 }
 
-void ChunkGeneratorCS::consolidateEdges() {
-    auto pass = [this](const glm::ivec2& thresholds, size_t passes) {
+void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
+    auto pass = [&](const glm::ivec2& thresholds, size_t passes) {
         m_pushConstants.edgeConsolidationPromote = thresholds.x;
         m_pushConstants.edgeConsolidationReduce = thresholds.y;
         for (size_t i = 0; i < passes; i++) {
-            m_commandBuffer->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
+            commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
             //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
-            m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
+            commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
             m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
         }
     };
@@ -44,19 +43,19 @@ void ChunkGeneratorCS::consolidateEdges() {
         }
     };
 
-    m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
     doublePass({3, 4}, {4, 5}, 4);
 }
 
-void ChunkGeneratorCS::selectVariant() {
+void ChunkGeneratorCS::selectVariant(const vk::CommandBuffer& commandBuffer) {
     //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
-    m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
-    m_commandBuffer->dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
+    commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
 }
 
-void ChunkGeneratorCS::finishGeneration(const RE::Texture& dstTex, const glm::ivec2& dstOffset) {
+void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) {
     //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
-    m_commandBuffer->copyImage(
+    commandBuffer.copyImage(
         m_tilesTex.image(), vk::ImageLayout::eGeneral,                                                          //Src
         dstTex.image(), vk::ImageLayout::eGeneral,                                                              //Dst
         vk::ImageCopy{
@@ -65,6 +64,4 @@ void ChunkGeneratorCS::finishGeneration(const RE::Texture& dstTex, const glm::iv
             vk::Extent3D{iCHUNK_SIZE.x, iCHUNK_SIZE.y, 1}                                                       //Extent
         }
     );
-    m_commandBuffer->end();
-    m_commandBuffer.submitToComputeQueue();
 }

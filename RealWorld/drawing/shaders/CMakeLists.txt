@@ -7,5 +7,5 @@
     drawShadows.vert            
     drawTiles.vert              
     DynamicLightsSSIB.glsl      
-    WorldDrawerUIB.glsl         
+    WorldDrawingPC.glsl         
 )

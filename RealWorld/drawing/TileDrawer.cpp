@@ -8,7 +8,7 @@
 #include <RealWorld/reserved_units/buffers.hpp>
 
 
-TileDrawer::TileDrawer(const RE::PipelineLayout& pipelineLayout)
+TileDrawer::TileDrawer(const RE::PipelineLayout& pipelineLayout, RE::DescriptorSet& descriptorSet)
     : m_drawTilesPl(
         RE::PipelineGraphicsCreateInfo{
             .pipelineLayout = *pipelineLayout,
@@ -17,12 +17,13 @@ TileDrawer::TileDrawer(const RE::PipelineLayout& pipelineLayout)
             .vert = drawTiles_vert, .frag = drawColor_frag
         }
     ) {
-
+    descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 1u, 0u, m_blockAtlasTex);
+    descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 2u, 0u, m_wallAtlasTex);
 }
 
 void TileDrawer::draw(
     WorldDrawerPushConstants& pushConstants,
-    RE::PipelineLayout& pipelineLayout,
+    const RE::PipelineLayout& pipelineLayout,
     const vk::CommandBuffer& commandBuffer,
     const glm::vec2& botLeftPx,
     const glm::uvec2& viewSizeTi

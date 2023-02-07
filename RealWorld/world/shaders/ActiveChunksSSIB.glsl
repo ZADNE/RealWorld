@@ -1,5 +1,4 @@
-#include <RealWorld/reserved_units/buffers.glsl>
-layout(std430, binding = STRG_BUF_ACTIVECHUNKS) restrict buffer ActiveChunksSSIB {
+layout(set = 0, binding = ActiveChunksSSIB_BINDING, std430) restrict buffer ActiveChunksSSIB {
     ivec2 activeChunksMask;
     ivec2 activeChunksArea;
     ivec4 dynamicsGroupSize;    //w = offset of the absolute positions in the next field

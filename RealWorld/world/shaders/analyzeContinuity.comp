@@ -1,5 +1,6 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
+const int ActiveChunksSSIB_BINDING = 0;
 #include <RealWorld/world/shaders/ActiveChunksSSIB.glsl>
 
 layout( local_size_x = 8,

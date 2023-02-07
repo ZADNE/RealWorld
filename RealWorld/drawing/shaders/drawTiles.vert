@@ -1,13 +1,12 @@
 #version 460
-#include <RealWorld/reserved_units/textures.glsl>
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/drawing/shaders/WorldDrawerUIB.glsl>
+#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout(location = 0) out vec4 tileColor;
 
-layout(binding = TEX_UNIT_WORLD_TEXTURE) uniform usampler2D worldTexture;
-layout(binding = TEX_UNIT_BLOCK_ATLAS) uniform sampler2D blockTexture;
-layout(binding = TEX_UNIT_WALL_ATLAS) uniform sampler2D wallTexture;
+layout(set = 0, binding = 0) uniform usampler2D worldTexture;
+layout(set = 0, binding = 1) uniform sampler2D blockAtlas;
+layout(set = 0, binding = 2) uniform sampler2D wallAtlas;
 
 const vec2 POS[4] = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}, {1.0, 1.0}};
 
@@ -27,7 +26,7 @@ void main() {
     gl_Position = viewMat * vec4(posTi * TILEPx - botLeftPxModTilePx, 0.0, clip);
     
     //Calculate color of this tile based on its block and wall
-    vec4 blockColor = texelFetch(blockTexture, ivec2(tile.yx), 0);
-    vec4 wallColor = texelFetch(wallTexture, ivec2(tile.wz), 0);
+    vec4 blockColor = texelFetch(blockAtlas, ivec2(tile.yx), 0);
+    vec4 wallColor = texelFetch(wallAtlas, ivec2(tile.wz), 0);
     tileColor = mix(wallColor, blockColor, blockColor.a);
 }

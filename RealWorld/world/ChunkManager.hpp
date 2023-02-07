@@ -9,6 +9,7 @@
 #include <glm/gtx/hash.hpp>
 
 #include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
+#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
 #include <RealEngine/rendering/buffers/Buffer.hpp>
 #include <RealEngine/rendering/textures/Texture.hpp>
 #include <RealEngine/rendering/CommandBuffer.hpp>
@@ -43,7 +44,7 @@ public:
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(RE::CommandBuffer& commandBuffer, ChunkGenerator& chunkGen);
+    ChunkManager(ChunkGenerator& chunkGen);
 
     /**
      * @brief Retargets the chunk manager to a new world.
@@ -81,22 +82,23 @@ public:
 
     /**
      * @brief Forces activation of chunks that overlap given rectangular area
+     * @param commandBuffer Command buffer that will be used to record computation commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
     */
-    int forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+    int forceActivationOfChunks(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
 private:
 
     /**
      * @brief Activates the chunk at given position.
-     * Previous chunk at the position is deactivated.
-     * @param chunk The chunk to be activated. Must not be nullptr
+     * @detail Previous chunk at the position is deactivated.
+     * @param commandBuffer Command buffer that will be used for generation
      * @param posCh Position of the chunk
      * @return    1 if the chunk has been activated.
      *            0 if it already has been active and thus it was not activated.
     */
-    int activateChunk(const glm::ivec2& posCh);
+    int activateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh);
 
     /**
      * @brief Deactivates the chunk at given position.
@@ -133,12 +135,12 @@ private:
     const static inline glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
     std::vector<glm::ivec2> m_activeChunks;
 
-    RE::CommandBuffer& m_commandBuffer;
     std::optional<RE::Buffer> m_activeChunksBuf;
     std::optional<RE::Buffer> m_activeChunksStageBuf;
     ActiveChunksSSBO* m_activeChunksStageMapped = nullptr;
 
     RE::PipelineLayout m_pipelineLayout{{}, {.comp = analyzeContinuity_comp}};
+    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
     RE::Pipeline m_analyzeContinuityPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = analyzeContinuity_comp}
     };

@@ -2,6 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
 #include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
 #include <RealEngine/rendering/textures/TextureShaped.hpp>
 #include <RealEngine/rendering/pipelines/Pipeline.hpp>
@@ -15,11 +16,11 @@
 class TileDrawer {
 public:
 
-    TileDrawer(const RE::PipelineLayout& pipelineLayout);
+    TileDrawer(const RE::PipelineLayout& pipelineLayout, RE::DescriptorSet& descriptorSet);
 
     void draw(
         WorldDrawerPushConstants& pushConstants,
-        RE::PipelineLayout& pipelineLayout,
+        const RE::PipelineLayout& pipelineLayout,
         const vk::CommandBuffer& commandBuffer,
         const glm::vec2& botLeftPx,
         const glm::uvec2& viewSizeTi

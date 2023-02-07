@@ -2,7 +2,7 @@
 #include <RealWorld/reserved_units/textures.glsl>
 #include <RealWorld/reserved_units/images.glsl>
 #include <RealWorld/constants/light.glsl>
-#include <RealWorld/drawing/shaders/WorldDrawerUIB.glsl>
+#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout( local_size_x = ANALYSIS_GROUP_SIZE,
         local_size_y = ANALYSIS_GROUP_SIZE,

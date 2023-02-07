@@ -14,15 +14,15 @@ void ChunkGenerator::setSeed(int seed) {
     m_pushConstants.seed = seed;
 }
 
-void ChunkGenerator::generateChunk(const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
+void ChunkGenerator::generateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
     m_pushConstants.chunkOffsetTi = posCh * iCHUNK_SIZE;
 
-    prepareToGenerate();
+    prepareToGenerate(commandBuffer);
 
     //Actual generation
-    generateBasicTerrain();
-    consolidateEdges();
-    selectVariant();
+    generateBasicTerrain(commandBuffer);
+    consolidateEdges(commandBuffer);
+    selectVariant(commandBuffer);
 
-    finishGeneration(destinationTexture, destinationOffset);
+    finishGeneration(commandBuffer, destinationTexture, destinationOffset);
 }

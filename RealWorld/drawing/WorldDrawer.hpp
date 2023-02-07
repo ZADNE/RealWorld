@@ -2,6 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
 #include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
 #include <RealEngine/rendering/pipelines/Vertex.hpp>
 
@@ -19,7 +20,7 @@ public:
 
     WorldDrawer(const glm::uvec2& viewSizePx);
 
-    void setTarget(const glm::ivec2& worldTexSize);
+    void setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize);
     void resizeView(const glm::uvec2& viewSizePx);
 
     struct ViewEnvelope {
@@ -31,7 +32,7 @@ public:
     /**
      * @brief External lights have to be added between beginStep() and endStep()
     */
-    void beginStep();
+    void beginStep(const vk::CommandBuffer& commandBuffer);
 
     /**
      * @brief Adds an external light into the world. Must be used between beginStep() and endStep()
@@ -43,12 +44,13 @@ public:
     */
     void endStep();
 
+
+    void beginDrawing(const vk::CommandBuffer& commandBuffer);
+
     void drawTiles(const vk::CommandBuffer& commandBuffer);
 
-    void shouldDrawShadows(bool should) { m_drawShadows = should; }
     void drawShadows(const vk::CommandBuffer& commandBuffer);
 
-    void shouldDrawMinimap(bool should) { m_drawMinimap = should; }
     void drawMinimap(const vk::CommandBuffer& commandBuffer);
 
 private:
@@ -64,11 +66,9 @@ private:
 
     glm::ivec2 m_worldTexSize;
 
-    bool m_drawShadows = true;
-    bool m_drawMinimap = false;
-
     WorldDrawerPushConstants m_pushConstants;
     RE::PipelineLayout m_pipelineLayout{{}, {.vert = drawTiles_vert}};
+    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
 
     TileDrawer m_tileDrawer;
     //ShadowDrawer m_shadowDrawer;

@@ -27,12 +27,12 @@ public:
 
     /**
      * @brief Generates a chunk. The pixels are stored inside given texture at given position.
-     *
+     * @param commandBuffer Command buffer that is used for the generation
      * @param posCh Position of the chunk (measured in chunks)
      * @param dstTex The texture that will receive the generated chunk
      * @param dstOffset Offset within dstTex where the texels/tiles will be copied to
      */
-    void generateChunk(const glm::ivec2& posCh, const RE::Texture& dstTex, const glm::ivec2& dstOffset);
+    void generateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, const RE::Texture& dstTex, const glm::ivec2& dstOffset);
 
 protected:
 
@@ -46,9 +46,9 @@ protected:
 
     GenerationPC m_pushConstants;
 
-    virtual void prepareToGenerate() = 0;
-    virtual void generateBasicTerrain() = 0;
-    virtual void consolidateEdges() = 0;
-    virtual void selectVariant() = 0;
-    virtual void finishGeneration(const RE::Texture& dstTex, const glm::ivec2& dstOffset) = 0;
+    virtual void prepareToGenerate(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void generateBasicTerrain(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void consolidateEdges(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void selectVariant(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) = 0;
 };

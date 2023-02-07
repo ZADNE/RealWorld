@@ -6,6 +6,9 @@
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
+using S = vk::PipelineStageFlagBits2;
+using A = vk::AccessFlagBits2;
+
  //Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
     state ^= state << 13;
@@ -45,7 +48,7 @@ static constexpr TilePropertiesUIB TILE_PROPERTIES = TilePropertiesUIB{
 };
 
 World::World(ChunkGenerator& chunkGen):
-    m_chunkManager(m_commandBuffer, chunkGen),
+    m_chunkManager(chunkGen),
     m_tilePropertiesBuf(sizeof(TilePropertiesUIB), vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, &TILE_PROPERTIES),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
     /*m_simulateFluidsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
@@ -65,8 +68,7 @@ const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& 
     m_worldTex = RE::Texture{RE::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
         .extent = vk::Extent3D{texSize.x, texSize.y, 1u},
-        .usage = eStorage | eTransferSrc | eTransferDst,
-        .initialLayout = vk::ImageLayout::eGeneral
+        .usage = eStorage | eTransferSrc | eTransferDst | eSampled
     }};
 
     m_chunkManager.setTarget(m_seed, save.path, *m_worldTex, activeChunksArea);
@@ -99,9 +101,25 @@ void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::i
     m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);*/
 }
 
-int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+void World::beginStep(const vk::CommandBuffer& commandBuffer) {
+    //Transit world texture to general layout so that compute shaders can manipulate it
+    auto imageBarrier = vk::ImageMemoryBarrier2{
+        S::eComputeShader | S::eVertexShader,                                       //Src stage mask
+        A::eShaderSampledRead | A::eShaderStorageRead | A::eShaderStorageWrite,     //Src access mask
+        S::eComputeShader,                                                          //Dst stage mask
+        A::eShaderStorageRead,                                                      //Dst access mask
+        vk::ImageLayout::eReadOnlyOptimal,                                          //Old image layout
+        vk::ImageLayout::eGeneral,                                                  //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        m_worldTex->image(),
+        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
+    };
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+}
+
+int World::step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     //Chunk manager
-    int activatedChunks = m_chunkManager.forceActivationOfChunks(botLeftTi, topRightTi);
+    int activatedChunks = m_chunkManager.forceActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
     m_chunkManager.step();
 
     //Tile transformations
@@ -112,6 +130,22 @@ int World::step(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     //fluidDynamicsStep(botLeftTi, topRightTi);
 
     return activatedChunks;
+}
+
+void World::endStep(const vk::CommandBuffer& commandBuffer) {
+    //Transit world texture back to readonly-optimal layout so that it can rendered
+    auto imageBarrier = vk::ImageMemoryBarrier2{
+        S::eComputeShader,                                                          //Src stage mask
+        A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
+        S::eVertexShader,                                                           //Dst stage mask
+        A::eShaderSampledRead,                                                      //Dst access mask
+        vk::ImageLayout::eGeneral,                                                  //Old image layout
+        vk::ImageLayout::eReadOnlyOptimal,                                          //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        m_worldTex->image(),
+        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
+    };
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
 void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {

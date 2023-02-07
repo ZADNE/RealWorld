@@ -1,5 +1,5 @@
 #extension GL_EXT_scalar_block_layout : require
-layout(std430, push_constant) uniform WorldDrawerUIB {
+layout(std430, push_constant) uniform WorldDrawingPC {
     //Updated when view / world texture changes \|/
     mat4 viewMat;
     ivec2 worldTexMask;

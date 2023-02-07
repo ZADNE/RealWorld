@@ -16,8 +16,7 @@ vk::DeviceSize calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
         sizeof(glm::ivec2) * (activeChunksArea.x * activeChunksArea.y + maxContinuous.x * maxContinuous.y);
 }
 
-ChunkManager::ChunkManager(RE::CommandBuffer& commandBuffer, ChunkGenerator& chunkGen) :
-    m_commandBuffer(commandBuffer),
+ChunkManager::ChunkManager(ChunkGenerator& chunkGen):
     m_chunkGen(chunkGen),
     m_tilesStageBuf(uCHUNK_SIZE.x* uCHUNK_SIZE.y * 4u, eTransferDst, eHostVisible | eHostCoherent) {
 }
@@ -48,6 +47,7 @@ void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture& worl
         m_activeChunksStageMapped->offsets[i] = NO_ACTIVE_CHUNK;
     }
     m_activeChunksStageBuf->copyToBuffer(*m_activeChunksBuf, vk::BufferCopy{0u, 0u, bufSize});
+    m_descriptorSet.write(vk::DescriptorType::eStorageBuffer, 0u, *m_activeChunksBuf, 0ull, bufSize);
 
     //Clear inactive chunks as they do not belong to this world
     m_inactiveChunks.clear();
@@ -80,7 +80,7 @@ void ChunkManager::step() {
     }
 }
 
-int ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+int ChunkManager::forceActivationOfChunks(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
 
@@ -88,7 +88,7 @@ int ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm
     int activatedChunks = 0;
     for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
         for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
-            activatedChunks += activateChunk(glm::ivec2(x, y));
+            activatedChunks += activateChunk(commandBuffer, glm::ivec2(x, y));
         }
     }
 
@@ -104,13 +104,14 @@ int ChunkManager::forceActivationOfChunks(const glm::ivec2& botLeftTi, const glm
             }
         );
         //And analyze the world texture
-        m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
-        m_commandBuffer->dispatch(m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1);
+        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
+        commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
+        commandBuffer.dispatch(m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1);
     }
     return activatedChunks;
 }
 
-int ChunkManager::activateChunk(const glm::ivec2& posCh) {
+int ChunkManager::activateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh) {
     //Check if it is not already active
     auto acIndex = acToIndex(chToAc(posCh, m_activeChunksMask), m_activeChunksMask + 1);
     auto& chunk = m_activeChunks[acIndex];
@@ -131,10 +132,9 @@ int ChunkManager::activateChunk(const glm::ivec2& posCh) {
             std::vector<unsigned char> tiles = ChunkLoader::loadChunk(m_folderPath, posCh, iCHUNK_SIZE);
             //No exception was thrown, chunk has been loaded
             uploadChunk(tiles, posCh);
-        }
-        catch (...) {
+        } catch (...) {
             //Chunk is not on the disk, it has to be generated
-            m_chunkGen.generateChunk(posCh, *m_worldTex, chToAt(posCh, m_activeChunksMask));
+            m_chunkGen.generateChunk(commandBuffer, posCh, *m_worldTex, chToAt(posCh, m_activeChunksMask));
         }
     }
 
