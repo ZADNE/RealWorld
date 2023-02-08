@@ -1,17 +1,20 @@
 #version 460
 #include <RealWorld/reserved_units/textures.glsl>
 
-layout(location = 0) in vec2 minimapUV;
+layout(location = 0) out vec4   o_tileColor;
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) in  vec2   i_minimapUV;
 
-layout(binding = TEX_UNIT_WORLD_TEXTURE) uniform usampler2D worldTexture;
-layout(binding = TEX_UNIT_BLOCK_ATLAS) uniform sampler2D blockAtlas;
-layout(binding = TEX_UNIT_WALL_ATLAS) uniform sampler2D wallAtlas;
+layout(set = 0, binding = 0) uniform usampler2D u_worldTexture;
+layout(set = 0, binding = 1) uniform sampler2D  u_blockAtlas;
+layout(set = 0, binding = 2) uniform sampler2D  u_wallAtlas;
 
 void main() {
-    uvec4 tile = texture(worldTexture, minimapUV);
-    vec4 UVs = vec4(tile.yxwz) * (1.0 / vec4(textureSize(blockAtlas, 0), textureSize(wallAtlas, 0)));
-    vec4 blockColor = texture(blockAtlas, UVs.xy);
-    outColor = mix(texture(wallAtlas, UVs.zw), blockColor, blockColor.a);
+    //Fetch the tile
+    uvec4 tile = texture(u_worldTexture, i_minimapUV);
+
+    //Calculate color of this tile based on its block and wall color
+    vec4 blockColor = texelFetch(u_blockAtlas, ivec2(tile.yx), 0);
+    vec4 wallColor = texelFetch(u_wallAtlas, ivec2(tile.wz), 0);
+    o_tileColor = mix(wallColor, blockColor, blockColor.a);
 }

@@ -7,14 +7,18 @@
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/buffers.hpp>
 
+#include <RealWorld/drawing/shaders/AllShaders.hpp>
 
-TileDrawer::TileDrawer(const RE::PipelineLayout& pipelineLayout, RE::DescriptorSet& descriptorSet)
-    : m_drawTilesPl(
+using enum vk::ShaderStageFlagBits;
+
+TileDrawer::TileDrawer(const RE::PipelineLayout& pipelineLayout, RE::DescriptorSet& descriptorSet):
+    m_drawTilesPl(
         RE::PipelineGraphicsCreateInfo{
             .pipelineLayout = *pipelineLayout,
             .topology = vk::PrimitiveTopology::eTriangleStrip
         }, RE::PipelineGraphicsSources{
-            .vert = drawTiles_vert, .frag = drawColor_frag
+            .vert = drawTiles_vert,
+            .frag = drawColor_frag
         }
     ) {
     descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 1u, 0u, m_blockAtlasTex);
@@ -31,6 +35,6 @@ void TileDrawer::draw(
     pushConstants.botLeftPxModTilePx = glm::mod(botLeftPx, TILEPx);
     pushConstants.botLeftTi = glm::ivec2(pxToTi(botLeftPx));
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
-    commandBuffer.pushConstants<WorldDrawerPushConstants>(*pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0u, pushConstants);
+    commandBuffer.pushConstants<WorldDrawerPushConstants>(*pipelineLayout, eVertex | eFragment, 0u, pushConstants);
     commandBuffer.draw(4u, viewSizeTi.x * viewSizeTi.y, 0u, 0u);
 }

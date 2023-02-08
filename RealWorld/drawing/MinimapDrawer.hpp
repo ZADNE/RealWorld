@@ -2,39 +2,27 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/rendering/vertices/VertexArray.hpp>
+#include <glm/vec2.hpp>
 
-#include <RealWorld/drawing/shaders/AllShaders.hpp>
+#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
+#include <RealEngine/rendering/pipelines/Pipeline.hpp>
+
+#include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
 
 /**
  * @brief Renders minimap of the world
 */
-template<RE::Renderer R>
 class MinimapDrawer {
 public:
 
-    MinimapDrawer();
+    MinimapDrawer(const RE::PipelineLayout& pipelineLayout);
 
     void setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
     void resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx);
 
-    void draw();
+    void draw(const vk::CommandBuffer& commandBuffer);
 
 private:
 
-    void updateArrayBuffers(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
-
-    RE::ShaderProgram<R> m_minimapShd{{.vert = drawMinimap_vert, .frag = drawMinimap_frag}};
-    RE::VertexArray<R> m_pouvArr;
-
-    struct VertexPOUV {
-        VertexPOUV() {}
-
-        VertexPOUV(const glm::vec2& position, const glm::vec2& uv) :
-            position(position), uv(uv) {}
-
-        glm::vec2 position;
-        glm::vec2 uv;
-    };
-    RE::Buffer<R> m_pouvBuf{ sizeof(VertexPOUV) * 4, RE::BufferUsageFlags::DYNAMIC_STORAGE };
+    RE::Pipeline m_drawMinimapPl;
 };

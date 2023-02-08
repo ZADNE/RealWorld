@@ -16,15 +16,15 @@
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx):
     m_viewSizePx(viewSizePx),
     m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_tileDrawer(m_pipelineLayout, m_descriptorSet)/*,
-    m_shadowDrawer(m_viewSizeTi),
-    m_minimapDrawer()*/ {
+    m_tileDrawer(m_pipelineLayout, m_descriptorSet),
+    /*m_shadowDrawer(m_viewSizeTi),*/
+    m_minimapDrawer(m_pipelineLayout) {
 }
 
 void WorldDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
     m_worldTexSize = worldTexSize;
     m_descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 0u, 0u, worldTexture);
-    //m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
+    m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
     updateViewSizeDependentUniforms();
 }
 
@@ -33,7 +33,7 @@ void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
     m_viewSizeTi = viewSizeTi(viewSizePx);
     updateViewSizeDependentUniforms();
     //m_shadowDrawer.resizeView(m_viewSizeTi);
-    //m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
+    m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
 }
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
@@ -70,7 +70,7 @@ void WorldDrawer::drawShadows(const vk::CommandBuffer& commandBuffer) {
 }
 
 void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
-    //m_minimapDrawer.draw(commandBuffer);
+    m_minimapDrawer.draw(commandBuffer);
 }
 
 void WorldDrawer::updateViewSizeDependentUniforms() {

@@ -8,7 +8,6 @@
 #include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
 #include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
-#include <RealWorld/drawing/shaders/AllShaders.hpp>
 
  /**
   * @brief Renders tiles of the world
