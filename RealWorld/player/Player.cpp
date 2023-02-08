@@ -25,7 +25,11 @@ Player::Player():
 }
 
 void Player::adoptSave(const PlayerSave& save, const RE::Texture& worldTexture) {
-    m_hitboxStageMapped->botLeftPx = save.pos;
+    *m_hitboxStageMapped = PlayerHitboxSB{
+        .botLeftPx = save.pos,
+        .dimsPx = m_playerTex.subimageDims(),
+        .velocityPx = glm::vec2(0.0f, 0.0f)
+    };
     m_descriptorSet.write(vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral);
 }
 

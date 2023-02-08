@@ -21,7 +21,7 @@
  /**
   * @brief Holds all gameplay-related objects.
  */
-class WorldRoom : public Room {
+class WorldRoom: public Room {
 public:
 
     WorldRoom(const GameSettings& gameSettings);
@@ -60,7 +60,7 @@ private:
     ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
     RE::CommandBuffer m_computeCommandBuffer{vk::CommandBufferLevel::ePrimary};
-    RE::SpriteBatch m_spriteBatch{64, 64};
+    RE::SpriteBatch m_spriteBatch{256, 64};
     RE::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024};
 
     //View

@@ -136,10 +136,9 @@ void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolat
 
     m_worldDrawer.drawTiles(commandBuffer);
 
-    m_spriteBatch.begin();
+    m_spriteBatch.clearAndBeginFirstBatch();
     m_player.draw(m_spriteBatch);
-    m_spriteBatch.end();
-    m_spriteBatch.draw(commandBuffer, m_worldView.getViewMatrix());
+    m_spriteBatch.drawBatch(commandBuffer, m_worldView.getViewMatrix());
 
     if (m_shadows) {
         m_worldDrawer.drawShadows(commandBuffer);
@@ -157,10 +156,9 @@ void WorldRoom::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec
 
 void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     //Inventory
-    m_spriteBatch.begin();
+    m_spriteBatch.nextBatch();
     m_invUI.draw(m_spriteBatch, engine().getCursorAbs());
-    m_spriteBatch.end();
-    m_spriteBatch.draw(commandBuffer, m_windowViewMat);
+    m_spriteBatch.drawBatch(commandBuffer, m_windowViewMat);
     //Minimap
     if (m_minimap) {
         m_worldDrawer.drawMinimap(commandBuffer);

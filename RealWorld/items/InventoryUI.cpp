@@ -32,14 +32,20 @@ void InventoryUI::windowResized(const glm::vec2& newWindowSize) {
 }
 
 void InventoryUI::connectToInventory(Inventory* inventory, Connection connection) {
-    if (m_inv[(size_t)connection]) {//Disconnect the current inventory
-        m_inv[(size_t)connection]->connectToDrawer(nullptr, connection);
+    bool changed = false;
+    auto& inv = m_inv[(size_t)connection];
+    if (inv) {//Disconnect from the current inventory
+        inv->connectToDrawer(nullptr, connection);
+        changed = true;
     }
-    m_inv[(size_t)connection] = inventory;
-    if (m_inv[(size_t)connection]) {//Connecti the new inventory
-        m_inv[(size_t)connection]->connectToDrawer(this, connection);
+    inv = inventory;
+    if (inv) {//Connect to the new inventory
+        inv->connectToDrawer(this, connection);
+        changed = true;
     }
-    reload();
+    if (changed) {//Reload the UI
+        reload();
+    }
 }
 
 void InventoryUI::openOrClose() {
@@ -56,10 +62,9 @@ void InventoryUI::reload() {
     m_invBotLeftPx = glm::vec2((m_windowSize.x - invSizePx.x) * 0.5f, SLOT_PADDING.y);
 
     //Reload sprites
-    m_invItemSprites[PRIMARY].clear();
-    m_invItemSprites[PRIMARY].reserve(invSlotCount(PRIMARY));
+    m_invItemSprites[PRIMARY].resize(invSlotCount(PRIMARY));
     forEachSlotByIndex(PRIMARY, [&](int i) {
-        m_invItemSprites[PRIMARY].emplace_back((*m_inv[PRIMARY])(i));
+        m_invItemSprites[PRIMARY][i] = ItemSprite{(*m_inv[PRIMARY])(i)};
     });
 }
 
@@ -131,8 +136,8 @@ void InventoryUI::step() {
     //Increment subimage of all sprites
     forEachConnectedInventory([&](Connection con) {
         forEachSlotByIndex(con, [&](int i) {
-            m_invItemSprites[con][i].sprite().step();
-            });
+        m_invItemSprites[con][i].sprite().step();
+    });
     });
     m_heldSprite.sprite().step();
 }
@@ -154,7 +159,7 @@ void InventoryUI::draw(RE::SpriteBatch& spriteBatch, const glm::vec2& cursorPx) 
             spriteBatch.addSprite(m_invItemSprites[PRIMARY][i].sprite(), pos);
         }
         i++;
-            });
+        });
         if (!m_heldItem.isEmpty()) {
             //Item under cursor
             spriteBatch.addSprite(m_heldSprite.sprite(), cursorPx);
