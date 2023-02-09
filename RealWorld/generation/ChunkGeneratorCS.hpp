@@ -28,6 +28,8 @@ private:
     void selectVariant(const vk::CommandBuffer& commandBuffer) override;
     void finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) override;
 
+    vk::ImageMemoryBarrier2 stepBarrier() const;
+
     RE::PipelineLayout m_pipelineLayout{
         {},
         {.comp = generateStructure_comp}

@@ -29,14 +29,16 @@ void ChunkGeneratorCS::generateBasicTerrain(const vk::CommandBuffer& commandBuff
 }
 
 void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
-    return;
     auto pass = [&](const glm::ivec2& thresholds, size_t passes) {
         m_pushConstants.edgeConsolidationPromote = thresholds.x;
         m_pushConstants.edgeConsolidationReduce = thresholds.y;
         for (size_t i = 0; i < passes; i++) {
             m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
+            //Wait for the previous pass to finish
+            auto imageBarrier = stepBarrier();
+            commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+            //Consolidate
             commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
-            //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
             commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
         }
     };
@@ -52,14 +54,18 @@ void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) 
 }
 
 void ChunkGeneratorCS::selectVariant(const vk::CommandBuffer& commandBuffer) {
-    return;
-    //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+    //Wait for the edge consolidation to finish
+    auto imageBarrier = stepBarrier();
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    //Select variants
+    m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
+    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
     commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
 }
 
 void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) {
-    //Insert a barrier that waits for the generation to finish
+    //Wait for the generation to finish
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eComputeShader,                                                          //Src stage mask
         A::eShaderStorageWrite | A::eShaderStorageRead,                             //Src access mask
@@ -69,17 +75,33 @@ void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, 
         vk::ImageLayout::eGeneral,                                                  //New image layout
         VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
         m_tilesTex.image(),
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
+        vk::ImageSubresourceRange{eColor, 0u, 1u, m_pushConstants.storeLayer, 1u}
     };
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     //Copy the generated chunk to the world texture
     commandBuffer.copyImage(
-        m_tilesTex.image(), vk::ImageLayout::eGeneral,                                                          //Src
-        dstTex.image(), vk::ImageLayout::eGeneral,                                                              //Dst
+        m_tilesTex.image(), vk::ImageLayout::eGeneral,                              //Src image
+        dstTex.image(), vk::ImageLayout::eGeneral,                                  //Dst image
         vk::ImageCopy{
-            {eColor, 0u, m_pushConstants.storeLayer, 1u},   vk::Offset3D{GEN_BORDER_WIDTH, GEN_BORDER_WIDTH, 0},//Src
-            {eColor, 0u, 0u, 1u},                           vk::Offset3D{dstOffset.x, dstOffset.y, 0},          //Dst
-            vk::Extent3D{iCHUNK_SIZE.x, iCHUNK_SIZE.y, 1}                                                       //Extent
+            vk::ImageSubresourceLayers{eColor, 0u, m_pushConstants.storeLayer, 1u}, //Src subresource
+            vk::Offset3D{GEN_BORDER_WIDTH, GEN_BORDER_WIDTH, 0},                    //Src offset
+            vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u},                         //Dst subresource
+            vk::Offset3D{dstOffset.x, dstOffset.y, 0},                              //Dst offset
+            vk::Extent3D{iCHUNK_SIZE.x, iCHUNK_SIZE.y, 1}                           //Copy Extent
         }
     );
+}
+
+vk::ImageMemoryBarrier2 ChunkGeneratorCS::stepBarrier() const {
+    return vk::ImageMemoryBarrier2{
+        S::eComputeShader,                                                          //Src stage mask
+        A::eShaderStorageWrite,                                                     //Src access mask
+        S::eComputeShader,                                                          //Dst stage mask
+        A::eShaderStorageRead,                                                      //Dst access mask
+        vk::ImageLayout::eGeneral,                                                  //Old image layout
+        vk::ImageLayout::eGeneral,                                                  //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        m_tilesTex.image(),
+        vk::ImageSubresourceRange{eColor, 0u, 1u, m_pushConstants.storeLayer, 1u}
+    };
 }

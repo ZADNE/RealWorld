@@ -11,7 +11,6 @@
 #include <RealWorld/drawing/TileDrawer.hpp>
  //#include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/MinimapDrawer.hpp>
-#include <RealWorld/drawing/shaders/AllShaders.hpp>
 
  /**
  * @brief Renders the world (i.e. tiles, shadows, minimap)
@@ -68,7 +67,7 @@ private:
     glm::ivec2 m_worldTexSize;
 
     WorldDrawerPushConstants m_pushConstants;
-    RE::PipelineLayout m_pipelineLayout{{}, {.vert = drawTiles_vert}};
+    RE::PipelineLayout m_pipelineLayout;
     RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
 
     TileDrawer m_tileDrawer;

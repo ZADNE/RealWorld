@@ -12,10 +12,20 @@
 #include <RealWorld/reserved_units/textures.hpp>
 #include <RealWorld/reserved_units/images.hpp>
 
+using enum vk::DescriptorType;
+using enum vk::ShaderStageFlagBits;
 
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx):
     m_viewSizePx(viewSizePx),
     m_viewSizeTi(viewSizeTi(viewSizePx)),
+    m_pipelineLayout({}, RE::PipelineLayoutDescription{
+        .bindings = {{
+            {0u, eCombinedImageSampler, 1u, eVertex | eFragment},   //worldTexture
+            {1u, eCombinedImageSampler, 1u, eVertex | eFragment},   //blockAtlas
+            {2u, eCombinedImageSampler, 1u, eVertex | eFragment}    //wallAtlas
+        }},
+        .ranges = {vk::PushConstantRange{eVertex | eFragment, 0u, sizeof(WorldDrawerPushConstants)}}
+    }),
     m_tileDrawer(m_pipelineLayout, m_descriptorSet),
     /*m_shadowDrawer(m_viewSizeTi),*/
     m_minimapDrawer(m_pipelineLayout) {
@@ -70,7 +80,8 @@ void WorldDrawer::drawShadows(const vk::CommandBuffer& commandBuffer) {
 }
 
 void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
-    m_minimapDrawer.draw(commandBuffer);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {});
+    m_minimapDrawer.draw(m_pushConstants, m_pipelineLayout, commandBuffer);
 }
 
 void WorldDrawer::updateViewSizeDependentUniforms() {

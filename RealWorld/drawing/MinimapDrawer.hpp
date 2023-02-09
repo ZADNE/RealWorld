@@ -20,7 +20,11 @@ public:
     void setTarget(const glm::ivec2& worldTexSize, const glm::vec2& viewSizePx);
     void resizeView(const glm::ivec2& worldTexSize, const glm::uvec2& viewSizePx);
 
-    void draw(const vk::CommandBuffer& commandBuffer);
+    void draw(
+        WorldDrawerPushConstants& pushConstants,
+        const RE::PipelineLayout& pipelineLayout,
+        const vk::CommandBuffer& commandBuffer
+    );
 
 private:
 

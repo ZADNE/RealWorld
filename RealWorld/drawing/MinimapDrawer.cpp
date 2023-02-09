@@ -5,6 +5,7 @@
 
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
 
+using enum vk::ShaderStageFlagBits;
 
 MinimapDrawer::MinimapDrawer(const RE::PipelineLayout& pipelineLayout):
     m_drawMinimapPl(
@@ -12,8 +13,8 @@ MinimapDrawer::MinimapDrawer(const RE::PipelineLayout& pipelineLayout):
             .pipelineLayout = *pipelineLayout,
             .topology = vk::PrimitiveTopology::eTriangleStrip
         }, RE::PipelineGraphicsSources{
-            .vert = drawTiles_vert,
-            .frag = drawColor_frag
+            .vert = drawMinimap_vert,
+            .frag = drawMinimap_frag
         }
     ) {
 }
@@ -26,6 +27,12 @@ void MinimapDrawer::resizeView(const glm::ivec2& worldTexSize, const glm::uvec2&
     //updateArrayBuffers(worldTexSize, viewSizePx);
 }
 
-void MinimapDrawer::draw(const vk::CommandBuffer& commandBuffer) {
+void MinimapDrawer::draw(
+    WorldDrawerPushConstants& pushConstants,
+    const RE::PipelineLayout& pipelineLayout,
+    const vk::CommandBuffer& commandBuffer
+) {
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
+    commandBuffer.pushConstants<WorldDrawerPushConstants>(*pipelineLayout, eVertex | eFragment, 0u, pushConstants);
     commandBuffer.draw(4u, 1u, 0u, 0u);
 }
