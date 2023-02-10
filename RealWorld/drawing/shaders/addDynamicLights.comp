@@ -1,7 +1,7 @@
 #version 460
 #include <RealWorld/reserved_units/images.glsl>
 #include <RealWorld/constants/light.glsl>
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
+#include <RealWorld/drawing/shaders/ShadowDrawerPC.glsl>
 #include <RealWorld/drawing/shaders/DynamicLightsSSIB.glsl>
 
 layout( local_size_x = 8,

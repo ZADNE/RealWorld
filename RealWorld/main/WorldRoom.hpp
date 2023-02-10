@@ -37,6 +37,13 @@ private:
 
     using enum RealWorldKeyBindings;
 
+    void performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope);
+
+    void analyzeWorldForDrawing();
+
+    void updateInventoryAndUI();
+
+
     void drawGUI(const vk::CommandBuffer& commandBuffer);
 
     /**

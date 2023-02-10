@@ -41,10 +41,10 @@ glm::vec2 Player::getCenter() const {
     return m_hitboxStageMapped->botLeftPx + m_hitboxStageMapped->dimsPx * 0.5f;
 }
 
-void Player::step(const vk::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump) {
+void Player::step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, bool autojump) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
-    m_pushConstants.walkDirection = glm::sign(static_cast<float>(dir));
+    m_pushConstants.walkDirection = glm::sign(dir);
     m_pushConstants.jump_autojump = glm::vec2(jump, autojump);
     commandBuffer.pushConstants<PlayerMovementPC>(*m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
     commandBuffer.dispatch(1u, 1u, 1u);

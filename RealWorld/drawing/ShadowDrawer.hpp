@@ -4,53 +4,79 @@
 #pragma once
 #include <vector>
 
-#include <RealEngine/rendering/vertices/VertexArray.hpp>
+#include <glm/vec3.hpp>
 
-#include <RealWorld/drawing/shaders/AllShaders.hpp>
+#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
+#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
+#include <RealEngine/rendering/textures/TextureShaped.hpp>
+#include <RealEngine/rendering/pipelines/Pipeline.hpp>
+
 #include <RealWorld/drawing/ExternalLight.hpp>
-#include <RealWorld/reserved_units/buffers.hpp>
+#include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
 
  /**
   * @brief Renders shadows of the world
  */
-template<RE::Renderer R>
 class ShadowDrawer {
 public:
 
-    ShadowDrawer(const glm::uvec2& viewSizeTi);
+    ShadowDrawer(const RE::PipelineLayout& pipelineLayout, const glm::uvec2& viewSizeTi, glm::uint maxNumberOfExternalLights);
 
     void resizeView(const glm::uvec2& viewSizeTi);
 
-    void analyze(const RE::BufferTyped<R>& uniformBuf, const glm::ivec2& botLeftTi);
+    /**
+     * @brief Analyzes the world texture
+    */
+    void analyze(
+        WorldDrawerPushConstants& pushConstants,
+        const RE::PipelineLayout& pipelineLayout,
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2& botLeftTi
+    );
 
+    /**
+     * @brief Adds external light
+     * @note External lights have to be added between analyze() and calculate()
+    */
     void addExternalLight(const glm::ivec2& posPx, RE::Color col);
 
-    void calculate(const RE::BufferTyped<R>& uniformBuf, const glm::ivec2& botLeftPx);
+    /**
+     * @brief Calculates the shadows
+    */
+    void calculate(
+        WorldDrawerPushConstants& pushConstants,
+        const RE::PipelineLayout& pipelineLayout,
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2& botLeftTi
+    );
 
-    void draw(const RE::BufferTyped<R>& uniformBuf, const RE::VertexArray<R>& va, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
+    void draw(const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
 
 private:
 
     struct ViewSizeDependent {
-        ViewSizeDependent(const glm::uvec2& viewSizeTi);
+        explicit ViewSizeDependent(const glm::uvec2& viewSizeTi);
 
-        RE::Texture<R> lightTex;//RGB = color of the light, A = intensity of the light
-        RE::Texture<R> transluTex;//R = translucency of the unit
-        RE::Texture<R> shadowsTex;
+        RE::Texture lightTex;//RGB = color of the light, A = intensity of the light
+        RE::Texture transluTex;//R = translucency of the unit
+        RE::Texture shadowsTex;
         glm::uvec3 analysisGroupCount;
-        glm::uvec3 calcShadowsGroupCount;
+        glm::uvec3 calculationGroupCount;
+
+    private:
+        ViewSizeDependent(const glm::uvec3& analysisGroupCount_, const glm::uvec3& calculationGroupCount_);
     };
 
     ViewSizeDependent m_;
 
-    RE::Texture<R> m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
-    RE::Texture<R> m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
+    RE::TextureShaped m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
+    RE::TextureShaped m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
 
-    RE::ShaderProgram<R> m_analyzeTilesShd{analyzeTiles_comp};
-    RE::ShaderProgram<R> m_addLightsShd{addDynamicLights_comp};
-    RE::ShaderProgram<R> m_calcShadowsShd{calculateShadows_comp};
-    RE::ShaderProgram<R> m_drawShadowsShd{{.vert = drawShadows_vert, .frag = drawColor_frag}};
+    RE::Pipeline m_analyzeTilesPl;
+    RE::Pipeline m_addLightsPl;
+    RE::Pipeline m_calculateShadowsPl;
+    RE::Pipeline m_drawShadowsPl;
 
     std::vector<ExternalLight> m_lights;
-    RE::BufferTyped<R> m_lightsBuf{STRG_BUF_EXTERNALLIGHTS, sizeof(ExternalLight) * 8, RE::BufferAccessFrequency::DYNAMIC, RE::BufferAccessNature::DRAW, nullptr};
+    //RE::Buffer m_lightsBuf;
 };

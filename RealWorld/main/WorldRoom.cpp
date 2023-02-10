@@ -26,7 +26,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings):
     Room(1, INITIAL_SETTINGS),
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
-    m_worldDrawer(engine().getWindowDims()),
+    m_worldDrawer(engine().getWindowDims(), 32u),
     m_player(),
     m_playerInv({10, 4}),
     m_itemUser(m_world, m_playerInv),
@@ -59,81 +59,21 @@ void WorldRoom::sessionEnd() {
 void WorldRoom::step() {
     m_computeCommandBuffer->reset();
     m_computeCommandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
-    using enum SlotSelectionManner;
 
-    //World
-    auto viewEnvelope = m_worldDrawer.setPosition(m_worldView.getBotLeft());
-    m_world.beginStep(*m_computeCommandBuffer);
-    m_world.step(*m_computeCommandBuffer, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
+    //Simulate one physics step
+    performWorldSimulationStep(m_worldDrawer.setPosition(m_worldView.getBotLeft()));
 
-    //Player
-    int walkDir = keybindDown(PLAYER_LEFT) ? -1 : 0;
-    walkDir += keybindDown(PLAYER_RIGHT) ? +1 : 0;
-    m_player.step(*m_computeCommandBuffer, static_cast<WALK>(walkDir), keybindDown(PLAYER_JUMP), keybindDown(PLAYER_AUTOJUMP));
+    //Analyze the results of the simulation step for drawing
+    analyzeWorldForDrawing();
 
-    //View
-    glm::vec2 prevViewPos = m_worldView.getPosition();
-    glm::vec2 targetViewPos = glm::vec2(m_player.getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
-    auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
-    //auto viewPos = prevViewPos + glm::vec2(glm::ivec2(engine().getCursorAbs()) - engine().getWindowDims() / 2) * 0.03f;
-    m_worldView.setCursorAbs(engine().getCursorAbs());
-    m_worldView.setPosition(glm::floor(viewPos));
-
-    //World drawer
-    m_worldDrawer.beginStep(*m_computeCommandBuffer);
-
-    //Item user
-    m_itemUser.step(
-        keybindDown(ITEMUSER_USE_PRIMARY) && !m_invUI.isOpen(),
-        keybindDown(ITEMUSER_USE_SECONDARY) && !m_invUI.isOpen(),
-        m_worldView.getCursorRel()
-    );
-
-    static float rad = 0.0f;
-    rad += 0.01f;
-    m_worldDrawer.addExternalLight(m_worldView.getCursorRel() + glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f, RE::Color{0u, 0u, 0u, 255u});
-    m_worldDrawer.addExternalLight(m_player.getCenter(), RE::Color{0u, 0u, 0u, 100u});
-
-    //Inventory
-    m_invUI.step();
-    if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); }
-    if (m_invUI.isOpen()) {//Inventory is open
-        if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(engine().getCursorAbs()); }
-        if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(engine().getCursorAbs(), 0.5f); }
-    } else { //Inventory is closed
-        if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
-            if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(1.0f); }
-            if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-1.0f); }
-        } else {
-            if (keybindPressed(INV_RIGHT_SLOT)) { m_invUI.selectSlot(RIGHT, keybindPressed(INV_RIGHT_SLOT)); }
-            if (keybindPressed(INV_LEFT_SLOT)) { m_invUI.selectSlot(LEFT, keybindPressed(INV_LEFT_SLOT)); }
-        }
-        if (keybindPressed(INV_PREV_SLOT)) { m_invUI.selectSlot(PREV, 0); }
-
-        constexpr int SLOT0_INT = static_cast<int>(INV_SLOT0);
-        for (int i = 0; i < 10; ++i) {
-            if (keybindPressed(static_cast<RealWorldKeyBindings>(SLOT0_INT + i))) { m_invUI.selectSlot(ABS, i); }
-        }
-        if (keybindPressed(ITEMUSER_SWITCH_SHAPE)) { m_itemUser.switchShape(); }
-    }
-    m_worldDrawer.endStep();
-
-    //Toggles & quit
-    if (keybindPressed(QUIT)) { engine().scheduleRoomTransition(0, {}); }
-    if (keybindPressed(MINIMAP)) { m_minimap = !m_minimap; }
-    if (keybindPressed(SHADOWS)) { m_shadows = !m_shadows; }
-    if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
-
-    //World
-    m_world.endStep(*m_computeCommandBuffer);
+    //Manipulate the inventory based on user's input
+    updateInventoryAndUI();
 
     m_computeCommandBuffer->end();
     m_computeCommandBuffer.submitToComputeQueue();
 }
 
 void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {
-    m_worldDrawer.beginDrawing(commandBuffer);
-
     m_worldDrawer.drawTiles(commandBuffer);
 
     m_spriteBatch.clearAndBeginFirstBatch();
@@ -152,6 +92,85 @@ void WorldRoom::windowResizedCallback(const glm::ivec2& oldSize, const glm::ivec
     m_worldDrawer.resizeView(newSize);
     m_invUI.windowResized(newSize);
     m_windowViewMat = calculateWindowViewMat(newSize);
+}
+
+void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope) {
+    //Prepare for the simulation step (wait on barriers and do image layout transitions)
+    m_world.beginStep(*m_computeCommandBuffer);
+
+    //Simulate one physics step (load new chunks if required)
+    m_world.step(*m_computeCommandBuffer, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
+
+    //Modify the world with player's tools
+    m_itemUser.step(
+        keybindDown(ITEMUSER_USE_PRIMARY) && !m_invUI.isOpen(),
+        keybindDown(ITEMUSER_USE_SECONDARY) && !m_invUI.isOpen(),
+        m_worldView.getCursorRel()
+    );
+
+    //Move the player within the updated world
+    m_player.step(
+        *m_computeCommandBuffer,
+        (keybindDown(PLAYER_LEFT) ? -1.0f : 0.0f) + (keybindDown(PLAYER_RIGHT) ? +1.0f : 0.0f),
+        keybindDown(PLAYER_JUMP),
+        keybindDown(PLAYER_AUTOJUMP)
+    );
+
+    //Finish the simulation step (transit image layouts back)
+    m_world.endStep(*m_computeCommandBuffer);
+}
+
+void WorldRoom::analyzeWorldForDrawing() {
+    //Move the view based on movements of the player
+    glm::vec2 prevViewPos = m_worldView.getPosition();
+    glm::vec2 targetViewPos = glm::vec2(m_player.getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
+    auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
+    m_worldView.setCursorAbs(engine().getCursorAbs());
+    m_worldView.setPosition(glm::floor(viewPos));
+
+    //Analyze the world texture
+    m_worldDrawer.beginStep(*m_computeCommandBuffer);
+
+    //Add external lights (these below are mostly for debug)
+    static float rad = 0.0f;
+    rad += 0.01f;
+    m_worldDrawer.addExternalLight(m_worldView.getCursorRel() + glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f, RE::Color{0u, 0u, 0u, 255u});
+    m_worldDrawer.addExternalLight(m_player.getCenter(), RE::Color{0u, 0u, 0u, 100u});
+
+    //Calculate illumination based the world texture and external lights
+    m_worldDrawer.endStep(*m_computeCommandBuffer);
+}
+
+void WorldRoom::updateInventoryAndUI() {
+    //Inventory
+    m_invUI.step();
+    if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); }
+    if (m_invUI.isOpen()) {//Inventory is open
+        if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(engine().getCursorAbs()); }
+        if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(engine().getCursorAbs(), 0.5f); }
+    } else { //Inventory is closed
+        using enum SlotSelectionManner;
+        if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
+            if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(1.0f); }
+            if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-1.0f); }
+        } else {
+            if (keybindPressed(INV_RIGHT_SLOT)) { m_invUI.selectSlot(RIGHT, keybindPressed(INV_RIGHT_SLOT)); }
+            if (keybindPressed(INV_LEFT_SLOT)) { m_invUI.selectSlot(LEFT, keybindPressed(INV_LEFT_SLOT)); }
+        }
+        if (keybindPressed(INV_PREV_SLOT)) { m_invUI.selectSlot(PREV, 0); }
+
+        constexpr int SLOT0_INT = static_cast<int>(INV_SLOT0);
+        for (int i = 0; i < 10; ++i) {
+            if (keybindPressed(static_cast<RealWorldKeyBindings>(SLOT0_INT + i))) { m_invUI.selectSlot(ABS, i); }
+        }
+        if (keybindPressed(ITEMUSER_SWITCH_SHAPE)) { m_itemUser.switchShape(); }
+    }
+
+    //Toggles & quit
+    if (keybindPressed(QUIT)) { engine().scheduleRoomTransition(0, {}); }
+    if (keybindPressed(MINIMAP)) { m_minimap = !m_minimap; }
+    if (keybindPressed(SHADOWS)) { m_shadows = !m_shadows; }
+    if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
 }
 
 void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {

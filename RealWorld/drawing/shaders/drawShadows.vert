@@ -1,7 +1,7 @@
 #version 460
 #include <RealWorld/reserved_units/textures.glsl>
 #include <RealWorld/constants/light.glsl>
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
+#include <RealWorld/drawing/shaders/ShadowDrawerPC.glsl>
 
 layout(location = 0) out vec4 shadowColor;
 

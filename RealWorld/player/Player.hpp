@@ -11,14 +11,8 @@
 #include <RealWorld/player/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
-enum class WALK: int {
-    LEFT = -1,
-    STAY = 0,
-    RIGHT = 1
-};
-
 /**
- * @brief Represents the user-controlled character.
+ * @brief Simulates and draws the user-controlled character
 */
 class Player {
 public:
@@ -30,7 +24,13 @@ public:
 
     glm::vec2 getCenter() const;
 
-    void step(const vk::CommandBuffer& commandBuffer, WALK dir, bool jump, bool autojump);
+    /**
+     * @brief Moves the player based on its surroundings tiles and user input
+     * @param dir Walking direction: -1 = go left, 0 = stay still, +1 = go right
+     * @param jump The player jumps if this is true and if the player stands on solid ground
+     * @param autojump Determines whether the player should automatically jump over obstacles
+    */
+    void step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, bool autojump);
 
     void draw(RE::SpriteBatch& spriteBatch);
 

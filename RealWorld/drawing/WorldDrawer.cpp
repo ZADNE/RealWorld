@@ -3,47 +3,28 @@
  */
 #include <RealWorld/drawing/WorldDrawer.hpp>
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <RealEngine/rendering/pipelines/Vertex.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
-#include <RealWorld/reserved_units/textures.hpp>
-#include <RealWorld/reserved_units/images.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 
-WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx):
-    m_viewSizePx(viewSizePx),
+WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights):
     m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_pipelineLayout({}, RE::PipelineLayoutDescription{
-        .bindings = {{
-            {0u, eCombinedImageSampler, 1u, eVertex | eFragment},   //worldTexture
-            {1u, eCombinedImageSampler, 1u, eVertex | eFragment},   //blockAtlas
-            {2u, eCombinedImageSampler, 1u, eVertex | eFragment}    //wallAtlas
-        }},
-        .ranges = {vk::PushConstantRange{eVertex | eFragment, 0u, sizeof(WorldDrawerPushConstants)}}
-    }),
-    m_tileDrawer(m_pipelineLayout, m_descriptorSet),
-    /*m_shadowDrawer(m_viewSizeTi),*/
-    m_minimapDrawer(m_pipelineLayout) {
+    m_tileDrawer(viewSizePx, m_viewSizeTi)/*,
+    m_shadowDrawer(m_viewSizeTi, maxNumberOfExternalLights)*/ {
 }
 
 void WorldDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
-    m_worldTexSize = worldTexSize;
-    m_descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 0u, 0u, worldTexture);
-    m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
-    updateViewSizeDependentUniforms();
+    m_tileDrawer.setTarget(worldTexture, worldTexSize);
 }
 
 void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
-    m_viewSizePx = viewSizePx;
     m_viewSizeTi = viewSizeTi(viewSizePx);
-    updateViewSizeDependentUniforms();
+    m_tileDrawer.resizeView(viewSizePx, m_viewSizeTi);
     //m_shadowDrawer.resizeView(m_viewSizeTi);
-    m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
 }
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
@@ -56,38 +37,27 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
 }
 
 void WorldDrawer::beginStep(const vk::CommandBuffer& commandBuffer) {
-    //m_shadowDrawer.analyze(m_uniformBuf, m_botLeftTi);
+    //m_shadowDrawer.analyze(commandBuffer, m_botLeftTi);
 }
 
 void WorldDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
     //m_shadowDrawer.addExternalLight(posPx, col);
 }
 
-void WorldDrawer::endStep() {
-    //m_shadowDrawer.calculate(m_uniformBuf, m_botLeftPx);
-}
-
-void WorldDrawer::beginDrawing(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {});
+void WorldDrawer::endStep(const vk::CommandBuffer& commandBuffer) {
+    //m_shadowDrawer.calculate(commandBuffer, m_botLeftTi);
 }
 
 void WorldDrawer::drawTiles(const vk::CommandBuffer& commandBuffer) {
-    m_tileDrawer.draw(m_pushConstants, m_pipelineLayout, commandBuffer, m_botLeftPx, m_viewSizeTi);
+    m_tileDrawer.drawTiles(commandBuffer, m_botLeftPx);
 }
 
 void WorldDrawer::drawShadows(const vk::CommandBuffer& commandBuffer) {
-    //m_shadowDrawer.draw(commandBuffer, m_uniformBuf, m_botLeftPx, m_viewSizeTi);
+    //m_shadowDrawer.draw(m_botLeftPx, m_viewSizeTi);
 }
 
 void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {});
-    m_minimapDrawer.draw(m_pushConstants, m_pipelineLayout, commandBuffer);
-}
-
-void WorldDrawer::updateViewSizeDependentUniforms() {
-    m_pushConstants.viewMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y);
-    m_pushConstants.worldTexMask = m_worldTexSize - 1;
-    m_pushConstants.viewWidthTi = static_cast<int>(m_viewSizeTi.x);
+    m_tileDrawer.drawMinimap(commandBuffer);
 }
 
 glm::uvec2 WorldDrawer::viewSizeTi(const glm::vec2& viewSizePx) const {

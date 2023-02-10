@@ -1,19 +1,17 @@
 #version 460
-#include <RealWorld/reserved_units/textures.glsl>
-#include <RealWorld/reserved_units/images.glsl>
 #include <RealWorld/constants/light.glsl>
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
+#include <RealWorld/drawing/shaders/ShadowDrawerPC.glsl>
 
 layout( local_size_x = ANALYSIS_GROUP_SIZE,
         local_size_y = ANALYSIS_GROUP_SIZE,
         local_size_z = 1
 ) in;
 
-layout(binding = TEX_UNIT_WORLD_TEXTURE) uniform usampler2D worldTexture;
-layout(binding = TEX_UNIT_BLOCK_LIGHT_ATLAS) uniform sampler2D blockLightTexture;
-layout(binding = TEX_UNIT_WALL_LIGHT_ATLAS) uniform sampler2D wallLightTexture;
-layout(binding = IMG_UNIT_LIGHT, rgba8) uniform restrict writeonly image2D lightImage;
-layout(binding = IMG_UNIT_TRANSLU, r8) uniform restrict writeonly image2D transluImage;
+layout(set = 0, binding = 0) uniform usampler2D                         u_worldTexture;
+layout(set = 0, binding = 1) uniform sampler2D                          u_blockLightAtlas;
+layout(set = 0, binding = 2) uniform sampler2D                          u_wallLightAtlas;
+layout(set = 0, binding = 3, rgba8) uniform restrict writeonly image2D  u_lightImage;
+layout(set = 0, binding = 4, r8) uniform restrict writeonly image2D     u_transluImage;
 
 const float TO_UNIT_SCALE = 1.0 / (LIGHT_SCALE * LIGHT_SCALE);
 
@@ -26,20 +24,20 @@ void main(){
     for (int y = 0; y < LIGHT_SCALE; y++){
         for (int x = 0; x < LIGHT_SCALE; x++){
             //Fetch the tile
-            uvec4 tile = texelFetch(worldTexture, (readBasePosTi + ivec2(x, y)) & worldTexMask, 0);
+            uvec4 tile = texelFetch(u_worldTexture, (readBasePosTi + ivec2(x, y)) & worldTexMask, 0);
             //Process its translucency
             bool airBlock = isAirBlock(tile.BLOCK_TYPE);
             translu.r += airBlock ? (205.0/255.0) : (160.0/255.0);
             //Process it as a light source
-            vec4 blockLight = texelFetch(blockLightTexture, ivec2(tile.yx), 0);
-            vec4 wallLight = texelFetch(wallLightTexture, ivec2(tile.wz), 0);
+            vec4 blockLight = texelFetch(u_blockLightAtlas, ivec2(tile.yx), 0);
+            vec4 wallLight = texelFetch(u_wallLightAtlas, ivec2(tile.wz), 0);
             vec4 tileLight = airBlock ? wallLight : blockLight;
             light += tileLight;
         }
     }
     //Scale
     light *= TO_UNIT_SCALE;
-    imageStore(lightImage, ivec2(gl_GlobalInvocationID), light);
+    imageStore(u_lightImage, ivec2(gl_GlobalInvocationID), light);
     translu.r *= TO_UNIT_SCALE;
-    imageStore(transluImage, ivec2(gl_GlobalInvocationID), translu);
+    imageStore(u_transluImage, ivec2(gl_GlobalInvocationID), translu);
 }

@@ -67,7 +67,7 @@ const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& 
     using enum vk::ImageUsageFlagBits;
     m_worldTex = RE::Texture{RE::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
-        .extent = vk::Extent3D{texSize.x, texSize.y, 1u},
+        .extent = {texSize, 1u},
         .usage = eStorage | eTransferSrc | eTransferDst | eSampled
     }};
 
