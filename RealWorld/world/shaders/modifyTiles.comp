@@ -1,8 +1,11 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/reserved_units/images.glsl>
-#include <RealWorld/world/shaders/WorldDynamicsUIB.glsl>
+const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
+#include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 
 layout( local_size_x = 16,
         local_size_y = 16,
@@ -28,32 +31,32 @@ uint random(){
 void main(){
     ivec2 offset = ivec2(gl_LocalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy) / 2;
     //Construct the shape
-    switch (modifyShape){
+    switch (p_modifyShape){
         case SQUARE:
-        if (abs(offset.x) > modifyDiameter || abs(offset.y) > modifyDiameter){
+        if (abs(offset.x) > p_modifyDiameter || abs(offset.y) > p_modifyDiameter){
             return;//Outside of the shape
         }
         break;
         case DISC:
-        if (dot(offset, offset) > modifyDiameter * modifyDiameter){
+        if (dot(offset, offset) > p_modifyDiameter * p_modifyDiameter){
             return;//Outside of the shape
         }
         break;
     }
     //Modify the tile
-    ivec2 posIm = imPos(globalPosTi + offset);
+    ivec2 posIm = imPos(p_globalPosTi + offset);
     uvec4 tile = tileLoadIm(posIm);
-    randomState = (posIm.x * posIm.y) ^ timeHash;
-    if (modifyTarget == SET_BLOCK){
-        if ((modifySetValue.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
+    randomState = (posIm.x * posIm.y) ^ p_timeHash;
+    if (p_modifyTarget == SET_BLOCK){
+        if ((p_modifySetValue.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
             return;
         }
-        tile.BL = modifySetValue.y != 256 ? modifySetValue : uvec2(modifySetValue.x, random() % 12);
+        tile.BL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
     } else {
-        if ((modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == isFluidBlock(tile.BL_T)){
+        if ((p_modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == isFluidBlock(tile.BL_T)){
             return;
         }
-        tile.WL = modifySetValue.y != 256 ? modifySetValue : uvec2(modifySetValue.x, random() % 12);
+        tile.WL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
     }
     //Store the modified tile
     tileStoreIm(posIm, tile);

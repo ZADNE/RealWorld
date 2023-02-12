@@ -1,6 +1,7 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #version 460
-#include <RealWorld/reserved_units/textures.glsl>
-#include <RealWorld/reserved_units/images.glsl>
 #include <RealWorld/constants/light.glsl>
 
 layout( local_size_x = CALC_GROUP_SIZE,
@@ -8,11 +9,11 @@ layout( local_size_x = CALC_GROUP_SIZE,
         local_size_z = 1
 ) in;
 
-layout(binding = TEX_UNIT_LIGHT) uniform sampler2D lightTexture;
-layout(binding = TEX_UNIT_TRANSLU) uniform sampler2D transluTexture;
-layout(binding = IMG_UNIT_SHADOWS, rgba8) uniform restrict writeonly image2D shadowsImage;
+layout(set = 0, binding = 0)        uniform sampler2D                   u_lightTexture;
+layout(set = 0, binding = 1)        uniform sampler2D                   u_transluTexture;
+layout(set = 0, binding = 2, rgba8) uniform restrict writeonly image2D  u_shadowsImage;
 
-vec2 analysisUVScale = 1.0 / textureSize(lightTexture, 0);
+vec2 analysisUVScale = 1.0 / textureSize(u_lightTexture, 0);
 const float UV_OFFSET = LIGHT_MAX_RANGEUn - 0.5;
 
 const float PI2 = 6.28318530718;
@@ -24,8 +25,8 @@ const float PI_128 =    0.0245436926;
 const float PI_256 =    0.0122718463;
 
 void accumulate(inout vec4 accumulated, vec2 UV){
-    vec4 light = texture(lightTexture, UV);
-    vec4 translu = texture(transluTexture, UV).rrrr;
+    vec4 light = texture(u_lightTexture, UV);
+    vec4 translu = texture(u_transluTexture, UV).rrrr;
     accumulated = fma(accumulated, translu, light);
 }
 
@@ -95,5 +96,5 @@ void main(){
     
     //final = ((ID.x % 4 == 0)) ? vec4(0.0, 0.0, 0.0, 0.0) : vec4(0.0, 0.0, 0.0, 1.0);
     vec4 final = vec4(total.rgb, 1.0 - sqrt(total.a));
-    imageStore(shadowsImage, ID, final);
+    imageStore(u_shadowsImage, ID, final);
 }

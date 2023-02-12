@@ -7,8 +7,6 @@
 
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
 
-#include <RealWorld/reserved_units/images.hpp>
-
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
 

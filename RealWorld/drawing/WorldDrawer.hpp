@@ -3,7 +3,7 @@
  */
 #pragma once
 #include <RealWorld/drawing/TileDrawer.hpp>
-//#include <RealWorld/drawing/ShadowDrawer.hpp>
+#include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealEngine/rendering/pipelines/Vertex.hpp>
 
  /**
@@ -53,5 +53,5 @@ private:
     glm::uvec2 viewSizeTi(const glm::vec2& viewSizePx) const;
 
     TileDrawer m_tileDrawer;
-    //ShadowDrawer m_shadowDrawer;
+    ShadowDrawer m_shadowDrawer;
 };

@@ -1,30 +1,33 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #version 460
 #include <RealWorld/constants/light.glsl>
-#include <RealWorld/drawing/shaders/ShadowDrawerPC.glsl>
+#include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
 layout( local_size_x = ANALYSIS_GROUP_SIZE,
         local_size_y = ANALYSIS_GROUP_SIZE,
         local_size_z = 1
 ) in;
 
-layout(set = 0, binding = 0) uniform usampler2D                         u_worldTexture;
-layout(set = 0, binding = 1) uniform sampler2D                          u_blockLightAtlas;
-layout(set = 0, binding = 2) uniform sampler2D                          u_wallLightAtlas;
-layout(set = 0, binding = 3, rgba8) uniform restrict writeonly image2D  u_lightImage;
-layout(set = 0, binding = 4, r8) uniform restrict writeonly image2D     u_transluImage;
+layout(set = 0, binding = 0, rgba8) uniform restrict writeonly image2D  u_lightImage;
+layout(set = 0, binding = 1, r8) uniform restrict writeonly image2D     u_transluImage;
+layout(set = 0, binding = 2) uniform usampler2D                         u_worldTexture;
+layout(set = 0, binding = 3) uniform sampler2D                          u_blockLightAtlas;
+layout(set = 0, binding = 4) uniform sampler2D                          u_wallLightAtlas;
 
 const float TO_UNIT_SCALE = 1.0 / (LIGHT_SCALE * LIGHT_SCALE);
 
 void main(){
     //Calculate position and init variables
-    const ivec2 readBasePosTi = analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << LIGHT_SCALE_BITS);
+    const ivec2 readBasePosTi = p_analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << LIGHT_SCALE_BITS);
     vec4 light = vec4(0.0);//RGB = color of the light, A = intensity of the light
     vec4 translu = vec4(0.0);//R = translucency of the unit
     //Analyze the thread's area
     for (int y = 0; y < LIGHT_SCALE; y++){
         for (int x = 0; x < LIGHT_SCALE; x++){
             //Fetch the tile
-            uvec4 tile = texelFetch(u_worldTexture, (readBasePosTi + ivec2(x, y)) & worldTexMask, 0);
+            uvec4 tile = texelFetch(u_worldTexture, (readBasePosTi + ivec2(x, y)) & p_worldTexMask, 0);
             //Process its translucency
             bool airBlock = isAirBlock(tile.BLOCK_TYPE);
             translu.r += airBlock ? (205.0/255.0) : (160.0/255.0);

@@ -16,7 +16,6 @@
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/world/Chunk.hpp>
-#include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
 
 

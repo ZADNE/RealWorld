@@ -15,7 +15,6 @@
 #include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
-#include <RealWorld/reserved_units/buffers.hpp>
 
 enum class MODIFY_SHAPE: unsigned int {
     SQUARE,

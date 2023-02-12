@@ -1,3 +1,6 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 vec3 columnValues(float x, float columnWidth, float seed){
     float ratio = x / columnWidth;
     float columnX = floor(ratio);

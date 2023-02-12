@@ -1,10 +1,10 @@
 ﻿target_shaders(RealWorld PRIVATE
-    ActiveChunksSSIB.glsl       
+    ActiveChunksSB.glsl         
     analyzeContinuity.comp      
     modifyTiles.comp            
     simulateFluids.comp         
     tileLoad.glsl               tileLoadStore.glsl
-    TilePropertiesUIB.glsl      
+    TilePropertiesUB.glsl       
     transformTiles.comp         
-    WorldDynamicsUIB.glsl       
+    WorldDynamicsPC.glsl        
 )

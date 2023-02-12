@@ -13,8 +13,8 @@ using enum vk::ShaderStageFlagBits;
 
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights):
     m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_tileDrawer(viewSizePx, m_viewSizeTi)/*,
-    m_shadowDrawer(m_viewSizeTi, maxNumberOfExternalLights)*/ {
+    m_tileDrawer(viewSizePx, m_viewSizeTi),
+    m_shadowDrawer(m_viewSizeTi, maxNumberOfExternalLights) {
 }
 
 void WorldDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
@@ -37,15 +37,15 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
 }
 
 void WorldDrawer::beginStep(const vk::CommandBuffer& commandBuffer) {
-    //m_shadowDrawer.analyze(commandBuffer, m_botLeftTi);
+    m_shadowDrawer.analyze(commandBuffer, m_botLeftTi);
 }
 
 void WorldDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
-    //m_shadowDrawer.addExternalLight(posPx, col);
+    m_shadowDrawer.addExternalLight(posPx, col);
 }
 
 void WorldDrawer::endStep(const vk::CommandBuffer& commandBuffer) {
-    //m_shadowDrawer.calculate(commandBuffer, m_botLeftTi);
+    m_shadowDrawer.calculate(commandBuffer, m_botLeftTi);
 }
 
 void WorldDrawer::drawTiles(const vk::CommandBuffer& commandBuffer) {

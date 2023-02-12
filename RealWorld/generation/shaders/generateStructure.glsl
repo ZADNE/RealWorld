@@ -1,3 +1,6 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/constants/generation.glsl>
@@ -108,17 +111,17 @@ float horizonProximityFactor(float horizon, float y, float width, float low, flo
 }
 
 void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
-    float age = age(pPx, seed);
-    float solidity = solidity(pPx, age, seed);
-    vec2 biomeClimate = biomeClimate(pPx.x, seed);
+    float age = age(pPx, p_seed);
+    float solidity = solidity(pPx, age, p_seed);
+    vec2 biomeClimate = biomeClimate(pPx.x, p_seed);
     Biome biome = biomeStructure(biomeClimate);
-    uvec2 stoneTile = stoneTile(pPx, age, solidity, seed);//Decides which underground tile to use 
-    uvec2 surfaceTile = surfaceTile(pPx, biomeClimate, seed);//Decide which surface tile to use
+    uvec2 stoneTile = stoneTile(pPx, age, solidity, p_seed);//Decides which underground tile to use 
+    uvec2 surfaceTile = surfaceTile(pPx, biomeClimate, p_seed);//Decide which surface tile to use
   
-    vec2 horizon = horizon(pPx.x, biome, seed);
+    vec2 horizon = horizon(pPx.x, biome, p_seed);
     
     bool belowHorizon = (pPx.y < horizon.x);
-    bool belowSoil = (pPx.y < (horizon.y + hash13(vec3(pPx, seed)) * (biome.surfaceWidth.x + biome.surfaceWidth.y) * 0.25));
+    bool belowSoil = (pPx.y < (horizon.y + hash13(vec3(pPx, p_seed)) * (biome.surfaceWidth.x + biome.surfaceWidth.y) * 0.25));
     
     float solidityShifter = belowHorizon ? horizonProximityFactor(horizon.x, pPx.y, 400.0, 0.0, 0.2) : -10.0;
     bool occupied = (solidity + solidityShifter) > 0.5;

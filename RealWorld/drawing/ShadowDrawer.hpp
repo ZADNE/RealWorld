@@ -12,7 +12,6 @@
 #include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
 #include <RealWorld/drawing/ExternalLight.hpp>
-#include <RealWorld/drawing/WorldDrawerPushConstants.hpp>
 
  /**
   * @brief Renders shadows of the world
@@ -20,7 +19,7 @@
 class ShadowDrawer {
 public:
 
-    ShadowDrawer(const RE::PipelineLayout& pipelineLayout, const glm::uvec2& viewSizeTi, glm::uint maxNumberOfExternalLights);
+    ShadowDrawer(const glm::uvec2& viewSizeTi, glm::uint maxNumberOfExternalLights);
 
     void resizeView(const glm::uvec2& viewSizeTi);
 
@@ -28,8 +27,6 @@ public:
      * @brief Analyzes the world texture
     */
     void analyze(
-        WorldDrawerPushConstants& pushConstants,
-        const RE::PipelineLayout& pipelineLayout,
         const vk::CommandBuffer& commandBuffer,
         const glm::ivec2& botLeftTi
     );
@@ -44,8 +41,6 @@ public:
      * @brief Calculates the shadows
     */
     void calculate(
-        WorldDrawerPushConstants& pushConstants,
-        const RE::PipelineLayout& pipelineLayout,
         const vk::CommandBuffer& commandBuffer,
         const glm::ivec2& botLeftTi
     );
@@ -69,12 +64,24 @@ private:
 
     ViewSizeDependent m_;
 
+    struct AnalysisPushConstants {
+        glm::ivec2 worldTexMask;
+        glm::ivec2 analysisOffsetTi;
+        glm::ivec2 addLightOffsetPx;
+        glm::uint lightCount;
+    };
+
     RE::TextureShaped m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
     RE::TextureShaped m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
 
+    RE::PipelineLayout m_analysisPll;
     RE::Pipeline m_analyzeTilesPl;
     RE::Pipeline m_addLightsPl;
+
+    RE::PipelineLayout m_calculationPll;
     RE::Pipeline m_calculateShadowsPl;
+
+    RE::PipelineLayout m_drawingPll;
     RE::Pipeline m_drawShadowsPl;
 
     std::vector<ExternalLight> m_lights;

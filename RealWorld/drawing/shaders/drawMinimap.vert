@@ -1,3 +1,6 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #version 460
 #include <RealWorld/drawing/shaders/TileDrawerPC.glsl>
 

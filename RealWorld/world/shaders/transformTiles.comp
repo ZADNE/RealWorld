@@ -1,11 +1,15 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/reserved_units/images.glsl>
-const uint ActiveChunksSSIB_BINDING = 0;
-#include <RealWorld/world/shaders/ActiveChunksSSIB.glsl>
+const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
-#include <RealWorld/world/shaders/WorldDynamicsUIB.glsl>
-#include <RealWorld/world/shaders/TilePropertiesUIB.glsl>
+const uint ActiveChunksSB_BINDING = 1;
+#include <RealWorld/world/shaders/ActiveChunksSB.glsl>
+const uint TilePropertiesUB_BINDING = 2;
+#include <RealWorld/world/shaders/TilePropertiesUB.glsl>
+#include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 
 const int TRANSFORM_GROUP_SIZE = 4;
 
@@ -18,7 +22,7 @@ layout( local_size_x = TRANSFORM_GROUP_SIZE,
 
 uint invocHash(){
     uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
-    return globalIndex ^ timeHash;
+    return globalIndex ^ p_timeHash;
 }
 uint randomState = invocHash();
 
@@ -54,7 +58,7 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
 
 void main(){
     random();
-    ivec2 centerTi = offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
+    ivec2 centerTi = s_offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
                     + (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
     
     uvec4 tile = tileLoad(centerTi);

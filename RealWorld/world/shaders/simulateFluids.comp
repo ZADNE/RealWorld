@@ -1,8 +1,11 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/reserved_units/images.glsl>
-#include <RealWorld/world/shaders/WorldDynamicsUIB.glsl>
+const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
+#include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 #include <RealWorld/constants/tile_properties/fluidProperties.glsl>
 
 const int DYN_GROUP_SIZE = 16;
@@ -14,7 +17,7 @@ layout( local_size_x = DYN_GROUP_SIZE,
 
 uint invocHash(){
     uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
-    return globalIndex ^ timeHash;
+    return globalIndex ^ p_timeHash;
 }
 uint randomState = invocHash();
 
@@ -124,11 +127,12 @@ void velocityFluidDynamics(uvec4 water, ivec2 posIm){
 }
 
 void main(){
-    const ivec2 invocOffset = globalPosTi
+    const ivec2 invocOffset = p_globalPosTi
                     + ivec2(gl_WorkGroupID.xy) * CHUNK_SIZE
                     + ivec2(gl_LocalInvocationID.xy) * 4;
     
     for (uint inGroup = 0; inGroup < 4; inGroup++){
+        ivec2 updateOrder[16];//TODO!!!
         ivec2 inGroupOffset = updateOrder[inGroup] * 2;
         uint inQuadOrderOffset = (random() & 3) * 4;
         for (uint inQuad = 0; inQuad < 4; inQuad++){

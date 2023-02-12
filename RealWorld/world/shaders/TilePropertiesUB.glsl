@@ -1,3 +1,6 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 //Tile properties
 const uint STONEb =     1 << 0;
 const uint DIRTb =      1 << 1;
@@ -9,8 +12,7 @@ const uint HALLOWb =    1 << 4;
 const uint EDGEb =      1 << 0;
 const uint MIX_PROPSb = 1 << 1;//Mix properties with the other layer 
 
-#include <RealWorld/reserved_units/buffers.glsl>
-layout(std140, binding = UNIF_BUF_TILEPROPERTIES) restrict uniform TilePropertiesUIB {
+layout(set = 0, binding = TilePropertiesUB_BINDING, std140) restrict uniform TilePropertiesUB {
     //x = properties
     //yz = indices of first and last transformation rule
     uvec4 u_blockProperties[256];

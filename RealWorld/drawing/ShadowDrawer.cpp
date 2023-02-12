@@ -10,6 +10,7 @@
 constexpr int UNIT_MASK = ~(iLIGHT_SCALE * iTILEPx.x - 1);
 constexpr int HALF_UNIT_OFFSET = iTILEPx.x * iLIGHT_SCALE / 2;
 
+using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 
 constexpr glm::vec2 ANALYSIS_GROUP_SIZE = glm::vec2{8.0f};
@@ -22,22 +23,41 @@ glm::uvec3 getShadowsCalculationGroupCount(const glm::vec2& viewSizeTi) {
     return {glm::ceil((viewSizeTi + LIGHT_SCALE * 2.0f) / CALC_GROUP_SIZE / LIGHT_SCALE), 1u};
 }
 
-ShadowDrawer::ShadowDrawer(const RE::PipelineLayout& pipelineLayout, const glm::uvec2& viewSizeTi, glm::uint maxNumberOfExternalLights):
+ShadowDrawer::ShadowDrawer(const glm::uvec2& viewSizeTi, glm::uint maxNumberOfExternalLights):
     m_(viewSizeTi),
+    m_analysisPll({}, RE::PipelineLayoutDescription{
+        .bindings = {{
+            {0u, eStorageImage, 1u, eCompute},          //lightImage
+            {1u, eStorageImage, 1u, eCompute},          //transluImage
+            {2u, eCombinedImageSampler, 1u, eCompute},  //worldSampler
+            {3u, eCombinedImageSampler, 1u, eCompute},  //blockLightAtlas
+            {4u, eCombinedImageSampler, 1u, eCompute},  //wallLightAtlas
+            {5u, eStorageBuffer, 1u, eCompute},         //DynamicLightsSB
+        }},
+        .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(AnalysisPushConstants)}}
+    }),
     m_analyzeTilesPl(
-        {.pipelineLayout = *pipelineLayout},
+        {.pipelineLayout = *m_analysisPll},
         {.comp = analyzeTiles_comp}
     ),
     m_addLightsPl(
-        {.pipelineLayout = *pipelineLayout},
+        {.pipelineLayout = *m_analysisPll},
         {.comp = addDynamicLights_comp}
     ),
+    m_calculationPll({}, RE::PipelineLayoutDescription{
+        .bindings = {{
+            {0u, eCombinedImageSampler, 1u, eCompute},  //lightSampler
+            {1u, eCombinedImageSampler, 1u, eCompute},  //transluSampler
+            {2u, eStorageImage, 1u, eCompute},          //shadowsImage
+        }}
+    }),
     m_calculateShadowsPl(
-        {.pipelineLayout = *pipelineLayout},
+        {.pipelineLayout = *m_calculationPll},
         {.comp = calculateShadows_comp}
     ),
+    m_drawingPll({}, {.vert = drawShadows_vert, .frag = drawColor_frag}),
     m_drawShadowsPl(
-        {.pipelineLayout = *pipelineLayout},
+        {.pipelineLayout = *m_drawingPll},
         {.vert = drawShadows_vert, .frag = drawColor_frag}
     ) {
 }
@@ -47,8 +67,6 @@ void ShadowDrawer::resizeView(const glm::uvec2& viewSizeTi) {
 }
 
 void ShadowDrawer::analyze(
-    WorldDrawerPushConstants& pushConstants,
-    const RE::PipelineLayout& pipelineLayout,
     const vk::CommandBuffer& commandBuffer,
     const glm::ivec2& botLeftTi
 ) {
@@ -64,8 +82,6 @@ void ShadowDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
 }
 
 void ShadowDrawer::calculate(
-    WorldDrawerPushConstants& pushConstants,
-    const RE::PipelineLayout& pipelineLayout,
     const vk::CommandBuffer& commandBuffer,
     const glm::ivec2& botLeftTi
 ) {

@@ -1,3 +1,6 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
 #version 460
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/generation.glsl>
@@ -8,8 +11,8 @@ layout( local_size_x = GEN_CS_GROUP_SIZE,
         local_size_z = 1
 ) in;
 
-layout(binding = 0, rgba8ui) uniform restrict           uimage2DArray tilesImage;
-layout(binding = 1, rgba8ui) uniform restrict readonly  uimage2D materialImage;
+layout(set = 0, binding = 0, rgba8ui) uniform restrict uimage2DArray        u_tilesImage;
+layout(set = 0, binding = 1, rgba8ui) uniform restrict readonly uimage2D    u_materialImage;
 
 const ivec2 NEIGHBORHOOD[] = {
     {-1, +1},     {+0, +1},     {+1, +1},
@@ -19,29 +22,29 @@ const ivec2 NEIGHBORHOOD[] = {
 
 void main() {
     //Load previous value of the tile
-    const uint loadLayer = (storeLayer + 1) & 1;
+    const uint loadLayer = (p_storeLayer + 1) & 1;
     const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-    uvec4 tile = imageLoad(tilesImage, ivec3(pTi, loadLayer));
+    uvec4 tile = imageLoad(u_tilesImage, ivec3(pTi, loadLayer));
 
     //Examine neighbors
     uint neighborsN = 0u;
     for (int i = 0; i < NEIGHBORHOOD.length(); i++){
-        neighborsN += uint(!isAirBlock(imageLoad(tilesImage, ivec3(pTi + NEIGHBORHOOD[i], loadLayer)).BL_T));
+        neighborsN += uint(!isAirBlock(imageLoad(u_tilesImage, ivec3(pTi + NEIGHBORHOOD[i], loadLayer)).BL_T));
     }
 
     //Determine new tile
     if (tile.BL_T == AIR_BL){
-        if (neighborsN > edgeConsolidationPromote){
+        if (neighborsN > p_edgeConsolidationPromote){
             //Surrounded air -> promote to material
-            tile = uvec4(imageLoad(materialImage, pTi).BL_T, tile.gba);
+            tile = uvec4(imageLoad(u_materialImage, pTi).BL_T, tile.gba);
         }
     } else {
-        if (neighborsN < edgeConsolidationReduce){
+        if (neighborsN < p_edgeConsolidationReduce){
             //Lonely solid -> reduce to air
             tile = uvec4(AIR.BL_T, tile.gba);
         }
     }
 
     //Store the new tile
-    imageStore(tilesImage, ivec3(pTi, storeLayer), tile);
+    imageStore(u_tilesImage, ivec3(pTi, p_storeLayer), tile);
 }

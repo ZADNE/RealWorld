@@ -3,9 +3,6 @@
  */
 #include <RealWorld/world/World.hpp>
 
-#include <RealWorld/reserved_units/textures.hpp>
-#include <RealWorld/reserved_units/images.hpp>
-
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
