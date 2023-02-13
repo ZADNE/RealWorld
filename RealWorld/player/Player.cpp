@@ -6,6 +6,7 @@
 #include <glm/common.hpp>
 
 #include <RealEngine/rendering/batches/SpriteBatch.hpp>
+#include <RealEngine/rendering/CommandBuffer.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
@@ -19,7 +20,7 @@ Player::Player():
         .dimsPx = glm::ivec2(m_playerTex.subimageDims()) - glm::ivec2(1),
         .velocityPx = glm::vec2(0.0f, 0.0f)
     }) {
-    m_descriptorSet.write(vk::DescriptorType::eStorageBuffer, 1u, m_hitboxBuf, 0u, sizeof(PlayerHitboxSB));
+    m_descriptorSet.write(vk::DescriptorType::eStorageBuffer, 1u, 0u, m_hitboxBuf, 0u, sizeof(PlayerHitboxSB));
 }
 
 void Player::adoptSave(const PlayerSave& save, const RE::Texture& worldTexture) {
@@ -29,6 +30,14 @@ void Player::adoptSave(const PlayerSave& save, const RE::Texture& worldTexture) 
         .velocityPx = glm::vec2(0.0f, 0.0f)
     };
     m_descriptorSet.write(vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral);
+    RE::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
+        auto copyRegion = vk::BufferCopy2{0ull, 0ull, sizeof(PlayerHitboxSB)};
+        commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
+            *m_hitboxStageBuf,
+            *m_hitboxBuf,
+            copyRegion
+        });
+    });
 }
 
 void Player::gatherSave(PlayerSave& save) const {
@@ -40,12 +49,20 @@ glm::vec2 Player::getCenter() const {
 }
 
 void Player::step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, bool autojump) {
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
+    //Simulate the movement
     m_pushConstants.walkDirection = glm::sign(dir);
     m_pushConstants.jump_autojump = glm::vec2(jump, autojump);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
     commandBuffer.pushConstants<PlayerMovementPC>(*m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
     commandBuffer.dispatch(1u, 1u, 1u);
+    //Copy back the results
+    auto copyRegion = vk::BufferCopy2{0ull, 0ull, sizeof(PlayerHitboxSB)};
+    commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
+        *m_hitboxBuf,
+        *m_hitboxStageBuf,
+        copyRegion
+    });
 }
 
 void Player::draw(RE::SpriteBatch& spriteBatch) {

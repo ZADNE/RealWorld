@@ -16,7 +16,7 @@
 class TileDrawer {
 public:
 
-    TileDrawer(const glm::uvec2& viewSizePx, const glm::ivec2& viewSizeTi);
+    TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
 
     void setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize);
 
@@ -33,7 +33,7 @@ private:
 
     struct PushConstants {
         glm::mat4 viewMat;
-        glm::ivec2 worldTexMask;
+        glm::ivec2 worldTexMask = glm::ivec2(1, 1);
         glm::ivec2 viewSizeTi;
         glm::vec2 botLeftPxModTilePx;
         glm::ivec2 botLeftTi;

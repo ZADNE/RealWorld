@@ -47,7 +47,7 @@ void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture& worl
         m_activeChunksStageMapped->offsets[i] = NO_ACTIVE_CHUNK;
     }
     m_activeChunksStageBuf->copyToBuffer(*m_activeChunksBuf, vk::BufferCopy{0u, 0u, bufSize});
-    m_descriptorSet.write(vk::DescriptorType::eStorageBuffer, 0u, *m_activeChunksBuf, 0ull, bufSize);
+    m_descriptorSet.write(vk::DescriptorType::eStorageBuffer, 0u, 0u, *m_activeChunksBuf, 0ull, bufSize);
 
     //Clear inactive chunks as they do not belong to this world
     m_inactiveChunks.clear();

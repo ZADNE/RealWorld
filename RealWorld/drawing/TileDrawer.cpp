@@ -11,8 +11,9 @@
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
+using enum vk::ImageLayout;
 
-TileDrawer::TileDrawer(const glm::uvec2& viewSizePx, const glm::ivec2& viewSizeTi):
+TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi):
     m_pipelineLayout({}, RE::PipelineLayoutDescription{
         .bindings = {{
             {0u, eCombinedImageSampler, 1u, eVertex | eFragment},   //worldTexture
@@ -39,22 +40,34 @@ TileDrawer::TileDrawer(const glm::uvec2& viewSizePx, const glm::ivec2& viewSizeT
             .frag = drawMinimap_frag
         }
     ) {
-    m_descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 1u, 0u, m_blockAtlasTex);
-    m_descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 2u, 0u, m_wallAtlasTex);
+    m_descriptorSet.write(eCombinedImageSampler, 1u, 0u, m_blockAtlasTex, eReadOnlyOptimal);
+    m_descriptorSet.write(eCombinedImageSampler, 2u, 0u, m_wallAtlasTex, eReadOnlyOptimal);
 
     resizeView(viewSizePx, viewSizeTi);
 }
 
 void TileDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
-    m_descriptorSet.write(vk::DescriptorType::eCombinedImageSampler, 0u, 0u, worldTexture);
+    m_descriptorSet.write(eCombinedImageSampler, 0u, 0u, worldTexture, eReadOnlyOptimal);
     m_pushConstants.worldTexMask = worldTexSize - 1;
+    glm::vec2 viewSizePx = glm::vec2(2.0f, 2.0f) / glm::vec2(m_pushConstants.viewMat[0][0], m_pushConstants.viewMat[1][1]);
+    resizeView(viewSizePx, m_pushConstants.viewSizeTi);
 }
 
 void TileDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi) {
     m_pushConstants.viewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
     m_pushConstants.viewSizeTi = viewSizeTi;
-    float minimapDim = glm::min(viewSizePx.x * 0.875f, viewSizePx.y * 0.875f);
-    m_pushConstants.minimapSize = {minimapDim, minimapDim};
+    glm::vec2 worldTexSize = m_pushConstants.worldTexMask + 1;
+    float worldTexSizeRatio = worldTexSize.x / worldTexSize.y;
+    if (worldTexSizeRatio > 1.0f) {
+        float longerDim = viewSizePx.x - 100.0f;
+        m_pushConstants.minimapSize = glm::vec2(longerDim, longerDim / worldTexSizeRatio);
+    } else if (worldTexSizeRatio < 1.0f) {
+        float longerDim = viewSizePx.y - 100.0f;
+        m_pushConstants.minimapSize = glm::vec2(longerDim * worldTexSizeRatio, longerDim);
+    } else {
+        float longerDim = glm::min(viewSizePx.x - 100.0f, viewSizePx.y - 100.0f);
+        m_pushConstants.minimapSize = glm::vec2(longerDim * worldTexSizeRatio, longerDim);
+    }
     m_pushConstants.minimapOffset = viewSizePx * 0.5f - m_pushConstants.minimapSize * 0.5f;
 }
 
