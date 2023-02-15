@@ -4,7 +4,7 @@
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 
 constexpr int GEN_CS_GROUP_SIZE = 16;
-constexpr glm::uvec2 DISPATCH_SIZE = GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE;
+constexpr glm::uvec2 DISPATCH_SIZE = GEN_CHUNK_DIMS / GEN_CS_GROUP_SIZE;
 
 using enum vk::ImageAspectFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -87,7 +87,7 @@ void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, 
             vk::Offset3D{GEN_BORDER_WIDTH, GEN_BORDER_WIDTH, 0},                    //Src offset
             vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u},                         //Dst subresource
             vk::Offset3D{dstOffset.x, dstOffset.y, 0},                              //Dst offset
-            vk::Extent3D{iCHUNK_SIZE.x, iCHUNK_SIZE.y, 1}                           //Copy Extent
+            vk::Extent3D{iCHUNK_DIMS.x, iCHUNK_DIMS.y, 1}                           //Copy Extent
         }
     );
 }

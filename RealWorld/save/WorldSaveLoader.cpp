@@ -37,7 +37,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.metadata.worldName = worldName;
 
     //Player data
-    save.player.pos = iCHUNK_SIZE * glm::ivec2(0, 5) * iTILEPx;
+    save.player.pos = iCHUNK_DIMS * glm::ivec2(0, 5) * iTILEPx;
     save.inventory.resize({10, 4});
 
     int slot = 0;

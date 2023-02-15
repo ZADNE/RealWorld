@@ -21,7 +21,7 @@
 
 #pragma warning( push )
 #pragma warning( disable : 4200 )
-struct ActiveChunksSSBO {
+struct ActiveChunksSB {
     glm::ivec2 activeChunksMask;
     glm::ivec2 activeChunksArea;
     glm::ivec4 dynamicsGroupSize;
@@ -59,10 +59,10 @@ public:
 
     /**
      * @brief Saves all chunks, keeps them in the memory.
-     *
+     * @note This operation is slow!
      * @return True if successful, false otherwise.
      */
-    bool saveChunks() const;
+    bool saveChunks();
 
     /**
      * @brief Gets the number of inactive chunks held in memory.
@@ -71,72 +71,66 @@ public:
      */
     size_t getNumberOfInactiveChunks();
 
-    /**
-     * @brief Performs beginStep operation on the chunk handler.
-     *
-     * This function increments internal timers for possible memory deallocation.
-     * It should be called every physics beginStep.
-    */
-    void step();
+    void beginStep();
 
     /**
-     * @brief Forces activation of chunks that overlap given rectangular area
-     * @param commandBuffer Command buffer that will be used to record computation commands
+     * @brief Plans activation of chunks that overlap given rectangular area
+     * @param commandBuffer Command buffer that will be used to record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
+     * @warning Must be called between beginStep() and endStep().
     */
-    int forceActivationOfChunks(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+    void planActivationOfChunks(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+
+    int endStep(const vk::CommandBuffer& commandBuffer);
 
 private:
 
-    /**
-     * @brief Activates the chunk at given position.
-     * @detail Previous chunk at the position is deactivated.
-     * @param commandBuffer Command buffer that will be used for generation
-     * @param posCh Position of the chunk
-     * @return    1 if the chunk has been activated.
-     *            0 if it already has been active and thus it was not activated.
-    */
-    int activateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh);
+
+    void planTransition(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh);
+
+    void planActivation(
+        const vk::CommandBuffer& commandBuffer,
+        glm::ivec2& activeChunk,
+        const glm::ivec2& posCh,
+        const glm::ivec2& posAt
+    );
+
+    void planDeactivation(
+        const vk::CommandBuffer& commandBuffer,
+        glm::ivec2& activeChunk,
+        const glm::ivec2& posAt
+    );
+
+    bool planUpload(
+        const vk::CommandBuffer& commandBuffer,
+        const std::vector<unsigned char>& tiles,
+        const glm::ivec2& posCh,
+        const glm::ivec2& posAt
+    );
+
+    bool planDownload(
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2& posCh,
+        const glm::ivec2& posAt
+    );
+
+    void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;
 
     /**
-     * @brief Deactivates the chunk at given position.
-     *
-     * Deactivated chunk is placed to inactive chunks storage.
-     * Does nothing if there is no active chunk at the position.
-     * @param posCh Position of the chunk, measured in chunks
+     * @brief Key: posCh, Val: inactive chunk (current tiles)
     */
-    void deactivateChunk(const glm::ivec2& posCh);
+    std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
 
-    /**
-     * @brief Downloads a chunk from world texture to CPU memory
-     * @param posAt In-texture position of the chunk, measured in tiles/pixels
-     * @return The tiles of the chunk
-    */
-    std::vector<unsigned char> downloadChunk(const glm::ivec2& posAt) const;
-
-    /**
-     * @brief Uploads tiles from a chunk to the world texture
-     * @param chunk Tiles to upload
-     * @param posCh Position of the chunk
-    */
-    void uploadChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;
-
-    /**
-     * @brief Saves tiles from chunk to disk
-     * @param chunk Tiles of the chunk. Size must be: iCHUNK_SIZE.x * iCHUNK_SIZE.y * 4 bytes
-     * @param posCh Global position of the chunk
-    */
-    void saveChunk(const std::vector<unsigned char>& chunk, glm::ivec2 posCh) const;
-
-    mutable std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
-
-    const static inline glm::ivec2 NO_ACTIVE_CHUNK = glm::ivec2(std::numeric_limits<decltype(glm::ivec2::x)>::max());
-    std::vector<glm::ivec2> m_activeChunks;
+    static constexpr auto CHUNK_NOT_ACTIVE = glm::ivec2{std::numeric_limits<int>::max()};
+    static constexpr auto CHUNK_BEING_DOWNLOADED = CHUNK_NOT_ACTIVE - 1;
+    static constexpr auto CHUNK_BEING_UPLOADED = CHUNK_NOT_ACTIVE - 2;
 
     std::optional<RE::Buffer> m_activeChunksBuf;
     std::optional<RE::Buffer> m_activeChunksStageBuf;
-    ActiveChunksSSBO* m_activeChunksStageMapped = nullptr;
+    ActiveChunksSB* m_activeChunksStageMapped = nullptr;
+    int m_transparentChunkChanges = 0;       /**< Number of changes in this step */
+    glm::ivec2& activeChunkAtIndex(int acIndex) const;
 
     RE::PipelineLayout m_pipelineLayout{{}, {.comp = analyzeContinuity_comp}};
     RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
@@ -149,6 +143,19 @@ private:
     ChunkGenerator& m_chunkGen;
     RE::Texture* m_worldTex = nullptr;
     glm::ivec2 m_activeChunksMask;
+
+    //Tile stage
+    static constexpr auto c_tileStageSize = 8;
+    enum class TileStageTransferState {
+        DOWNLOADING,
+        UPLOADING
+    };
+    struct TileStageState {
+        TileStageTransferState transfer;
+        glm::ivec2 posCh;
+    };
+    std::array<TileStageState, c_tileStageSize> m_tileStageStates{};
+    int m_nextFreeTileStage = 0;
     RE::Buffer m_tilesStageBuf;
-    unsigned char* m_tilesStageMapped = m_tilesStageBuf.map<unsigned char>(0u, uCHUNK_SIZE.x * uCHUNK_SIZE.y * 4u);
+    unsigned char* m_tilesStageMapped = m_tilesStageBuf.map<unsigned char>(0ull, VK_WHOLE_SIZE);
 };

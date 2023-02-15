@@ -11,6 +11,10 @@
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
 
+using S = vk::PipelineStageFlagBits2;
+using A = vk::AccessFlagBits2;
+
+
 Player::Player():
     m_hitboxBuf(sizeof(PlayerHitboxSB), eStorageBuffer | eTransferDst | eTransferSrc, eDeviceLocal, PlayerHitboxSB{
         .dimsPx = glm::ivec2(m_playerTex.subimageDims()) - glm::ivec2(1),
@@ -56,8 +60,20 @@ void Player::step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, 
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
     commandBuffer.pushConstants<PlayerMovementPC>(*m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants);
     commandBuffer.dispatch(1u, 1u, 1u);
+
     //Copy back the results
     auto copyRegion = vk::BufferCopy2{0ull, 0ull, sizeof(PlayerHitboxSB)};
+    auto bufferBarrier = vk::BufferMemoryBarrier2{
+        S::eComputeShader,                                                          //Src stage mask
+        A::eShaderStorageWrite | A::eShaderStorageRead,                             //Src access mask
+        S::eTransfer,                                                               //Dst stage mask
+        A::eTransferRead,                                                           //Dst access mask
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        *m_hitboxBuf,
+        copyRegion.srcOffset,
+        copyRegion.size
+    };
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
     commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
         *m_hitboxBuf,
         *m_hitboxStageBuf,

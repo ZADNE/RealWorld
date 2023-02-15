@@ -48,11 +48,6 @@ World::World(ChunkGenerator& chunkGen):
     m_chunkManager(chunkGen),
     m_tilePropertiesBuf(sizeof(TilePropertiesUIB), vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, &TILE_PROPERTIES),
     m_rngState(static_cast<uint32_t>(time(nullptr))) {
-    /*m_simulateFluidsShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_transformTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_transformTilesShd.backInterfaceBlock(1u, UNIF_BUF_TILEPROPERTIES);
-    m_modifyTilesShd.backInterfaceBlock(0u, UNIF_BUF_WORLDDYNAMICS);
-    m_transformTilesShd.backInterfaceBlock(0u, STRG_BUF_ACTIVECHUNKS);*/
 }
 
 const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
@@ -60,7 +55,7 @@ const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& 
     m_worldName = save.worldName;
 
     //Resize the world texture
-    glm::uvec2 texSize = iCHUNK_SIZE * activeChunksArea;
+    glm::uvec2 texSize = iCHUNK_DIMS * activeChunksArea;
     using enum vk::ImageUsageFlagBits;
     m_worldTex = RE::Texture{RE::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
@@ -78,24 +73,12 @@ void World::gatherSave(MetadataSave& save) const {
     save.worldName = m_worldName;
 }
 
-bool World::saveChunks() const {
+bool World::saveChunks() {
     return m_chunkManager.saveChunks();
 }
 
 size_t World::getNumberOfInactiveChunks() {
     return m_chunkManager.getNumberOfInactiveChunks();
-}
-
-void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
-    /*using enum RE::BufferMapUsageFlags;
-    auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUniforms>(0u, offsetof(WorldDynamicsUniforms, timeHash), WRITE | INVALIDATE_RANGE);
-    buffer->globalPosTi = posTi;
-    buffer->modifyTarget = static_cast<glm::uint>(layer);
-    buffer->modifyShape = static_cast<glm::uint>(shape);
-    buffer->modifyDiameter = diameter;
-    buffer->modifySetValue = tile;
-    m_worldDynamicsBuf.unmap();
-    m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);*/
 }
 
 void World::beginStep(const vk::CommandBuffer& commandBuffer) {
@@ -116,8 +99,9 @@ void World::beginStep(const vk::CommandBuffer& commandBuffer) {
 
 int World::step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     //Chunk manager
-    int activatedChunks = m_chunkManager.forceActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
-    m_chunkManager.step();
+    m_chunkManager.beginStep();
+    m_chunkManager.planActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
+    int activatedChunks = m_chunkManager.endStep(commandBuffer);
 
     //Tile transformations
     //m_transformTilesShd.dispatchCompute(offsetof(ActiveChunksSSBO, dynamicsGroupSize), true);
@@ -127,6 +111,18 @@ int World::step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLef
     //fluidDynamicsStep(botLeftTi, topRightTi);
 
     return activatedChunks;
+}
+
+void World::modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile) {
+    /*using enum RE::BufferMapUsageFlags;
+    auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUniforms>(0u, offsetof(WorldDynamicsUniforms, timeHash), WRITE | INVALIDATE_RANGE);
+    buffer->globalPosTi = posTi;
+    buffer->modifyTarget = static_cast<glm::uint>(layer);
+    buffer->modifyShape = static_cast<glm::uint>(shape);
+    buffer->modifyDiameter = diameter;
+    buffer->modifySetValue = tile;
+    m_worldDynamicsBuf.unmap();
+    m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);*/
 }
 
 void World::endStep(const vk::CommandBuffer& commandBuffer) {
@@ -169,11 +165,11 @@ void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& top
     }
 
     //4 rounds, each updates one quarter of the chunks
-    glm::ivec2 dynBotLeftTi = botLeftCh * iCHUNK_SIZE + iCHUNK_SIZE / 2;
+    glm::ivec2 dynBotLeftTi = botLeftCh * iCHUNK_DIMS + iCHUNK_DIMS / 2;
     for (unsigned int i = 0; i < 4u; i++) {
         //Update offset of the groups
         auto* offset = m_worldDynamicsBuf.template map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
-        *offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i]) * iCHUNK_SIZE / 2;
+        *offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i]) * iCHUNK_DIMS / 2;
         m_worldDynamicsBuf.unmap();
         //Dispatch
         m_simulateFluidsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);

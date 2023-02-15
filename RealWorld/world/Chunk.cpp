@@ -3,47 +3,49 @@
 */
 #include <RealWorld/world/Chunk.hpp>
 
-Chunk::Chunk(const glm::ivec2& chunkPosCh, std::vector<unsigned char> data) :
-    m_chunkPosCh(chunkPosCh), m_data(data) {
-    if (data.size() < (static_cast<size_t>(iCHUNK_SIZE.x) * iCHUNK_SIZE.y * 4ull)) {
-        throw std::runtime_error("Not enough bytes provided to construct a chunk!");
-    }
+Chunk::Chunk(const glm::ivec2& chunkPosCh, const uint8_t* tiles):
+    Chunk(chunkPosCh, std::vector<uint8_t>{tiles, tiles + CHUNK_BYTE_SIZE}) {
 }
 
-uchar Chunk::get(TILE_VALUE type, const glm::uvec2& posTi) const {
+Chunk::Chunk(const glm::ivec2& chunkPosCh, std::vector<uint8_t>&& tiles):
+    m_chunkPosCh(chunkPosCh), m_tiles(tiles) {
+    assert(m_tiles.size() >= CHUNK_BYTE_SIZE);
+}
+
+uint8_t Chunk::get(TILE_VALUE type, const glm::uvec2& posTi) const {
     m_stepsSinceLastOperation = 0;
     boundsCheck(posTi);
     return getUnsafe(type, posTi);
 }
 
-uchar Chunk::getUnsafe(TILE_VALUE type, const glm::uvec2& posTi) const {
-    return m_data[getIndexToBuffer(type, posTi)];
+uint8_t Chunk::getUnsafe(TILE_VALUE type, const glm::uvec2& posTi) const {
+    return m_tiles[getIndexToBuffer(type, posTi)];
 }
 
-void Chunk::set(TILE_VALUE type, const glm::uvec2& posTi, uchar value) {
+void Chunk::set(TILE_VALUE type, const glm::uvec2& posTi, uint8_t value) {
     boundsCheck(posTi);
     m_stepsSinceLastOperation = 0;
     setUnsafe(type, posTi, value);
 }
 
-void Chunk::setUnsafe(TILE_VALUE type, const glm::uvec2& posTi, uchar value) {
-    m_data[getIndexToBuffer(type, posTi)] = value;
+void Chunk::setUnsafe(TILE_VALUE type, const glm::uvec2& posTi, uint8_t value) {
+    m_tiles[getIndexToBuffer(type, posTi)] = value;
 }
 
-ulong Chunk::step() const {
+int Chunk::step() const {
     return ++m_stepsSinceLastOperation;
 }
 
-std::vector<unsigned char>& Chunk::data() {
-    return m_data;
+const std::vector<uint8_t>& Chunk::tiles() const {
+    return m_tiles;
 }
 
 void Chunk::boundsCheck(const glm::uvec2& posTi) const {
-    if (posTi.x >= static_cast<unsigned int>(iCHUNK_SIZE.x) || posTi.y >= static_cast<unsigned int>(iCHUNK_SIZE.y)) {
+    if (posTi.x >= static_cast<unsigned int>(iCHUNK_DIMS.x) || posTi.y >= static_cast<unsigned int>(iCHUNK_DIMS.y)) {
         throw std::out_of_range("Tried to get tile " + glm::to_string(posTi) + " which is outside of the requested chunk: " + glm::to_string(m_chunkPosCh));
     }
 }
 
 size_t Chunk::getIndexToBuffer(TILE_VALUE type, const glm::uvec2& posTi) const {
-    return (static_cast<size_t>(posTi.y) * iCHUNK_SIZE.x + posTi.x) * 4ull + (ulong)type;
+    return (static_cast<size_t>(posTi.y) * iCHUNK_DIMS.x + posTi.x) * 4ull + static_cast<size_t>(type);
 }

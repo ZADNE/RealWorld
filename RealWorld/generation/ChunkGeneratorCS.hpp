@@ -50,14 +50,14 @@ private:
 
     RE::Texture m_tilesTex{RE::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
-        .extent = {GEN_CHUNK_SIZE.x, GEN_CHUNK_SIZE.y, 1u},
+        .extent = {GEN_CHUNK_DIMS.x, GEN_CHUNK_DIMS.y, 1u},
         .layers = 2,
         .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral
     }};
     RE::Texture m_materialTex{RE::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
-        .extent = {GEN_CHUNK_SIZE.x, GEN_CHUNK_SIZE.y, 1u},
+        .extent = {GEN_CHUNK_DIMS.x, GEN_CHUNK_DIMS.y, 1u},
         .usage = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral
     }};

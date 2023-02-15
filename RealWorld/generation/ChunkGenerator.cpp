@@ -15,7 +15,7 @@ void ChunkGenerator::setSeed(int seed) {
 }
 
 void ChunkGenerator::generateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, const RE::Texture& destinationTexture, const glm::ivec2& destinationOffset) {
-    m_pushConstants.chunkOffsetTi = posCh * iCHUNK_SIZE;
+    m_pushConstants.chunkOffsetTi = posCh * iCHUNK_DIMS;
 
     prepareToGenerate(commandBuffer);
 

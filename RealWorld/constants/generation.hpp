@@ -18,4 +18,4 @@ constexpr int GEN_BORDER_WIDTH = 8;
  *
  * @see GEN_BORDER_WIDTH
 */
-constexpr glm::ivec2 GEN_CHUNK_SIZE = iCHUNK_SIZE + 2 * GEN_BORDER_WIDTH;
+constexpr glm::ivec2 GEN_CHUNK_DIMS = iCHUNK_DIMS + 2 * GEN_BORDER_WIDTH;

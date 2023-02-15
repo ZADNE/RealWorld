@@ -112,4 +112,14 @@ private:
     };
 
     ViewSizeDependent m_;
+
+    static vk::ImageMemoryBarrier2 imageMemoryBarrier(
+        vk::PipelineStageFlags2   srcStageMask,
+        vk::AccessFlags2          srcAccessMask,
+        vk::PipelineStageFlags2   dstStageMask,
+        vk::AccessFlags2          dstAccessMask,
+        vk::ImageLayout           oldLayout,
+        vk::ImageLayout           newLayout,
+        vk::Image                 image
+    );
 };

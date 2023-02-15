@@ -53,7 +53,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
 }
 
 void WorldRoom::sessionEnd() {
-    //saveWorld();
+    saveWorld();
 }
 
 void WorldRoom::step() {
@@ -70,7 +70,7 @@ void WorldRoom::step() {
     updateInventoryAndUI();
 
     m_computeCommandBuffer->end();
-    m_computeCommandBuffer.submitToComputeQueue();
+    m_computeCommandBuffer.submitToComputeQueue(true);
 }
 
 void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {
@@ -210,11 +210,11 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     m_player.adoptSave(save.player, worldTex);
     m_playerInv.adoptInventoryData(save.inventory);
 
-    m_worldDrawer.setTarget(worldTex, m_gameSettings.getActiveChunksArea() * iCHUNK_SIZE);
+    m_worldDrawer.setTarget(worldTex, m_gameSettings.getActiveChunksArea() * iCHUNK_DIMS);
     return true;
 }
 
-bool WorldRoom::saveWorld() const {
+bool WorldRoom::saveWorld() {
     WorldSave save{};
     m_world.gatherSave(save.metadata);
     m_player.gatherSave(save.player);

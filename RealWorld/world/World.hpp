@@ -14,7 +14,6 @@
 #include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/world/shaders/AllShaders.hpp>
 
 enum class MODIFY_SHAPE: unsigned int {
     SQUARE,
@@ -42,11 +41,6 @@ public:
     size_t getNumberOfInactiveChunks();
 
     /**
-     * @brief Modifies tiles in the world
-    */
-    void modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile);
-
-    /**
      * @brief Performs layout transitions necessary to simulate the world
     */
     void beginStep(const vk::CommandBuffer& commandBuffer);
@@ -60,6 +54,10 @@ public:
     */
     int step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
+    /**
+     * @brief Modifies tiles in the world
+    */
+    void modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile);
 
     /**
      * @brief Performs layout transitions necessary to draw the world
@@ -76,7 +74,7 @@ public:
 
     void gatherSave(MetadataSave& save) const;
 
-    bool saveChunks() const;
+    bool saveChunks();
 
     void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
 
@@ -98,7 +96,6 @@ private:
     int m_seed = 0;
 
     std::string m_worldName;
-    //RE::Buffer m_worldDynamicsBuf{UNIF_BUF_WORLDDYNAMICS, sizeof(WorldDynamicsUniforms), RE::BufferUsageFlags::MAP_WRITE};
 
     RE::Buffer m_tilePropertiesBuf;
 

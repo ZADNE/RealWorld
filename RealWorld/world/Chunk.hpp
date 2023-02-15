@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -12,14 +12,11 @@
 
 #include <RealWorld/constants/chunk.hpp>
 
-using uchar = unsigned char;
-using ushort = unsigned short;
-using ulong = unsigned long;
 
 /**
  * @brief Represents a fixed-size square grid of tiles.
- * 
- * All chunks have the size of CHUNK_SIZE constant.
+ *
+ * All chunks have the size of CHUNK_DIMS constant.
  *
  * A tile is defined by 4 values: block type, block variant, wall type and wall variant.
 */
@@ -32,13 +29,18 @@ public:
     Chunk() {}
 
     /**
-     * @brief Contructs new chunk.
+     * @brief Contructs chunk from raw bytes
      *
      * @param chunkPosCh Position of the chunk, in chunk coordinates.
-     * @param data Raw data of the chunk, size should be dimsTi.x * dimsTi.y * 4
+     * @param tiles Tiles of the chunk, size must be CHUNK_BYTE_SIZE
      * @throws std::exception If data does not hold enough bytes.
      */
-    Chunk(const glm::ivec2& chunkPosCh, std::vector<unsigned char> data);
+    Chunk(const glm::ivec2& chunkPosCh, const uint8_t* tiles);
+
+    /**
+     * @brief Constructs chunk by moving tiles in
+    */
+    Chunk(const glm::ivec2& chunkPosCh, std::vector<uint8_t>&& tiles);
 
     /**
      * @brief Gets a value of a tile inside the chunk.
@@ -51,7 +53,7 @@ public:
      * @return The value of the tile.
      * @throws std::out_of_range When position is outside of this chunk.
      */
-    uchar get(TILE_VALUE type, const glm::uvec2& posTi) const;
+    uint8_t get(TILE_VALUE type, const glm::uvec2& posTi) const;
 
     /**
      * @brief Gets a value of a tile inside the chunk.
@@ -63,7 +65,7 @@ public:
      * @param posTi Position of the tile, relative to this chunk.
      * @return The value of the tile.
      */
-    uchar getUnsafe(TILE_VALUE type, const glm::uvec2& posTi) const;
+    uint8_t getUnsafe(TILE_VALUE type, const glm::uvec2& posTi) const;
 
     /**
      * @brief Sets a value of a tile inside the chunk.
@@ -76,7 +78,7 @@ public:
      * @param value The value to be set.
      * @throws std::out_of_range When position is outside of this chunk.
      */
-    void set(TILE_VALUE type, const glm::uvec2& posTi, uchar value);
+    void set(TILE_VALUE type, const glm::uvec2& posTi, uint8_t value);
 
     /**
      * @brief Sets a value of a tile inside the chunk.
@@ -88,7 +90,7 @@ public:
      * @param posTi Position of the tile, relative to this chunk.
      * @param value The value to be set.
      */
-    void setUnsafe(TILE_VALUE type, const glm::uvec2& posTi, uchar value);
+    void setUnsafe(TILE_VALUE type, const glm::uvec2& posTi, uint8_t value);
 
     /**
      * @brief Performs step on the chunk.
@@ -99,14 +101,14 @@ public:
      *
      * @return The number of steps since the last read/write operation
      */
-    ulong step() const;
+    int step() const;
 
     /**
-     * @brief Gets raw data of the chunk.
+     * @brief Gets tiles of the chunk.
      *
-     * @return Raw data inside a vector.
+     * @return Tiles inside a vector.
      */
-    std::vector<unsigned char>& data();
+    const std::vector<uint8_t>& tiles() const;
 
 private:
 
@@ -131,7 +133,7 @@ private:
      */
     size_t getIndexToBuffer(TILE_VALUE type, const glm::uvec2& posTi) const;
 
-    std::vector<unsigned char> m_data;              /**< Raw data of the chunk */
+    std::vector<uint8_t> m_tiles;                   /**< Tiles of the chunk */
     glm::ivec2 m_chunkPosCh{0, 0};                  /**< Position of the chunk, measured in chunk coordinates */
-    mutable ulong m_stepsSinceLastOperation = 0ul;  /**< Steps since last read/write operation inside this chunk */
+    mutable int m_stepsSinceLastOperation = 0;      /**< Steps since last read/write operation inside this chunk */
 };

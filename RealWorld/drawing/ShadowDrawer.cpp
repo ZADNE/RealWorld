@@ -114,54 +114,64 @@ void ShadowDrawer::calculate(
     const vk::CommandBuffer& commandBuffer,
     const glm::ivec2& botLeftPx
 ) {
-    //Add dynamic lights
-    if (m_.analysisPC.lightCount > 0) {
+    if (m_.analysisPC.lightCount > 0) {//If there are any dynamic lights
+        //Wait for the analysis to be finished
+        auto imageBarrier = imageMemoryBarrier(
+            S::eComputeShader,                                                          //Src stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
+            S::eComputeShader,                                                          //Dst stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite,                             //Dst access mask
+            eGeneral,                                                                   //Old image layout
+            eGeneral,                                                                   //New image layout
+            m_.lightTex.image()
+        );
+        commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+
+        //Add dynamic lights
         m_.analysisPC.addLightOffsetPx = ((botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK) + HALF_UNIT_OFFSET;
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
         commandBuffer.pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
         commandBuffer.dispatch(1u + (m_.analysisPC.lightCount - 1u) / 8u, 1u, 1u);
     }
 
-    //Calculate shadows
+    //Wait for the light and traslu texture to be written
     vk::ImageMemoryBarrier2 imageBarriers[] = {
-        vk::ImageMemoryBarrier2{
+        imageMemoryBarrier(
             S::eComputeShader,                                                          //Src stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
             S::eComputeShader,                                                          //Dst stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite,                             //Dst access mask
             eGeneral,                                                                   //Old image layout
             eShaderReadOnlyOptimal,                                                     //New image layout
-            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
-            m_.lightTex.image(),
-            vk::ImageSubresourceRange{eColor, 0u, 1u, 0u, 1u}
-        },
-        vk::ImageMemoryBarrier2{
+            m_.lightTex.image()
+        ),
+        imageMemoryBarrier(
             S::eComputeShader,                                                          //Src stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
             S::eComputeShader,                                                          //Dst stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite,                             //Dst access mask
             eGeneral,                                                                   //Old image layout
             eShaderReadOnlyOptimal,                                                     //New image layout
-            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
-            m_.transluTex.image(),
-            vk::ImageSubresourceRange{eColor, 0u, 1u, 0u, 1u}
-        },
-        vk::ImageMemoryBarrier2{
+            m_.transluTex.image()
+        ),
+        imageMemoryBarrier(
             S::eVertexShader,                                                           //Src stage mask
             A::eShaderSampledRead,                                                      //Src access mask
             S::eComputeShader,                                                          //Dst stage mask
             A::eShaderStorageWrite,                                                     //Dst access mask
             eShaderReadOnlyOptimal,                                                     //Old image layout
             eGeneral,                                                                   //New image layout
-            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
-            m_.shadowsTex.image(),
-            vk::ImageSubresourceRange{eColor, 0u, 1u, 0u, 1u}
-        }
+            m_.shadowsTex.image()
+        )
     };
+
+    //Calculate shadows
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_calculateShadowsPl);
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_calculationPll, 0u, *m_.calculationDS, {});
     commandBuffer.dispatch(m_.calculationGroupCount.x, m_.calculationGroupCount.y, m_.calculationGroupCount.z);
+
+    //Reverse layout transitions
     std::swap(imageBarriers[0].oldLayout, imageBarriers[0].newLayout);
     std::swap(imageBarriers[1].oldLayout, imageBarriers[1].newLayout);
     std::swap(imageBarriers[2].oldLayout, imageBarriers[2].newLayout);
@@ -182,6 +192,25 @@ void ShadowDrawer::draw(
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_shadowDrawingPll, 0u, *m_.shadowDrawingDS, {});
     commandBuffer.pushConstants<ShadowDrawingPC>(*m_shadowDrawingPll, eVertex, 0u, m_.shadowDrawingPC);
     commandBuffer.draw(4u, viewSizeTi.x * viewSizeTi.y, 0u, 0u);
+}
+
+vk::ImageMemoryBarrier2 ShadowDrawer::imageMemoryBarrier(
+    vk::PipelineStageFlags2   srcStageMask,
+    vk::AccessFlags2          srcAccessMask,
+    vk::PipelineStageFlags2   dstStageMask,
+    vk::AccessFlags2          dstAccessMask,
+    vk::ImageLayout           oldLayout,
+    vk::ImageLayout           newLayout,
+    vk::Image                 image
+) {
+    return vk::ImageMemoryBarrier2{
+        srcStageMask, srcAccessMask,
+        dstStageMask, dstAccessMask,
+        oldLayout, newLayout,
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,   //No ownership transition
+        image,
+        vk::ImageSubresourceRange{eColor, 0u, 1u, 0u, 1u}   //Whole image
+    };
 }
 
 ShadowDrawer::ViewSizeDependent::ViewSizeDependent(

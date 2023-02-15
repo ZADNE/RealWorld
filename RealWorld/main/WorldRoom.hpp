@@ -59,7 +59,7 @@ private:
      *
      * @return True if successful, false otherwise.
      */
-    bool saveWorld() const;
+    bool saveWorld();
 
     glm::mat4 calculateWindowViewMat(const glm::vec2& windowDims) const;
 
