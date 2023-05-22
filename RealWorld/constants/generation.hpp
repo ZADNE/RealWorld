@@ -9,13 +9,13 @@
  *
  * Avoids errors at edges of generated chunks.
 */
-constexpr int GEN_BORDER_WIDTH = 8;
+constexpr int k_genBorderWidth = 8;
 
 /**
  * @brief Size of the area that is generated for each chunk
  *
  * It is bigger than the actual chunk because it contains the padding around.
  *
- * @see GEN_BORDER_WIDTH
+ * @see k_genBorderWidth
 */
-constexpr glm::ivec2 GEN_CHUNK_DIMS = iCHUNK_DIMS + 2 * GEN_BORDER_WIDTH;
+constexpr glm::ivec2 k_genChunkSize = iChunkTi + 2 * k_genBorderWidth;

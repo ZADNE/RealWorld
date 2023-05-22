@@ -29,22 +29,17 @@ public:
 
 private:
 
-    static constexpr RE::RoomDisplaySettings DEFAULT_SETTINGS{
-        .framesPerSecondLimit = 144,
-        .usingImGui = true
-    };
-
     enum class Menu {
-        MAIN,
-        NEW_WORLD,
-        LOAD_WORLD,
-        DISPLAY_SETTINGS,
-        CONTROLS
+        Main,
+        NewWorld,
+        LoadWorld,
+        DisplaySettings,
+        Controls
     };
     using enum Menu;
 
     GameSettings& m_gameSettings;
-    Menu m_menu = MAIN;                                 /**< The currently open menu */
+    Menu m_menu = Main;                                 /**< The currently open menu */
     std::vector<std::string> m_worlds;                  /**< Names of all worlds that can be loaded */
     ImFont* m_arial16 = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 28.0f);
     std::string m_newWorldName;                         /**< Name of the world that will be created */
@@ -53,9 +48,8 @@ private:
     bool m_fullscreen = engine().isWindowFullscreen();
     bool m_borderless = engine().isWindowBorderless();
     bool m_vSync = engine().isWindowVSynced();
-    decltype(RESOLUTIONS)::const_iterator m_resolution;
-    decltype(RENDERERS)::const_iterator m_renderer;
-    decltype(ACTIVE_CHUNKS_AREAS)::const_iterator m_activeChunksArea;
+    decltype(k_resolutions)::const_iterator m_resolution;
+    decltype(k_activeChunkAreas)::const_iterator m_activeChunksArea;
 
     bool m_drawKeybindListeningPopup = false;           /**< True if currently listening */
 

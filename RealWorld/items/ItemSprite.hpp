@@ -14,7 +14,7 @@ class ItemSprite {
 public:
 
     ItemSprite();
-    ItemSprite(ITEM ID);
+    ItemSprite(ItemId id);
     ItemSprite(ItemSample item);
 
     RE::SpriteComplex& sprite();
@@ -27,5 +27,5 @@ private:
     /**
      * @brief Filenames of all item atlases must begin with this prefix
     */
-    static inline const std::string ATLAS_PREFIX = "itemAtlas";
+    static inline const std::string k_atlasPrefix = "itemAtlas";
 };

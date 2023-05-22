@@ -8,22 +8,22 @@
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
 #ifdef _DEBUG
-constexpr unsigned int FPS_LIMIT = 300u;
+constexpr unsigned int k_frameRateLimit = 300u;
 #else
-constexpr unsigned int FPS_LIMIT = RE::Synchronizer::DO_NOT_LIMIT_FRAMES_PER_SECOND;
+constexpr unsigned int k_frameRateLimit = RE::Synchronizer::k_doNotLimitFramesPerSecond;
 #endif // _DEBUG
 
-constexpr glm::vec4 SKY_BLUE = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
+constexpr glm::vec4 k_skyBlue = glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
 
-constexpr RE::RoomDisplaySettings INITIAL_SETTINGS{
-    .clearColor = SKY_BLUE,
-    .stepsPerSecond = PHYSICS_STEPS_PER_SECOND,
-    .framesPerSecondLimit = FPS_LIMIT,
+constexpr RE::RoomDisplaySettings k_initialSettings{
+    .clearColor = k_skyBlue,
+    .stepsPerSecond = k_physicsStepsPerSecond,
+    .framesPerSecondLimit = k_frameRateLimit,
     .usingImGui = true
 };
 
 WorldRoom::WorldRoom(const GameSettings& gameSettings):
-    Room(1, INITIAL_SETTINGS),
+    Room(1, k_initialSettings),
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
     m_worldDrawer(engine().getWindowDims(), 32u),
@@ -33,7 +33,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings):
     m_invUI(engine().getWindowDims()) {
 
     //InventoryUI connections
-    m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::PRIMARY);
+    m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
     m_invUI.connectToItemUser(&m_itemUser);
 }
 
@@ -84,6 +84,11 @@ void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolat
         m_worldDrawer.drawShadows(commandBuffer);
     }
 
+    m_geometryBatch.begin();
+    m_itemUser.render(m_worldView.getCursorRel(), m_geometryBatch);
+    m_geometryBatch.end();
+    m_geometryBatch.draw(commandBuffer, m_worldView.getViewMatrix());
+
     drawGUI(commandBuffer);
 }
 
@@ -103,17 +108,18 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
 
     //Modify the world with player's tools
     m_itemUser.step(
-        keybindDown(ITEMUSER_USE_PRIMARY) && !m_invUI.isOpen(),
-        keybindDown(ITEMUSER_USE_SECONDARY) && !m_invUI.isOpen(),
+        *m_computeCommandBuffer,
+        keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
+        keybindDown(ItemuserUseSecondary) && !m_invUI.isOpen(),
         m_worldView.getCursorRel()
     );
 
     //Move the player within the updated world
     m_player.step(
         *m_computeCommandBuffer,
-        (keybindDown(PLAYER_LEFT) ? -1.0f : 0.0f) + (keybindDown(PLAYER_RIGHT) ? +1.0f : 0.0f),
-        keybindDown(PLAYER_JUMP),
-        keybindDown(PLAYER_AUTOJUMP)
+        (keybindDown(PlayerLeft) ? -1.0f : 0.0f) + (keybindDown(PlayerRight) ? +1.0f : 0.0f),
+        keybindDown(PlayerJump),
+        keybindDown(PlayerAutojump)
     );
 
     //Finish the simulation step (transit image layouts back)
@@ -144,33 +150,33 @@ void WorldRoom::analyzeWorldForDrawing() {
 void WorldRoom::updateInventoryAndUI() {
     //Inventory
     m_invUI.step();
-    if (keybindPressed(INV_OPEN_CLOSE)) { m_invUI.openOrClose(); }
+    if (keybindPressed(InvOpenClose)) { m_invUI.openOrClose(); }
     if (m_invUI.isOpen()) {//Inventory is open
-        if (keybindPressed(INV_MOVE_ALL)) { m_invUI.swapUnderCursor(engine().getCursorAbs()); }
-        if (keybindPressed(INV_MOVE_PORTION)) { m_invUI.movePortion(engine().getCursorAbs(), 0.5f); }
+        if (keybindPressed(InvMoveAll)) { m_invUI.swapUnderCursor(engine().getCursorAbs()); }
+        if (keybindPressed(InvMovePortion)) { m_invUI.movePortion(engine().getCursorAbs(), 0.5f); }
     } else { //Inventory is closed
-        using enum SlotSelectionManner;
-        if (keybindDown(ITEMUSER_HOLD_TO_RESIZE)) {
-            if (keybindPressed(ITEMUSER_WIDEN)) { m_itemUser.resizeShape(1.0f); }
-            if (keybindPressed(ITEMUSER_SHRINK)) { m_itemUser.resizeShape(-1.0f); }
+        using enum InventoryUI::SlotSelectionManner;
+        if (keybindDown(ItemuserHoldToResize)) {
+            if (keybindPressed(ItemuserWiden)) { m_itemUser.resizeShape(1.0f); }
+            if (keybindPressed(ItemuserShrink)) { m_itemUser.resizeShape(-1.0f); }
         } else {
-            if (keybindPressed(INV_RIGHT_SLOT)) { m_invUI.selectSlot(RIGHT, keybindPressed(INV_RIGHT_SLOT)); }
-            if (keybindPressed(INV_LEFT_SLOT)) { m_invUI.selectSlot(LEFT, keybindPressed(INV_LEFT_SLOT)); }
+            if (keybindPressed(InvRightSlot)) { m_invUI.selectSlot(ScrollRight, keybindPressed(InvRightSlot)); }
+            if (keybindPressed(InvLeftSlot)) { m_invUI.selectSlot(ScrollLeft, keybindPressed(InvLeftSlot)); }
         }
-        if (keybindPressed(INV_PREV_SLOT)) { m_invUI.selectSlot(PREV, 0); }
+        if (keybindPressed(InvPrevSlot)) { m_invUI.selectSlot(ToPrevious, 0); }
 
-        constexpr int SLOT0_INT = static_cast<int>(INV_SLOT0);
+        int slot0 = static_cast<int>(InvSlot0);
         for (int i = 0; i < 10; ++i) {
-            if (keybindPressed(static_cast<RealWorldKeyBindings>(SLOT0_INT + i))) { m_invUI.selectSlot(ABS, i); }
+            if (keybindPressed(static_cast<RealWorldKeyBindings>(slot0 + i))) { m_invUI.selectSlot(AbsolutePos, i); }
         }
-        if (keybindPressed(ITEMUSER_SWITCH_SHAPE)) { m_itemUser.switchShape(); }
+        if (keybindPressed(ItemuserSwitchShape)) { m_itemUser.switchShape(); }
     }
 
     //Toggles & quit
-    if (keybindPressed(QUIT)) { engine().scheduleRoomTransition(0, {}); }
-    if (keybindPressed(MINIMAP)) { m_minimap = !m_minimap; }
-    if (keybindPressed(SHADOWS)) { m_shadows = !m_shadows; }
-    if (keybindPressed(PERMUTE)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
+    if (keybindPressed(Quit)) { engine().scheduleRoomTransition(0, {}); }
+    if (keybindPressed(Minimap)) { m_minimap = !m_minimap; }
+    if (keybindPressed(Shadows)) { m_shadows = !m_shadows; }
+    if (keybindPressed(Permute)) { m_world.shouldPermuteOrder(m_permute = !m_permute); }
 }
 
 void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
@@ -210,7 +216,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     m_player.adoptSave(save.player, worldTex);
     m_playerInv.adoptInventoryData(save.inventory);
 
-    m_worldDrawer.setTarget(worldTex, m_gameSettings.getActiveChunksArea() * iCHUNK_DIMS);
+    m_worldDrawer.setTarget(worldTex, m_gameSettings.getActiveChunksArea() * iChunkTi);
     return true;
 }
 

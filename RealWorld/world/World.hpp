@@ -15,12 +15,6 @@
 #include <RealWorld/world/ChunkManager.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
-enum class MODIFY_SHAPE: unsigned int {
-    SQUARE,
-    DISC,
-    FILL
-};
-
 /**
  * @brief Represents the world as an endless grid of tiles.
  *
@@ -28,6 +22,12 @@ enum class MODIFY_SHAPE: unsigned int {
  */
 class World {
 public:
+
+    enum class ModificationShape: uint32_t {
+        Square,
+        Disk,
+        Fill
+    };
 
     /**
      * @brief Initializes the world
@@ -57,7 +57,7 @@ public:
     /**
      * @brief Modifies tiles in the world
     */
-    void modify(LAYER layer, MODIFY_SHAPE shape, float diameter, const glm::ivec2& posTi, const glm::uvec2& tile);
+    void modify(const vk::CommandBuffer& commandBuffer, TileLayer layer, ModificationShape shape, float radius, const glm::ivec2& posTi, const glm::uvec2& tile);
 
     /**
      * @brief Performs layout transitions necessary to draw the world

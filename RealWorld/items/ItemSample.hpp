@@ -9,23 +9,22 @@
 */
 struct ItemSample {
 
-    ItemSample(){};
-        //Construct entry from parameters
-    ItemSample(ITEM ID, float special) : ID(ID), special(special) {};
+    ItemSample() {};
+    ItemSample(ItemId id, float special) :
+        id(id), special(special) {
+    };
 
-        
-    bool operator==(const ItemSample& other) const;
-    bool operator!=(const ItemSample& other) const { return !operator==(other); };
+    auto operator<=>(const ItemSample&) const = default;
 
-        //ItemSample is considered empty if its ITEM == ITEM::EMPTY
+        //ItemSample is considered empty if its ItemId == ItemId::Empty
     bool isEmpty() const;
 
-    ITEM ID = ITEM::EMPTY;
+    ItemId id = ItemId::Empty;
     float special = 0.0f;
 };
 
 struct ItemSampleHasher {
     size_t operator()(const ItemSample& otherSample) const {
-        return ((size_t)otherSample.ID | (size_t)otherSample.special << 16);
+        return ((size_t)otherSample.id | (size_t)otherSample.special << 16);
     }
 };

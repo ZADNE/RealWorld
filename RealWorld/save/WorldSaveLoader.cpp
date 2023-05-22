@@ -37,15 +37,15 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.metadata.worldName = worldName;
 
     //Player data
-    save.player.pos = iCHUNK_DIMS * glm::ivec2(0, 5) * iTILEPx;
+    save.player.pos = iChunkTi * glm::ivec2(0, 5) * iTilePx;
     save.inventory.resize({10, 4});
 
     int slot = 0;
-    save.inventory(slot++) = Item{ITEM::CREATIVE_PICKAXE, 1};
-    save.inventory(slot++) = Item{ITEM::CREATIVE_HAMMER, 1};
+    save.inventory(slot++) = Item{ItemId::CreativePickaxe, 1};
+    save.inventory(slot++) = Item{ItemId::CreativeHammer, 1};
 
-    for (size_t i = static_cast<size_t>(ITEM::F_WATER); i <= static_cast<size_t>(ITEM::W_DRY_GRASS); ++i) {
-        save.inventory(slot++) = Item{static_cast<ITEM>(i), 1};
+    for (size_t i = static_cast<size_t>(ItemId::FWater); i <= static_cast<size_t>(ItemId::WDryGrass); ++i) {
+        save.inventory(slot++) = Item{static_cast<ItemId>(i), 1};
     }
 
     return saveWorld(save, worldName, true);

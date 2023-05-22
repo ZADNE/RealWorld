@@ -68,7 +68,7 @@ private:
 
     RE::CommandBuffer m_computeCommandBuffer{vk::CommandBufferLevel::ePrimary};
     RE::SpriteBatch m_spriteBatch{256, 64};
-    RE::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024};
+    RE::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
 
     //View
     RE::View2D m_worldView{engine().getWindowDims()};

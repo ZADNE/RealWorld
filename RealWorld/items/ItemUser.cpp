@@ -12,11 +12,12 @@ ItemUser::ItemUser(World& world, Inventory& inventory) :
 }
 
 void ItemUser::switchShape() {
-    m_shape = m_shape == MODIFY_SHAPE::DISC ? MODIFY_SHAPE::SQUARE : MODIFY_SHAPE::DISC;
+    using enum World::ModificationShape;
+    m_shape = m_shape == Disk ? Square : Disk;
 }
 
 void ItemUser::resizeShape(float change) {
-    m_diameter = glm::clamp(m_diameter + change, 0.5f, 7.5f);
+    m_radiusTi = glm::clamp(m_radiusTi + change, 0.5f, 7.5f);
 }
 
 void ItemUser::selectSlot(int slot) {
@@ -24,7 +25,7 @@ void ItemUser::selectSlot(int slot) {
     m_item = &m_inv[m_chosenSlot][0];
 }
 
-void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx) {
+void ItemUser::step(const vk::CommandBuffer& commandBuffer, bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx) {
     bool use[2] = {usePrimary, useSecondary};
 
     //Update usage
@@ -36,52 +37,67 @@ void ItemUser::step(bool usePrimary, bool useSecondary, const glm::ivec2& relCur
         }
     }
 
-    const ItemMetadata& md = ItemDatabase::md(m_item->ID);
+    const ItemMetadata& md = ItemDatabase::md(m_item->id);
 
-    //MAIN
-    if (m_using[PRIMARY_USE] > 0) {
+    //Main
+    if (m_using[k_primaryUse] > 0) {
         switch (md.type) {
-        case ITEM_TYPE::EMPTY:
+        case ItemType::Empty:
             break;
-        case ITEM_TYPE::PICKAXE:
-            m_world.modify(LAYER::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(BLOCK::AIR, 0));
+        case ItemType::Pickaxe:
+            m_world.modify(commandBuffer, TileLayer::BlockLayer, m_shape, m_radiusTi, pxToTi(relCursorPosPx), glm::uvec2(Block::Air, 0));
             break;
-        case ITEM_TYPE::HAMMER:
-            m_world.modify(LAYER::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(WALL::AIR, 0));
+        case ItemType::Hammer:
+            m_world.modify(commandBuffer, TileLayer::WallLayer, m_shape, m_radiusTi, pxToTi(relCursorPosPx), glm::uvec2(Wall::Air, 0));
             break;
         }
     }
     //ALTERNATIVE
-    if (m_using[SECONDARY_USE] > 0) {
+    if (m_using[k_secondaryUse] > 0) {
         switch (md.type) {
-        case ITEM_TYPE::EMPTY:
+        case ItemType::Empty:
             break;
-        case ITEM_TYPE::BLOCK:
-            m_world.modify(LAYER::BLOCK, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256));
+        case ItemType::Block:
+            m_world.modify(commandBuffer, TileLayer::BlockLayer, m_shape, m_radiusTi, pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256));
             break;
-        case ITEM_TYPE::WALL:
-            m_world.modify(LAYER::WALL, m_shape, m_diameter, pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256));
+        case ItemType::Wall:
+            m_world.modify(commandBuffer, TileLayer::WallLayer, m_shape, m_radiusTi, pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256));
             break;
         }
     }
+}
 
-    //TODO
-    /*if (md.type != ITEM_TYPE::EMPTY) {//Draw
+void ItemUser::render(const glm::vec2& relCursorPosPx, RE::GeometryBatch& gb) {
+    const ItemMetadata& md = ItemDatabase::md(m_item->id);
+
+    if (md.type != ItemType::Empty) {
         RE::Color col{255, 255, 255, 255};
-        glm::vec2 c = tiToPx(pxToTi(relCursorPosPx)) + TILEPx * 0.5f;
-        float dia = m_diameter * TILEPx.x;
-        if (m_shape == MODIFY_SHAPE::DISC) {
-            RE::CirclePOCO circ{RE::CirclePO{c, dia, false}, col}; TODO
-            gb.addCircles(0u, 1u, &circ);
-        } else {
-            RE::VertexPOCO square[4] = {
-                {c + glm::vec2{-dia, -dia}, col},
-                {c + glm::vec2{+dia, -dia}, col},
-                {c + glm::vec2{+dia, +dia}, col},
-                {c + glm::vec2{-dia, +dia}, col}
-            };
-            gb.addPrimitives(RE::PRIM::LINE_LOOP, 0, 4, square);
+        glm::vec2 center = tiToPx(pxToTi(relCursorPosPx)) + TilePx * 0.5f;
+        float radPx = m_radiusTi * TilePx.x;
+        if (m_shape == World::ModificationShape::Disk) {
+            constexpr float k_quality = 16.0f;
+            constexpr float k_angleIncr = glm::pi<float>() * 2.0f / k_quality;
+            std::array<RE::VertexPOCO, static_cast<size_t>(k_quality * 2.0f)> vertices;
+            for (float i = 0.0f; i < k_quality; i++) {
+                float a = i * k_angleIncr;
+                glm::vec2 p = center + glm::vec2{cos(a), sin(a)} * radPx;
+                vertices[static_cast<size_t>(i * 2.0f) % vertices.size()] = RE::VertexPOCO{p, col};
+                vertices[static_cast<size_t>(i * 2.0f - 1.0f) % vertices.size()] = RE::VertexPOCO{p, col};
+            }
+            gb.addVertices(vertices);
+        } else if (m_shape == World::ModificationShape::Square) {
+            auto tl = center + glm::vec2{-radPx, +radPx};
+            auto tr = center + glm::vec2{+radPx, +radPx};
+            auto br = center + glm::vec2{+radPx, -radPx};
+            auto bl = center + glm::vec2{-radPx, -radPx};
+            std::array<RE::VertexPOCO, 8> vertices = std::to_array<RE::VertexPOCO>({
+                {tl, col}, {tr, col},
+                {tr, col}, {br, col},
+                {br, col}, {bl, col},
+                {bl, col}, {tl, col},
+            });
+            gb.addVertices(vertices);
         }
-    }*/
+    }
 }
 

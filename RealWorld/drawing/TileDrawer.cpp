@@ -72,7 +72,7 @@ void TileDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewS
 }
 
 void TileDrawer::drawTiles(const vk::CommandBuffer& commandBuffer, const glm::vec2& botLeftPx) {
-    m_pushConstants.botLeftPxModTilePx = glm::mod(botLeftPx, TILEPx);
+    m_pushConstants.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
     m_pushConstants.botLeftTi = glm::ivec2(pxToTi(botLeftPx));
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {});
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);

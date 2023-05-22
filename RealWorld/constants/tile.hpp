@@ -8,58 +8,58 @@
 #include <glm/common.hpp>
 
 //Physics steps per second
-constexpr int PHYSICS_STEPS_PER_SECOND = 100;
+constexpr int k_physicsStepsPerSecond = 100;
 
 /**
  * @brief Dimensions of a tile, in pixels
 */
-constexpr glm::uvec2 uTILEPx = glm::uvec2(4u, 4u);
-constexpr glm::ivec2 iTILEPx = uTILEPx;
-constexpr glm::vec2 TILEPx = uTILEPx;
+constexpr glm::uvec2 uTilePx = glm::uvec2(4u, 4u);
+constexpr glm::ivec2 iTilePx = uTilePx;
+constexpr glm::vec2 TilePx = uTilePx;
 
 
-enum class BLOCK : uint8_t {
-    STONE, DIRT, GRASS, COLD_STONE,
-    SAND, COLD_DIRT, COLD_GRASS, MUD,
-    MUD_GRASS, DRY_GRASS, HALLOW_STONE, HALLOW_DIRT,
-    HALLOW_GRASS,
+enum class Block : uint8_t {
+    Stone, Dirt, Grass, ColdStone,
+    Sand, ColdDirt, ColdGrass, Mud,
+    MudGrass, DryGrass, HallowStone, HallowDirt,
+    HallowGrass,
 
-    WATER = 224, LAVA, STEAM,
-    FIRE, SMOKE,
-    
-    ACID = 254,
+    Water = 224, Lava, Steam,
+    Fire, Smoke,
 
-    AIR = 255
+    Acid = 254,
+
+    Air = 255
 };
 
-enum class WALL : uint8_t {
-    STONE, DIRT, GRASS, COLD_STONE,
-    SAND, COLD_DIRT, COLD_GRASS, MUD,
-    MUD_GRASS, DRY_GRASS, HALLOW_STONE, HALLOW_DIRT,
-    HALLOW_GRASS,
+enum class Wall : uint8_t {
+    Stone, Dirt, Grass, ColdStone,
+    Sand, ColdDirt, ColdGrass, Mud,
+    MudGrass, DryGrass, HallowStone, HallowDirt,
+    HallowGrass,
 
-    AIR = 255
+    Air = 255
 };
 
-enum class TILE_VALUE : unsigned int {
-    BLOCK = 0, BLOCK_VAR = 1, WALL = 2, WALL_VAR = 3
+enum class TileAttrib : uint32_t {
+    BlockType = 0, BlockVar = 1, WallType = 2, WallVar = 3
 };
 
-enum class LAYER : unsigned int {
-    BLOCK = static_cast<unsigned int>(TILE_VALUE::BLOCK),
-    WALL = static_cast<unsigned int>(TILE_VALUE::WALL)
+enum class TileLayer : uint32_t {
+    BlockLayer = static_cast<uint32_t>(TileAttrib::BlockType),
+    WallLayer = static_cast<uint32_t>(TileAttrib::WallType)
 };
 
 /**
  * @brief Converts a position in pixels to position in tiles
  */
 inline glm::vec2 pxToTi(const glm::vec2& posPx) {
-    return glm::floor(posPx / TILEPx);
+    return glm::floor(posPx / TilePx);
 }
 
 /**
  * @brief Converts a position in tiles to position in pixels
  */
 constexpr inline glm::vec2 tiToPx(const glm::vec2& posTi) {
-    return posTi * TILEPx;
+    return posTi * TilePx;
 }

@@ -30,10 +30,10 @@ void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
     m_botLeftPx = botLeftPx;
-    m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx));
+    m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
     return ViewEnvelope{
-        .botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi),
-        .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi)
+        .botLeftTi = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi),
+        .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(k_lightMaxRangeTi)
     };
 }
 
@@ -62,5 +62,5 @@ void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
 }
 
 glm::uvec2 WorldDrawer::viewSizeTi(const glm::vec2& viewSizePx) const {
-    return glm::uvec2(glm::ceil(viewSizePx / TILEPx)) + 1u;
+    return glm::uvec2(glm::ceil(viewSizePx / TilePx)) + 1u;
 }

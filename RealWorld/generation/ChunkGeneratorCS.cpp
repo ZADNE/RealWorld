@@ -3,8 +3,8 @@
  */
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 
-constexpr int GEN_CS_GROUP_SIZE = 16;
-constexpr glm::uvec2 DISPATCH_SIZE = GEN_CHUNK_DIMS / GEN_CS_GROUP_SIZE;
+constexpr int k_groupSize = 16;
+constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
 using enum vk::ImageAspectFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -25,7 +25,7 @@ void ChunkGeneratorCS::generateBasicTerrain(const vk::CommandBuffer& commandBuff
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
     m_pushConstants.storeLayer = 0;
     commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
-    commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
+    commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
 void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
@@ -39,7 +39,7 @@ void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) 
             commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
             //Consolidate
             commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
-            commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
+            commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
         }
     };
     auto doublePass = [pass](const glm::ivec2& firstThresholds, const glm::ivec2& secondThresholds, size_t passes) {
@@ -61,7 +61,7 @@ void ChunkGeneratorCS::selectVariant(const vk::CommandBuffer& commandBuffer) {
     m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
     commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
-    commandBuffer.dispatch(DISPATCH_SIZE.x, DISPATCH_SIZE.y, 1u);
+    commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
 void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) {
@@ -84,10 +84,10 @@ void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, 
         dstTex.image(), vk::ImageLayout::eGeneral,                                  //Dst image
         vk::ImageCopy{
             vk::ImageSubresourceLayers{eColor, 0u, m_pushConstants.storeLayer, 1u}, //Src subresource
-            vk::Offset3D{GEN_BORDER_WIDTH, GEN_BORDER_WIDTH, 0},                    //Src offset
+            vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0},                    //Src offset
             vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u},                         //Dst subresource
             vk::Offset3D{dstOffset.x, dstOffset.y, 0},                              //Dst offset
-            vk::Extent3D{iCHUNK_DIMS.x, iCHUNK_DIMS.y, 1}                           //Copy Extent
+            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}                           //Copy Extent
         }
     );
 }

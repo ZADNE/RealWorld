@@ -8,22 +8,22 @@
 #include <RealWorld/items/Item.hpp>
 
 ItemSprite::ItemSprite() :
-    ItemSprite{ITEM::EMPTY} {
+    ItemSprite{ItemId::Empty} {
 }
 
-ItemSprite::ItemSprite(ITEM ID) :
-    m_tex(RE::RM::texture({.file = ATLAS_PREFIX + ItemDatabase::md(ID).textureAtlas})),
+ItemSprite::ItemSprite(ItemId id) :
+    m_tex(RE::RM::texture({.file = k_atlasPrefix + ItemDatabase::md(id).textureAtlas})),
     m_sprite{
         *m_tex,
-        ItemDatabase::md(ID).spriteIndex, 0.0f, 1.0f,
+        ItemDatabase::md(id).spriteIndex, 0.0f, 1.0f,
         RE::Color{255u, 255u, 255u, 255u},
-        glm::vec2(ItemDatabase::md(ID).drawScale)
+        glm::vec2(ItemDatabase::md(id).drawScale)
     } {
 
 }
 
 ItemSprite::ItemSprite(ItemSample item) :
-    ItemSprite{item.ID} {
+    ItemSprite{item.id } {
 }
 
 RE::SpriteComplex& ItemSprite::sprite() {

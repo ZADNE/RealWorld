@@ -7,8 +7,6 @@
 #include <exception>
 
 #include <glm/vec2.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/ext.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
 
@@ -16,7 +14,7 @@
 /**
  * @brief Represents a fixed-size square grid of tiles.
  *
- * All chunks have the size of CHUNK_DIMS constant.
+ * All chunks have the size of ChunkTi constant.
  *
  * A tile is defined by 4 values: block type, block variant, wall type and wall variant.
 */
@@ -32,7 +30,7 @@ public:
      * @brief Contructs chunk from raw bytes
      *
      * @param chunkPosCh Position of the chunk, in chunk coordinates.
-     * @param tiles Tiles of the chunk, size must be CHUNK_BYTE_SIZE
+     * @param tiles Tiles of the chunk, size must be k_chunkByteSize
      * @throws std::exception If data does not hold enough bytes.
      */
     Chunk(const glm::ivec2& chunkPosCh, const uint8_t* tiles);
@@ -53,7 +51,7 @@ public:
      * @return The value of the tile.
      * @throws std::out_of_range When position is outside of this chunk.
      */
-    uint8_t get(TILE_VALUE type, const glm::uvec2& posTi) const;
+    uint8_t get(TileAttrib type, const glm::uvec2& posTi) const;
 
     /**
      * @brief Gets a value of a tile inside the chunk.
@@ -65,7 +63,7 @@ public:
      * @param posTi Position of the tile, relative to this chunk.
      * @return The value of the tile.
      */
-    uint8_t getUnsafe(TILE_VALUE type, const glm::uvec2& posTi) const;
+    uint8_t getUnsafe(TileAttrib type, const glm::uvec2& posTi) const;
 
     /**
      * @brief Sets a value of a tile inside the chunk.
@@ -78,7 +76,7 @@ public:
      * @param value The value to be set.
      * @throws std::out_of_range When position is outside of this chunk.
      */
-    void set(TILE_VALUE type, const glm::uvec2& posTi, uint8_t value);
+    void set(TileAttrib type, const glm::uvec2& posTi, uint8_t value);
 
     /**
      * @brief Sets a value of a tile inside the chunk.
@@ -90,7 +88,7 @@ public:
      * @param posTi Position of the tile, relative to this chunk.
      * @param value The value to be set.
      */
-    void setUnsafe(TILE_VALUE type, const glm::uvec2& posTi, uint8_t value);
+    void setUnsafe(TileAttrib type, const glm::uvec2& posTi, uint8_t value);
 
     /**
      * @brief Performs step on the chunk.
@@ -131,7 +129,7 @@ private:
      * @param posTi Position
      * @return Index to the buffer.
      */
-    size_t getIndexToBuffer(TILE_VALUE type, const glm::uvec2& posTi) const;
+    size_t getIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const;
 
     std::vector<uint8_t> m_tiles;                   /**< Tiles of the chunk */
     glm::ivec2 m_chunkPosCh{0, 0};                  /**< Position of the chunk, measured in chunk coordinates */

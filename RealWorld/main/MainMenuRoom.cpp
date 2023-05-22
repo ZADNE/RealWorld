@@ -11,10 +11,10 @@
 
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
-const char* KEYBIND_NOTICE = "Press a key to change the keybind.\nOr press Delete to cancel.";
+const char* k_keybindNotice = "Press a key to change the keybind.\nOr press Delete to cancel.";
 
-glm::vec2 KEYBIND_NOTICE_SIZE() {
-    return ImGui::CalcTextSize(KEYBIND_NOTICE);
+glm::vec2 keybindNoticeSize() {
+    return ImGui::CalcTextSize(k_keybindNotice);
 }
 
 //Lil' helper func
@@ -25,17 +25,21 @@ void controlsCategoryHeader(const char* header) {
     ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn();
 }
 
+static constexpr RE::RoomDisplaySettings k_initialSettings{
+    .framesPerSecondLimit = 144,
+        .usingImGui = true
+};
+
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
-    Room(0, DEFAULT_SETTINGS),
+    Room(0, k_initialSettings),
     m_gameSettings(gameSettings),
-    m_resolution(std::find(RESOLUTIONS.begin(), RESOLUTIONS.end(), engine().getWindowDims())),
-    m_renderer(std::find(RENDERERS.begin(), RENDERERS.end(), engine().getUsedRenderer())),
-    m_activeChunksArea(std::find(ACTIVE_CHUNKS_AREAS.begin(), ACTIVE_CHUNKS_AREAS.end(), m_gameSettings.getActiveChunksArea())) {
+    m_resolution(std::find(k_resolutions.begin(), k_resolutions.end(), engine().getWindowDims())),
+    m_activeChunksArea(std::find(k_activeChunkAreas.begin(), k_activeChunkAreas.end(), m_gameSettings.getActiveChunksArea())) {
 
 }
 
 void MainMenuRoom::sessionStart(const RE::RoomTransitionArguments& args) {
-    m_menu = MAIN;
+    m_menu = Main;
     WorldSaveLoader::getSavedWorlds(m_worlds);
     m_newWorldName = "";
     m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
@@ -59,17 +63,17 @@ void MainMenuRoom::render(const vk::CommandBuffer& commandBuffer, double interpo
         ImGui::Indent();
         ImGui::SetCursorPosY(ImGui::GetFrameHeight());
         switch (m_menu) {
-        case MAIN: mainMenu(); break;
-        case NEW_WORLD: newWorldMenu(); break;
-        case LOAD_WORLD: loadWorldMenu(); break;
-        case DISPLAY_SETTINGS: displaySettingsMenu(); break;
-        case CONTROLS: controlsMenu(); break;
+        case Main: mainMenu(); break;
+        case NewWorld: newWorldMenu(); break;
+        case LoadWorld: loadWorldMenu(); break;
+        case DisplaySettings: displaySettingsMenu(); break;
+        case Controls: controlsMenu(); break;
         }
 
-        if (m_menu != MAIN) {
+        if (m_menu != Main) {
             ImGui::SetCursorPosY(engine().getWindowDims().y - ImGui::GetFrameHeight() * 2.0f);
             ImGui::Separator();
-            if (ImGui::Button("Return to main menu") || keybindReleased(QUIT)) m_menu = MAIN;
+            if (ImGui::Button("Return to main menu") || keybindReleased(Quit)) m_menu = Main;
         }
     }
     ImGui::End();
@@ -82,14 +86,14 @@ void MainMenuRoom::keybindCallback(RE::Key newKey) {
 
 void MainMenuRoom::mainMenu() {
     ImGui::SetNextItemWidth(400.0f);
-    if (ImGui::Button("Create a new world")) m_menu = NEW_WORLD;
-    if (ImGui::Button("Load a saved world")) m_menu = LOAD_WORLD;
-    if (ImGui::Button("Display settings")) m_menu = DISPLAY_SETTINGS;
-    if (ImGui::Button("Controls")) m_menu = CONTROLS;
+    if (ImGui::Button("Create a new world")) m_menu = NewWorld;
+    if (ImGui::Button("Load a saved world")) m_menu = LoadWorld;
+    if (ImGui::Button("Display settings")) m_menu = DisplaySettings;
+    if (ImGui::Button("Controls")) m_menu = Controls;
 
     ImGui::SetCursorPosY(engine().getWindowDims().y - ImGui::GetFrameHeight() * 2.0f);
     ImGui::Separator();
-    if (ImGui::Button("Exit") || keybindPressed(QUIT)) engine().scheduleExit();
+    if (ImGui::Button("Exit") || keybindPressed(Quit)) engine().scheduleExit();
 }
 
 void MainMenuRoom::newWorldMenu() {
@@ -149,17 +153,11 @@ void MainMenuRoom::displaySettingsMenu() {
     }
 
     auto width = engine().getWindowDims().x * 0.2f;
-    if (comboSelect(RESOLUTIONS, "Resolution", width, m_resolution, ivec2ToString)) {
+    if (comboSelect(k_resolutions, "Resolution", width, m_resolution, ivec2ToString)) {
         engine().setWindowDims(*m_resolution, true);
     }
 
-    if (comboSelect(RENDERERS, "Preferred renderer", width, m_renderer, rendererToString)) {
-        engine().setPreferredRenderer(*m_renderer, true);
-    }
-    std::string currRenderer = "(requires restart; current: " + rendererToString(RENDERERS[static_cast<size_t>(engine().getUsedRenderer())]) + ")";
-    ImGui::SameLine(); ImGui::TextUnformatted(currRenderer.c_str());
-
-    if (comboSelect(ACTIVE_CHUNKS_AREAS, "Active chunks area", width, m_activeChunksArea, ivec2ToString)) {
+    if (comboSelect(k_activeChunkAreas, "Active chunks area", width, m_activeChunksArea, ivec2ToString)) {
         m_gameSettings.setActiveChunksArea(*m_activeChunksArea);
         m_gameSettings.save();
     }
@@ -171,19 +169,19 @@ void MainMenuRoom::controlsMenu() {
 
     ImGui::BeginTable("##controlsTable", 3,
         ImGuiTableFlags_ScrollY, {0.0f, engine().getWindowDims().y - ImGui::GetFrameHeight() * 4.125f});
-    for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::COUNT); i++) {
+    for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::Count); i++) {
         ImGui::PushID(static_cast<int>(i));
         switch (static_cast<RealWorldKeyBindings>(i)) {
-        case INV_OPEN_CLOSE: controlsCategoryHeader("Inventory"); break;
-        case ITEMUSER_USE_PRIMARY: controlsCategoryHeader("Item usage"); break;
-        case PLAYER_LEFT: controlsCategoryHeader("Player movement"); break;
-        case QUIT: controlsCategoryHeader("Other"); break;
+        case InvOpenClose: controlsCategoryHeader("Inventory"); break;
+        case ItemuserUsePrimary: controlsCategoryHeader("Item usage"); break;
+        case PlayerLeft: controlsCategoryHeader("Player movement"); break;
+        case Quit: controlsCategoryHeader("Other"); break;
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
-        ImGui::TextUnformatted(KEYBINDING_INFO[i].desc);
+        ImGui::TextUnformatted(k_keybindingInfo[i].desc);
         ImGui::TableNextColumn();
 
         RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
@@ -192,7 +190,7 @@ void MainMenuRoom::controlsMenu() {
             m_drawKeybindListeningPopup = true;
         }
 
-        if (keybinder(binding) != KEYBINDING_INFO[i].defaultValue) {
+        if (keybinder(binding) != k_keybindingInfo[i].defaultValue) {
             ImGui::TableNextColumn();
             if (ImGui::Button("Reset")) {
                 keybinder().resetBinding(static_cast<RealWorldKeyBindings>(i));
@@ -204,10 +202,10 @@ void MainMenuRoom::controlsMenu() {
     if (m_drawKeybindListeningPopup) {
         glm::vec2 display = engine().getWindowDims();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::SetNextWindowContentSize(KEYBIND_NOTICE_SIZE());
-        ImGui::SetNextWindowPos(display * 0.5f - KEYBIND_NOTICE_SIZE() * 0.5f);
+        ImGui::SetNextWindowContentSize(keybindNoticeSize());
+        ImGui::SetNextWindowPos(display * 0.5f - keybindNoticeSize() * 0.5f);
         if (ImGui::Begin("##listening", nullptr, ImGuiWindowFlags_NoDecoration)) {
-            ImGui::TextUnformatted(KEYBIND_NOTICE);
+            ImGui::TextUnformatted(k_keybindNotice);
         }
         ImGui::End();
         ImGui::PopStyleVar();

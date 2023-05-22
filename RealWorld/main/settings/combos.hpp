@@ -12,7 +12,7 @@
 #include <RealEngine/window/WindowSubsystems.hpp>
 
 
-constexpr std::array RESOLUTIONS = {
+constexpr std::array k_resolutions = {
     glm::ivec2{1280, 1024},
     glm::ivec2{1360, 768},
     glm::ivec2{1366, 768},
@@ -26,7 +26,7 @@ constexpr std::array RESOLUTIONS = {
     glm::ivec2{3840, 2160}
 };
 
-constexpr std::array ACTIVE_CHUNKS_AREAS = {
+constexpr std::array k_activeChunkAreas = {
     glm::ivec2{8, 8},
     glm::ivec2{16, 8},
     glm::ivec2{16, 16},
@@ -38,17 +38,6 @@ constexpr std::array ACTIVE_CHUNKS_AREAS = {
 
 inline std::string ivec2ToString(const glm::ivec2& vec) {
     return std::to_string(vec.x) + "x" + std::to_string(vec.y);
-}
-
-constexpr std::array RENDERERS = {
-    RE::RendererID::VULKAN13
-};
-
-inline std::string rendererToString(RE::RendererID id) {
-    constexpr std::array names = std::to_array({
-        "Vulkan 1.3"
-    });
-    return names[static_cast<size_t>(id)];
 }
 
 template<typename T, size_t N, typename ToStringConvertor>

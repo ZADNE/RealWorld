@@ -13,7 +13,7 @@ constexpr glm::uint HALLOWb =    1 << 4;
 
 
 //To be edited with propertiesHelper.txt
-constexpr std::array<glm::uvec4, 256> BLOCK_TRANSFORMATION_PROPERTIES = {
+constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
 //              Properties                                  The first applicable rule   The last applicable rule    Padding
     glm::uvec4{ STONEb,                                     6,                          6,                          0},
     glm::uvec4{ DIRTb,                                      0,                          1,                          0},

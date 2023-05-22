@@ -9,8 +9,8 @@
 #include <RealWorld/constants/light.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
 
-constexpr int UNIT_MASK = ~(iLIGHT_SCALE * iTILEPx.x - 1);
-constexpr int HALF_UNIT_OFFSET = iTILEPx.x * iLIGHT_SCALE / 2;
+constexpr int k_unitMask = ~(k_iLightScale * iTilePx.x - 1);
+constexpr int k_halfUnitOffset = iTilePx.x * k_iLightScale / 2;
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -20,14 +20,14 @@ using enum vk::MemoryPropertyFlagBits;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
-constexpr glm::vec2 ANALYSIS_GROUP_SIZE = glm::vec2{8.0f};
+constexpr glm::vec2 k_analysisGroupSize = glm::vec2{8.0f};
 glm::uvec3 getAnalysisGroupCount(const glm::vec2& viewSizeTi) {
-    return {glm::ceil((viewSizeTi + glm::vec2(LIGHT_MAX_RANGETi) * 2.0f) / ANALYSIS_GROUP_SIZE / LIGHT_SCALE), 1u};
+    return {glm::ceil((viewSizeTi + glm::vec2(k_lightMaxRangeTi) * 2.0f) / k_analysisGroupSize / k_lightScale), 1u};
 }
 
-constexpr glm::vec2 CALC_GROUP_SIZE = glm::vec2{8.0f};
+constexpr glm::vec2 k_calcGroupSize = glm::vec2{8.0f};
 glm::uvec3 getShadowsCalculationGroupCount(const glm::vec2& viewSizeTi) {
-    return {glm::ceil((viewSizeTi + LIGHT_SCALE * 2.0f) / CALC_GROUP_SIZE / LIGHT_SCALE), 1u};
+    return {glm::ceil((viewSizeTi + k_lightScale * 2.0f) / k_calcGroupSize / k_lightScale), 1u};
 }
 
 ShadowDrawer::ShadowDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi, glm::uint maxNumberOfExternalLights):
@@ -98,7 +98,7 @@ void ShadowDrawer::analyze(
     const vk::CommandBuffer& commandBuffer,
     const glm::ivec2& botLeftTi
 ) {
-    m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi)) & ~LIGHT_SCALE_BITS;
+    m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) & ~k_lightScaleBits;
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_analysisPll, 0u, *m_.analysisDS, {});
     commandBuffer.pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
@@ -128,7 +128,7 @@ void ShadowDrawer::calculate(
         commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
         //Add dynamic lights
-        m_.analysisPC.addLightOffsetPx = ((botLeftPx - LIGHT_MAX_RANGETi * iTILEPx) & UNIT_MASK) + HALF_UNIT_OFFSET;
+        m_.analysisPC.addLightOffsetPx = ((botLeftPx - k_lightMaxRangeTi * iTilePx) & k_unitMask) + k_halfUnitOffset;
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
         commandBuffer.pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
         commandBuffer.dispatch(1u + (m_.analysisPC.lightCount - 1u) / 8u, 1u, 1u);
@@ -186,8 +186,8 @@ void ShadowDrawer::draw(
     const glm::vec2& botLeftPx,
     const glm::uvec2& viewSizeTi
 ) {
-    m_.shadowDrawingPC.botLeftPxModTilePx = glm::mod(botLeftPx, TILEPx);
-    m_.shadowDrawingPC.readOffsetTi = glm::ivec2(pxToTi(botLeftPx)) & LIGHT_SCALE_BITS;
+    m_.shadowDrawingPC.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
+    m_.shadowDrawingPC.readOffsetTi = glm::ivec2(pxToTi(botLeftPx)) & k_lightScaleBits;
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawShadowsPl);
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_shadowDrawingPll, 0u, *m_.shadowDrawingDS, {});
     commandBuffer.pushConstants<ShadowDrawingPC>(*m_shadowDrawingPll, eVertex, 0u, m_.shadowDrawingPC);
@@ -226,20 +226,20 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     analysisGroupCount(getAnalysisGroupCount(viewSizeTi)),
     calculationGroupCount(getShadowsCalculationGroupCount(viewSizeTi)),
     lightTex(RE::TextureCreateInfo{
-        .extent = {glm::vec2{analysisGroupCount} *ANALYSIS_GROUP_SIZE, 1u},
+        .extent = {glm::vec2{analysisGroupCount} *k_analysisGroupSize, 1u},
         .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
         .initialLayout = eGeneral,
         .magFilter = vk::Filter::eLinear
     }),
     transluTex(RE::TextureCreateInfo{
         .format = vk::Format::eR8Unorm,
-        .extent = {glm::vec2{analysisGroupCount} *ANALYSIS_GROUP_SIZE, 1u},
+        .extent = {glm::vec2{analysisGroupCount} *k_analysisGroupSize, 1u},
         .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
         .initialLayout = eGeneral,
         .magFilter = vk::Filter::eLinear
     }),
     shadowsTex(RE::TextureCreateInfo{
-        .extent = {glm::vec2{calculationGroupCount} *CALC_GROUP_SIZE, 1u},
+        .extent = {glm::vec2{calculationGroupCount} *k_calcGroupSize, 1u},
         .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
         .magFilter = vk::Filter::eLinear
     }),

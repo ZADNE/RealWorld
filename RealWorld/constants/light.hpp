@@ -3,8 +3,8 @@
  */
 #pragma once
 
-constexpr int LIGHT_MAX_RANGETi = 128;
+constexpr int k_lightMaxRangeTi = 128;
 
-constexpr int iLIGHT_SCALE = 4;
-constexpr float LIGHT_SCALE = iLIGHT_SCALE;
-constexpr int LIGHT_SCALE_BITS = 0b11;
+constexpr int k_iLightScale = 4;
+constexpr float k_lightScale = k_iLightScale;
+constexpr int k_lightScaleBits = 0b11;

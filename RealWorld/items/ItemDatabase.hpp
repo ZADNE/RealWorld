@@ -5,62 +5,62 @@
 #include <string>
 #include <array>
 
-enum class ITEM : uint16_t {
-    EMPTY,
+enum class ItemId : uint16_t {
+    Empty,
     //Fluids
-    F_WATER,
-    F_LAVA,
-    F_STEAM,
-    F_FIRE,
-    F_SMOKE,
-    F_ACID,
+    FWater,
+    FLava,
+    FSteam,
+    FFire,
+    FSmoke,
+    FAcid,
     //Blocks
-    B_STONE,
-    B_DIRT,
-    B_GRASS,
-    B_COLD_STONE,
-    B_SAND,
-    B_COLD_DIRT,
-    B_COLD_GRASS,
-    B_MUD,
-    B_MUD_GRASS,
-    B_DRY_GRASS,
-    B_HALLOW_STONE,
-    B_HALLOW_DIRT,
-    B_HALLOW_GRASS,
+    BStone,
+    BDirt,
+    BGrass,
+    BColdStone,
+    BSand,
+    BColdDirt,
+    BColdGrass,
+    BMud,
+    BMudGrass,
+    BDryGrass,
+    BHallowStone,
+    BHallowDirt,
+    BHallowGrass,
     //Walls
-    W_STONE,
-    W_DIRT,
-    W_GRASS,
-    W_COLD_STONE,
-    W_SAND,
-    W_COLD_DIRT,
-    W_COLD_GRASS,
-    W_MUD,
-    W_MUD_GRASS,
-    W_DRY_GRASS,
+    WStone,
+    WDirt,
+    WGrass,
+    WColdStone,
+    WSand,
+    WColdDirt,
+    WColdGrass,
+    WMud,
+    WMudGrass,
+    WDryGrass,
     //Pickaxes
-    CREATIVE_PICKAXE,
-    ///Hammers
-    CREATIVE_HAMMER,
+    CreativePickaxe,
+    //Hammers
+    CreativeHammer,
 
-    COUNT
+    Count
 };
 
-enum class ITEM_TYPE : uint32_t {
-    EMPTY,
-    MATERIAL,
-    BLOCK,
-    WALL,
-    PICKAXE,//Mines blocks
-    HAMMER,//Mines walls
-    CURSOR_LIGHT,
-    OPERATOR_LIGHT
+enum class ItemType : uint32_t {
+    Empty,
+    Material,
+    Block,
+    Wall,
+    Pickaxe,//Mines blocks
+    Hammer,//Mines walls
+    CursorLight,
+    OperatorLight
 };
 
 struct ItemMetadata {
 
-    ItemMetadata(int maxStack, char textureAtlas, float spriteIndex, float drawScale, ITEM_TYPE type, int typeIndex, const std::string& name) :
+    ItemMetadata(int maxStack, char textureAtlas, float spriteIndex, float drawScale, ItemType type, int typeIndex, const std::string& name) :
         name(name),
         maxStack(maxStack),
         textureAtlas(textureAtlas),
@@ -78,7 +78,7 @@ struct ItemMetadata {
     float spriteIndex;//Determines which sprite in the texture atlas should be used
     float drawScale;//Both X and Y scaling used when drawing the item inside slot
 
-    ITEM_TYPE type;
+    ItemType type;
     int typeIndex;//ID of the block with block types
 };
 
@@ -91,9 +91,9 @@ public:
     /**
      * @brief Fetches metadata of an item
     */
-    const static ItemMetadata& md(ITEM ID);
+    const static ItemMetadata& md(ItemId id);
 
 private:
 
-    const static std::array<ItemMetadata, static_cast<size_t>(ITEM::COUNT)> m_itemMetadata;
+    const static std::array<ItemMetadata, static_cast<size_t>(ItemId::Count)> m_itemMetadata;
 };

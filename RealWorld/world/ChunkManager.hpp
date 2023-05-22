@@ -122,9 +122,9 @@ private:
     */
     std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
 
-    static constexpr auto CHUNK_NOT_ACTIVE = glm::ivec2{std::numeric_limits<int>::max()};
-    static constexpr auto CHUNK_BEING_DOWNLOADED = CHUNK_NOT_ACTIVE - 1;
-    static constexpr auto CHUNK_BEING_UPLOADED = CHUNK_NOT_ACTIVE - 2;
+    static constexpr auto k_chunkNotActive = glm::ivec2{std::numeric_limits<int>::max()};
+    static constexpr auto k_chunkBeingDownloaded = k_chunkNotActive - 1;
+    static constexpr auto k_chunkBeingUploaded = k_chunkNotActive - 2;
 
     std::optional<RE::Buffer> m_activeChunksBuf;
     std::optional<RE::Buffer> m_activeChunksStageBuf;
@@ -145,16 +145,16 @@ private:
     glm::ivec2 m_activeChunksMask;
 
     //Tile stage
-    static constexpr auto c_tileStageSize = 8;
+    static constexpr auto k_tileStageSize = 8;
     enum class TileStageTransferState {
-        DOWNLOADING,
-        UPLOADING
+        Downloading,
+        Uploading
     };
     struct TileStageState {
         TileStageTransferState transfer;
         glm::ivec2 posCh;
     };
-    std::array<TileStageState, c_tileStageSize> m_tileStageStates{};
+    std::array<TileStageState, k_tileStageSize> m_tileStageStates{};
     int m_nextFreeTileStage = 0;
     RE::Buffer m_tilesStageBuf;
     unsigned char* m_tilesStageMapped = m_tilesStageBuf.map<unsigned char>(0ull, VK_WHOLE_SIZE);

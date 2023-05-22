@@ -22,7 +22,7 @@ vk::DeviceSize calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
 
 ChunkManager::ChunkManager(ChunkGenerator& chunkGen):
     m_chunkGen(chunkGen),
-    m_tilesStageBuf(c_tileStageSize* CHUNK_BYTE_SIZE, eTransferSrc | eTransferDst, eHostVisible | eHostCoherent) {
+    m_tilesStageBuf(k_tileStageSize* k_chunkByteSize, eTransferSrc | eTransferDst, eHostVisible | eHostCoherent) {
 }
 
 void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture& worldTex, const glm::ivec2& activeChunksArea) {
@@ -44,7 +44,7 @@ void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture& worl
     m_activeChunksStageMapped->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_activeChunksMask.x * m_activeChunksMask.y;
     for (int i = maxNumberOfUpdateChunks; i < (maxNumberOfUpdateChunks + activeChunksArea.x * activeChunksArea.y); i++) {
-        m_activeChunksStageMapped->offsets[i] = CHUNK_NOT_ACTIVE;
+        m_activeChunksStageMapped->offsets[i] = k_chunkNotActive;
     }
     //m_activeChunksStageBuf->copyToBuffer(*m_activeChunksBuf, vk::BufferCopy{0u, 0u, bufSize}); TODO
     m_descriptorSet.write(vk::DescriptorType::eStorageBuffer, 0u, 0u, *m_activeChunksBuf, 0ull, bufSize);
@@ -81,7 +81,7 @@ bool ChunkManager::saveChunks() {
     auto saveAllChunksInTileStage = [&]() {
         for (size_t i = 0; i < m_nextFreeTileStage; ++i) {
             const auto& stageState = m_tileStageStates[i];
-            saveChunk(&m_tilesStageMapped[CHUNK_BYTE_SIZE * i], stageState.posCh);
+            saveChunk(&m_tilesStageMapped[k_chunkByteSize * i], stageState.posCh);
         }
         m_nextFreeTileStage = 0;
     };
@@ -91,7 +91,7 @@ bool ChunkManager::saveChunks() {
         for (int x = 0; x < worldTexSize.x; ++x) {
             auto posAc = glm::ivec2(x, y);
             auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, worldTexSize));
-            if (activeChunk != CHUNK_NOT_ACTIVE) {
+            if (activeChunk != k_chunkNotActive) {
                 if (!planDownload(*commandBuffer, activeChunk, chToTi(posAc))) {
                     //Stage is full
                     commandBuffer->end();
@@ -129,7 +129,7 @@ size_t ChunkManager::getNumberOfInactiveChunks() {
 void ChunkManager::beginStep() {
     //Check inactive chunks that have been inactive for too long
     for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {//For each inactive chunk
-        if (it->second.step() >= PHYSICS_STEPS_PER_SECOND * 60) {//If the chunk has not been used for a minute
+        if (it->second.step() >= k_physicsStepsPerSecond * 60) {//If the chunk has not been used for a minute
             saveChunk(it->second.tiles().data(), it->first);//Save the chunk to disk
             it = m_inactiveChunks.erase(it);//And remove it from the collection
         } else { it++; }
@@ -142,18 +142,18 @@ void ChunkManager::beginStep() {
         auto posAc = chToAc(stageState.posCh, m_activeChunksMask);
         auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_activeChunksMask + 1));
         switch (stageState.transfer) {
-        case TileStageTransferState::DOWNLOADING:
+        case TileStageTransferState::Downloading:
         {
             //Copy the tiles aside from the stage
             m_inactiveChunks.emplace(
                 stageState.posCh,
-                Chunk{stageState.posCh, &m_tilesStageMapped[CHUNK_BYTE_SIZE * i]}
+                Chunk{stageState.posCh, &m_tilesStageMapped[k_chunkByteSize * i]}
             );
             //Signal that there is no active chunk at the spot
-            activeChunk = CHUNK_NOT_ACTIVE;
+            activeChunk = k_chunkNotActive;
             break;
         }
-        case TileStageTransferState::UPLOADING:
+        case TileStageTransferState::Uploading:
         {
             //Signal new the active chunks
             activeChunk = stageState.posCh;
@@ -225,10 +225,10 @@ void ChunkManager::planTransition(const vk::CommandBuffer& commandBuffer, const 
     if (activeChunk == posCh) {
         //Chunk has already been active
         return;//No transition is needed
-    } else if (activeChunk == CHUNK_NOT_ACTIVE) {
+    } else if (activeChunk == k_chunkNotActive) {
         //No chunk is active at the spot
         planActivation(commandBuffer, activeChunk, posCh, chToTi(posAc));
-    } else if (activeChunk != CHUNK_BEING_DOWNLOADED && activeChunk != CHUNK_BEING_UPLOADED) {
+    } else if (activeChunk != k_chunkBeingDownloaded && activeChunk != k_chunkBeingUploaded) {
         //A different chunk is active at the spot
         planDeactivation(commandBuffer, activeChunk, chToTi(posAc));
     }
@@ -246,13 +246,13 @@ void ChunkManager::planActivation(
         //Query upload of the chunk
         if (planUpload(commandBuffer, it->second.tiles(), posCh, posAt)) {
             m_inactiveChunks.erase(it);         //Remove the chunk from inactive chunks
-            activeChunk = CHUNK_BEING_UPLOADED; //And signal that it is being uploaded
+            activeChunk = k_chunkBeingUploaded; //And signal that it is being uploaded
         }
     } else {
-        std::optional<std::vector<uint8_t>> tiles = ChunkLoader::loadChunk(m_folderPath, posCh, iCHUNK_DIMS);
+        std::optional<std::vector<uint8_t>> tiles = ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
         if (tiles) {//If chunk has been loaded
             if (planUpload(commandBuffer, *tiles, posCh, posAt)) {
-                activeChunk = CHUNK_BEING_UPLOADED;  //Signal that it is being uploaded
+                activeChunk = k_chunkBeingUploaded;  //Signal that it is being uploaded
             } else {
                 //Could not upload the chunk -> at least store it as an inactive chunk
                 m_inactiveChunks.emplace(posCh, Chunk{posCh, std::move(*tiles)});
@@ -272,7 +272,7 @@ void ChunkManager::planDeactivation(
 ) {
     //Query download of the chunk
     if (planDownload(commandBuffer, activeChunk, posAt)) {
-        activeChunk = CHUNK_BEING_DOWNLOADED;//Deactivate the spot
+        activeChunk = k_chunkBeingDownloaded;//Deactivate the spot
         m_transparentChunkChanges++;
     }
 }
@@ -283,19 +283,19 @@ bool ChunkManager::planUpload(
     const glm::ivec2& posCh,
     const glm::ivec2& posAt
 ) {
-    if (m_nextFreeTileStage < c_tileStageSize) {//If there is a free stage
+    if (m_nextFreeTileStage < k_tileStageSize) {//If there is a free stage
         m_tileStageStates[m_nextFreeTileStage] = {
-            .transfer = TileStageTransferState::UPLOADING,
+            .transfer = TileStageTransferState::Uploading,
             .posCh = posCh
         };
-        auto bufOffset = static_cast<vk::DeviceSize>(m_nextFreeTileStage) * CHUNK_BYTE_SIZE;
-        std::memcpy(&m_tilesStageMapped[bufOffset], tiles.data(), CHUNK_BYTE_SIZE);
+        auto bufOffset = static_cast<vk::DeviceSize>(m_nextFreeTileStage) * k_chunkByteSize;
+        std::memcpy(&m_tilesStageMapped[bufOffset], tiles.data(), k_chunkByteSize);
         auto copy = vk::BufferImageCopy2{
             bufOffset,                          //Buffer offset
             0u, 0u,                             //Tightly packed
             {eColor, 0u, 0u, 1u},               //Subresource
             {posAt.x, posAt.y, 0u},             //Offset
-            {iCHUNK_DIMS.x, iCHUNK_DIMS.y, 1u}  //Extent
+            {iChunkTi.x, iChunkTi.y, 1u}  //Extent
         };
         commandBuffer.copyBufferToImage2(
             vk::CopyBufferToImageInfo2{
@@ -316,18 +316,18 @@ bool ChunkManager::planDownload(
     const glm::ivec2& posCh,
     const glm::ivec2& posAt
 ) {
-    if (m_nextFreeTileStage < c_tileStageSize) {//If there is a free stage
+    if (m_nextFreeTileStage < k_tileStageSize) {//If there is a free stage
         m_tileStageStates[m_nextFreeTileStage] = {
-            .transfer = TileStageTransferState::DOWNLOADING,
+            .transfer = TileStageTransferState::Downloading,
             .posCh = posCh
         };
-        vk::DeviceSize bufOffset = m_nextFreeTileStage * CHUNK_BYTE_SIZE;
+        vk::DeviceSize bufOffset = m_nextFreeTileStage * k_chunkByteSize;
         auto copy = vk::BufferImageCopy2{
             bufOffset,                              //Buffer offset
             0u, 0u,                                 //Tightly packed
             {eColor, 0u, 0u, 1u},                   //Subresource
             {posAt.x, posAt.y, 0u},                 //Offset
-            {iCHUNK_DIMS.x, iCHUNK_DIMS.y, 1u}      //Extent
+            {iChunkTi.x, iChunkTi.y, 1u}      //Extent
         };
         commandBuffer.copyImageToBuffer2(
             vk::CopyImageToBufferInfo2{
@@ -344,7 +344,7 @@ bool ChunkManager::planDownload(
 }
 
 void ChunkManager::saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const {
-    ChunkLoader::saveChunk(m_folderPath, posCh, iCHUNK_DIMS, tiles);
+    ChunkLoader::saveChunk(m_folderPath, posCh, iChunkTi, tiles);
 }
 
 glm::ivec2& ChunkManager::activeChunkAtIndex(int acIndex) const {
