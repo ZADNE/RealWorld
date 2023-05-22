@@ -21,7 +21,7 @@ uint8_t Chunk::get(TileAttrib type, const glm::uvec2& posTi) const {
 }
 
 uint8_t Chunk::getUnsafe(TileAttrib type, const glm::uvec2& posTi) const {
-    return m_tiles[getIndexToBuffer(type, posTi)];
+    return m_tiles[calcIndexToBuffer(type, posTi)];
 }
 
 void Chunk::set(TileAttrib type, const glm::uvec2& posTi, uint8_t value) {
@@ -31,7 +31,7 @@ void Chunk::set(TileAttrib type, const glm::uvec2& posTi, uint8_t value) {
 }
 
 void Chunk::setUnsafe(TileAttrib type, const glm::uvec2& posTi, uint8_t value) {
-    m_tiles[getIndexToBuffer(type, posTi)] = value;
+    m_tiles[calcIndexToBuffer(type, posTi)] = value;
 }
 
 int Chunk::step() const {
@@ -48,6 +48,6 @@ void Chunk::boundsCheck(const glm::uvec2& posTi) const {
     }
 }
 
-size_t Chunk::getIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const {
+size_t Chunk::calcIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const {
     return (static_cast<size_t>(posTi.y) * iChunkTi.x + posTi.x) * 4ull + static_cast<size_t>(type);
 }

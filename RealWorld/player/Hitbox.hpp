@@ -13,11 +13,11 @@ public:
     Hitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& centerOffsetPx = glm::ivec2(0, 0));
 
     glm::ivec2& botLeft();
-    const glm::ivec2& getBotLeft() const;
+    const glm::ivec2& botLeft() const;
 
     void setDims(const glm::ivec2& dimensionPx);
 
-    glm::ivec2 getCenter() const;
+    glm::ivec2 center() const;
     bool collidesWith(Hitbox& otherHitbox) const;
     bool overlaps(const glm::ivec2& pointPx) const;
 

@@ -71,8 +71,8 @@ private:
     RE::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
 
     //View
-    RE::View2D m_worldView{engine().getWindowDims()};
-    glm::mat4 m_windowViewMat = calculateWindowViewMat(engine().getWindowDims());
+    RE::View2D m_worldView{engine().windowDims()};
+    glm::mat4 m_windowViewMat = calculateWindowViewMat(engine().windowDims());
 
     //Gameplay
     ChunkGeneratorCS m_chunkGen;

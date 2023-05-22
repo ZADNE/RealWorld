@@ -77,8 +77,8 @@ bool World::saveChunks() {
     return m_chunkManager.saveChunks();
 }
 
-size_t World::getNumberOfInactiveChunks() {
-    return m_chunkManager.getNumberOfInactiveChunks();
+size_t World::numberOfInactiveChunks() {
+    return m_chunkManager.numberOfInactiveChunks();
 }
 
 void World::beginStep(const vk::CommandBuffer& commandBuffer) {

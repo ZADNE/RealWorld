@@ -122,7 +122,7 @@ bool ChunkManager::saveChunks() {
     return true;
 }
 
-size_t ChunkManager::getNumberOfInactiveChunks() {
+size_t ChunkManager::numberOfInactiveChunks() {
     return m_inactiveChunks.size();
 }
 

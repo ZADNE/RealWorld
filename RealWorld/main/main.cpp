@@ -15,5 +15,5 @@ int main(int argc, char* argv[]) {
     auto* mainMenuRoom = RE::MainProgram::addRoom<MainMenuRoom>(gameSettings);
     RE::MainProgram::addRoom<WorldRoom>(gameSettings);
 
-    return RE::MainProgram::run(mainMenuRoom->getName(), {});
+    return RE::MainProgram::run(mainMenuRoom->name(), {});
 }

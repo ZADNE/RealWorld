@@ -36,9 +36,9 @@ public:
     World(ChunkGenerator& chunkGen);
 
     /**
-     * @copydoc ChunkHandler::getNumberOfInactiveChunks
+     * @copydoc ChunkHandler::numberOfInactiveChunks
     */
-    size_t getNumberOfInactiveChunks();
+    size_t numberOfInactiveChunks();
 
     /**
      * @brief Performs layout transitions necessary to simulate the world

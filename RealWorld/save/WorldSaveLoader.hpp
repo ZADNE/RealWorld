@@ -21,10 +21,11 @@ public:
     //Returns false if saving failed, error is printed in console
     static bool saveWorld(const WorldSave& data, const std::string& worldName, bool creatingNew);
 
+    //Returns false if the world could not be deleted
     static bool deleteWorld(const std::string& worldName);
 
     //All valid names are put inside vector names (previous contents of the vector are cleared)
-    static void getSavedWorlds(std::vector<std::string>& names);
+    static void searchSavedWorlds(std::vector<std::string>& names);
 
 private:
 

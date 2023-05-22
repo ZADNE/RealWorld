@@ -101,7 +101,7 @@ bool WorldSaveLoader::deleteWorld(const std::string& worldName) {
     }
 }
 
-void WorldSaveLoader::getSavedWorlds(std::vector<std::string>& names) {
+void WorldSaveLoader::searchSavedWorlds(std::vector<std::string>& names) {
     names.clear();
     if (!std::filesystem::is_directory(m_saveFolder)) {
         std::filesystem::create_directory(m_saveFolder);
@@ -190,7 +190,7 @@ void WorldSaveLoader::saveInventory(const InventoryData& inventory, const std::s
         throw std::exception{};
     }
 
-    writeBinary(stream, inventory.getSize());
+    writeBinary(stream, inventory.dims());
 
     for (int i = 0; i < inventory.slotCount(); ++i) {
         writeBinary(stream, inventory(i));

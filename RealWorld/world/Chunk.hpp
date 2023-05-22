@@ -129,7 +129,7 @@ private:
      * @param posTi Position
      * @return Index to the buffer.
      */
-    size_t getIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const;
+    size_t calcIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const;
 
     std::vector<uint8_t> m_tiles;                   /**< Tiles of the chunk */
     glm::ivec2 m_chunkPosCh{0, 0};                  /**< Position of the chunk, measured in chunk coordinates */

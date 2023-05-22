@@ -181,7 +181,7 @@ void InventoryUI::draw(RE::SpriteBatch& spriteBatch, const glm::vec2& cursorPx) 
 }
 
 inline glm::ivec2 InventoryUI::invSize(Connection con) const {
-    return m_inv[con]->getSize();
+    return m_inv[con]->dims();
 }
 
 inline int InventoryUI::invSlotCount(Connection con) const {

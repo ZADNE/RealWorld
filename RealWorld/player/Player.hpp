@@ -21,7 +21,7 @@ public:
     void adoptSave(const PlayerSave& save, const RE::Texture& worldTexture);
     void gatherSave(PlayerSave& save) const;
 
-    glm::vec2 getCenter() const;
+    glm::vec2 center() const;
 
     /**
      * @brief Moves the player based on its surroundings tiles and user input

@@ -26,11 +26,11 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings):
     Room(1, k_initialSettings),
     m_gameSettings(gameSettings),
     m_world(m_chunkGen),
-    m_worldDrawer(engine().getWindowDims(), 32u),
+    m_worldDrawer(engine().windowDims(), 32u),
     m_player(),
     m_playerInv({10, 4}),
     m_itemUser(m_world, m_playerInv),
-    m_invUI(engine().getWindowDims()) {
+    m_invUI(engine().windowDims()) {
 
     //InventoryUI connections
     m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
@@ -49,7 +49,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
         RE::fatalError("Bad transition paramaters to start WorldRoom session");
     }
 
-    m_worldView.setPosition(glm::vec2(m_player.getCenter()));
+    m_worldView.setPosition(glm::vec2(m_player.center()));
 }
 
 void WorldRoom::sessionEnd() {
@@ -61,7 +61,7 @@ void WorldRoom::step() {
     m_computeCommandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
 
     //Simulate one physics step
-    performWorldSimulationStep(m_worldDrawer.setPosition(m_worldView.getBotLeft()));
+    performWorldSimulationStep(m_worldDrawer.setPosition(m_worldView.botLeft()));
 
     //Analyze the results of the simulation step for drawing
     analyzeWorldForDrawing();
@@ -78,16 +78,16 @@ void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolat
 
     m_spriteBatch.clearAndBeginFirstBatch();
     m_player.draw(m_spriteBatch);
-    m_spriteBatch.drawBatch(commandBuffer, m_worldView.getViewMatrix());
+    m_spriteBatch.drawBatch(commandBuffer, m_worldView.viewMatrix());
 
     if (m_shadows) {
         m_worldDrawer.drawShadows(commandBuffer);
     }
 
     m_geometryBatch.begin();
-    m_itemUser.render(m_worldView.getCursorRel(), m_geometryBatch);
+    m_itemUser.render(m_worldView.cursorRel(), m_geometryBatch);
     m_geometryBatch.end();
-    m_geometryBatch.draw(commandBuffer, m_worldView.getViewMatrix());
+    m_geometryBatch.draw(commandBuffer, m_worldView.viewMatrix());
 
     drawGUI(commandBuffer);
 }
@@ -111,7 +111,7 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
         *m_computeCommandBuffer,
         keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
         keybindDown(ItemuserUseSecondary) && !m_invUI.isOpen(),
-        m_worldView.getCursorRel()
+        m_worldView.cursorRel()
     );
 
     //Move the player within the updated world
@@ -128,10 +128,10 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
 
 void WorldRoom::analyzeWorldForDrawing() {
     //Move the view based on movements of the player
-    glm::vec2 prevViewPos = m_worldView.getPosition();
-    glm::vec2 targetViewPos = glm::vec2(m_player.getCenter()) * 0.75f + m_worldView.getCursorRel() * 0.25f;
+    glm::vec2 prevViewPos = m_worldView.center();
+    glm::vec2 targetViewPos = glm::vec2(m_player.center()) * 0.75f + m_worldView.cursorRel() * 0.25f;
     auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
-    m_worldView.setCursorAbs(engine().getCursorAbs());
+    m_worldView.setCursorAbs(engine().cursorAbs());
     m_worldView.setPosition(glm::floor(viewPos));
 
     //Analyze the world texture
@@ -140,8 +140,8 @@ void WorldRoom::analyzeWorldForDrawing() {
     //Add external lights (these below are mostly for debug)
     static float rad = 0.0f;
     rad += 0.01f;
-    m_worldDrawer.addExternalLight(m_worldView.getCursorRel() + glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f, RE::Color{0u, 0u, 0u, 255u});
-    m_worldDrawer.addExternalLight(m_player.getCenter(), RE::Color{0u, 0u, 0u, 100u});
+    m_worldDrawer.addExternalLight(m_worldView.cursorRel() + glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f, RE::Color{0u, 0u, 0u, 255u});
+    m_worldDrawer.addExternalLight(m_player.center(), RE::Color{0u, 0u, 0u, 100u});
 
     //Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(*m_computeCommandBuffer);
@@ -152,8 +152,8 @@ void WorldRoom::updateInventoryAndUI() {
     m_invUI.step();
     if (keybindPressed(InvOpenClose)) { m_invUI.openOrClose(); }
     if (m_invUI.isOpen()) {//Inventory is open
-        if (keybindPressed(InvMoveAll)) { m_invUI.swapUnderCursor(engine().getCursorAbs()); }
-        if (keybindPressed(InvMovePortion)) { m_invUI.movePortion(engine().getCursorAbs(), 0.5f); }
+        if (keybindPressed(InvMoveAll)) { m_invUI.swapUnderCursor(engine().cursorAbs()); }
+        if (keybindPressed(InvMovePortion)) { m_invUI.movePortion(engine().cursorAbs(), 0.5f); }
     } else { //Inventory is closed
         using enum InventoryUI::SlotSelectionManner;
         if (keybindDown(ItemuserHoldToResize)) {
@@ -182,7 +182,7 @@ void WorldRoom::updateInventoryAndUI() {
 void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     //Inventory
     m_spriteBatch.nextBatch();
-    m_invUI.draw(m_spriteBatch, engine().getCursorAbs());
+    m_invUI.draw(m_spriteBatch, engine().cursorAbs());
     m_spriteBatch.drawBatch(commandBuffer, m_windowViewMat);
     //Minimap
     if (m_minimap) {
@@ -193,8 +193,8 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     ImGui::PushFont(m_arial);
     if (ImGui::Begin("##topLeftMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
         ImGui::Text("FPS: %u\nMax FT: %i us",
-            engine().getFramesPerSecond(),
-            (int)std::chrono::duration_cast<std::chrono::microseconds>(engine().getMaxFrameTime()).count());
+            engine().framesPerSecond(),
+            (int)std::chrono::duration_cast<std::chrono::microseconds>(engine().maxFrameTime()).count());
         ImGui::Separator();
         ImGui::TextUnformatted("Minimap:"); ImGui::SameLine();
         ImGui::ToggleButton("##minimap", &m_minimap);
@@ -212,11 +212,11 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
     if (!WorldSaveLoader::loadWorld(save, worldName)) return false;
 
-    const auto& worldTex = m_world.adoptSave(save.metadata, m_gameSettings.getActiveChunksArea());
+    const auto& worldTex = m_world.adoptSave(save.metadata, m_gameSettings.activeChunksArea());
     m_player.adoptSave(save.player, worldTex);
     m_playerInv.adoptInventoryData(save.inventory);
 
-    m_worldDrawer.setTarget(worldTex, m_gameSettings.getActiveChunksArea() * iChunkTi);
+    m_worldDrawer.setTarget(worldTex, m_gameSettings.activeChunksArea() * iChunkTi);
     return true;
 }
 

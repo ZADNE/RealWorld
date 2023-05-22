@@ -48,7 +48,7 @@ void Player::gatherSave(PlayerSave& save) const {
     save.pos = m_hitboxStageMapped->botLeftPx;
 }
 
-glm::vec2 Player::getCenter() const {
+glm::vec2 Player::center() const {
     return m_hitboxStageMapped->botLeftPx + m_hitboxStageMapped->dimsPx * 0.5f;
 }
 

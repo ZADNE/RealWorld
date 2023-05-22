@@ -19,7 +19,7 @@ glm::ivec2& Hitbox::botLeft() {
     return m_botLeftPx;
 }
 
-const glm::ivec2& Hitbox::getBotLeft() const {
+const glm::ivec2& Hitbox::botLeft() const {
     return m_botLeftPx;
 }
 
@@ -27,7 +27,7 @@ void Hitbox::setDims(const glm::ivec2& dimensionPx) {
     m_dimsPx = dimensionPx;
 }
 
-glm::ivec2 Hitbox::getCenter() const {
+glm::ivec2 Hitbox::center() const {
     return m_botLeftPx + m_centerOffsetPx;
 }
 

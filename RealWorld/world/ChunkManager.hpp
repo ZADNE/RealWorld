@@ -69,7 +69,7 @@ public:
      *
      * @return The number of chunks held in memory.
      */
-    size_t getNumberOfInactiveChunks();
+    size_t numberOfInactiveChunks();
 
     void beginStep();
 
