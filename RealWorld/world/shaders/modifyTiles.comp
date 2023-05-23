@@ -12,11 +12,11 @@ layout( local_size_x = 16,
         local_size_z = 1
 ) in;
 
-const uint SET_BLOCK = 0;
-const uint SET_WALL = 2;
+const uint k_blockLayer = 0;
+const uint k_wallLayer = 2;
 
-const uint SQUARE = 0;
-const uint DISC = 1;
+const uint k_square = 0;
+const uint k_disk = 1;
 
 uint randomState;
 
@@ -32,13 +32,13 @@ void main(){
     ivec2 offset = ivec2(gl_LocalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy) / 2;
     //Construct the shape
     switch (p_modifyShape){
-        case SQUARE:
-        if (abs(offset.x) > p_modifyDiameter || abs(offset.y) > p_modifyDiameter){
+        case k_square:
+        if (abs(offset.x) > p_modifyRadius || abs(offset.y) > p_modifyRadius){
             return;//Outside of the shape
         }
         break;
-        case DISC:
-        if (dot(offset, offset) > p_modifyDiameter * p_modifyDiameter){
+        case k_disk:
+        if (dot(offset, offset) > p_modifyRadius * p_modifyRadius){
             return;//Outside of the shape
         }
         break;
@@ -47,7 +47,7 @@ void main(){
     ivec2 posIm = imPos(p_globalPosTi + offset);
     uvec4 tile = tileLoadIm(posIm);
     randomState = (posIm.x * posIm.y) ^ p_timeHash;
-    if (p_modifyTarget == SET_BLOCK){
+    if (p_modifyTarget == k_blockLayer){
         if ((p_modifySetValue.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
             return;
         }

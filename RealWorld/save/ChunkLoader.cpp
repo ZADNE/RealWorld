@@ -4,6 +4,7 @@
 #include <RealWorld/save/ChunkLoader.hpp>
 
 #include <stdexcept>
+#include <iomanip>
 
 #include <lodepng/lodepng.hpp>
 
@@ -39,9 +40,14 @@ void ChunkLoader::saveChunk(
 
     if (error) throw std::runtime_error("Error encoding or saving chunk " + fullPath);
 #endif // ! _DEBUG
-
 }
 
 std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos) {
-    return "chunk_" + std::to_string(chunkPos.x) + "x" + std::to_string(chunkPos.y) + ".chunk";
+    s_stringStream.str("");
+    s_stringStream << "chunk_"
+        << (chunkPos.x >= 0 ? '+' : '-') << std::setw(4) << std::setfill('0') << std::abs(chunkPos.x)
+        << 'x'
+        << (chunkPos.y >= 0 ? '+' : '-') << std::setw(4) << std::setfill('0') << std::abs(chunkPos.y)
+        << ".chunk";
+    return s_stringStream.str();
 }

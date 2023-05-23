@@ -15,6 +15,10 @@ layout( local_size_x = DYN_GROUP_SIZE,
         local_size_z = 1
 ) in;
 
+ivec2 updateOrderOffset(uint index){
+    return ivec2((p_updateOrder >> (index * 2u + 1u)) & 1, (p_updateOrder >> (index * 2u)) & 1);
+}
+
 uint invocHash(){
     uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
     return globalIndex ^ p_timeHash;
@@ -128,15 +132,14 @@ void velocityFluidDynamics(uvec4 water, ivec2 posIm){
 
 void main(){
     const ivec2 invocOffset = p_globalPosTi
-                    + ivec2(gl_WorkGroupID.xy) * CHUNK_SIZE
+                    + ivec2(gl_WorkGroupID.xy) * iChunkTi
                     + ivec2(gl_LocalInvocationID.xy) * 4;
-    
+
     for (uint inGroup = 0; inGroup < 4; inGroup++){
-        ivec2 updateOrder[16];//TODO!!!
-        ivec2 inGroupOffset = updateOrder[inGroup] * 2;
-        uint inQuadOrderOffset = (random() & 3) * 4;
-        for (uint inQuad = 0; inQuad < 4; inQuad++){
-            ivec2 posIm = imPos(invocOffset + inGroupOffset + updateOrder[inQuad + inQuadOrderOffset]);
+        ivec2 inGroupOffset = updateOrderOffset(inGroup) * 2;
+        uint inCoreOrderOffset = (random() & 3) * 4;
+        for (uint inCore = 0; inCore < 4; inCore++){
+            ivec2 posIm = imPos(invocOffset + inGroupOffset + updateOrderOffset(inCore + inCoreOrderOffset));
             uvec4 tile = tileLoadIm(posIm);
             if (tile.BL_T >= WATER_BL && tile.BL_T <= SMOKE_BL){
                 leaningFluidDynamics(tile, posIm);

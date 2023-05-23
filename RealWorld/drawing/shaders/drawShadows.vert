@@ -15,9 +15,9 @@ void main() {
     ivec2 offsetTi = ivec2(gl_InstanceIndex % p_viewSizeTi.x, gl_InstanceIndex / p_viewSizeTi.x);
     vec2 posTi = c_pos[gl_VertexIndex] + vec2(offsetTi);
 
-    vec2 UV = (vec2(offsetTi + p_readOffsetTi + LIGHT_SCALE) + 0.5) / textureSize(u_shadowsSampler, 0) * LIGHT_SCALE_INV;
+    vec2 UV = (vec2(offsetTi + p_readOffsetTi + k_iLightScale) + 0.5) / textureSize(u_shadowsSampler, 0) * k_iLightScaleInv;
     o_shadowColor = texture(u_shadowsSampler, UV);
 
     float clip = (o_shadowColor.a == 0.0) ? -1.0 : 1.0;
-    gl_Position = p_viewMat * vec4(posTi * TILEPx - p_botLeftPxModTilePx, 0.0, clip);
+    gl_Position = p_viewMat * vec4(posTi * TilePx - p_botLeftPxModTilePx, 0.0, clip);
 }

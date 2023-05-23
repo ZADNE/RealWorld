@@ -26,7 +26,7 @@ void main() {
     float clip = (isAirBlock(tile.BLOCK_TYPE) && isAirWall(tile.WALL_TYPE)) ? -1.0 : 1.0;
 
     //Output position
-    gl_Position = p_viewMat * vec4(posTi * TILEPx - p_botLeftPxModTilePx, 0.0, clip);
+    gl_Position = p_viewMat * vec4(posTi * TilePx - p_botLeftPxModTilePx, 0.0, clip);
 
     //Calculate color of this tile based on its block and wall
     vec4 blockColor = texelFetch(u_blockAtlas, ivec2(tile.yx), 0);

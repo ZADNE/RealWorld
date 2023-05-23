@@ -80,17 +80,7 @@ public:
 
 private:
 
-    struct DynamicsUniforms {
-        glm::ivec2 globalPosTi;
-        glm::uint modifyTarget;
-        glm::uint modifyShape;
-        glm::uvec2 modifySetValue;
-        float modifyDiameter;
-        glm::uint timeHash;
-        glm::ivec2 updateOrder[16];
-    };
-
-    void fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+    void fluidDynamicsStep(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
     std::optional<RE::Texture> m_worldTex;
     int m_seed = 0;
@@ -99,17 +89,35 @@ private:
 
     RE::Buffer m_tilePropertiesBuf;
 
-    //RE::Pipeline m_simulateFluidsShd{simulateFluids_comp};
-    //RE::Pipeline m_transformTilesShd{transformTiles_comp};
-    //RE::Pipeline m_modifyTilesShd{modifyTiles_comp};
-
-    std::array<glm::ivec2, 4> m_dynamicsUpdateOrder = {
-        glm::ivec2{0, 0},
-        glm::ivec2{1, 0},
-        glm::ivec2{0, 1},
-        glm::ivec2{1, 1}
+    struct WorldDynamicsPC {
+        glm::ivec2 globalPosTi;
+        glm::uint modifyTarget;
+        glm::uint modifyShape;
+        glm::uvec2 modifySetValue;
+        float modifyRadius;
+        glm::uint timeHash;
+        glm::uint updateOrder = 0b00011011'00011011'00011011'00011011;
     };
-    uint32_t m_rngState;
+    WorldDynamicsPC m_worldDynamicsPC;
+
+    RE::PipelineLayout m_pipelineLayout{
+        {}, RE::PipelineComputeSources{
+            .comp = transformTiles_comp
+        }
+    };
+    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
+    RE::Pipeline m_simulateFluidsPl{
+        RE::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        RE::PipelineComputeSources{.comp = simulateFluids_comp}
+    };
+    RE::Pipeline m_transformTilesPl{
+        RE::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        RE::PipelineComputeSources{.comp = transformTiles_comp}
+    };
+    RE::Pipeline m_modifyTilesPl{
+        RE::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        RE::PipelineComputeSources{.comp = modifyTiles_comp}
+    };
 
     ChunkManager m_chunkManager;
 

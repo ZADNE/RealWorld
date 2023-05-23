@@ -1,8 +1,11 @@
-const float TILEPx =            4.0;
+/*! 
+ *  @author    Dubsky Tomas
+ */
+const float TilePx =            4.0;
 
-const ivec2 CHUNK_SIZE =        {128, 128};
+const ivec2 iChunkTi =        {128, 128};
 
-const int LIGHT_MAX_RANGETi =   128;
+const int k_lightMaxRangeTi =   128;
 
 #define TILE xyzw
 #define TILE_TYPE xz

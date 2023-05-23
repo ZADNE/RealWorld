@@ -31,6 +31,6 @@ void main(){
         (ch00 + ivec2(1, 0)) == ch10){
         //The update chunk is continous
         int i = atomicAdd(s_dynamicsGroupSize.x, 1);
-        s_offsets[i] = posCh * CHUNK_SIZE + CHUNK_SIZE / 2;
+        s_offsets[i] = posCh * iChunkTi + iChunkTi / 2;
     }
 }

@@ -14,8 +14,8 @@ layout( local_size_x = 8,
 
 layout(set = 0, binding = 0, rgba8) uniform restrict image2D u_lightImage;
 
-const int TO_UNIT_BITS = LIGHT_SCALE_BITS + 2;
-const float TO_UNIT_SCALE = 1.0 / LIGHT_SCALE / TILEPx;
+const int TO_UNIT_BITS = k_lightScaleBits + 2;
+const float TO_UNIT_SCALE = 1.0 / k_iLightScale / TilePx;
 
 void main(){
     if (gl_GlobalInvocationID.x < p_lightCount){

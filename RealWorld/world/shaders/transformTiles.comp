@@ -13,7 +13,7 @@ const uint TilePropertiesUB_BINDING = 2;
 
 const int TRANSFORM_GROUP_SIZE = 4;
 
-const ivec2 INVOC_DISPLACEMENT = CHUNK_SIZE / TRANSFORM_GROUP_SIZE;
+const ivec2 INVOC_DISPLACEMENT = iChunkTi / TRANSFORM_GROUP_SIZE;
 
 layout( local_size_x = TRANSFORM_GROUP_SIZE,
         local_size_y = TRANSFORM_GROUP_SIZE,

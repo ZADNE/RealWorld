@@ -6,8 +6,8 @@
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 
-layout( local_size_x = GEN_CS_GROUP_SIZE,
-        local_size_y = GEN_CS_GROUP_SIZE,
+layout( local_size_x = k_genGroupSize,
+        local_size_y = k_genGroupSize,
         local_size_z = 1
 ) in;
 

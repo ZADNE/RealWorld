@@ -201,7 +201,7 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
         ImGui::TextUnformatted("Shadows:"); ImGui::SameLine();
         ImGui::ToggleButton("##shadows", &m_shadows);
         ImGui::TextUnformatted("Permute:"); ImGui::SameLine();
-        if (ImGui::ToggleButton("##shadows", &m_permute)) m_world.shouldPermuteOrder(m_permute);
+        if (ImGui::ToggleButton("##permute", &m_permute)) m_world.shouldPermuteOrder(m_permute);
     }
     ImGui::End();
     ImGui::PopFont();

@@ -3,8 +3,13 @@
  */
 #include <RealWorld/world/World.hpp>
 
+using enum vk::DescriptorType;
+using enum vk::ShaderStageFlagBits;
+using enum vk::ImageLayout;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
+
+#define member(var, m0) offsetof(decltype(var), m0), sizeof(var.m0), &var.m0
 
  //Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
@@ -14,13 +19,17 @@ uint32_t xorshift32(uint32_t& state) {
     return state;
 }
 
-//Fisher–Yates shuffle algorithm
-void permuteOrder(uint32_t& state, std::array<glm::ivec2, 4>& order) {
-    for (size_t i = 0; i < order.size() - 1; i++) {
-        size_t j = i + xorshift32(state) % (order.size() - i);
-        std::swap(order[i].x, order[j].x);
-        std::swap(order[i].y, order[j].y);
+uint32_t permuteOrder(uint32_t& state) {
+    uint32_t permutationIndex = xorshift32(state) % 24;
+    uint32_t order = 0u;
+    std::array<uint32_t, 4u> offsets{0b00, 0b01, 0b10, 0b11};
+    for (uint32_t i = 4u; i > 0u; i--) {
+        uint32_t index = permutationIndex % i;
+        order |= offsets[index] << (8u - i * 2u);
+        std::swap(offsets[index], offsets[i - 1u]);
+        permutationIndex /= i;
     }
+    return order;
 }
 
 struct TilePropertiesUIB {
@@ -47,7 +56,9 @@ static constexpr TilePropertiesUIB k_tileProperties = TilePropertiesUIB{
 World::World(ChunkGenerator& chunkGen):
     m_chunkManager(chunkGen),
     m_tilePropertiesBuf(sizeof(TilePropertiesUIB), vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, &k_tileProperties),
-    m_rngState(static_cast<uint32_t>(time(nullptr))) {
+    m_worldDynamicsPC{
+        .timeHash = static_cast<uint32_t>(time(nullptr))
+    } {
 }
 
 const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
@@ -62,6 +73,7 @@ const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& 
         .extent = {texSize, 1u},
         .usage = eStorage | eTransferSrc | eTransferDst | eSampled
     }};
+    m_descriptorSet.write(eStorageImage, 0u, 0u, *m_worldTex, eGeneral);
 
     m_chunkManager.setTarget(m_seed, save.path, *m_worldTex, activeChunksArea);
 
@@ -103,25 +115,30 @@ int World::step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLef
     m_chunkManager.planActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
     int activatedChunks = m_chunkManager.endStep(commandBuffer);
 
+    //Set up commandBuffer state for simulation
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
+    xorshift32(m_worldDynamicsPC.timeHash);
+    commandBuffer.pushConstants(*m_pipelineLayout, eCompute, member(m_worldDynamicsPC, timeHash));
+
     //Tile transformations
     //m_transformTilesShd.dispatchCompute(offsetof(ActiveChunksSSBO, dynamicsGroupSize), true);
     //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
 
     //Fluid dynamics
-    //fluidDynamicsStep(botLeftTi, topRightTi);
+    fluidDynamicsStep(commandBuffer, botLeftTi, topRightTi);
 
     return activatedChunks;
 }
 
 void World::modify(const vk::CommandBuffer& commandBuffer, TileLayer layer, ModificationShape shape, float radius, const glm::ivec2& posTi, const glm::uvec2& tile) {
-    //auto* buffer = m_worldDynamicsBuf.template map<WorldDynamicsUniforms>(0u, offsetof(WorldDynamicsUniforms, timeHash), WRITE | INVALIDATE_RANGE);
-    /*buffer->globalPosTi = posTi;
-    buffer->modifyTarget = static_cast<glm::uint>(layer);
-    buffer->modifyShape = static_cast<glm::uint>(shape);
-    buffer->modifyRadius = radius;
-    buffer->modifySetValue = tile;
-    m_worldDynamicsBuf.unmap();
-    m_modifyTilesShd.dispatchCompute({1, 1, 1}, true);*/
+    m_worldDynamicsPC.globalPosTi = posTi;
+    m_worldDynamicsPC.modifyTarget = static_cast<glm::uint>(layer);
+    m_worldDynamicsPC.modifyShape = static_cast<glm::uint>(shape);
+    m_worldDynamicsPC.modifyRadius = radius;
+    m_worldDynamicsPC.modifySetValue = tile;
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
+    commandBuffer.pushConstants<WorldDynamicsPC>(*m_pipelineLayout, eCompute, 0u, m_worldDynamicsPC);
+    commandBuffer.dispatch(1u, 1u, 1u);
 }
 
 void World::endStep(const vk::CommandBuffer& commandBuffer) {
@@ -140,39 +157,49 @@ void World::endStep(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
-void World::fluidDynamicsStep(const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
-    /*using enum RE::BufferMapUsageFlags;
+void World::fluidDynamicsStep(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
     //Convert positions to chunks
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
+    glm::ivec2 dispatchSize = topRightCh - botLeftCh;
 
     //Permute the orders
-    m_simulateFluidsShd.use();
+    uint32_t order;
     if (m_permuteOrder) {
-        auto* timeHash = m_worldDynamicsBuf.template map<glm::uint>(offsetof(WorldDynamicsUniforms, timeHash),
-            sizeof(WorldDynamicsUniforms::timeHash) + sizeof(WorldDynamicsUniforms::updateOrder), WRITE | INVALIDATE_RANGE);
-        *timeHash = m_rngState;
-        glm::ivec2* updateOrder = reinterpret_cast<glm::ivec2*>(&timeHash[1]);
+        order = 0u;
+        m_worldDynamicsPC.updateOrder = 0u;
         //4 random orders, the threads randomly select from these
-        for (unsigned int i = 0; i < 4; i++) {
-            permuteOrder(m_rngState, m_dynamicsUpdateOrder);
-            std::memcpy(&updateOrder[i * 4], &m_dynamicsUpdateOrder[0], 4 * sizeof(m_dynamicsUpdateOrder[0]));
+        for (unsigned int i = 0u; i < 4u; i++) {
+            m_worldDynamicsPC.updateOrder |= permuteOrder(m_worldDynamicsPC.timeHash) << (i * 8u);
         }
-        m_worldDynamicsBuf.unmap();
-        //Random order of dispatches
-        permuteOrder(m_rngState, m_dynamicsUpdateOrder);
+        commandBuffer.pushConstants(*m_pipelineLayout, eCompute, member(m_worldDynamicsPC, updateOrder));
+        //Randomize order of dispatches
+        order = permuteOrder(m_worldDynamicsPC.timeHash);
+    } else {
+        order = 0b00011011;
     }
 
     //4 rounds, each updates one quarter of the chunks
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);
     glm::ivec2 dynBotLeftTi = botLeftCh * iChunkTi + iChunkTi / 2;
-    for (unsigned int i = 0; i < 4u; i++) {
+    for (unsigned int i = 0u; i < 4u; i++) {
         //Update offset of the groups
-        auto* offset = m_worldDynamicsBuf.template map<glm::ivec2>(0u, sizeof(glm::ivec2), WRITE | INVALIDATE_RANGE);
-        *offset = dynBotLeftTi + glm::ivec2(m_dynamicsUpdateOrder[i]) * iChunkTi / 2;
-        m_worldDynamicsBuf.unmap();
+        glm::ivec2 offset{(order >> (i * 2u + 1u)) & 1, (order >> (i * 2u)) & 1};
+        m_worldDynamicsPC.globalPosTi = dynBotLeftTi + offset * iChunkTi / 2;
+        commandBuffer.pushConstants(*m_pipelineLayout, eCompute, member(m_worldDynamicsPC, globalPosTi));
         //Dispatch
-        m_simulateFluidsShd.dispatchCompute({topRightCh - botLeftCh, 1u}, false);
-        RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+        commandBuffer.dispatch(dispatchSize.x, dispatchSize.y, 1u);
+        auto imageBarrier = vk::ImageMemoryBarrier2{
+            S::eComputeShader,                                                          //Src stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
+            S::eComputeShader,                                                          //Dst stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite,                             //Dst access mask
+            vk::ImageLayout::eGeneral,                                                  //Old image layout
+            vk::ImageLayout::eGeneral,                                                  //New image layout
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+            m_worldTex->image(),
+            vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
+        };
+        commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
-    m_simulateFluidsShd.unuse();*/
 }

@@ -1,3 +1,6 @@
+/*! 
+ *  @author    Dubsky Tomas
+ */
 #include <RealWorld/constants/tile.glsl>
 
 const uvec4 STONE_TILES[] = {

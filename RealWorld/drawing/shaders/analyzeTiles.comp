@@ -5,8 +5,8 @@
 #include <RealWorld/constants/light.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
-layout( local_size_x = ANALYSIS_GROUP_SIZE,
-        local_size_y = ANALYSIS_GROUP_SIZE,
+layout( local_size_x = k_analysisGroupSize,
+        local_size_y = k_analysisGroupSize,
         local_size_z = 1
 ) in;
 
@@ -16,16 +16,16 @@ layout(set = 0, binding = 2) uniform usampler2D                         u_worldT
 layout(set = 0, binding = 3) uniform sampler2D                          u_blockLightAtlas;
 layout(set = 0, binding = 4) uniform sampler2D                          u_wallLightAtlas;
 
-const float TO_UNIT_SCALE = 1.0 / (LIGHT_SCALE * LIGHT_SCALE);
+const float TO_UNIT_SCALE = 1.0 / (k_iLightScale * k_iLightScale);
 
 void main(){
     //Calculate position and init variables
-    const ivec2 readBasePosTi = p_analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << LIGHT_SCALE_BITS);
+    const ivec2 readBasePosTi = p_analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << k_lightScaleBits);
     vec4 light = vec4(0.0);//RGB = color of the light, A = intensity of the light
     vec4 translu = vec4(0.0);//R = translucency of the unit
     //Analyze the thread's area
-    for (int y = 0; y < LIGHT_SCALE; y++){
-        for (int x = 0; x < LIGHT_SCALE; x++){
+    for (int y = 0; y < k_iLightScale; y++){
+        for (int x = 0; x < k_iLightScale; x++){
             //Fetch the tile
             uvec4 tile = texelFetch(u_worldTexture, (readBasePosTi + ivec2(x, y)) & p_worldTexMask, 0);
             //Process its translucency
