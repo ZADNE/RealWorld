@@ -18,18 +18,6 @@
 #include <RealWorld/world/Chunk.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
 
-
-#pragma warning( push )
-#pragma warning( disable : 4200 )
-struct ActiveChunksSB {
-    glm::ivec2 activeChunksMask;
-    glm::ivec2 activeChunksArea;
-    glm::ivec4 dynamicsGroupSize;
-    glm::ivec2 offsets[];            //First indexes: offsets of update chunks, in tiles
-    //Following indexes: absolute positions of chunks, in chunks
-};
-#pragma warning( pop )
-
 /**
 * @brief Ensures that chunks are activated when needed.
 *
@@ -38,24 +26,43 @@ struct ActiveChunksSB {
 class ChunkManager {
 public:
 
+#pragma warning( push )
+#pragma warning( disable : 4200 )
+    struct ActiveChunksSB {
+        glm::ivec2 activeChunksMask;
+        glm::ivec2 activeChunksArea;
+        glm::ivec4 dynamicsGroupSize;
+        glm::ivec2 offsets[];            //First indexes: offsets of update chunks, in tiles
+        //Following indexes: absolute positions of chunks, in chunks
+    };
+#pragma warning( pop )
+
     /**
      * @brief Contructs chunks manager
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(ChunkGenerator& chunkGen);
+    ChunkManager(ChunkGenerator& chunkGen, const RE::PipelineLayout& pipelineLayout);
 
     /**
      * @brief Retargets the chunk manager to a new world.
-     *
-     * Frees all chunks of the previous world (does not save them).
-     *
-     * @param seed Seed of the new world.
-     * @param folderPath Path to the folder that contains the new world.
-     * @param worldTex The world texture that will receive the loaded chunks
-     * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8
+     * 
+     * @detail                  Frees all chunks of the previous world (does not save them).
+     * 
+     * @param seed              Seed of the new world.
+     * @param folderPath        Path to the folder that contains the new world.
+     * @param worldTex          The world texture that will receive the loaded chunks
+     * @param activeChunksArea  Size of the main texture that holds active chunks.
+     *                          Measured in chunks, must be multiples of 8
+     * @return                  Active chunks storage buffer
      */
-    void setTarget(int seed, std::string folderPath, RE::Texture& worldTex, const glm::ivec2& activeChunksArea);
+    const RE::Buffer& setTarget(
+        int seed,
+        std::string folderPath,
+        const RE::Texture& worldTex,
+        RE::DescriptorSet& descriptorSet,
+        const glm::ivec2& activeChunksArea
+    );
 
     /**
      * @brief Saves all chunks, keeps them in the memory.
@@ -80,12 +87,15 @@ public:
      * @param topRightTi Top right corner of the rectangular area
      * @warning Must be called between beginStep() and endStep().
     */
-    void planActivationOfChunks(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+    void planActivationOfChunks(
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2& botLeftTi,
+        const glm::ivec2& topRightTi
+    );
 
     int endStep(const vk::CommandBuffer& commandBuffer);
 
 private:
-
 
     void planTransition(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh);
 
@@ -132,16 +142,12 @@ private:
     int m_transparentChunkChanges = 0;       /**< Number of changes in this step */
     glm::ivec2& activeChunkAtIndex(int acIndex) const;
 
-    RE::PipelineLayout m_pipelineLayout{{}, {.comp = analyzeContinuity_comp}};
-    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
-    RE::Pipeline m_analyzeContinuityPl{
-        {.pipelineLayout = *m_pipelineLayout}, {.comp = analyzeContinuity_comp}
-    };
+    RE::Pipeline m_analyzeContinuityPl;
     glm::uvec2 m_analyzeContinuityGroupCount;
 
     std::string m_folderPath;
     ChunkGenerator& m_chunkGen;
-    RE::Texture* m_worldTex = nullptr;
+    const RE::Texture* m_worldTex = nullptr;
     glm::ivec2 m_activeChunksMask;
 
     //Tile stage

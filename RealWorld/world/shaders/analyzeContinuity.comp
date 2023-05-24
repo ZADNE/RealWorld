@@ -3,7 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-const int ActiveChunksSB_BINDING = 0;
+const int ActiveChunksSB_BINDING = 1;
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
 
 layout( local_size_x = 8,

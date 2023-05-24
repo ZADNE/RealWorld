@@ -46,18 +46,25 @@ public:
     void beginStep(const vk::CommandBuffer& commandBuffer);
 
     /**
-     * @brief Performs a simulation step of the world.
-     * @param commandBuffer Command buffer that will be used to record computation commands
-     * @param botLeftTi The most bottom-left tile that has to be active
-     * @param topRightTi The most top-right tile that has to be active
-     * @return The number of chunks that had to be activated this step
+     * @brief                   Performs a simulation step of the world.
+     * @param commandBuffer     Command buffer that will be used to record computation commands
+     * @param botLeftTi         The most bottom-left tile that has to be active
+     * @param topRightTi        The most top-right tile that has to be active
+     * @return                  The number of chunks that had to be activated this step
     */
     int step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
 
     /**
      * @brief Modifies tiles in the world
     */
-    void modify(const vk::CommandBuffer& commandBuffer, TileLayer layer, ModificationShape shape, float radius, const glm::ivec2& posTi, const glm::uvec2& tile);
+    void modify(
+        const vk::CommandBuffer& commandBuffer,
+        TileLayer layer,
+        ModificationShape shape,
+        float radius,
+        const glm::ivec2& posTi,
+        const glm::uvec2& tile
+    );
 
     /**
      * @brief Performs layout transitions necessary to draw the world
@@ -65,10 +72,11 @@ public:
     void endStep(const vk::CommandBuffer& commandBuffer);
 
     /**
-     * @brief Sets this world class to simulate the world inside the given save
-     * @param save Save of the world to run
-     * @param activeChunksArea Size of the main texture that holds active chunks. Measured in chunks, must be multiples of 8
-     * @returns The world texture
+     * @brief                   Sets this world class to simulate the world inside the given save
+     * @param save              Save of the world to run
+     * @param activeChunksArea  Size of the main texture that holds active chunks.
+     *                          Measured in chunks, must be multiples of 8
+     * @returns                 The new world texture
     */
     const RE::Texture& adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea);
 
@@ -80,7 +88,11 @@ public:
 
 private:
 
-    void fluidDynamicsStep(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi);
+    void fluidDynamicsStep(
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2& botLeftTi,
+        const glm::ivec2& topRightTi
+    );
 
     std::optional<RE::Texture> m_worldTex;
     int m_seed = 0;
@@ -120,6 +132,7 @@ private:
     };
 
     ChunkManager m_chunkManager;
+    const RE::Buffer* m_activeChunksBuf = nullptr;
 
     bool m_permuteOrder = true;
 };

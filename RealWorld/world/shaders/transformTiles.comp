@@ -11,12 +11,12 @@ const uint TilePropertiesUB_BINDING = 2;
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 
-const int TRANSFORM_GROUP_SIZE = 4;
+const int k_transformGroupSize = 4;
 
-const ivec2 INVOC_DISPLACEMENT = iChunkTi / TRANSFORM_GROUP_SIZE;
+const ivec2 k_invocDisplacement = iChunkTi / k_transformGroupSize;
 
-layout( local_size_x = TRANSFORM_GROUP_SIZE,
-        local_size_y = TRANSFORM_GROUP_SIZE,
+layout( local_size_x = k_transformGroupSize,
+        local_size_y = k_transformGroupSize,
         local_size_z = 1
 ) in;
 
@@ -38,7 +38,7 @@ uvec2 random2(){
     return uvec2(random(), random());
 }
 
-const ivec2 NEARBY_OFFSETS[] = {
+const ivec2 k_nearbyOffsets[] = {
                 {-1, +2},   {+0, +2},   {+1, +2},
     {-2, +1},   {-1, +1},   {+0, +1},   {+1, +1},   {+2, +1},
     {-2, +0},   {-1, +0},               {+1, +0},   {+2, +0},
@@ -58,14 +58,14 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
 
 void main(){
     random();
-    ivec2 centerTi = s_offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * INVOC_DISPLACEMENT
-                    + (ivec2(random(), random()) & (INVOC_DISPLACEMENT - 1));
+    ivec2 centerTi = s_offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
+                    + (ivec2(random(), random()) & (k_invocDisplacement - 1));
     
     uvec4 tile = tileLoad(centerTi);
     uvec2 edgeTile = uvec2(0);
     uvec2 nearbyProperties = uvec2(0);
-    for(int i = 0; i < NEARBY_OFFSETS.length(); ++i){//Check all neighbors
-        uvec4 neighbor = tileLoad(centerTi + NEARBY_OFFSETS[i]);
+    for(int i = 0; i < k_nearbyOffsets.length(); ++i){//Check all neighbors
+        uvec4 neighbor = tileLoad(centerTi + k_nearbyOffsets[i]);
         //Analyze the neighbor
         nearbyProperties |= uvec2(u_blockProperties[neighbor.BL_T].x, u_wallProperties[neighbor.WL_T].x);
         edgeTile |= uvec2(isFluidTile(neighbor.TL_T));

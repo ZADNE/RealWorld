@@ -54,11 +54,17 @@ static constexpr TilePropertiesUIB k_tileProperties = TilePropertiesUIB{
 };
 
 World::World(ChunkGenerator& chunkGen):
-    m_chunkManager(chunkGen),
-    m_tilePropertiesBuf(sizeof(TilePropertiesUIB), vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, &k_tileProperties),
+    m_chunkManager(chunkGen, m_pipelineLayout),
+    m_tilePropertiesBuf(
+        sizeof(TilePropertiesUIB),
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::MemoryPropertyFlagBits::eDeviceLocal,
+        &k_tileProperties
+    ),
     m_worldDynamicsPC{
         .timeHash = static_cast<uint32_t>(time(nullptr))
     } {
+    m_descriptorSet.write(eUniformBuffer, 2u, 0u, m_tilePropertiesBuf, 0ull, VK_WHOLE_SIZE);
 }
 
 const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& activeChunksArea) {
@@ -75,7 +81,7 @@ const RE::Texture& World::adoptSave(const MetadataSave& save, const glm::ivec2& 
     }};
     m_descriptorSet.write(eStorageImage, 0u, 0u, *m_worldTex, eGeneral);
 
-    m_chunkManager.setTarget(m_seed, save.path, *m_worldTex, activeChunksArea);
+    m_activeChunksBuf = &m_chunkManager.setTarget(m_seed, save.path, *m_worldTex, m_descriptorSet, activeChunksArea);
 
     return *m_worldTex;
 }
@@ -121,8 +127,8 @@ int World::step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLef
     commandBuffer.pushConstants(*m_pipelineLayout, eCompute, member(m_worldDynamicsPC, timeHash));
 
     //Tile transformations
-    //m_transformTilesShd.dispatchCompute(offsetof(ActiveChunksSSBO, dynamicsGroupSize), true);
-    //RE::Ordering::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
+    commandBuffer.dispatchIndirect(**m_activeChunksBuf, offsetof(ChunkManager::ActiveChunksSB, dynamicsGroupSize));
 
     //Fluid dynamics
     fluidDynamicsStep(commandBuffer, botLeftTi, topRightTi);
@@ -130,7 +136,14 @@ int World::step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLef
     return activatedChunks;
 }
 
-void World::modify(const vk::CommandBuffer& commandBuffer, TileLayer layer, ModificationShape shape, float radius, const glm::ivec2& posTi, const glm::uvec2& tile) {
+void World::modify(
+    const vk::CommandBuffer& commandBuffer,
+    TileLayer layer,
+    ModificationShape shape,
+    float radius,
+    const glm::ivec2& posTi,
+    const glm::uvec2& tile
+) {
     m_worldDynamicsPC.globalPosTi = posTi;
     m_worldDynamicsPC.modifyTarget = static_cast<glm::uint>(layer);
     m_worldDynamicsPC.modifyShape = static_cast<glm::uint>(shape);
@@ -148,8 +161,8 @@ void World::endStep(const vk::CommandBuffer& commandBuffer) {
         A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
         S::eVertexShader,                                                           //Dst stage mask
         A::eShaderSampledRead,                                                      //Dst access mask
-        vk::ImageLayout::eGeneral,                                                  //Old image layout
-        vk::ImageLayout::eReadOnlyOptimal,                                          //New image layout
+        eGeneral,                                                                   //Old image layout
+        eReadOnlyOptimal,                                                           //New image layout
         VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
@@ -162,6 +175,20 @@ void World::fluidDynamicsStep(const vk::CommandBuffer& commandBuffer, const glm:
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
     glm::ivec2 dispatchSize = topRightCh - botLeftCh;
+
+    //Wait on tile transformations
+    auto imageBarrier = vk::ImageMemoryBarrier2{
+        S::eComputeShader,                                                          //Src stage mask
+        A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
+        S::eComputeShader,                                                          //Dst stage mask
+        A::eShaderStorageRead | A::eShaderStorageWrite,                             //Dst access mask
+        eGeneral,                                                                   //Old image layout
+        eGeneral,                                                                   //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        m_worldTex->image(),
+        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
+    };
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     //Permute the orders
     uint32_t order;
@@ -189,17 +216,6 @@ void World::fluidDynamicsStep(const vk::CommandBuffer& commandBuffer, const glm:
         commandBuffer.pushConstants(*m_pipelineLayout, eCompute, member(m_worldDynamicsPC, globalPosTi));
         //Dispatch
         commandBuffer.dispatch(dispatchSize.x, dispatchSize.y, 1u);
-        auto imageBarrier = vk::ImageMemoryBarrier2{
-            S::eComputeShader,                                                          //Src stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite,                             //Src access mask
-            S::eComputeShader,                                                          //Dst stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite,                             //Dst access mask
-            vk::ImageLayout::eGeneral,                                                  //Old image layout
-            vk::ImageLayout::eGeneral,                                                  //New image layout
-            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
-            m_worldTex->image(),
-            vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
-        };
         commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
 }

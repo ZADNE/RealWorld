@@ -16,16 +16,30 @@ using A = vk::AccessFlagBits2;
 
 vk::DeviceSize calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
     glm::ivec2 maxContinuous = activeChunksArea - 1;
-    return sizeof(ActiveChunksSB) +
+    return sizeof(ChunkManager::ActiveChunksSB) +
         sizeof(glm::ivec2) * (maxContinuous.x * maxContinuous.y + activeChunksArea.x * activeChunksArea.y);
 }
 
-ChunkManager::ChunkManager(ChunkGenerator& chunkGen):
+ChunkManager::ChunkManager(ChunkGenerator& chunkGen, const RE::PipelineLayout& pipelineLayout):
     m_chunkGen(chunkGen),
-    m_tilesStageBuf(k_tileStageSize* k_chunkByteSize, eTransferSrc | eTransferDst, eHostVisible | eHostCoherent) {
+    m_tilesStageBuf(
+        k_tileStageSize * k_chunkByteSize,
+        eTransferSrc | eTransferDst,
+        eHostVisible | eHostCoherent
+    ),
+    m_analyzeContinuityPl(
+        {.pipelineLayout = *pipelineLayout},
+        {.comp = analyzeContinuity_comp}
+    ) {
 }
 
-void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture& worldTex, const glm::ivec2& activeChunksArea) {
+const RE::Buffer& ChunkManager::setTarget(
+    int seed,
+    std::string folderPath,
+    const RE::Texture& worldTex,
+    RE::DescriptorSet& descriptorSet,
+    const glm::ivec2& activeChunksArea
+) {
     m_folderPath = folderPath;
     m_chunkGen.setSeed(seed);
     m_worldTex = &worldTex;
@@ -43,15 +57,18 @@ void ChunkManager::setTarget(int seed, std::string folderPath, RE::Texture& worl
     m_activeChunksStageMapped->activeChunksArea = activeChunksArea;
     m_activeChunksStageMapped->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_activeChunksMask.x * m_activeChunksMask.y;
-    for (int i = maxNumberOfUpdateChunks; i < (maxNumberOfUpdateChunks + activeChunksArea.x * activeChunksArea.y); i++) {
+    int lastChunkIndex = maxNumberOfUpdateChunks + activeChunksArea.x * activeChunksArea.y;
+    for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         m_activeChunksStageMapped->offsets[i] = k_chunkNotActive;
     }
     //m_activeChunksStageBuf->copyToBuffer(*m_activeChunksBuf, vk::BufferCopy{0u, 0u, bufSize}); TODO
-    m_descriptorSet.write(vk::DescriptorType::eStorageBuffer, 0u, 0u, *m_activeChunksBuf, 0ull, bufSize);
+    descriptorSet.write(vk::DescriptorType::eStorageBuffer, 1u, 0u, *m_activeChunksBuf, 0ull, bufSize);
 
     //Clear remnants of previous world
     m_inactiveChunks.clear();
     m_nextFreeTileStage = 0;
+
+    return *m_activeChunksBuf;
 }
 
 bool ChunkManager::saveChunks() {
@@ -165,7 +182,11 @@ void ChunkManager::beginStep() {
     m_nextFreeTileStage = 0;
 }
 
-void ChunkManager::planActivationOfChunks(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi, const glm::ivec2& topRightTi) {
+void ChunkManager::planActivationOfChunks(
+    const vk::CommandBuffer& commandBuffer,
+    const glm::ivec2& botLeftTi,
+    const glm::ivec2& topRightTi
+) {
     glm::ivec2 botLeftCh = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
 
@@ -212,7 +233,6 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
         };
         commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
         //And analyze the world texture
-        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
         commandBuffer.dispatch(m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1);
     }
