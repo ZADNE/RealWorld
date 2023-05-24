@@ -61,7 +61,18 @@ const RE::Buffer& ChunkManager::setTarget(
     for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         m_activeChunksStageMapped->offsets[i] = k_chunkNotActive;
     }
-    //m_activeChunksStageBuf->copyToBuffer(*m_activeChunksBuf, vk::BufferCopy{0u, 0u, bufSize}); TODO
+    RE::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
+        vk::BufferCopy2 bufferCopy{                                     //Copy whole buffer
+            0ull,
+            0ull,
+            bufSize
+        };
+        commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
+            m_activeChunksStageBuf->buffer(),                           //Src buffer
+            m_activeChunksBuf->buffer(),                                //Dst buffer
+            bufferCopy                                                  //Region
+        });
+    });
     descriptorSet.write(vk::DescriptorType::eStorageBuffer, 1u, 0u, *m_activeChunksBuf, 0ull, bufSize);
 
     //Clear remnants of previous world
@@ -83,13 +94,13 @@ bool ChunkManager::saveChunks() {
     commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
 
     auto imageBarrier = vk::ImageMemoryBarrier2{
-        S::eAllCommands,                                                            //Src stage mask
-        {},                                                                         //Src access mask
-        S::eTransfer,                                                               //Dst stage mask
-        A::eTransferRead,                                                           //Dst access mask
-        vk::ImageLayout::eReadOnlyOptimal,                                          //Old image layout
-        vk::ImageLayout::eGeneral,                                                  //New image layout
-        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        S::eAllCommands,                                                //Src stage mask
+        {},                                                             //Src access mask
+        S::eTransfer,                                                   //Dst stage mask
+        A::eTransferRead,                                               //Dst access mask
+        vk::ImageLayout::eReadOnlyOptimal,                              //Old image layout
+        vk::ImageLayout::eGeneral,                                      //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,               //Ownership transition
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
     };
@@ -109,10 +120,9 @@ bool ChunkManager::saveChunks() {
             auto posAc = glm::ivec2(x, y);
             auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, worldTexSize));
             if (activeChunk != k_chunkNotActive) {
-                if (!planDownload(*commandBuffer, activeChunk, chToTi(posAc))) {
-                    //Stage is full
+                if (!planDownload(*commandBuffer, activeChunk, chToTi(posAc))) {//If stage is full
                     commandBuffer->end();
-                    commandBuffer.submitToComputeQueue(true);//Waits for the transfer to finish
+                    commandBuffer.submitToComputeQueue(true);           //Wait for the transfer to finish
                     saveAllChunksInTileStage();
                     commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
                 }
@@ -121,20 +131,20 @@ bool ChunkManager::saveChunks() {
     }
 
     imageBarrier = vk::ImageMemoryBarrier2{
-        S::eTransfer,                                                               //Src stage mask
-        A::eTransferRead,                                                           //Src access mask
-        S::eAllCommands,                                                            //Dst stage mask
-        {},                                                                         //Dst access mask
-        vk::ImageLayout::eGeneral,                                                  //Old image layout
-        vk::ImageLayout::eReadOnlyOptimal,                                          //New image layout
-        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        S::eTransfer,                                                   //Src stage mask
+        A::eTransferRead,                                               //Src access mask
+        S::eAllCommands,                                                //Dst stage mask
+        {},                                                             //Dst access mask
+        vk::ImageLayout::eGeneral,                                      //Old image layout
+        vk::ImageLayout::eReadOnlyOptimal,                              //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,               //Ownership transition
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}
     };
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     commandBuffer->end();
-    commandBuffer.submitToComputeQueue(true);//Waits for the transfer to finish
+    commandBuffer.submitToComputeQueue(true);                           //Waits for the transfer to finish
     saveAllChunksInTileStage();
     return true;
 }
@@ -146,9 +156,9 @@ size_t ChunkManager::numberOfInactiveChunks() {
 void ChunkManager::beginStep() {
     //Check inactive chunks that have been inactive for too long
     for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {//For each inactive chunk
-        if (it->second.step() >= k_physicsStepsPerSecond * 60) {//If the chunk has not been used for a minute
-            saveChunk(it->second.tiles().data(), it->first);//Save the chunk to disk
-            it = m_inactiveChunks.erase(it);//And remove it from the collection
+        if (it->second.step() >= k_physicsStepsPerSecond * 60) {        //If the chunk has not been used for a minute
+            saveChunk(it->second.tiles().data(), it->first);            //Save the chunk to disk
+            it = m_inactiveChunks.erase(it);                            //And remove it from the collection
         } else { it++; }
     }
 
@@ -172,7 +182,7 @@ void ChunkManager::beginStep() {
         }
         case TileStageTransferState::Uploading:
         {
-            //Signal new the active chunks
+            //Signal the new active chunk
             activeChunk = stageState.posCh;
             m_transparentChunkChanges++;
             break;
@@ -216,20 +226,20 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
             }
         });
         commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
-            m_activeChunksStageBuf->buffer(),           //Src buffer
-            m_activeChunksBuf->buffer(),                //Dst buffer
-            copyRegions                                 //Regions
+            m_activeChunksStageBuf->buffer(),                           //Src buffer
+            m_activeChunksBuf->buffer(),                                //Dst buffer
+            copyRegions                                                 //Regions
         });
         //Wait for the copy to finish
         auto bufferBarrier = vk::BufferMemoryBarrier2{
-            S::eTransfer,                                                               //Src stage mask
-            A::eTransferWrite,                                                          //Src access mask
-            S::eComputeShader,                                                          //Dst stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite,                             //Dst access mask
-            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
-            m_activeChunksStageBuf->buffer(),
-            offsetof(ActiveChunksSB, dynamicsGroupSize),                                //Offset
-            VK_WHOLE_SIZE                                                               //Size
+            S::eTransfer,                                               //Src stage mask
+            A::eTransferWrite,                                          //Src access mask
+            S::eComputeShader,                                          //Dst stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite,             //Dst access mask
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,           //Ownership transition
+            m_activeChunksBuf->buffer(),
+            offsetof(ActiveChunksSB, dynamicsGroupSize),                //Offset
+            VK_WHOLE_SIZE                                               //Size
         };
         commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
         //And analyze the world texture
@@ -281,6 +291,7 @@ void ChunkManager::planActivation(
             //Chunk is not on the disk, it has to be generated
             m_chunkGen.generateChunk(commandBuffer, posCh, *m_worldTex, posAt);
             activeChunk = posCh;
+            m_transparentChunkChanges++;
         }
     }
 }
@@ -311,11 +322,11 @@ bool ChunkManager::planUpload(
         auto bufOffset = static_cast<vk::DeviceSize>(m_nextFreeTileStage) * k_chunkByteSize;
         std::memcpy(&m_tilesStageMapped[bufOffset], tiles.data(), k_chunkByteSize);
         auto copy = vk::BufferImageCopy2{
-            bufOffset,                          //Buffer offset
-            0u, 0u,                             //Tightly packed
-            {eColor, 0u, 0u, 1u},               //Subresource
-            {posAt.x, posAt.y, 0u},             //Offset
-            {iChunkTi.x, iChunkTi.y, 1u}  //Extent
+            bufOffset,                                                  //Buffer offset
+            0u, 0u,                                                     //Tightly packed
+            {eColor, 0u, 0u, 1u},                                       //Subresource
+            {posAt.x, posAt.y, 0u},                                     //Offset
+            {iChunkTi.x, iChunkTi.y, 1u}                                //Extent
         };
         commandBuffer.copyBufferToImage2(
             vk::CopyBufferToImageInfo2{
@@ -343,11 +354,11 @@ bool ChunkManager::planDownload(
         };
         vk::DeviceSize bufOffset = m_nextFreeTileStage * k_chunkByteSize;
         auto copy = vk::BufferImageCopy2{
-            bufOffset,                              //Buffer offset
-            0u, 0u,                                 //Tightly packed
-            {eColor, 0u, 0u, 1u},                   //Subresource
-            {posAt.x, posAt.y, 0u},                 //Offset
-            {iChunkTi.x, iChunkTi.y, 1u}      //Extent
+            bufOffset,                                                  //Buffer offset
+            0u, 0u,                                                     //Tightly packed
+            {eColor, 0u, 0u, 1u},                                       //Subresource
+            {posAt.x, posAt.y, 0u},                                     //Offset
+            {iChunkTi.x, iChunkTi.y, 1u}                                //Extent
         };
         commandBuffer.copyImageToBuffer2(
             vk::CopyImageToBufferInfo2{

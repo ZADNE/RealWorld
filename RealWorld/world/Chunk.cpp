@@ -3,6 +3,8 @@
 */
 #include <RealWorld/world/Chunk.hpp>
 
+#include <stdexcept>
+
 #include <glm/gtx/string_cast.hpp>
 
 Chunk::Chunk(const glm::ivec2& chunkPosCh, const uint8_t* tiles):
@@ -43,8 +45,11 @@ const std::vector<uint8_t>& Chunk::tiles() const {
 }
 
 void Chunk::boundsCheck(const glm::uvec2& posTi) const {
-    if (posTi.x >= static_cast<unsigned int>(iChunkTi.x) || posTi.y >= static_cast<unsigned int>(iChunkTi.y)) {
-        throw std::out_of_range("Tried to get tile " + glm::to_string(posTi) + " which is outside of the requested chunk: " + glm::to_string(m_chunkPosCh));
+    if (posTi.x >= uChunkTi.x || posTi.y >= uChunkTi.y) {
+        throw std::out_of_range(
+            "Tried to get tile " + glm::to_string(posTi) +
+            " which is outside of the requested chunk: " + glm::to_string(m_chunkPosCh)
+        );
     }
 }
 

@@ -3,11 +3,7 @@
  */
 #include <RealWorld/main/MainMenuRoom.hpp>
 
-#include <time.h>
-
-#include <iostream>
-
-#include <glm/common.hpp>
+#include <ctime>
 
 #include <RealWorld/save/WorldSaveLoader.hpp>
 

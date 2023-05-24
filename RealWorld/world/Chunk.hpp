@@ -2,7 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <iostream>
 #include <vector>
 #include <exception>
 

@@ -143,12 +143,12 @@ private:
     glm::ivec2& activeChunkAtIndex(int acIndex) const;
 
     RE::Pipeline m_analyzeContinuityPl;
-    glm::uvec2 m_analyzeContinuityGroupCount;
+    glm::uvec2 m_analyzeContinuityGroupCount{};
 
     std::string m_folderPath;
     ChunkGenerator& m_chunkGen;
     const RE::Texture* m_worldTex = nullptr;
-    glm::ivec2 m_activeChunksMask;
+    glm::ivec2 m_activeChunksMask{};
 
     //Tile stage
     static constexpr auto k_tileStageSize = 8;

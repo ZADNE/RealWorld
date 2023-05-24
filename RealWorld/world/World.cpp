@@ -119,10 +119,10 @@ int World::step(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLef
     //Chunk manager
     m_chunkManager.beginStep();
     m_chunkManager.planActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
     int activatedChunks = m_chunkManager.endStep(commandBuffer);
 
     //Set up commandBuffer state for simulation
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {});
     xorshift32(m_worldDynamicsPC.timeHash);
     commandBuffer.pushConstants(*m_pipelineLayout, eCompute, member(m_worldDynamicsPC, timeHash));
 
