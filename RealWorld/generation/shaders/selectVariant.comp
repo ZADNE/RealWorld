@@ -1,0 +1,44 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/generation/external_shaders/float_hash.glsl>
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
+
+layout( local_size_x = k_genGroupSize,
+        local_size_y = k_genGroupSize,
+        local_size_z = 1
+) in;
+
+layout(set = 0, binding = 0, rgba8ui) uniform restrict uimage2DArray u_tilesImage;
+
+const ivec2 OFFSETS[] = {
+                {-1, +2},   {+0, +2},   {+1, +2},
+    {-2, +1},   {-1, +1},   {+0, +1},   {+1, +1},   {+2, +1},
+    {-2, +0},   {-1, +0},               {+1, +0},   {+2, +0},
+    {-2, -1},   {-1, -1},   {+0, -1},   {+1, -1},   {+2, -1},
+                {-1, -2},   {+0, -2},   {+1, -2}
+};
+
+void main() {
+    //Load previous value of the tile
+    const uint loadLayer = (p_storeLayer + 1) & 1;
+    ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
+    uvec2 block_wall = imageLoad(u_tilesImage, ivec3(pTi, loadLayer)).TILE_TYPE;
+
+    //Examine neighbors
+    uvec2 inner = {0u, 0u};
+    for (int i = 0; i < OFFSETS.length(); i++){
+        inner |= uvec2(isFluidTile(imageLoad(u_tilesImage, ivec3(pTi + OFFSETS[i], loadLayer)).TILE_TYPE));
+    }
+
+    //Determine the variation
+    vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
+    uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
+    uvec2 variation = uvec2(hash22(vec2(p_chunkOffsetTi + pTi)) * variationRange) + variationOffset;
+
+    //Store the new tile
+    imageStore(u_tilesImage, ivec3(gl_GlobalInvocationID.xy, p_storeLayer), uvec4(block_wall.x, variation.x, block_wall.y, variation.y));
+}

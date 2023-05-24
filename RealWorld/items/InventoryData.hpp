@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -6,33 +6,31 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/rendering/Renderer.hpp>
-
 #include <RealWorld/items/Item.hpp>
 
-/**
- * @brief Is a data structure that holds items.
-*/
+ /**
+  * @brief Is a data structure that holds items.
+ */
 class InventoryData {
-    template<RE::Renderer> friend class Inventory;
+    friend class Inventory;
 public:
 
     InventoryData() {}
-    InventoryData(glm::ivec2 size) : m_size(size), m_items(slotCount()) { }
+    InventoryData(glm::ivec2 dims) : m_dims(dims), m_items(slotCount()) { }
 
-    glm::ivec2 getSize() const { return m_size; }
+    glm::ivec2 dims() const { return m_dims; }
 
 
     int toIndex(int x, int y) const {
-        return y * m_size.x + x;
+        return y * m_dims.x + x;
     }
 
     int slotCount() const {
-        return m_size.x * m_size.y;
+        return m_dims.x * m_dims.y;
     }
 
-    void resize(const glm::ivec2& newSize) {
-        m_size = newSize;
+    void resize(const glm::ivec2& dims) {
+        m_dims = dims;
         m_items.resize(slotCount());
     }
 
@@ -62,6 +60,6 @@ public:
 
 protected:
 
-    glm::ivec2 m_size = glm::ivec2(0, 0);
+    glm::ivec2 m_dims = glm::ivec2(0, 0);
     std::vector<Item> m_items;
 };

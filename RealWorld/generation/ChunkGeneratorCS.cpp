@@ -3,47 +3,43 @@
  */
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 
-#include <RealEngine/rendering/Ordering.hpp>
+constexpr int k_groupSize = 16;
+constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
-#include <RealWorld/reserved_units/textures.hpp>
-#include <RealWorld/reserved_units/images.hpp>
+using enum vk::ImageAspectFlagBits;
+using enum vk::ShaderStageFlagBits;
 
-const int GEN_CS_GROUP_SIZE = 16;
+using S = vk::PipelineStageFlagBits2;
+using A = vk::AccessFlagBits2;
 
-template<RE::Renderer R>
-ChunkGeneratorCS<R>::ChunkGeneratorCS() {
-    m_structureShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
-    m_variantSelectionShd.backInterfaceBlock(0u, UNIF_BUF_CHUNKGEN);
-
-    m_tilesTex[0].bind(TEX_UNIT_GEN_TILES[0]);
-    m_tilesTex[1].bind(TEX_UNIT_GEN_TILES[1]);
-    m_materialGenTex.bind(TEX_UNIT_GEN_MATERIAL);
-
-    m_tilesTex[0].bindImage(IMG_UNIT_GEN_TILES[0], 0, RE::ImageAccess::READ_WRITE);
-    m_tilesTex[1].bindImage(IMG_UNIT_GEN_TILES[1], 0, RE::ImageAccess::READ_WRITE);
-    m_materialGenTex.bindImage(IMG_UNIT_GEN_MATERIAL, 0, RE::ImageAccess::READ_WRITE);
+ChunkGeneratorCS::ChunkGeneratorCS() {
+    m_descSet.write(vk::DescriptorType::eStorageImage, 0u, 0u, m_tilesTex, vk::ImageLayout::eGeneral);
+    m_descSet.write(vk::DescriptorType::eStorageImage, 1u, 0u, m_materialTex, vk::ImageLayout::eGeneral);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::prepareToGenerate() {
-
+void ChunkGeneratorCS::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet, {});
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::generateBasicTerrain() {
-    m_structureShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+void ChunkGeneratorCS::generateBasicTerrain(const vk::CommandBuffer& commandBuffer) {
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
+    m_pushConstants.storeLayer = 0;
+    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
+    commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::consolidateEdges() {
-    using enum RE::IncoherentAccessBarrierFlags;
-    unsigned int cycleN = 0u;
-    auto pass = [this, &cycleN](const glm::ivec2& thresholds, size_t passes) {
-        m_consolidationShd.setUniform(LOC_THRESHOLDS, thresholds);
+void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
+    auto pass = [&](const glm::ivec2& thresholds, size_t passes) {
+        m_pushConstants.edgeConsolidationPromote = thresholds.x;
+        m_pushConstants.edgeConsolidationReduce = thresholds.y;
         for (size_t i = 0; i < passes; i++) {
-            m_consolidationShd.setUniform(LOC_CYCLE_N, cycleN++);
-            RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
-            m_consolidationShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, false);
+            m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
+            //Wait for the previous pass to finish
+            auto imageBarrier = stepBarrier();
+            commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+            //Consolidate
+            commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
+            commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
         }
     };
     auto doublePass = [pass](const glm::ivec2& firstThresholds, const glm::ivec2& secondThresholds, size_t passes) {
@@ -53,23 +49,59 @@ void ChunkGeneratorCS<R>::consolidateEdges() {
         }
     };
 
-    m_consolidationShd.use();
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
     doublePass({3, 4}, {4, 5}, 4);
-    m_consolidationShd.unuse();
-
-    assert(static_cast<int>(cycleN) <= GEN_BORDER_WIDTH);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::selectVariants() {
-    using enum RE::IncoherentAccessBarrierFlags;
-    RE::Ordering<R>::issueIncoherentAccessBarrier(SHADER_IMAGE_ACCESS);
-    m_variantSelectionShd.dispatchCompute({GEN_CHUNK_SIZE / GEN_CS_GROUP_SIZE, 1}, true);
+void ChunkGeneratorCS::selectVariant(const vk::CommandBuffer& commandBuffer) {
+    //Wait for the edge consolidation to finish
+    auto imageBarrier = stepBarrier();
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    //Select variants
+    m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
+    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_pushConstants);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
+    commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-template<RE::Renderer R>
-void ChunkGeneratorCS<R>::finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) {
-    m_tilesTex[0].copyTexels(0, glm::ivec2{GEN_BORDER_WIDTH}, destinationTexture, 0, destinationOffset, iCHUNK_SIZE);
+void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) {
+    //Wait for the generation to finish
+    auto imageBarrier = vk::ImageMemoryBarrier2{
+        S::eComputeShader,                                                          //Src stage mask
+        A::eShaderStorageWrite | A::eShaderStorageRead,                             //Src access mask
+        S::eTransfer,                                                               //Dst stage mask
+        A::eTransferRead,                                                           //Dst access mask
+        vk::ImageLayout::eGeneral,                                                  //Old image layout
+        vk::ImageLayout::eGeneral,                                                  //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        m_tilesTex.image(),
+        vk::ImageSubresourceRange{eColor, 0u, 1u, m_pushConstants.storeLayer, 1u}
+    };
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    //Copy the generated chunk to the world texture
+    commandBuffer.copyImage(
+        m_tilesTex.image(), vk::ImageLayout::eGeneral,                              //Src image
+        dstTex.image(), vk::ImageLayout::eGeneral,                                  //Dst image
+        vk::ImageCopy{
+            vk::ImageSubresourceLayers{eColor, 0u, m_pushConstants.storeLayer, 1u}, //Src subresource
+            vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0},                    //Src offset
+            vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u},                         //Dst subresource
+            vk::Offset3D{dstOffset.x, dstOffset.y, 0},                              //Dst offset
+            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}                           //Copy Extent
+        }
+    );
 }
 
-template ChunkGeneratorCS<RE::RendererGL46>;
+vk::ImageMemoryBarrier2 ChunkGeneratorCS::stepBarrier() const {
+    return vk::ImageMemoryBarrier2{
+        S::eComputeShader,                                                          //Src stage mask
+        A::eShaderStorageWrite,                                                     //Src access mask
+        S::eComputeShader,                                                          //Dst stage mask
+        A::eShaderStorageRead,                                                      //Dst access mask
+        vk::ImageLayout::eGeneral,                                                  //Old image layout
+        vk::ImageLayout::eGeneral,                                                  //New image layout
+        VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,                           //Ownership transition
+        m_tilesTex.image(),
+        vk::ImageSubresourceRange{eColor, 0u, 1u, m_pushConstants.storeLayer, 1u}
+    };
+}

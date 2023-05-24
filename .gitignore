@@ -1,5 +1,6 @@
 .vscode/*
 doc/
+imgui.ini
 
 CMakeSettings.json
 

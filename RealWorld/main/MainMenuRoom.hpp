@@ -10,51 +10,46 @@
 #include <ImGui/imgui_stdlib.h>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
+#include <RealWorld/main/settings/combos.hpp>
 
-/**
- * @brief Holds the main menu and related objects.
-*/
+ /**
+  * @brief Holds the main menu and related objects.
+ */
 class MainMenuRoom : public Room {
 public:
 
     MainMenuRoom(GameSettings& gameSettings);
 
-    void sessionStart(const RE::RoomTransitionParameters& params) override;
+    void sessionStart(const RE::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
-    void render(double interpolationFactor) override;
+    void render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) override;
 
     void keybindCallback(RE::Key newKey);
 
 private:
 
-    static constexpr RE::RoomDisplaySettings DEFAULT_SETTINGS{
-        .framesPerSecondLimit = 144,
-        .usingImGui = true
-    };
-
     enum class Menu {
-        MAIN,
-        NEW_WORLD,
-        LOAD_WORLD,
-        DISPLAY_SETTINGS,
-        CONTROLS
+        Main,
+        NewWorld,
+        LoadWorld,
+        DisplaySettings,
+        Controls
     };
     using enum Menu;
 
     GameSettings& m_gameSettings;
-    Menu m_menu = MAIN;                                 /**< The currently open menu */
+    Menu m_menu = Main;                                 /**< The currently open menu */
     std::vector<std::string> m_worlds;                  /**< Names of all worlds that can be loaded */
     ImFont* m_arial16 = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 28.0f);
     std::string m_newWorldName;                         /**< Name of the world that will be created */
     int m_newWorldSeed = 0;                             /**< Seed of the world that will be created */
 
-    bool m_unsavedChanges = false;                      /**< True if anything has been changed in settings */
-    bool m_fullscreen = engine().isWindowFullscreen();  /**< Current state */
-    bool m_borderless = engine().isWindowBorderless();  /**< Current state */
-    bool m_vSync = engine().isWindowVSynced();          /**< Current state */
-    size_t m_selectedResolution = 0;                    /**< Index into the array of supported resolutions */
-    size_t m_selectedActiveChunksArea = 0;              /**< Index into the array of supported active-chunks areas */
+    bool m_fullscreen = engine().isWindowFullscreen();
+    bool m_borderless = engine().isWindowBorderless();
+    bool m_vSync = engine().isWindowVSynced();
+    decltype(k_resolutions)::const_iterator m_resolution;
+    decltype(k_activeChunkAreas)::const_iterator m_activeChunksArea;
 
     bool m_drawKeybindListeningPopup = false;           /**< True if currently listening */
 

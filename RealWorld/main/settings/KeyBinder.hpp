@@ -8,41 +8,41 @@
  * @brief Represents all key bindings that RealWorld has
 */
 enum class RealWorldKeyBindings {
-    INV_OPEN_CLOSE,
-    INV_MOVE_ALL,
-    INV_MOVE_PORTION,
-    INV_PREV_SLOT,
-    INV_RIGHT_SLOT,
-    INV_LEFT_SLOT,
-    INV_SLOT0,
-    INV_SLOT1,
-    INV_SLOT2,
-    INV_SLOT3,
-    INV_SLOT4,
-    INV_SLOT5,
-    INV_SLOT6,
-    INV_SLOT7,
-    INV_SLOT8,
-    INV_SLOT9,
+    InvOpenClose,
+    InvMoveAll,
+    InvMovePortion,
+    InvPrevSlot,
+    InvRightSlot,
+    InvLeftSlot,
+    InvSlot0,
+    InvSlot1,
+    InvSlot2,
+    InvSlot3,
+    InvSlot4,
+    InvSlot5,
+    InvSlot6,
+    InvSlot7,
+    InvSlot8,
+    InvSlot9,
 
-    ITEMUSER_USE_PRIMARY,
-    ITEMUSER_USE_SECONDARY,
-    ITEMUSER_SWITCH_SHAPE,
-    ITEMUSER_HOLD_TO_RESIZE,
-    ITEMUSER_WIDEN,
-    ITEMUSER_SHRINK,
+    ItemuserUsePrimary,
+    ItemuserUseSecondary,
+    ItemuserSwitchShape,
+    ItemuserHoldToResize,
+    ItemuserWiden,
+    ItemuserShrink,
 
-    PLAYER_LEFT,
-    PLAYER_RIGHT,
-    PLAYER_JUMP,
-    PLAYER_AUTOJUMP,
+    PlayerLeft,
+    PlayerRight,
+    PlayerJump,
+    PlayerAutojump,
 
-    QUIT,
-    MINIMAP,
-    SHADOWS,
-    PERMUTE,
+    Quit,
+    Minimap,
+    Shadows,
+    Permute,
 
-    COUNT
+    Count
 };
 
 struct BindingInfo {
@@ -54,13 +54,13 @@ struct BindingInfo {
     const char* desc;
 };
 
-constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBindings::COUNT)> KEYBINDING_INFO = {
+constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBindings::Count)> k_keybindingInfo = {
     BindingInfo{RE::Key::E,         "INV_OPEN_CLOSE",           "Open/close"},
     BindingInfo{RE::Key::LMB,       "INV_MOVE_ALL",             "Take/put all"},
     BindingInfo{RE::Key::RMB,       "INV_MOVE_PORTION",         "Take/put some"},
-    BindingInfo{RE::Key::Q,         "INV_PREV_SLOT",            "Previous slot"},
-    BindingInfo{RE::Key::DMW,       "INV_RIGHT_SLOT",           "Left slot"},
-    BindingInfo{RE::Key::UMW,       "INV_LEFT_SLOT",            "Right slot"},
+    BindingInfo{RE::Key::Q,         "INV_PREV_SLOT",            "ToPrevious slot"},
+    BindingInfo{RE::Key::DMW,       "INV_RIGHT_SLOT",           "ScrollLeft slot"},
+    BindingInfo{RE::Key::UMW,       "INV_LEFT_SLOT",            "ScrollRight slot"},
     BindingInfo{RE::Key::K1,        "INV_SLOT0",                "Slot 1"},
     BindingInfo{RE::Key::K2,        "INV_SLOT1",                "Slot 2"},
     BindingInfo{RE::Key::K3,        "INV_SLOT2",                "Slot 3"},
@@ -74,7 +74,7 @@ constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBinding
 
     BindingInfo{RE::Key::LMB,       "ITEMUSER_USE_PRIMARY",     "Primary"},
     BindingInfo{RE::Key::RMB,       "ITEMUSER_USE_SECONDARY",   "Secondary"},
-    BindingInfo{RE::Key::MMB,       "ITEMUSER_SWITCH_SHAPE",    "Disc/square"},
+    BindingInfo{RE::Key::MMB,       "ITEMUSER_SWITCH_SHAPE",    "Disk/square"},
     BindingInfo{RE::Key::LCtrl,     "ITEMUSER_HOLD_TO_RESIZE",  "Hold to resize"},
     BindingInfo{RE::Key::UMW,       "ITEMUSER_WIDEN",           "Widen"},
     BindingInfo{RE::Key::DMW,       "ITEMUSER_SHRINK",          "Shrink"},
@@ -94,7 +94,7 @@ constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBinding
  * @brief Global keybinder object for the RealWorld game
 */
 inline auto& keybinder() {
-    static RE::KeyBinder<RealWorldKeyBindings, BindingInfo, KEYBINDING_INFO> kb{};
+    static RE::KeyBinder<RealWorldKeyBindings, BindingInfo, k_keybindingInfo> kb{};
     return kb;
 }
 

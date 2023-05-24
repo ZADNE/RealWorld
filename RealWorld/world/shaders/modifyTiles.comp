@@ -1,0 +1,63 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/tile.glsl>
+const uint worldImage_BINDING = 0;
+#include <RealWorld/world/shaders/tileLoadStore.glsl>
+#include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
+
+layout( local_size_x = 16,
+        local_size_y = 16,
+        local_size_z = 1
+) in;
+
+const uint k_blockLayer = 0;
+const uint k_wallLayer = 2;
+
+const uint k_square = 0;
+const uint k_disk = 1;
+
+uint randomState;
+
+//Xorshift algorithm by George Marsaglia
+uint random(){
+    randomState ^= randomState << 13;
+    randomState ^= randomState >> 17;
+    randomState ^= randomState << 5;
+    return randomState;
+}
+
+void main(){
+    ivec2 offset = ivec2(gl_LocalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy) / 2;
+    //Construct the shape
+    switch (p_modifyShape){
+        case k_square:
+        if (abs(offset.x) > p_modifyRadius || abs(offset.y) > p_modifyRadius){
+            return;//Outside of the shape
+        }
+        break;
+        case k_disk:
+        if (dot(offset, offset) > p_modifyRadius * p_modifyRadius){
+            return;//Outside of the shape
+        }
+        break;
+    }
+    //Modify the tile
+    ivec2 posIm = imPos(p_globalPosTi + offset);
+    uvec4 tile = tileLoadIm(posIm);
+    randomState = (posIm.x * posIm.y) ^ p_timeHash;
+    if (p_modifyTarget == k_blockLayer){
+        if ((p_modifySetValue.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
+            return;
+        }
+        tile.BL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
+    } else {
+        if ((p_modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == isFluidBlock(tile.BL_T)){
+            return;
+        }
+        tile.WL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
+    }
+    //Store the modified tile
+    tileStoreIm(posIm, tile);
+}

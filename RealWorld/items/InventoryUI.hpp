@@ -10,36 +10,43 @@
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
-#include <RealWorld/shaders/common.hpp>
 
-template<RE::Renderer> class ItemUser;
-template<RE::Renderer> class Inventory;
-
-enum class SlotSelectionManner {
-    ABS,
-    RIGHT,
-    LEFT,
-    PREV,
-    LAST_SLOT
-};
+class ItemUser;
+class Inventory;
 
 /**
  * @brief Renders and manipulates inventories.
 */
-template<RE::Renderer R>
 class InventoryUI {
 public:
 
-    enum Connection { PRIMARY, SECONDARY, TERTIARY, COUNT };
+    enum class SlotSelectionManner {
+        AbsolutePos,
+        ScrollRight,
+        ScrollLeft,
+        ToPrevious,
+        ToLastSlot
+    };
+
+    enum Connection {
+        Primary,
+        Secondary,
+        Tertiary,
+        Count
+    };
 
     /**
      * @brief Contructs a UI that is not connected to any inventories
     */
-    InventoryUI(RE::SpriteBatch<R>& sb, const glm::vec2& windowSize);
-    ~InventoryUI();
+    InventoryUI(const glm::vec2& windowSize);
 
-    InventoryUI(const InventoryUI<R>&) = delete;
-    InventoryUI<R>& operator=(const InventoryUI<R>&) = delete;
+    InventoryUI(const InventoryUI&) = delete;           /**< Noncopyable */
+    InventoryUI& operator=(const InventoryUI&) = delete;/**< Noncopyable */
+
+    InventoryUI(InventoryUI&&) = delete;                /**< Nonmovable */
+    InventoryUI&& operator=(InventoryUI&&) = delete;    /**< Nonmovable */
+
+    ~InventoryUI();
 
     /**
      * @brief Notifies the UI that the window has been resized
@@ -53,13 +60,13 @@ public:
      *
      * Simultaneously disconnects the previous inventory.
     */
-    void connectToInventory(Inventory<R>* inventory, Connection connection);
+    void connectToInventory(Inventory* inventory, Connection connection);
 
     /**
      * @brief Connects the UI with given item user (disconnects the previous)
      * @param itemUser The item user to connect with. nullptr effectively disconnects the previous item user
     */
-    void connectToItemUser(ItemUser<R>* itemUser) { m_itemUser = itemUser; }
+    void connectToItemUser(ItemUser* itemUser) { m_itemUser = itemUser; }
 
     /**
      * @brief Switches the inventory to the oposite state
@@ -84,14 +91,14 @@ public:
     void selectSlot(SlotSelectionManner selectionManner, int number = 0);
 
     void step();
-    void draw(const glm::vec2& cursorPx);
+    void draw(RE::SpriteBatch& spriteBatch, const glm::vec2& cursorPx);
 
 private:
 
-    static constexpr glm::vec2 SLOT_PADDING = glm::vec2(8.0f, 8.0f);
+    static constexpr glm::vec2 k_slotPadding = glm::vec2(8.0f, 8.0f);
 
-    inline glm::vec2 slotDims() const { return m_slotTex.getSubimageDims(); }
-    inline glm::vec2 slotPivot() const { return m_slotTex.getPivot(); }
+    inline glm::vec2 slotDims() const { return m_slotTex.subimageDims(); }
+    inline glm::vec2 slotPivot() const { return m_slotTex.pivot(); }
 
     inline glm::ivec2 invSize(Connection con) const;
     inline int invSlotCount(Connection con) const;
@@ -100,7 +107,7 @@ private:
 
     template<typename Func>
     void forEachConnectedInventory(Func f) {
-        for (int c = PRIMARY; c < static_cast<int>(Connection::COUNT); ++c) {
+        for (int c = Primary; c < static_cast<int>(Connection::Count); ++c) {
             if (m_inv[c]) {//If connected the inventory
                 f(static_cast<Connection>(c));
             }
@@ -123,20 +130,19 @@ private:
         }
     }
 
-    RE::SpriteBatch<R>& m_sb;
-    ItemUser<R>* m_itemUser = nullptr;
+    ItemUser* m_itemUser = nullptr;
 
     glm::vec2 m_windowSize;
-    RE::Texture<R> m_slotTex{{.file = "slot"}};
+    RE::TextureShaped m_slotTex{{.file = "slot"}};
     glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
 
     Item m_heldItem{};
-    ItemSprite<R> m_heldSprite{};
+    ItemSprite m_heldSprite{};
 
     int m_chosenSlot = 0;//Is signed but never should be negative
     int m_chosenSlotPrev = 0;//Is signed but never should be negative
 
-    Inventory<R>* m_inv[static_cast<size_t>(Connection::COUNT)] = {nullptr, nullptr, nullptr};
-    std::vector<ItemSprite<R>> m_invItemSprites[static_cast<size_t>(Connection::COUNT)];
+    Inventory* m_inv[static_cast<size_t>(Connection::Count)] = {nullptr, nullptr, nullptr};
+    std::vector<ItemSprite> m_invItemSprites[static_cast<size_t>(Connection::Count)];
     bool m_open = false;
 };

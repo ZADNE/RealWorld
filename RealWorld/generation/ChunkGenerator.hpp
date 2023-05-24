@@ -4,18 +4,14 @@
 #pragma once
 #include <array>
 
-#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
-#include <RealEngine/rendering/output/Surface.hpp>
-#include <RealEngine/rendering/vertices/VertexArray.hpp>
+#include <RealEngine/rendering/textures/Texture.hpp>
+#include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
-#include <RealWorld/shaders/generation.hpp>
-#include <RealWorld/reserved_units/buffers.hpp>
 #include <RealWorld/constants/generation.hpp>
 
-/**
- * @brief Is an interface for chunk generators.
-*/
-template<RE::Renderer R>
+ /**
+  * @brief Is an interface for chunk generators.
+ */
 class ChunkGenerator {
 public:
 
@@ -30,26 +26,28 @@ public:
 
     /**
      * @brief Generates a chunk. The pixels are stored inside given texture at given position.
-     *
+     * @param commandBuffer Command buffer that is used for the generation
      * @param posCh Position of the chunk (measured in chunks)
-     * @param destinationTexture The texture that will receive the generated chunk
-     * @param destinationOffset Offset within destinationTexture where the texels/tiles will be copied
+     * @param dstTex The texture that will receive the generated chunk
+     * @param dstOffset Offset within dstTex where the texels/tiles will be copied to
      */
-    void generateChunk(const glm::ivec2& posCh, const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset);
+    void generateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, const RE::Texture& dstTex, const glm::ivec2& dstOffset);
 
 protected:
 
-    struct ChunkUniforms {
+    struct GenerationPC {
         glm::ivec2 chunkOffsetTi;
         int seed;
+        glm::uint storeLayer;
+        glm::uint edgeConsolidationPromote;
+        glm::uint edgeConsolidationReduce;
     };
-    RE::BufferTyped<R> m_chunkUniformBuf{UNIF_BUF_CHUNKGEN, sizeof(ChunkUniforms), RE::BufferUsageFlags::DYNAMIC_STORAGE};
 
-    virtual void prepareToGenerate() = 0;
-    virtual void generateBasicTerrain() = 0;
-    virtual void consolidateEdges() = 0;
-    virtual void selectVariants() = 0;
-    virtual void finishGeneration(const RE::Texture<R>& destinationTexture, const glm::ivec2& destinationOffset) = 0;
+    GenerationPC m_pushConstants;
 
-    int m_seed = 0;
+    virtual void prepareToGenerate(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void generateBasicTerrain(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void consolidateEdges(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void selectVariant(const vk::CommandBuffer& commandBuffer) = 0;
+    virtual void finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) = 0;
 };

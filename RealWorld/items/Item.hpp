@@ -12,7 +12,7 @@ struct Item : public ItemSample {
     /**
      * @brief Constructs empty item
     */
-    Item();
+    Item() {};
 
     /**
      * @brief Constructs item from ItemSample and amount
@@ -22,7 +22,7 @@ struct Item : public ItemSample {
     /**
      * @brief Constructs item from its ID amount and special value
     */
-    Item(ITEM ID, int amount, float special = 0.0f);
+    Item(ItemId id, int amount, float special = 0.0f);
 
         //Merge with another item of same ID and special (checks are done inside this function)
         //Both items may be changed

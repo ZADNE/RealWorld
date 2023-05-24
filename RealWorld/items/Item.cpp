@@ -7,46 +7,40 @@
 
 #include <glm/common.hpp>
 
-
-Item::Item():
-    ItemSample{} {
-
-}
-
 Item::Item(const ItemSample& sample, int amount):
     ItemSample(sample),
     amount(amount){
 
 }
 
-Item::Item(ITEM ID, int amount, float special/* = 0.0f*/):
-    ItemSample(ID, special),
+Item::Item(ItemId id, int amount, float special/* = 0.0f*/):
+    ItemSample(id, special),
     amount(amount){
 
 }
 
 void Item::merge(Item& item, float portion){
-    if (ID != item.ID) { return; }//Both items are not same type, cannot merge
+    if (id != item.id) { return; }//Both items are not same type, cannot merge
     if (special != item.special) { return; }//Both items do nat have same special, cannot merge
-    int maxStack = ItemDatabase::md(ID).maxStack;
+    int maxStack = ItemDatabase::md(id).maxStack;
     int temp = glm::min(maxStack - amount, (int)(glm::ceil((float)item.amount * portion)));
     amount += temp;
     item.amount -= temp;
     if (item.amount <= 0) {
-        item.ID = ITEM::EMPTY;
+        item.id = ItemId::Empty;
     }
 }
 
 void Item::insert(Item & item, float portion){
-    if (ID != ITEM::EMPTY) { return; }//This is not empty item, cannot insert
+    if (id != ItemId::Empty) { return; }//This is not empty item, cannot insert
     special = item.special;
-    ID = item.ID;
-    int maxStack = ItemDatabase::md(ID).maxStack;
+    id = item.id;
+    int maxStack = ItemDatabase::md(id).maxStack;
     int temp = glm::min(maxStack, (int)(glm::ceil((float)item.amount * portion)));
     amount += temp;
     item.amount -= temp;
     if (item.amount <= 0) {
-        item.ID = ITEM::EMPTY;
+        item.id = ItemId::Empty;
     }
 }
 
@@ -59,14 +53,14 @@ void Item::swap(Item& item){
 int Item::operator--(){
     int tmp = amount;
     if (--amount <= 0) {
-        ID = ITEM::EMPTY;
+        id = ItemId::Empty;
     }
     return tmp;
 }
 
 int Item::operator--(int){
     if (--amount <= 0) {
-        ID = ITEM::EMPTY;
+        id = ItemId::Empty;
     }
     return amount;
 }
@@ -74,7 +68,7 @@ int Item::operator--(int){
 int Item::operator+=(int number){
     amount += number;
     if (amount <= 0) {
-        ID = ITEM::EMPTY;
+        id = ItemId::Empty;
     }
     return amount;
 }
@@ -82,7 +76,7 @@ int Item::operator+=(int number){
 int Item::operator-=(int number){
     amount -= number;
     if (amount <= 0) {
-        ID = ITEM::EMPTY;
+        id = ItemId::Empty;
     }
     return amount;
 }

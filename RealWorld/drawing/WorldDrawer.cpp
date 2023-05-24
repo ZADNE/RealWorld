@@ -3,98 +3,64 @@
  */
 #include <RealWorld/drawing/WorldDrawer.hpp>
 
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <RealEngine/rendering/vertices/vertices.hpp>
+#include <RealEngine/rendering/pipelines/Vertex.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
-#include <RealWorld/shaders/common.hpp>
-#include <RealWorld/reserved_units/textures.hpp>
-#include <RealWorld/reserved_units/images.hpp>
 
+using enum vk::DescriptorType;
+using enum vk::ShaderStageFlagBits;
 
-template<RE::Renderer R>
-WorldDrawer<R>::WorldDrawer(const glm::uvec2& viewSizePx) :
-    m_viewSizePx(viewSizePx),
+WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights):
     m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_tileDrawer(m_viewSizeTi),
-    m_shadowDrawer(m_viewSizeTi),
-    m_minimapDrawer() {
-
-    updateUniformBuffer();
+    m_tileDrawer(viewSizePx, m_viewSizeTi),
+    m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights) {
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::setTarget(const glm::ivec2& worldTexSize) {
-    m_worldTexSize = worldTexSize;
-    m_minimapDrawer.setTarget(worldTexSize, m_viewSizePx);
-    updateUniformBuffer();
+void WorldDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
+    m_tileDrawer.setTarget(worldTexture, worldTexSize);
+    m_shadowDrawer.setTarget(worldTexture, worldTexSize);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::resizeView(const glm::uvec2& viewSizePx) {
-    m_viewSizePx = viewSizePx;
+void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
     m_viewSizeTi = viewSizeTi(viewSizePx);
-    updateUniformBuffer();
-    m_shadowDrawer.resizeView(m_viewSizeTi);
-    m_minimapDrawer.resizeView(m_worldTexSize, m_viewSizePx);
+    m_tileDrawer.resizeView(viewSizePx, m_viewSizeTi);
+    m_shadowDrawer.resizeView(viewSizePx, m_viewSizeTi);
 }
 
-template<RE::Renderer R>
-WorldDrawer<R>::ViewEnvelope WorldDrawer<R>::setPosition(const glm::vec2& botLeftPx) {
+WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
     m_botLeftPx = botLeftPx;
-    m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TILEPx));
-    return ViewEnvelope{ .botLeftTi = m_botLeftTi - glm::ivec2(LIGHT_MAX_RANGETi), .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(LIGHT_MAX_RANGETi) };
+    m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
+    return ViewEnvelope{
+        .botLeftTi = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi),
+        .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(k_lightMaxRangeTi)
+    };
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::beginStep() {
-    m_shadowDrawer.analyze(m_botLeftTi);
+void WorldDrawer::beginStep(const vk::CommandBuffer& commandBuffer) {
+    m_shadowDrawer.analyze(commandBuffer, m_botLeftTi);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
+void WorldDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
     m_shadowDrawer.addExternalLight(posPx, col);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::endStep() {
-    m_shadowDrawer.calculate(m_botLeftPx);
+void WorldDrawer::endStep(const vk::CommandBuffer& commandBuffer) {
+    m_shadowDrawer.calculate(commandBuffer, m_botLeftPx);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::drawTiles() {
-    m_tileDrawer.draw(m_vao, m_botLeftPx, m_viewSizeTi);
+void WorldDrawer::drawTiles(const vk::CommandBuffer& commandBuffer) {
+    m_tileDrawer.drawTiles(commandBuffer, m_botLeftPx);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::drawShadows() {
-    if (m_drawShadows) {
-        m_shadowDrawer.draw(m_vao, m_botLeftPx, m_viewSizeTi);
-    }
+void WorldDrawer::drawShadows(const vk::CommandBuffer& commandBuffer) {
+    m_shadowDrawer.draw(commandBuffer, m_botLeftPx, m_viewSizeTi);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::drawMinimap() {
-    if (m_drawMinimap) {
-        m_minimapDrawer.draw();
-    }
+void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
+    m_tileDrawer.drawMinimap(commandBuffer);
 }
 
-template<RE::Renderer R>
-void WorldDrawer<R>::updateUniformBuffer() {
-    WorldDrawerUniforms wdu{
-        .viewMat = glm::ortho(0.0f, m_viewSizePx.x, 0.0f, m_viewSizePx.y),
-        .worldTexMask = m_worldTexSize - 1,
-        .viewWidthTi = static_cast<int>(m_viewSizeTi.x)
-    };
-    m_uniformBuf.overwrite(0u, wdu);
+glm::uvec2 WorldDrawer::viewSizeTi(const glm::vec2& viewSizePx) const {
+    return glm::uvec2(glm::ceil(viewSizePx / TilePx)) + 1u;
 }
-
-template<RE::Renderer R>
-glm::uvec2 WorldDrawer<R>::viewSizeTi(const glm::vec2& viewSizePx) const {
-    return glm::uvec2(glm::ceil(viewSizePx / TILEPx)) + 1u;
-}
-
-template WorldDrawer<RE::RendererGL46>;

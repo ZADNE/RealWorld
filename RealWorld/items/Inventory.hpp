@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -7,20 +7,19 @@
 #include <RealWorld/items/InventoryData.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 
-/**
- * @brief Is a clever container for items.
-*/
-template<RE::Renderer R>
+ /**
+  * @brief Is a clever container for items.
+ */
 class Inventory : public InventoryData {
-    friend class InventoryUI<R>;
+    friend class InventoryUI;
     friend class ItemCombinator;
 public:
 
     Inventory(const glm::ivec2& size);
     ~Inventory();
 
-    Inventory(const Inventory<R>&) = delete;
-    Inventory<R>& operator=(const Inventory<R>&) = delete;
+    Inventory(const Inventory&) = delete;
+    Inventory& operator=(const Inventory&) = delete;
 
     //New slots are empty
     //Contents of removed slots are lost
@@ -54,8 +53,8 @@ public:
 private:
 
     //Should only be called from InventoryUI::connectToInventory()
-    void connectToDrawer(InventoryUI<R>* inventoryDrawer, InventoryUI<R>::Connection connection);
+    void connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection);
 
-    InventoryUI<R>* m_UI = nullptr;
-    InventoryUI<R>::Connection m_UIConnection;//Defines the type of connection to UI
+    InventoryUI* m_UI = nullptr;
+    InventoryUI::Connection m_UIConnection;//Defines the type of connection to UI
 };

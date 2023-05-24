@@ -32,7 +32,7 @@ public:
     */
     void reset();
 
-    glm::ivec2 getActiveChunksArea() const { return m_activeChunksArea; }
+    glm::ivec2 activeChunksArea() const { return m_activeChunksArea; }
     void setActiveChunksArea(const glm::ivec2& activeChunksArea) { m_activeChunksArea = activeChunksArea; }
 
 private:

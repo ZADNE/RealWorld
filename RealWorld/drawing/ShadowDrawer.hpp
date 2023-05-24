@@ -2,56 +2,124 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <vector>
+#include <glm/mat4x4.hpp>
 
-#include <RealEngine/rendering/vertices/ShaderProgram.hpp>
-#include <RealEngine/rendering/vertices/VertexArray.hpp>
+#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
+#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
+#include <RealEngine/rendering/textures/TextureShaped.hpp>
+#include <RealEngine/rendering/pipelines/Pipeline.hpp>
 
 #include <RealWorld/drawing/ExternalLight.hpp>
-#include <RealWorld/shaders/drawing.hpp>
-#include <RealWorld/reserved_units/buffers.hpp>
 
-/**
- * @brief Renders shadows of the world
-*/
-template<RE::Renderer R>
+ /**
+  * @brief Renders shadows of the world
+ */
 class ShadowDrawer {
 public:
 
-    ShadowDrawer(const glm::uvec2& viewSizeTi);
+    ShadowDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi, glm::uint maxNumberOfExternalLights);
 
-    void resizeView(const glm::uvec2& viewSizeTi);
+    void setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize);
 
-    void analyze(const glm::ivec2& botLeftTi);
+    void resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
 
+    /**
+     * @brief Analyzes the world texture
+    */
+    void analyze(
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2& botLeftTi
+    );
+
+    /**
+     * @brief Adds external light
+     * @note External lights have to be added between analyze() and calculate()
+    */
     void addExternalLight(const glm::ivec2& posPx, RE::Color col);
 
-    void calculate(const glm::ivec2& botLeftPx);
+    /**
+     * @brief Calculates the shadows
+    */
+    void calculate(
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2& botLeftPx
+    );
 
-    void draw(const RE::VertexArray<R>& va, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi);
+    /**
+     * @brief Renders calculated shadow to the framebuffer
+    */
+    void draw(
+        const vk::CommandBuffer& commandBuffer,
+        const glm::vec2& botLeftPx,
+        const glm::uvec2& viewSizeTi
+    );
 
 private:
 
-    struct ViewSizeDependent {
-        ViewSizeDependent(const glm::uvec2& viewSizeTi);
+    RE::TextureShaped m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
+    RE::TextureShaped m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
 
-        RE::Texture<R> lightTex;//RGB = color of the light, A = intensity of the light
-        RE::Texture<R> transluTex;//R = translucency of the unit
-        RE::Texture<R> shadowsTex;
+    RE::PipelineLayout m_analysisPll;
+    RE::Pipeline m_analyzeTilesPl;
+    RE::Pipeline m_addLightsPl;
+
+    RE::PipelineLayout m_calculationPll;
+    RE::Pipeline m_calculateShadowsPl;
+
+    RE::PipelineLayout m_shadowDrawingPll;
+    RE::Pipeline m_drawShadowsPl;
+
+    RE::Buffer m_lightsBuf;
+    ExternalLight* m_lightsMapped;
+
+    struct AnalysisPC {
+        glm::ivec2  worldTexMask;
+        glm::ivec2  analysisOffsetTi;
+        glm::ivec2  addLightOffsetPx;
+        glm::uint   lightCount;
+    };
+
+    struct ShadowDrawingPC {
+        glm::mat4    viewMat;
+        glm::ivec2   viewSizeTi;
+        glm::vec2    botLeftPxModTilePx;
+        glm::ivec2   readOffsetTi;
+    };
+
+    struct ViewSizeDependent {
+        ViewSizeDependent(
+            const glm::vec2& viewSizePx,
+            const glm::ivec2& viewSizeTi,
+            const RE::PipelineLayout& analysisPll,
+            const RE::PipelineLayout& calculationPll,
+            const RE::PipelineLayout& shadowDrawingPll,
+            const RE::Texture& blockLightAtlasTex,
+            const RE::Texture& wallLightAtlasTex,
+            const RE::Buffer& lightsBuf
+        );
+
         glm::uvec3 analysisGroupCount;
-        glm::uvec3 calcShadowsGroupCount;
+        glm::uvec3 calculationGroupCount;
+        RE::Texture lightTex;//RGB = color of the light, A = intensity of the light
+        RE::Texture transluTex;//R = translucency of the unit
+        RE::Texture shadowsTex;
+        AnalysisPC analysisPC;
+        ShadowDrawingPC shadowDrawingPC;
+        RE::DescriptorSet analysisDS;
+        RE::DescriptorSet calculationDS;
+        RE::DescriptorSet shadowDrawingDS;
+
     };
 
     ViewSizeDependent m_;
 
-    RE::Texture<R> m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
-    RE::Texture<R> m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
-
-    RE::ShaderProgram<R> m_analysisShd{{.comp = analysis_comp}};
-    RE::ShaderProgram<R> m_addLightsShd{{.comp = addDynamicLights_comp}};
-    RE::ShaderProgram<R> m_calcShadowsShd{{.comp = calcShadows_comp}};
-    RE::ShaderProgram<R> m_drawShadowsShd{{.vert = drawShadows_vert, .frag = colorDraw_frag}};
-
-    std::vector<ExternalLight> m_lights;
-    RE::BufferTyped<R> m_lightsBuf{ STRG_BUF_EXTERNALLIGHTS, sizeof(ExternalLight) * 8, RE::BufferAccessFrequency::DYNAMIC, RE::BufferAccessNature::DRAW, nullptr };
+    static vk::ImageMemoryBarrier2 imageMemoryBarrier(
+        vk::PipelineStageFlags2   srcStageMask,
+        vk::AccessFlags2          srcAccessMask,
+        vk::PipelineStageFlags2   dstStageMask,
+        vk::AccessFlags2          dstAccessMask,
+        vk::ImageLayout           oldLayout,
+        vk::ImageLayout           newLayout,
+        vk::Image                 image
+    );
 };

@@ -1,0 +1,36 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/light.glsl>
+#include <RealWorld/drawing/shaders/AnalysisPC.glsl>
+const uint DynamicLightsSB_BINDING = 5u;
+#include <RealWorld/drawing/shaders/DynamicLightsSB.glsl>
+
+layout( local_size_x = 8,
+        local_size_y = 2,
+        local_size_z = 2
+) in;
+
+layout(set = 0, binding = 0, rgba8) uniform restrict image2D u_lightImage;
+
+const int TO_UNIT_BITS = k_lightScaleBits + 2;
+const float TO_UNIT_SCALE = 1.0 / k_iLightScale / TilePx;
+
+void main(){
+    if (gl_GlobalInvocationID.x < p_lightCount){
+        ivec2 lightPosPx = s_lights[gl_GlobalInvocationID.x].posPx - p_addLightOffsetPx;
+        ivec2 lightPosUn = lightPosPx >> TO_UNIT_BITS;
+        ivec2 editPos = lightPosUn + ivec2(gl_LocalInvocationID.yz);
+        bvec2 lowerClip = greaterThanEqual(editPos, ivec2(0));
+        bvec2 upperClip = lessThan(editPos, imageSize(u_lightImage));
+        if (all(bvec4(lowerClip, upperClip))){//If inside the light image
+            vec4 editCol = imageLoad(u_lightImage, editPos);
+            vec4 lightCol = unpackUnorm4x8(s_lights[gl_GlobalInvocationID.x].col);
+            vec2 f = fract(lightPosPx * TO_UNIT_SCALE + vec2(gl_LocalInvocationID.yz));
+            vec2 diff = vec2(1.0) - abs(f - vec2(gl_LocalInvocationID.yz));
+            editCol += lightCol * diff.x * diff.y;
+            imageStore(u_lightImage, editPos, editCol);
+        }
+    }
+}

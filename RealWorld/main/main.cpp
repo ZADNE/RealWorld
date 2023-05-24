@@ -1,7 +1,7 @@
 ﻿/*! 
  *  @author    Dubsky Tomas
  */
-#include <RealEngine/main/program/MainProgram.hpp>
+#include <RealEngine/program/MainProgram.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>
@@ -15,5 +15,5 @@ int main(int argc, char* argv[]) {
     auto* mainMenuRoom = RE::MainProgram::addRoom<MainMenuRoom>(gameSettings);
     RE::MainProgram::addRoom<WorldRoom>(gameSettings);
 
-    return RE::MainProgram::run(mainMenuRoom->getName(), {});
+    return RE::MainProgram::run(mainMenuRoom->name(), {});
 }
