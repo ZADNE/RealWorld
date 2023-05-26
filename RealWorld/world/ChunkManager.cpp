@@ -7,6 +7,8 @@
 
 #include <RealWorld/save/ChunkLoader.hpp>
 
+#include <RealEngine/rendering/synchronization/Fence.hpp>
+
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
 using enum vk::ImageAspectFlagBits;
@@ -91,6 +93,7 @@ bool ChunkManager::saveChunks() {
     //Save all active chunks (they have to be downloaded)
     assert(m_nextFreeTileStage == 0);
     RE::CommandBuffer commandBuffer{vk::CommandBufferLevel::ePrimary};
+    RE::Fence downloadFinishedFence{vk::FenceCreateFlagBits::eSignaled};
     commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
 
     auto imageBarrier = vk::ImageMemoryBarrier2{
@@ -122,7 +125,9 @@ bool ChunkManager::saveChunks() {
             if (activeChunk != k_chunkNotActive) {
                 if (!planDownload(*commandBuffer, activeChunk, chToTi(posAc))) {//If stage is full
                     commandBuffer->end();
-                    commandBuffer.submitToComputeQueue(true);           //Wait for the transfer to finish
+                    commandBuffer.submitToComputeQueue(*downloadFinishedFence); //Wait for the transfer to finish
+                    downloadFinishedFence.wait();
+                    downloadFinishedFence.reset();
                     saveAllChunksInTileStage();
                     commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
                 }
@@ -144,7 +149,9 @@ bool ChunkManager::saveChunks() {
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     commandBuffer->end();
-    commandBuffer.submitToComputeQueue(true);                           //Waits for the transfer to finish
+    commandBuffer.submitToComputeQueue(*downloadFinishedFence);         //Waits for the transfer to finish
+    downloadFinishedFence.wait();
+    downloadFinishedFence.reset();
     saveAllChunksInTileStage();
     return true;
 }

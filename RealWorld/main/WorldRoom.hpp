@@ -8,6 +8,7 @@
 #include <ImGui/imgui_stdlib.h>
 
 #include <RealEngine/rendering/cameras/View2D.hpp>
+#include <RealEngine/rendering/synchronization/Fence.hpp>
 
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
@@ -67,6 +68,7 @@ private:
     ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
     RE::CommandBuffer m_computeCommandBuffer{vk::CommandBufferLevel::ePrimary};
+    RE::Fence m_simulationFinishedFence{vk::FenceCreateFlagBits::eSignaled};
     RE::SpriteBatch m_spriteBatch{256, 64};
     RE::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
 

@@ -66,11 +66,13 @@ void WorldRoom::step() {
     //Analyze the results of the simulation step for drawing
     analyzeWorldForDrawing();
 
+    m_computeCommandBuffer->end();
+    m_computeCommandBuffer.submitToComputeQueue(*m_simulationFinishedFence);
+    m_simulationFinishedFence.wait();
+    m_simulationFinishedFence.reset();
+
     //Manipulate the inventory based on user's input
     updateInventoryAndUI();
-
-    m_computeCommandBuffer->end();
-    m_computeCommandBuffer.submitToComputeQueue(true);
 }
 
 void WorldRoom::render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) {
