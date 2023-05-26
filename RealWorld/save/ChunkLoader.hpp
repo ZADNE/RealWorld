@@ -5,7 +5,6 @@
 #include <optional>
 #include <vector>
 #include <string>
-#include <sstream>
 
 #include <glm/vec2.hpp>
 
@@ -49,6 +48,5 @@ public:
 
 private:
 
-    static inline std::stringstream s_stringStream{};
     static std::string chunkToChunkFilename(glm::ivec2 chunkPos);
 };

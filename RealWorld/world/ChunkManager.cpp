@@ -4,6 +4,9 @@
 #include <RealWorld/world/ChunkManager.hpp>
 
 #include <array>
+#include <algorithm>
+#include <execution>
+#include <future>
 
 #include <RealWorld/save/ChunkLoader.hpp>
 
@@ -86,9 +89,9 @@ const RE::Buffer& ChunkManager::setTarget(
 
 bool ChunkManager::saveChunks() {
     //Save all inactive chunks
-    for (const auto& pair : m_inactiveChunks) {
+    std::for_each(std::execution::par_unseq, m_inactiveChunks.begin(), m_inactiveChunks.end(), [&](const auto& pair) {
         saveChunk(pair.second.tiles().data(), pair.first);
-    }
+    });
 
     //Save all active chunks (they have to be downloaded)
     assert(m_nextFreeTileStage == 0);
@@ -110,9 +113,12 @@ bool ChunkManager::saveChunks() {
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     auto saveAllChunksInTileStage = [&]() {
+        std::array<std::future<void>, k_tileStageSize> futures{};
         for (size_t i = 0; i < m_nextFreeTileStage; ++i) {
-            const auto& stageState = m_tileStageStates[i];
-            saveChunk(&m_tilesStageMapped[k_chunkByteSize * i], stageState.posCh);
+            futures[i] = std::async(
+                std::launch::async,
+                [this, i]() { saveChunk(&m_tilesStageMapped[k_chunkByteSize * i], m_tileStageStates[i].posCh); }
+            );
         }
         m_nextFreeTileStage = 0;
     };

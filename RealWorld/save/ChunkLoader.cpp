@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <iomanip>
+#include <sstream>
 
 #include <lodepng/lodepng.hpp>
 
@@ -43,11 +44,11 @@ void ChunkLoader::saveChunk(
 }
 
 std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos) {
-    s_stringStream.str("");
-    s_stringStream << "chunk_"
+    std::stringstream ss;
+    ss << "chunk_"
         << (chunkPos.x >= 0 ? '+' : '-') << std::setw(4) << std::setfill('0') << std::abs(chunkPos.x)
         << 'x'
         << (chunkPos.y >= 0 ? '+' : '-') << std::setw(4) << std::setfill('0') << std::abs(chunkPos.y)
         << ".chunk";
-    return s_stringStream.str();
+    return ss.str();
 }
