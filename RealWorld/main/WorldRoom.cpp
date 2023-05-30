@@ -51,6 +51,10 @@ void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
     }
 
     m_worldView.setPosition(glm::vec2(m_player.center()));
+    m_worldView.setCursorAbs(engine().cursorAbs());
+    glm::vec2 viewPos =
+        glm::vec2(m_player.center()) * 0.75f + m_worldView.cursorRel() * 0.25f;
+    m_worldView.setPosition(glm::floor(viewPos));
 }
 
 void WorldRoom::sessionEnd() {
@@ -259,13 +263,11 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     ImGui::SetNextWindowPos({0.0f, 0.0f});
     ImGui::PushFont(m_arial);
     if (ImGui::Begin("##topLeftMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
+        using namespace std::chrono;
         ImGui::Text(
             "FPS: %u\nMax FT: %i us",
             engine().framesPerSecond(),
-            (int)std::chrono::duration_cast<std::chrono::microseconds>(
-                engine().maxFrameTime()
-            )
-                .count()
+            (int)duration_cast<microseconds>(engine().maxFrameTime()).count()
         );
         ImGui::Separator();
         ImGui::TextUnformatted("Minimap:");
