@@ -142,7 +142,7 @@ void InventoryUI::step() {
     m_heldSprite.sprite().step();
 }
 
-void InventoryUI::draw(RE::SpriteBatch& spriteBatch, const glm::vec2& cursorPx) {
+void InventoryUI::draw(re::SpriteBatch& spriteBatch, const glm::vec2& cursorPx) {
     if (!m_inv[Primary]) { return; }
 
     glm::vec2 pos;

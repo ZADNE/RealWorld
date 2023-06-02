@@ -17,12 +17,12 @@ public:
     ItemSprite(ItemId id);
     ItemSprite(ItemSample item);
 
-    RE::SpriteComplex& sprite();
+    re::SpriteComplex& sprite();
 
 private:
 
-    RE::SharedTexture m_tex;
-    RE::SpriteComplex m_sprite;
+    re::SharedTexture m_tex;
+    re::SpriteComplex m_sprite;
 
     /**
      * @brief Filenames of all item atlases must begin with this prefix

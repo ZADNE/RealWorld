@@ -42,7 +42,7 @@ public:
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(ChunkGenerator& chunkGen, const RE::PipelineLayout& pipelineLayout);
+    ChunkManager(ChunkGenerator& chunkGen, const re::PipelineLayout& pipelineLayout);
 
     /**
      * @brief Retargets the chunk manager to a new world.
@@ -58,11 +58,11 @@ public:
      * chunks. Measured in chunks, must be multiples of 8
      * @return                  Active chunks storage buffer
      */
-    const RE::Buffer& setTarget(
+    const re::Buffer& setTarget(
         int                seed,
         std::string        folderPath,
-        const RE::Texture& worldTex,
-        RE::DescriptorSet& descriptorSet,
+        const re::Texture& worldTex,
+        re::DescriptorSet& descriptorSet,
         const glm::ivec2&  activeChunksArea
     );
 
@@ -139,17 +139,17 @@ private:
     static constexpr auto k_chunkBeingDownloaded = k_chunkNotActive - 1;
     static constexpr auto k_chunkBeingUploaded   = k_chunkNotActive - 2;
 
-    std::optional<RE::Buffer>                       m_activeChunksBuf;
-    std::optional<RE::BufferMapped<ActiveChunksSB>> m_activeChunksStageBuf;
+    std::optional<re::Buffer>                       m_activeChunksBuf;
+    std::optional<re::BufferMapped<ActiveChunksSB>> m_activeChunksStageBuf;
     int m_transparentChunkChanges = 0; /**< Number of changes in this step */
     glm::ivec2& activeChunkAtIndex(int acIndex);
 
-    RE::Pipeline m_analyzeContinuityPl;
+    re::Pipeline m_analyzeContinuityPl;
     glm::uvec2   m_analyzeContinuityGroupCount{};
 
     std::string        m_folderPath;
     ChunkGenerator&    m_chunkGen;
-    const RE::Texture* m_worldTex = nullptr;
+    const re::Texture* m_worldTex = nullptr;
     glm::ivec2         m_activeChunksMask{};
 
     // Tile stage
@@ -161,5 +161,5 @@ private:
     };
     std::array<TileStageState, k_tileStageSize> m_tileStageStates{};
     int                                         m_nextFreeTileStage = 0;
-    RE::BufferMapped<unsigned char>             m_tilesStageBuf;
+    re::BufferMapped<unsigned char>             m_tilesStageBuf;
 };

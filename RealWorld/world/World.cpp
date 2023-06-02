@@ -54,7 +54,7 @@ static constexpr TilePropertiesUIB k_tileProperties = TilePropertiesUIB{
 
 World::World(ChunkGenerator& chunkGen)
     : m_chunkManager(chunkGen, m_pipelineLayout)
-    , m_tilePropertiesBuf(RE::BufferCreateInfo{
+    , m_tilePropertiesBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(TilePropertiesUIB),
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
@@ -65,7 +65,7 @@ World::World(ChunkGenerator& chunkGen)
     );
 }
 
-const RE::Texture& World::adoptSave(
+const re::Texture& World::adoptSave(
     const MetadataSave& save, const glm::ivec2& activeChunksArea
 ) {
     m_seed      = save.seed;
@@ -74,7 +74,7 @@ const RE::Texture& World::adoptSave(
     // Resize the world texture
     glm::uvec2 texSize = iChunkTi * activeChunksArea;
     using enum vk::ImageUsageFlagBits;
-    m_worldTex = RE::Texture{RE::TextureCreateInfo{
+    m_worldTex = re::Texture{re::TextureCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eDedicatedMemory,
         .format     = vk::Format::eR8G8B8A8Uint,
         .extent     = {texSize, 1u},

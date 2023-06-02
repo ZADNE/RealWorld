@@ -67,22 +67,22 @@ void ItemUser::step(const vk::CommandBuffer& commandBuffer, bool usePrimary, boo
     }
 }
 
-void ItemUser::render(const glm::vec2& relCursorPosPx, RE::GeometryBatch& gb) {
+void ItemUser::render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb) {
     const ItemMetadata& md = ItemDatabase::md(m_item->id);
 
     if (md.type != ItemType::Empty) {
-        RE::Color col{255, 255, 255, 255};
+        re::Color col{255, 255, 255, 255};
         glm::vec2 center = tiToPx(pxToTi(relCursorPosPx)) + TilePx * 0.5f;
         float radPx = m_radiusTi * TilePx.x;
         if (m_shape == World::ModificationShape::Disk) {
             constexpr float k_quality = 16.0f;
             constexpr float k_angleIncr = glm::pi<float>() * 2.0f / k_quality;
-            std::array<RE::VertexPOCO, static_cast<size_t>(k_quality * 2.0f)> vertices;
+            std::array<re::VertexPOCO, static_cast<size_t>(k_quality * 2.0f)> vertices;
             for (float i = 0.0f; i < k_quality; i++) {
                 float a = i * k_angleIncr;
                 glm::vec2 p = center + glm::vec2{cos(a), sin(a)} * radPx;
-                vertices[static_cast<size_t>(i * 2.0f) % vertices.size()] = RE::VertexPOCO{p, col};
-                vertices[static_cast<size_t>(i * 2.0f - 1.0f) % vertices.size()] = RE::VertexPOCO{p, col};
+                vertices[static_cast<size_t>(i * 2.0f) % vertices.size()] = re::VertexPOCO{p, col};
+                vertices[static_cast<size_t>(i * 2.0f - 1.0f) % vertices.size()] = re::VertexPOCO{p, col};
             }
             gb.addVertices(vertices);
         } else if (m_shape == World::ModificationShape::Square) {
@@ -90,7 +90,7 @@ void ItemUser::render(const glm::vec2& relCursorPosPx, RE::GeometryBatch& gb) {
             auto tr = center + glm::vec2{+radPx, +radPx};
             auto br = center + glm::vec2{+radPx, -radPx};
             auto bl = center + glm::vec2{-radPx, -radPx};
-            std::array<RE::VertexPOCO, 8> vertices = std::to_array<RE::VertexPOCO>({
+            std::array<re::VertexPOCO, 8> vertices = std::to_array<re::VertexPOCO>({
                 {tl, col}, {tr, col},
                 {tr, col}, {br, col},
                 {br, col}, {bl, col},

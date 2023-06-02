@@ -16,9 +16,9 @@
 class Player {
 public:
     Player()
-        : Player(RE::TextureShaped{{.file = "player"}}) {}
+        : Player(re::TextureShaped{{.file = "player"}}) {}
 
-    void adoptSave(const PlayerSave& save, const RE::Texture& worldTexture);
+    void adoptSave(const PlayerSave& save, const re::Texture& worldTexture);
     void gatherSave(PlayerSave& save) const;
 
     glm::vec2 center() const;
@@ -33,7 +33,7 @@ public:
      */
     void step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, bool autojump);
 
-    void draw(RE::SpriteBatch& spriteBatch);
+    void draw(re::SpriteBatch& spriteBatch);
 
 private:
     struct PlayerHitboxSB {
@@ -42,7 +42,7 @@ private:
         glm::vec2 velocityPx;
     };
 
-    Player(RE::TextureShaped&& playerTex)
+    Player(re::TextureShaped&& playerTex)
         : Player(
               std::move(playerTex),
               PlayerHitboxSB{
@@ -50,9 +50,9 @@ private:
                   .velocityPx = glm::vec2(0.0f, 0.0f)}
           ) {}
 
-    Player(RE::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
+    Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
 
-    RE::TextureShaped m_playerTex;
+    re::TextureShaped m_playerTex;
 
     struct PlayerMovementPC {
         float acceleration;
@@ -69,13 +69,13 @@ private:
         .jumpVelocity    = 7.0f,
         .writeIndex      = 1};
 
-    RE::Buffer                       m_hitboxBuf;
-    RE::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
+    re::Buffer                       m_hitboxBuf;
+    re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
 
-    RE::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
-    RE::Pipeline       m_movePlayerPl{
+    re::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
+    re::Pipeline       m_movePlayerPl{
               {.pipelineLayout = *m_pipelineLayout}, {.comp = movePlayer_comp}};
-    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
+    re::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
 
     const glm::vec2& botLeftPx() const;
 };

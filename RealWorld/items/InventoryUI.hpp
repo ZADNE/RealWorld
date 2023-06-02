@@ -91,7 +91,7 @@ public:
     void selectSlot(SlotSelectionManner selectionManner, int number = 0);
 
     void step();
-    void draw(RE::SpriteBatch& spriteBatch, const glm::vec2& cursorPx);
+    void draw(re::SpriteBatch& spriteBatch, const glm::vec2& cursorPx);
 
 private:
 
@@ -133,7 +133,7 @@ private:
     ItemUser* m_itemUser = nullptr;
 
     glm::vec2 m_windowSize;
-    RE::TextureShaped m_slotTex{{.file = "slot"}};
+    re::TextureShaped m_slotTex{{.file = "slot"}};
     glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
 
     Item m_heldItem{};

@@ -80,7 +80,7 @@ public:
      * chunks. Measured in chunks, must be multiples of 8
      * @returns                 The new world texture
      */
-    const RE::Texture& adoptSave(
+    const re::Texture& adoptSave(
         const MetadataSave& save, const glm::ivec2& activeChunksArea
     );
 
@@ -97,12 +97,12 @@ private:
         const glm::ivec2&        topRightTi
     );
 
-    std::optional<RE::Texture> m_worldTex;
+    std::optional<re::Texture> m_worldTex;
     int                        m_seed = 0;
 
     std::string m_worldName;
 
-    RE::Buffer m_tilePropertiesBuf;
+    re::Buffer m_tilePropertiesBuf;
 
     struct WorldDynamicsPC {
         glm::ivec2 globalPosTi;
@@ -115,21 +115,21 @@ private:
     };
     WorldDynamicsPC m_worldDynamicsPC;
 
-    RE::PipelineLayout m_pipelineLayout{
-        {}, RE::PipelineComputeSources{.comp = transformTiles_comp}};
-    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
-    RE::Pipeline      m_simulateFluidsPl{
-        RE::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
-        RE::PipelineComputeSources{.comp = simulateFluids_comp}};
-    RE::Pipeline m_transformTilesPl{
-        RE::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
-        RE::PipelineComputeSources{.comp = transformTiles_comp}};
-    RE::Pipeline m_modifyTilesPl{
-        RE::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
-        RE::PipelineComputeSources{.comp = modifyTiles_comp}};
+    re::PipelineLayout m_pipelineLayout{
+        {}, re::PipelineComputeSources{.comp = transformTiles_comp}};
+    re::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
+    re::Pipeline      m_simulateFluidsPl{
+        re::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        re::PipelineComputeSources{.comp = simulateFluids_comp}};
+    re::Pipeline m_transformTilesPl{
+        re::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        re::PipelineComputeSources{.comp = transformTiles_comp}};
+    re::Pipeline m_modifyTilesPl{
+        re::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        re::PipelineComputeSources{.comp = modifyTiles_comp}};
 
     ChunkManager      m_chunkManager;
-    const RE::Buffer* m_activeChunksBuf = nullptr;
+    const re::Buffer* m_activeChunksBuf = nullptr;
 
     bool m_permuteOrder = true;
 };

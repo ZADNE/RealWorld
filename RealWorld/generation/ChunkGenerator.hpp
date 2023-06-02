@@ -31,7 +31,7 @@ public:
      * @param dstTex The texture that will receive the generated chunk
      * @param dstOffset Offset within dstTex where the texels/tiles will be copied to
      */
-    void generateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, const RE::Texture& dstTex, const glm::ivec2& dstOffset);
+    void generateChunk(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, const re::Texture& dstTex, const glm::ivec2& dstOffset);
 
 protected:
 
@@ -49,5 +49,5 @@ protected:
     virtual void generateBasicTerrain(const vk::CommandBuffer& commandBuffer) = 0;
     virtual void consolidateEdges(const vk::CommandBuffer& commandBuffer) = 0;
     virtual void selectVariant(const vk::CommandBuffer& commandBuffer) = 0;
-    virtual void finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) = 0;
+    virtual void finishGeneration(const vk::CommandBuffer& commandBuffer, const re::Texture& dstTex, const glm::ivec2& dstOffset) = 0;
 };

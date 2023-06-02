@@ -25,9 +25,9 @@ vk::DeviceSize calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
                                  activeChunksArea.x * activeChunksArea.y);
 }
 
-ChunkManager::ChunkManager(ChunkGenerator& chunkGen, const RE::PipelineLayout& pipelineLayout)
+ChunkManager::ChunkManager(ChunkGenerator& chunkGen, const re::PipelineLayout& pipelineLayout)
     : m_chunkGen(chunkGen)
-    , m_tilesStageBuf(RE::BufferCreateInfo{
+    , m_tilesStageBuf(re::BufferCreateInfo{
           .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                         vma::AllocationCreateFlagBits::eHostAccessRandom,
           .sizeInBytes = k_tileStageSize * k_chunkByteSize,
@@ -37,11 +37,11 @@ ChunkManager::ChunkManager(ChunkGenerator& chunkGen, const RE::PipelineLayout& p
       ) {
 }
 
-const RE::Buffer& ChunkManager::setTarget(
+const re::Buffer& ChunkManager::setTarget(
     int                seed,
     std::string        folderPath,
-    const RE::Texture& worldTex,
-    RE::DescriptorSet& descriptorSet,
+    const re::Texture& worldTex,
+    re::DescriptorSet& descriptorSet,
     const glm::ivec2&  activeChunksArea
 ) {
     m_folderPath = folderPath;
@@ -54,11 +54,11 @@ const RE::Buffer& ChunkManager::setTarget(
 
     // Reset ActiveChunks storage buffer
     vk::DeviceSize bufSize = calcActiveChunksBufSize(activeChunksArea);
-    m_activeChunksBuf.emplace(RE::BufferCreateInfo{
+    m_activeChunksBuf.emplace(re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = bufSize,
         .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst});
-    m_activeChunksStageBuf.emplace(RE::BufferCreateInfo{
+    m_activeChunksStageBuf.emplace(re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = bufSize,
@@ -72,7 +72,7 @@ const RE::Buffer& ChunkManager::setTarget(
     for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         (*m_activeChunksStageBuf)->offsets[i] = k_chunkNotActive;
     }
-    RE::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
+    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
         vk::BufferCopy2 bufferCopy{// Copy whole buffer
                                    0ull,
                                    0ull,
@@ -107,8 +107,8 @@ bool ChunkManager::saveChunks() {
 
     // Save all active chunks (they have to be downloaded)
     assert(m_nextFreeTileStage == 0);
-    RE::CommandBuffer commandBuffer{vk::CommandBufferLevel::ePrimary};
-    RE::Fence         downloadFinishedFence{{}};
+    re::CommandBuffer commandBuffer{vk::CommandBufferLevel::ePrimary};
+    re::Fence         downloadFinishedFence{{}};
     commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
 
     auto imageBarrier = vk::ImageMemoryBarrier2{

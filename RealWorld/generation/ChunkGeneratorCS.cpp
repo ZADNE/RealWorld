@@ -64,7 +64,7 @@ void ChunkGeneratorCS::selectVariant(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) {
+void ChunkGeneratorCS::finishGeneration(const vk::CommandBuffer& commandBuffer, const re::Texture& dstTex, const glm::ivec2& dstOffset) {
     //Wait for the generation to finish
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eComputeShader,                                                          //Src stage mask

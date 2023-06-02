@@ -10,13 +10,13 @@
 constexpr unsigned int k_frameRateLimit = 300u;
 #else
 constexpr unsigned int k_frameRateLimit =
-    RE::Synchronizer::k_doNotLimitFramesPerSecond;
+    re::Synchronizer::k_doNotLimitFramesPerSecond;
 #endif // _DEBUG
 
 constexpr glm::vec4 k_skyBlue =
     glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
 
-constexpr RE::RoomDisplaySettings k_initialSettings{
+constexpr re::RoomDisplaySettings k_initialSettings{
     .clearColor           = k_skyBlue,
     .stepsPerSecond       = k_physicsStepsPerSecond,
     .framesPerSecondLimit = k_frameRateLimit,
@@ -37,7 +37,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
     m_invUI.connectToItemUser(&m_itemUser);
 }
 
-void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
+void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
     try {
         const std::string& worldName =
             std::any_cast<const std::string&>(args[0]);
@@ -47,7 +47,7 @@ void WorldRoom::sessionStart(const RE::RoomTransitionArguments& args) {
         }
         engine().setWindowTitle("RealWorld! - " + worldName);
     } catch (...) {
-        RE::fatalError("Bad transition paramaters to start WorldRoom session");
+        re::fatalError("Bad transition paramaters to start WorldRoom session");
     }
 
     m_worldView.setPosition(glm::vec2(m_player.center()));
@@ -91,7 +91,7 @@ void WorldRoom::step() {
         *m_simulationFinishedSem,
         m_stepN,
         vk::PipelineStageFlagBits2::eComputeShader};
-    RE::CommandBuffer::submitToComputeQueue(vk::SubmitInfo2{
+    re::CommandBuffer::submitToComputeQueue(vk::SubmitInfo2{
         {}, waitSems, comBufSubmit, signalSems});
 
     // Manipulate the inventory based on user's input
@@ -180,10 +180,10 @@ void WorldRoom::analyzeWorldForDrawing(const vk::CommandBuffer& commandBuffer) {
     m_worldDrawer.addExternalLight(
         m_worldView.cursorRel() +
             glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f,
-        RE::Color{0u, 0u, 0u, 255u}
+        re::Color{0u, 0u, 0u, 255u}
     );
     m_worldDrawer.addExternalLight(
-        m_player.center(), RE::Color{0u, 0u, 0u, 100u}
+        m_player.center(), re::Color{0u, 0u, 0u, 100u}
     );
 
     // Calculate illumination based the world texture and external lights

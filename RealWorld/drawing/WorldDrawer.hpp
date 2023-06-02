@@ -14,7 +14,7 @@ public:
 
     WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights);
 
-    void setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize);
+    void setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize);
     void resizeView(const glm::uvec2& viewSizePx);
 
     struct ViewEnvelope {
@@ -31,7 +31,7 @@ public:
     /**
      * @brief Adds an external light into the world. Must be used between beginStep() and endStep()
     */
-    void addExternalLight(const glm::ivec2& posPx, RE::Color col);
+    void addExternalLight(const glm::ivec2& posPx, re::Color col);
 
     /**
      * @brief External lights have to be added between beginStep() and endStep()

@@ -23,7 +23,7 @@ public:
         glm::uint         maxNumberOfExternalLights
     );
 
-    void setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize);
+    void setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize);
 
     void resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
 
@@ -36,7 +36,7 @@ public:
      * @brief Adds external light
      * @note External lights have to be added between analyze() and calculate()
      */
-    void addExternalLight(const glm::ivec2& posPx, RE::Color col);
+    void addExternalLight(const glm::ivec2& posPx, re::Color col);
 
     /**
      * @brief Calculates the shadows
@@ -53,20 +53,20 @@ public:
     );
 
 private:
-    RE::TextureShaped m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
-    RE::TextureShaped m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
+    re::TextureShaped m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
+    re::TextureShaped m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
 
-    RE::PipelineLayout m_analysisPll;
-    RE::Pipeline       m_analyzeTilesPl;
-    RE::Pipeline       m_addLightsPl;
+    re::PipelineLayout m_analysisPll;
+    re::Pipeline       m_analyzeTilesPl;
+    re::Pipeline       m_addLightsPl;
 
-    RE::PipelineLayout m_calculationPll;
-    RE::Pipeline       m_calculateShadowsPl;
+    re::PipelineLayout m_calculationPll;
+    re::Pipeline       m_calculateShadowsPl;
 
-    RE::PipelineLayout m_shadowDrawingPll;
-    RE::Pipeline       m_drawShadowsPl;
+    re::PipelineLayout m_shadowDrawingPll;
+    re::Pipeline       m_drawShadowsPl;
 
-    RE::BufferMapped<ExternalLight> m_lightsBuf;
+    re::BufferMapped<ExternalLight> m_lightsBuf;
 
     struct AnalysisPC {
         glm::ivec2 worldTexMask;
@@ -86,24 +86,24 @@ private:
         ViewSizeDependent(
             const glm::vec2&          viewSizePx,
             const glm::ivec2&         viewSizeTi,
-            const RE::PipelineLayout& analysisPll,
-            const RE::PipelineLayout& calculationPll,
-            const RE::PipelineLayout& shadowDrawingPll,
-            const RE::Texture&        blockLightAtlasTex,
-            const RE::Texture&        wallLightAtlasTex,
-            const RE::Buffer&         lightsBuf
+            const re::PipelineLayout& analysisPll,
+            const re::PipelineLayout& calculationPll,
+            const re::PipelineLayout& shadowDrawingPll,
+            const re::Texture&        blockLightAtlasTex,
+            const re::Texture&        wallLightAtlasTex,
+            const re::Buffer&         lightsBuf
         );
 
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
-        RE::Texture lightTex; // RGB = color of the light, A = intensity of the light
-        RE::Texture       transluTex; // R = translucency of the unit
-        RE::Texture       shadowsTex;
+        re::Texture lightTex; // RGB = color of the light, A = intensity of the light
+        re::Texture       transluTex; // R = translucency of the unit
+        re::Texture       shadowsTex;
         AnalysisPC        analysisPC;
         ShadowDrawingPC   shadowDrawingPC;
-        RE::DescriptorSet analysisDS;
-        RE::DescriptorSet calculationDS;
-        RE::DescriptorSet shadowDrawingDS;
+        re::DescriptorSet analysisDS;
+        re::DescriptorSet calculationDS;
+        re::DescriptorSet shadowDrawingDS;
     };
 
     ViewSizeDependent m_;

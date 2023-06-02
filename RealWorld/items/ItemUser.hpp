@@ -30,7 +30,7 @@ public:
 
     void step(const vk::CommandBuffer& commandBuffer, bool usePrimary, bool useSecondary, const glm::ivec2& relCursorPosPx);
 
-    void render(const glm::vec2& relCursorPosPx, RE::GeometryBatch& gb);
+    void render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb);
 
 private:
 

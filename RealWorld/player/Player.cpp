@@ -14,14 +14,14 @@ using enum vk::MemoryPropertyFlagBits;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
-Player::Player(RE::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
+Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
     : m_playerTex(std::move(playerTex))
-    , m_hitboxBuf(RE::BufferCreateInfo{
+    , m_hitboxBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(PlayerHitboxSB),
           .usage       = eStorageBuffer | eTransferDst | eTransferSrc,
           .initData    = &initSb})
-    , m_hitboxStageBuf(RE::BufferCreateInfo{
+    , m_hitboxStageBuf(re::BufferCreateInfo{
           .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                         vma::AllocationCreateFlagBits::eHostAccessRandom,
           .sizeInBytes = sizeof(PlayerHitboxSB),
@@ -32,7 +32,7 @@ Player::Player(RE::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
     );
 }
 
-void Player::adoptSave(const PlayerSave& save, const RE::Texture& worldTexture) {
+void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) {
     *m_hitboxStageBuf = PlayerHitboxSB{
         .botLeftPx  = {save.pos, save.pos},
         .dimsPx     = m_playerTex.subimageDims(),
@@ -40,7 +40,7 @@ void Player::adoptSave(const PlayerSave& save, const RE::Texture& worldTexture) 
     m_descriptorSet.write(
         vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral
     );
-    RE::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
+    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
         auto copyRegion = vk::BufferCopy2{0ull, 0ull, sizeof(PlayerHitboxSB)};
         commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
             m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion});
@@ -91,7 +91,7 @@ void Player::step(
         *m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion});
 }
 
-void Player::draw(RE::SpriteBatch& spriteBatch) {
+void Player::draw(re::SpriteBatch& spriteBatch) {
     spriteBatch.add(
         m_playerTex,
         glm::vec4{botLeftPx(), m_hitboxStageBuf->dimsPx},

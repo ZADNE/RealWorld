@@ -21,7 +21,7 @@ void controlsCategoryHeader(const char* header) {
     ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn(); ImGui::NewLine(); ImGui::Separator(); ImGui::TableNextColumn();
 }
 
-static constexpr RE::RoomDisplaySettings k_initialSettings{
+static constexpr re::RoomDisplaySettings k_initialSettings{
     .framesPerSecondLimit = 144,
         .usingImGui = true
 };
@@ -34,7 +34,7 @@ MainMenuRoom::MainMenuRoom(GameSettings& gameSettings) :
 
 }
 
-void MainMenuRoom::sessionStart(const RE::RoomTransitionArguments& args) {
+void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
     m_menu = Main;
     WorldSaveLoader::searchSavedWorlds(m_worlds);
     m_newWorldName = "";
@@ -76,7 +76,7 @@ void MainMenuRoom::render(const vk::CommandBuffer& commandBuffer, double interpo
     ImGui::PopFont();
 }
 
-void MainMenuRoom::keybindCallback(RE::Key newKey) {
+void MainMenuRoom::keybindCallback(re::Key newKey) {
     m_drawKeybindListeningPopup = false;
 }
 
@@ -181,7 +181,7 @@ void MainMenuRoom::controlsMenu() {
         ImGui::TableNextColumn();
 
         RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
-        if (ImGui::Button(RE::keyToString(keybinder(binding)).data())) {
+        if (ImGui::Button(re::keyToString(keybinder(binding)).data())) {
             keybinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(binding, *this);
             m_drawKeybindListeningPopup = true;
         }

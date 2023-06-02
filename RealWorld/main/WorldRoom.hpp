@@ -24,7 +24,7 @@ class WorldRoom: public Room {
 public:
     WorldRoom(const GameSettings& gameSettings);
 
-    void sessionStart(const RE::RoomTransitionArguments& args) override;
+    void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
     void render(
@@ -71,16 +71,16 @@ private:
     ImFont*             m_arial =
         ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
-    std::array<RE::CommandBuffer, 2> m_computeCommandBuffer{
+    std::array<re::CommandBuffer, 2> m_computeCommandBuffer{
         vk::CommandBufferLevel::ePrimary, vk::CommandBufferLevel::ePrimary};
     uint64_t          m_stepN = 1;
-    RE::Semaphore     m_simulationFinishedSem{m_stepN};
-    RE::SpriteBatch   m_spriteBatch{256, 64};
-    RE::GeometryBatch m_geometryBatch{
+    re::Semaphore     m_simulationFinishedSem{m_stepN};
+    re::SpriteBatch   m_spriteBatch{256, 64};
+    re::GeometryBatch m_geometryBatch{
         vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
 
     // View
-    RE::View2D m_worldView{engine().windowDims()};
+    re::View2D m_worldView{engine().windowDims()};
     glm::mat4  m_windowViewMat = calculateWindowViewMat(engine().windowDims());
 
     // Gameplay

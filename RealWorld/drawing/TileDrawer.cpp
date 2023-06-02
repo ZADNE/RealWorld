@@ -14,7 +14,7 @@ using enum vk::ShaderStageFlagBits;
 using enum vk::ImageLayout;
 
 TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi):
-    m_pipelineLayout({}, RE::PipelineLayoutDescription{
+    m_pipelineLayout({}, re::PipelineLayoutDescription{
         .bindings = {{
             {0u, eCombinedImageSampler, 1u, eVertex | eFragment},   //worldTexture
             {1u, eCombinedImageSampler, 1u, eVertex | eFragment},   //blockAtlas
@@ -23,19 +23,19 @@ TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi
         .ranges = {vk::PushConstantRange{eVertex | eFragment, 0u, sizeof(PushConstants)}}
     }),
     m_drawTilesPl(
-        RE::PipelineGraphicsCreateInfo{
+        re::PipelineGraphicsCreateInfo{
             .pipelineLayout = *m_pipelineLayout,
             .topology = vk::PrimitiveTopology::eTriangleStrip
-        }, RE::PipelineGraphicsSources{
+        }, re::PipelineGraphicsSources{
             .vert = drawTiles_vert,
             .frag = drawColor_frag
         }
     ),
     m_drawMinimapPl(
-        RE::PipelineGraphicsCreateInfo{
+        re::PipelineGraphicsCreateInfo{
             .pipelineLayout = *m_pipelineLayout,
             .topology = vk::PrimitiveTopology::eTriangleStrip
-        }, RE::PipelineGraphicsSources{
+        }, re::PipelineGraphicsSources{
             .vert = drawMinimap_vert,
             .frag = drawMinimap_frag
         }
@@ -46,7 +46,7 @@ TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi
     resizeView(viewSizePx, viewSizeTi);
 }
 
-void TileDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
+void TileDrawer::setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize) {
     m_descriptorSet.write(eCombinedImageSampler, 0u, 0u, worldTexture, eReadOnlyOptimal);
     m_pushConstants.worldTexMask = worldTexSize - 1;
     glm::vec2 viewSizePx = glm::vec2(2.0f, 2.0f) / glm::vec2(m_pushConstants.viewMat[0][0], m_pushConstants.viewMat[1][1]);

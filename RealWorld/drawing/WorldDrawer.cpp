@@ -17,7 +17,7 @@ WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExte
     m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights) {
 }
 
-void WorldDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
+void WorldDrawer::setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize) {
     m_tileDrawer.setTarget(worldTexture, worldTexSize);
     m_shadowDrawer.setTarget(worldTexture, worldTexSize);
 }
@@ -41,7 +41,7 @@ void WorldDrawer::beginStep(const vk::CommandBuffer& commandBuffer) {
     m_shadowDrawer.analyze(commandBuffer, m_botLeftTi);
 }
 
-void WorldDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
+void WorldDrawer::addExternalLight(const glm::ivec2& posPx, re::Color col) {
     m_shadowDrawer.addExternalLight(posPx, col);
 }
 

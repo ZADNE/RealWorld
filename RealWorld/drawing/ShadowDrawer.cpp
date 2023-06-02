@@ -45,7 +45,7 @@ ShadowDrawer::ShadowDrawer(
 )
     : m_analysisPll(
           {},
-          RE::PipelineLayoutDescription{
+          re::PipelineLayoutDescription{
               .bindings = {{
                   {0u, eStorageImage, 1u, eCompute},         // lightImage
                   {1u, eStorageImage, 1u, eCompute},         // transluImage
@@ -60,7 +60,7 @@ ShadowDrawer::ShadowDrawer(
     , m_addLightsPl({.pipelineLayout = *m_analysisPll}, {.comp = addDynamicLights_comp})
     , m_calculationPll(
           {},
-          RE::PipelineLayoutDescription{
+          re::PipelineLayoutDescription{
               .bindings = {{
                   {0u, eCombinedImageSampler, 1u, eCompute}, // lightSampler
                   {1u, eCombinedImageSampler, 1u, eCompute}, // transluSampler
@@ -72,12 +72,12 @@ ShadowDrawer::ShadowDrawer(
       )
     , m_shadowDrawingPll({}, {.vert = drawShadows_vert, .frag = drawColor_frag})
     , m_drawShadowsPl(
-          RE::PipelineGraphicsCreateInfo{
+          re::PipelineGraphicsCreateInfo{
               .pipelineLayout = *m_shadowDrawingPll,
               .topology       = vk::PrimitiveTopology::eTriangleStrip},
           {.vert = drawShadows_vert, .frag = drawColor_frag}
       )
-    , m_lightsBuf(RE::BufferCreateInfo{
+    , m_lightsBuf(re::BufferCreateInfo{
           .allocFlags  = eMapped | eHostAccessSequentialWrite,
           .sizeInBytes = maxNumberOfExternalLights * sizeof(ExternalLight),
           .usage       = vk::BufferUsageFlagBits::eStorageBuffer})
@@ -92,7 +92,7 @@ ShadowDrawer::ShadowDrawer(
 }
 
 void ShadowDrawer::setTarget(
-    const RE::Texture& worldTexture, const glm::ivec2& worldTexSize
+    const re::Texture& worldTexture, const glm::ivec2& worldTexSize
 ) {
     m_.analysisPC.worldTexMask = worldTexSize - 1;
     m_.analysisDS.write(eCombinedImageSampler, 2u, 0u, worldTexture, eReadOnlyOptimal);
@@ -126,7 +126,7 @@ void ShadowDrawer::analyze(
     m_.analysisPC.lightCount = 0;
 }
 
-void ShadowDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
+void ShadowDrawer::addExternalLight(const glm::ivec2& posPx, re::Color col) {
     ExternalLight light{posPx, col};
     std::memcpy(&m_lightsBuf[m_.analysisPC.lightCount], &light, sizeof(ExternalLight));
     m_.analysisPC.lightCount++;
@@ -254,27 +254,27 @@ vk::ImageMemoryBarrier2 ShadowDrawer::imageMemoryBarrier(
 ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     const glm::vec2&          viewSizePx,
     const glm::ivec2&         viewSizeTi,
-    const RE::PipelineLayout& analysisPll,
-    const RE::PipelineLayout& calculationPll,
-    const RE::PipelineLayout& shadowDrawingPll,
-    const RE::Texture&        blockLightAtlasTex,
-    const RE::Texture&        wallLightAtlasTex,
-    const RE::Buffer&         lightsBuf
+    const re::PipelineLayout& analysisPll,
+    const re::PipelineLayout& calculationPll,
+    const re::PipelineLayout& shadowDrawingPll,
+    const re::Texture&        blockLightAtlasTex,
+    const re::Texture&        wallLightAtlasTex,
+    const re::Buffer&         lightsBuf
 )
     : analysisGroupCount(getAnalysisGroupCount(viewSizeTi))
     , calculationGroupCount(getShadowsCalculationGroupCount(viewSizeTi))
-    , lightTex(RE::TextureCreateInfo{
+    , lightTex(re::TextureCreateInfo{
           .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
           .initialLayout = eGeneral,
           .magFilter     = vk::Filter::eLinear})
-    , transluTex(RE::TextureCreateInfo{
+    , transluTex(re::TextureCreateInfo{
           .format = vk::Format::eR8Unorm,
           .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
           .initialLayout = eGeneral,
           .magFilter     = vk::Filter::eLinear})
-    , shadowsTex(RE::TextureCreateInfo{
+    , shadowsTex(re::TextureCreateInfo{
           .extent = {glm::vec2{calculationGroupCount} * k_calcGroupSize, 1u},
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
           .magFilter = vk::Filter::eLinear})

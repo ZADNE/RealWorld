@@ -20,12 +20,12 @@ public:
 
     MainMenuRoom(GameSettings& gameSettings);
 
-    void sessionStart(const RE::RoomTransitionArguments& args) override;
+    void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
     void render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) override;
 
-    void keybindCallback(RE::Key newKey);
+    void keybindCallback(re::Key newKey);
 
 private:
 

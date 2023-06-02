@@ -26,36 +26,36 @@ private:
     void generateBasicTerrain(const vk::CommandBuffer& commandBuffer) override;
     void consolidateEdges(const vk::CommandBuffer& commandBuffer) override;
     void selectVariant(const vk::CommandBuffer& commandBuffer) override;
-    void finishGeneration(const vk::CommandBuffer& commandBuffer, const RE::Texture& dstTex, const glm::ivec2& dstOffset) override;
+    void finishGeneration(const vk::CommandBuffer& commandBuffer, const re::Texture& dstTex, const glm::ivec2& dstOffset) override;
 
     vk::ImageMemoryBarrier2 stepBarrier() const;
 
-    RE::PipelineLayout m_pipelineLayout{
+    re::PipelineLayout m_pipelineLayout{
         {},
         {.comp = generateStructure_comp}
     };
-    RE::Pipeline m_generateStructurePl{
+    re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout},
         {.comp = generateStructure_comp}
     };
-    RE::Pipeline m_consolidateEdgesPl{
+    re::Pipeline m_consolidateEdgesPl{
         {.pipelineLayout = *m_pipelineLayout},
         {.comp = consolidateEdges_comp}
     };
-    RE::Pipeline m_selectVariantPl{
+    re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout},
         {.comp = selectVariant_comp}
     };
-    RE::DescriptorSet m_descSet{m_pipelineLayout, 0u};
+    re::DescriptorSet m_descSet{m_pipelineLayout, 0u};
 
-    RE::Texture m_tilesTex{RE::TextureCreateInfo{
+    re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .layers = 2,
         .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral
     }};
-    RE::Texture m_materialTex{RE::TextureCreateInfo{
+    re::Texture m_materialTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .usage = vk::ImageUsageFlagBits::eStorage,

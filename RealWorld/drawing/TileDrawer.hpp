@@ -18,7 +18,7 @@ public:
 
     TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
 
-    void setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize);
+    void setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize);
 
     void resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
 
@@ -28,8 +28,8 @@ public:
 
 private:
 
-    RE::TextureShaped m_blockAtlasTex{{.file = "blockAtlas"}};
-    RE::TextureShaped m_wallAtlasTex{{.file = "wallAtlas"}};
+    re::TextureShaped m_blockAtlasTex{{.file = "blockAtlas"}};
+    re::TextureShaped m_wallAtlasTex{{.file = "wallAtlas"}};
 
     struct PushConstants {
         glm::mat4 viewMat;
@@ -42,8 +42,8 @@ private:
     };
 
     PushConstants m_pushConstants;
-    RE::PipelineLayout m_pipelineLayout;
-    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
-    RE::Pipeline m_drawTilesPl;
-    RE::Pipeline m_drawMinimapPl;
+    re::PipelineLayout m_pipelineLayout;
+    re::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
+    re::Pipeline m_drawTilesPl;
+    re::Pipeline m_drawMinimapPl;
 };
