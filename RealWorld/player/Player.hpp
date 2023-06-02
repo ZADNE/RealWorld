@@ -15,7 +15,8 @@
  */
 class Player {
 public:
-    Player();
+    Player()
+        : Player(RE::TextureShaped{{.file = "player"}}) {}
 
     void adoptSave(const PlayerSave& save, const RE::Texture& worldTexture);
     void gatherSave(PlayerSave& save) const;
@@ -30,17 +31,28 @@ public:
      * @param autojump Tells whether the player should automatically jump
      * over obstacles
      */
-    void step(
-        const vk::CommandBuffer& commandBuffer,
-        float                    dir,
-        bool                     jump,
-        bool                     autojump
-    );
+    void step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, bool autojump);
 
     void draw(RE::SpriteBatch& spriteBatch);
 
 private:
-    RE::TextureShaped m_playerTex{{.file = "player"}};
+    struct PlayerHitboxSB {
+        glm::vec2 botLeftPx[2];
+        glm::vec2 dimsPx;
+        glm::vec2 velocityPx;
+    };
+
+    Player(RE::TextureShaped&& playerTex)
+        : Player(
+              std::move(playerTex),
+              PlayerHitboxSB{
+                  .dimsPx = glm::ivec2(playerTex.subimageDims()) - glm::ivec2(1),
+                  .velocityPx = glm::vec2(0.0f, 0.0f)}
+          ) {}
+
+    Player(RE::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
+
+    RE::TextureShaped m_playerTex;
 
     struct PlayerMovementPC {
         float acceleration;
@@ -57,15 +69,8 @@ private:
         .jumpVelocity    = 7.0f,
         .writeIndex      = 1};
 
-    struct PlayerHitboxSB {
-        glm::vec2 botLeftPx[2];
-        glm::vec2 dimsPx;
-        glm::vec2 velocityPx;
-    };
-    RE::Buffer      m_hitboxBuf;
-    RE::Buffer      m_hitboxStageBuf;
-    PlayerHitboxSB* m_hitboxStageMapped =
-        m_hitboxStageBuf.map<PlayerHitboxSB>(0u, sizeof(PlayerHitboxSB));
+    RE::Buffer                       m_hitboxBuf;
+    RE::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
 
     RE::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
     RE::Pipeline       m_movePlayerPl{

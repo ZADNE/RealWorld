@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 project(RealWorld)
 
 #RealWorld library
@@ -16,12 +16,6 @@ add_custom_command(TARGET RealWorld_Game POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_SOURCE_DIR}/data/ .
 )
-
-#RealWorld generator performance test
-add_executable(RealWorld_GeneratorTest EXCLUDE_FROM_ALL)
-target_include_directories(RealWorld_GeneratorTest PRIVATE .)
-set_target_properties(RealWorld_GeneratorTest PROPERTIES CXX_STANDARD 20)
-target_link_libraries(RealWorld_GeneratorTest PUBLIC RealWorld)
 
 #Add subdirectories
 add_subdirectory(RealWorld)
