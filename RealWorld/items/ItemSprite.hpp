@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/rendering/batches/Sprite.hpp>
+#include <RealEngine/graphics/batches/Sprite.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/items/Item.hpp>

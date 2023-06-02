@@ -3,8 +3,8 @@
  */
 #include <glm/common.hpp>
 
-#include <RealEngine/rendering/CommandBuffer.hpp>
-#include <RealEngine/rendering/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/CommandBuffer.hpp>
+#include <RealEngine/graphics/batches/SpriteBatch.hpp>
 
 #include <RealWorld/player/Player.hpp>
 

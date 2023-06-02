@@ -6,7 +6,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealEngine/rendering/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/batches/SpriteBatch.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>

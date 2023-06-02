@@ -3,7 +3,7 @@
  */
 #include <RealWorld/drawing/WorldDrawer.hpp>
 
-#include <RealEngine/rendering/pipelines/Vertex.hpp>
+#include <RealEngine/graphics/pipelines/Vertex.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>

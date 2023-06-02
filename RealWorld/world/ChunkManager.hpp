@@ -8,11 +8,11 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <RealEngine/rendering/CommandBuffer.hpp>
-#include <RealEngine/rendering/buffers/BufferMapped.hpp>
-#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
-#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
-#include <RealEngine/rendering/textures/Texture.hpp>
+#include <RealEngine/graphics/CommandBuffer.hpp>
+#include <RealEngine/graphics/buffers/BufferMapped.hpp>
+#include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
+#include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
+#include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/world/Chunk.hpp>

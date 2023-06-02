@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/geometric.hpp>
 
-#include <RealEngine/rendering/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/batches/SpriteBatch.hpp>
 
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/ItemUser.hpp>

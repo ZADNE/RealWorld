@@ -4,10 +4,10 @@
 #pragma once
 #include <array>
 
-#include <RealEngine/rendering/textures/Texture.hpp>
-#include <RealEngine/rendering/CommandBuffer.hpp>
-#include <RealEngine/rendering/pipelines/Pipeline.hpp>
-#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
+#include <RealEngine/graphics/textures/Texture.hpp>
+#include <RealEngine/graphics/CommandBuffer.hpp>
+#include <RealEngine/graphics/pipelines/Pipeline.hpp>
+#include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>

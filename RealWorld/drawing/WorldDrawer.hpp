@@ -4,7 +4,7 @@
 #pragma once
 #include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
-#include <RealEngine/rendering/pipelines/Vertex.hpp>
+#include <RealEngine/graphics/pipelines/Vertex.hpp>
 
  /**
  * @brief Renders the world (i.e. tiles, shadows, minimap)

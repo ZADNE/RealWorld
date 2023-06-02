@@ -4,10 +4,10 @@
 #pragma once
 #include <glm/mat4x4.hpp>
 
-#include <RealEngine/rendering/descriptors/DescriptorSet.hpp>
-#include <RealEngine/rendering/pipelines/PipelineLayout.hpp>
-#include <RealEngine/rendering/textures/TextureShaped.hpp>
-#include <RealEngine/rendering/pipelines/Pipeline.hpp>
+#include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
+#include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
+#include <RealEngine/graphics/textures/TextureShaped.hpp>
+#include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
  /**
   * @brief Renders tiles of the world

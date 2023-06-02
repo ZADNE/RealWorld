@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/rendering/pipelines/Vertex.hpp>
+#include <RealEngine/graphics/pipelines/Vertex.hpp>
 
 /**
 * @brief Represents a dynamic light that can be added into the world.

@@ -5,8 +5,8 @@
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
-#include <RealEngine/rendering/cameras/View2D.hpp>
-#include <RealEngine/rendering/synchronization/Semaphore.hpp>
+#include <RealEngine/graphics/cameras/View2D.hpp>
+#include <RealEngine/graphics/synchronization/Semaphore.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 #include <RealWorld/items/Inventory.hpp>

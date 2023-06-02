@@ -4,7 +4,7 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/rendering/batches/GeometryBatch.hpp>
+#include <RealEngine/graphics/batches/GeometryBatch.hpp>
 
 #include <RealWorld/world/World.hpp>
 #include <RealWorld/items/Inventory.hpp>

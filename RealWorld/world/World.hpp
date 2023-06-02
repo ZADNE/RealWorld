@@ -5,8 +5,8 @@
 #include <optional>
 #include <string>
 
-#include <RealEngine/rendering/batches/SpriteBatch.hpp>
-#include <RealEngine/rendering/textures/Texture.hpp>
+#include <RealEngine/graphics/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/constants/tile_properties/blockTransformationProperties.hpp>
 #include <RealWorld/constants/tile_properties/blockTransformationRules.hpp>

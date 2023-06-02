@@ -3,7 +3,7 @@
  */
 #include <RealWorld/generation/ChunkGenerator.hpp>
 
-#include <RealEngine/rendering/CommandBuffer.hpp>
+#include <RealEngine/graphics/CommandBuffer.hpp>
 
 
 ChunkGenerator::ChunkGenerator() {

@@ -4,8 +4,8 @@
 #pragma once
 #include <array>
 
-#include <RealEngine/rendering/textures/Texture.hpp>
-#include <RealEngine/rendering/pipelines/Pipeline.hpp>
+#include <RealEngine/graphics/textures/Texture.hpp>
+#include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
 #include <RealWorld/constants/generation.hpp>
 

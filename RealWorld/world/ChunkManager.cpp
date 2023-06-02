@@ -6,7 +6,7 @@
 #include <execution>
 #include <future>
 
-#include <RealEngine/rendering/synchronization/Fence.hpp>
+#include <RealEngine/graphics/synchronization/Fence.hpp>
 
 #include <RealWorld/save/ChunkLoader.hpp>
 #include <RealWorld/world/ChunkManager.hpp>

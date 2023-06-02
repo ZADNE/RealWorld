@@ -4,8 +4,8 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/rendering/batches/SpriteBatch.hpp>
-#include <RealEngine/rendering/pipelines/Pipeline.hpp>
+#include <RealEngine/graphics/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
 #include <RealWorld/player/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
