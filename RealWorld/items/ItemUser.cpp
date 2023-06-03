@@ -3,6 +3,8 @@
  */
 #include <RealWorld/items/ItemUser.hpp>
 
+namespace rw {
+
 ItemUser::ItemUser(World& world, Inventory& inventory)
     : m_world(world)
     , m_inv(inventory) {
@@ -135,3 +137,5 @@ void ItemUser::render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb) {
         }
     }
 }
+
+} // namespace rw

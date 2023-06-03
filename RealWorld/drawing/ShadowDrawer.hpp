@@ -12,6 +12,8 @@
 
 #include <RealWorld/drawing/ExternalLight.hpp>
 
+namespace rw {
+
 /**
  * @brief Renders shadows of the world
  */
@@ -118,3 +120,5 @@ private:
         vk::Image               image
     );
 };
+
+} // namespace rw

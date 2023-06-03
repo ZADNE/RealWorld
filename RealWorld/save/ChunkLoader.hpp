@@ -8,6 +8,8 @@
 
 #include <glm/vec2.hpp>
 
+namespace rw {
+
 /**
  * @brief Saves and loads chunks.
  * @see WorldDataLoader saves and loads other world data.
@@ -48,3 +50,5 @@ public:
 private:
     static std::string chunkToChunkFilename(glm::ivec2 chunkPos);
 };
+
+} // namespace rw

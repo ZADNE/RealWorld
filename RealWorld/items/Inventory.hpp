@@ -7,6 +7,8 @@
 #include <RealWorld/items/InventoryData.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 
+namespace rw {
+
 /**
  * @brief Is a clever container for items.
  */
@@ -77,8 +79,10 @@ private:
     void wasChanged() const;
 
     // Should only be called from InventoryUI::connectToInventory()
-    void connectToDrawer(InventoryUI* inventoryDrawer, InventoryUI::Connection connection);
+    void connectToUI(InventoryUI* ui, InventoryUI::Connection connection);
 
     InventoryUI* m_ui = nullptr;
     InventoryUI::Connection m_uiConnection; // Defines the type of connection to UI
 };
+
+} // namespace rw

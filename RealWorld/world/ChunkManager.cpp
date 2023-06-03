@@ -18,6 +18,8 @@ using enum vk::ImageAspectFlagBits;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
+namespace rw {
+
 vk::DeviceSize calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
     glm::ivec2 maxContinuous = activeChunksArea - 1;
     return sizeof(ChunkManager::ActiveChunksSB) +
@@ -428,3 +430,5 @@ glm::ivec2& ChunkManager::activeChunkAtIndex(int acIndex) {
     return (*m_activeChunksStageBuf)
         ->offsets[m_activeChunksMask.x * m_activeChunksMask.y + acIndex];
 }
+
+} // namespace rw

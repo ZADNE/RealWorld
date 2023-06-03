@@ -5,6 +5,8 @@
 #include <array>
 #include <string>
 
+namespace rw {
+
 enum class ItemId : uint16_t {
     Empty,
     // Fluids
@@ -102,3 +104,5 @@ public:
 private:
     const static std::array<ItemMetadata, static_cast<size_t>(ItemId::Count)> m_itemMetadata;
 };
+
+} // namespace rw

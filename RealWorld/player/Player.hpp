@@ -10,6 +10,8 @@
 #include <RealWorld/player/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
+namespace rw {
+
 /**
  * @brief Simulates and draws the user-controlled character
  */
@@ -79,3 +81,5 @@ private:
 
     const glm::vec2& botLeftPx() const;
 };
+
+} // namespace rw

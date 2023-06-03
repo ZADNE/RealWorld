@@ -7,6 +7,8 @@
 
 #include <RealWorld/items/Item.hpp>
 
+namespace rw {
+
 /**
  * @brief Allows convenient drawing of items in inventory
  */
@@ -27,3 +29,5 @@ private:
      */
     static inline const std::string k_atlasPrefix = "itemAtlas";
 };
+
+} // namespace rw

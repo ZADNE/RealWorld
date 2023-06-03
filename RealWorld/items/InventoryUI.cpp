@@ -13,14 +13,16 @@
 #include <RealWorld/items/InventoryUI.hpp>
 #include <RealWorld/items/ItemUser.hpp>
 
+namespace rw {
+
 InventoryUI::InventoryUI(const glm::vec2& windowSize) {
     windowResized(windowSize);
 }
 
 InventoryUI::~InventoryUI() {
-    // Disconnecting all inventories
+    // Disconnect all inventories
     forEachConnectedInventory([&](Connection con) {
-        m_inv[con]->connectToDrawer(nullptr, con);
+        m_inv[con]->connectToUI(nullptr, con);
     });
 }
 
@@ -33,12 +35,12 @@ void InventoryUI::connectToInventory(Inventory* inventory, Connection connection
     bool  changed = false;
     auto& inv     = m_inv[(size_t)connection];
     if (inv) { // Disconnect from the current inventory
-        inv->connectToDrawer(nullptr, connection);
+        inv->connectToUI(nullptr, connection);
         changed = true;
     }
     inv = inventory;
     if (inv) { // Connect to the new inventory
-        inv->connectToDrawer(this, connection);
+        inv->connectToUI(this, connection);
         changed = true;
     }
     if (changed) { // Reload the UI
@@ -222,3 +224,5 @@ std::optional<glm::ivec2> InventoryUI::cursorToSlot(const glm::vec2& cursorPx
     }
     return std::nullopt;
 }
+
+} // namespace rw

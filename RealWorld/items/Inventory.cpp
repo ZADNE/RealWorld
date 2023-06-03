@@ -7,6 +7,8 @@
 
 #include <RealWorld/items/Inventory.hpp>
 
+namespace rw {
+
 Inventory::~Inventory() {
     // Disconnect connected objects (to avoid dangling pointers)
     if (m_ui) {
@@ -149,9 +151,9 @@ void Inventory::wasChanged() const {
     }
 }
 
-void Inventory::connectToDrawer(
-    InventoryUI* inventoryDrawer, InventoryUI::Connection connection
-) {
-    m_ui           = inventoryDrawer;
+void Inventory::connectToUI(InventoryUI* ui, InventoryUI::Connection connection) {
+    m_ui           = ui;
     m_uiConnection = connection;
 }
+
+} // namespace rw

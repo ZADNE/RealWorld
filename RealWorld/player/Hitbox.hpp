@@ -4,6 +4,8 @@
 #pragma once
 #include <glm/vec2.hpp>
 
+namespace rw {
+
 /**
  * @brief Represents a rectangle that can detect collisions with other Hitboxes.
  */
@@ -32,3 +34,5 @@ protected:
     glm::ivec2 m_centerOffsetPx; // m_botLeftPx + m_offsetPx -> considered as
                                  // center of the hitbox
 };
+
+} // namespace rw

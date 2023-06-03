@@ -6,6 +6,8 @@
 
 #include <RealWorld/main/settings/KeyBinder.hpp>
 
+namespace rw {
+
 /**
  * @brief Is an abstract base class for all rooms of RealWorld.
  */
@@ -29,3 +31,5 @@ protected:
         return engine().isKeyDown(keybinder(binding));
     }
 };
+
+} // namespace rw

@@ -11,6 +11,8 @@ using A = vk::AccessFlagBits2;
 
 #define member(var, m0) offsetof(decltype(var), m0), sizeof(var.m0), &var.m0
 
+namespace rw {
+
 // Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
     state ^= state << 13;
@@ -246,3 +248,5 @@ void World::fluidDynamicsStep(
         commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
 }
+
+} // namespace rw

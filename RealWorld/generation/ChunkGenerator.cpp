@@ -5,6 +5,8 @@
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
 
+namespace rw {
+
 void ChunkGenerator::setSeed(int seed) {
     m_pushConstants.seed = seed;
 }
@@ -26,3 +28,5 @@ void ChunkGenerator::generateChunk(
 
     finishGeneration(commandBuffer, destinationTexture, destinationOffset);
 }
+
+} // namespace rw

@@ -7,6 +7,8 @@
 
 #include <RealWorld/world/Chunk.hpp>
 
+namespace rw {
+
 Chunk::Chunk(const glm::ivec2& posCh, const uint8_t* tiles)
     : Chunk(posCh, std::vector<uint8_t>{tiles, tiles + k_chunkByteSize}) {
 }
@@ -58,3 +60,5 @@ size_t Chunk::calcIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const 
     return (static_cast<size_t>(posTi.y) * iChunkTi.x + posTi.x) * 4ull +
            static_cast<size_t>(type);
 }
+
+} // namespace rw

@@ -10,6 +10,8 @@
 
 #include <RealEngine/window/WindowSubsystems.hpp>
 
+namespace rw {
+
 constexpr std::array k_resolutions = {
     glm::ivec2{1280, 1024},
     glm::ivec2{1360, 768},
@@ -63,3 +65,5 @@ bool comboSelect(
     }
     return changedSelection;
 }
+
+} // namespace rw

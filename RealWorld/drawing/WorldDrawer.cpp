@@ -10,6 +10,8 @@
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 
+namespace rw {
+
 WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights)
     : m_viewSizeTi(viewSizeTi(viewSizePx))
     , m_tileDrawer(viewSizePx, m_viewSizeTi)
@@ -65,3 +67,5 @@ void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
 glm::uvec2 WorldDrawer::viewSizeTi(const glm::vec2& viewSizePx) const {
     return glm::uvec2(glm::ceil(viewSizePx / TilePx)) + 1u;
 }
+
+} // namespace rw

@@ -4,7 +4,10 @@ project(RealWorld)
 #RealWorld library
 add_library_with_shaders(RealWorld STATIC)
 target_include_directories(RealWorld PRIVATE .)
-set_target_properties(RealWorld PROPERTIES CXX_STANDARD 20)
+set_target_properties(RealWorld PROPERTIES
+    CXX_STANDARD 20
+    SHADERS_CXX_NAMESPACE "rw"
+)
 target_link_libraries(RealWorld PUBLIC RealEngine)
 
 #RealWorld Game

@@ -15,6 +15,8 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
 
+namespace rw {
+
 /**
  * @brief Represents the world as an endless grid of tiles.
  *
@@ -133,3 +135,5 @@ private:
 
     bool m_permuteOrder = true;
 };
+
+} // namespace rw

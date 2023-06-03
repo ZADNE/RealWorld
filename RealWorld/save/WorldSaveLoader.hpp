@@ -5,6 +5,8 @@
 
 #include <RealWorld/save/WorldSave.hpp>
 
+namespace rw {
+
 /**
  * @brief Saves and loads world data (except for chunks)
  *
@@ -40,3 +42,5 @@ private:
 
     static std::string m_saveFolder;
 };
+
+} // namespace rw

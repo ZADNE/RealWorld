@@ -9,6 +9,8 @@
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
+namespace rw {
+
 /**
  * @brief Renders tiles and minimap of the world
  */
@@ -44,3 +46,5 @@ private:
     re::Pipeline       m_drawTilesPl;
     re::Pipeline       m_drawMinimapPl;
 };
+
+} // namespace rw

@@ -7,6 +7,8 @@
 #include <glm/common.hpp>
 #include <glm/vec2.hpp>
 
+namespace rw {
+
 // Physics steps per second
 constexpr int k_physicsStepsPerSecond = 100;
 
@@ -86,3 +88,5 @@ inline glm::vec2 pxToTi(const glm::vec2& posPx) {
 constexpr inline glm::vec2 tiToPx(const glm::vec2& posTi) {
     return posTi * TilePx;
 }
+
+} // namespace rw

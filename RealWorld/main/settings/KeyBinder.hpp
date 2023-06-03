@@ -4,6 +4,8 @@
 #pragma once
 #include <RealEngine/user_input/KeyBinder.hpp>
 
+namespace rw {
+
 /**
  * @brief Represents all key bindings that RealWorld has
  */
@@ -106,3 +108,5 @@ inline auto& keybinder() {
 inline re::Key keybinder(RealWorldKeyBindings binding) {
     return keybinder()[binding];
 }
+
+} // namespace rw

@@ -9,6 +9,8 @@
 
 #include <RealWorld/constants/generation.hpp>
 
+namespace rw {
+
 /**
  * @brief Is an interface for chunk generators.
  */
@@ -59,3 +61,5 @@ protected:
         const glm::ivec2&        dstOffset
     ) = 0;
 };
+
+} // namespace rw

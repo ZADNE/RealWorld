@@ -9,6 +9,8 @@
 
 #include <RealWorld/save/ChunkLoader.hpp>
 
+namespace rw {
+
 std::optional<std::vector<unsigned char>> ChunkLoader::loadChunk(
     const std::string& folderPath, const glm::ivec2& chunkPos, const glm::uvec2& chunkDims
 ) {
@@ -54,3 +56,5 @@ std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos) {
        << std::abs(chunkPos.y) << ".chunk";
     return ss.str();
 }
+
+} // namespace rw

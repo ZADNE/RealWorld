@@ -8,6 +8,8 @@
 
 #include <RealWorld/items/Item.hpp>
 
+namespace rw {
+
 /**
  * @brief Is a data structure that holds items.
  */
@@ -54,3 +56,5 @@ protected:
     glm::ivec2        m_dims = glm::ivec2(0, 0);
     std::vector<Item> m_items;
 };
+
+} // namespace rw

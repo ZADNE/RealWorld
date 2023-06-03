@@ -4,6 +4,8 @@
 #pragma once
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 
+namespace rw {
+
 /**
  * @brief Represents a dynamic light that can be added into the world.
  */
@@ -16,3 +18,5 @@ struct ExternalLight {
     re::Color  col; /**< RGB = color of the light, A = intensity of the light */
     glm::uint  padding;
 };
+
+} // namespace rw

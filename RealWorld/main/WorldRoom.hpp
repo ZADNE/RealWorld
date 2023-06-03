@@ -18,6 +18,8 @@
 #include <RealWorld/player/Player.hpp>
 #include <RealWorld/world/World.hpp>
 
+namespace rw {
+
 /**
  * @brief Holds all gameplay-related objects.
  */
@@ -95,3 +97,5 @@ private:
     bool m_shadows = true;
     bool m_permute = true;
 };
+
+} // namespace rw

@@ -12,6 +12,8 @@
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
 
+namespace rw {
+
 /**
  * @brief Generates new chunks by compute shaders.
  */
@@ -54,3 +56,5 @@ private:
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral}};
 };
+
+} // namespace rw

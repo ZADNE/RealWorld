@@ -11,6 +11,8 @@ using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 using enum vk::ImageLayout;
 
+namespace rw {
+
 TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi)
     : m_pipelineLayout(
           {},
@@ -103,3 +105,5 @@ void TileDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
     );
     commandBuffer.draw(4u, 1u, 0u, 0u);
 }
+
+} // namespace rw

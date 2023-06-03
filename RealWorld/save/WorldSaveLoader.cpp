@@ -15,6 +15,8 @@
 
 #include <nlohmann/json.hpp>
 
+namespace rw {
+
 template<class T>
 void writeBinary(std::ofstream& file, const T& x) {
     file.write(reinterpret_cast<const char*>(&x), sizeof(x));
@@ -200,3 +202,5 @@ void WorldSaveLoader::saveInventory(
         writeBinary(stream, inventory(i));
     }
 }
+
+} // namespace rw

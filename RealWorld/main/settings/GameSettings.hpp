@@ -7,6 +7,8 @@
 
 #include <glm/vec2.hpp>
 
+namespace rw {
+
 /**
  * @brief Specify settings specific to RealWorld game.
  */
@@ -39,3 +41,5 @@ public:
 private:
     glm::ivec2 m_activeChunksArea;
 };
+
+} // namespace rw

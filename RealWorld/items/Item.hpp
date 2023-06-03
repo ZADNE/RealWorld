@@ -4,6 +4,8 @@
 #pragma once
 #include <RealWorld/items/ItemSample.hpp>
 
+namespace rw {
+
 /**
  * @brief Representes a number of item samples.
  */
@@ -63,3 +65,5 @@ struct Item: public ItemSample {
 
     int amount = 0;
 };
+
+} // namespace rw

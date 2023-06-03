@@ -18,6 +18,8 @@
 #include <RealWorld/world/Chunk.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
 
+namespace rw {
+
 /**
  * @brief Ensures that chunks are activated when needed.
  *
@@ -163,3 +165,5 @@ private:
     int                                         m_nextFreeTileStage = 0;
     re::BufferMapped<unsigned char>             m_tilesStageBuf;
 };
+
+} // namespace rw

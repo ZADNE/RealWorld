@@ -9,6 +9,8 @@
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/world/World.hpp>
 
+namespace rw {
+
 /**
  * @brief Uses items from an inventory.
  * @details Adds or removes tile of the world.
@@ -52,3 +54,5 @@ private:
     int   m_using[2] = {-1, -1};
     Item* m_item     = nullptr;
 };
+
+} // namespace rw

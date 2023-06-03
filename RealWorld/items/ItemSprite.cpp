@@ -6,6 +6,8 @@
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
 
+namespace rw {
+
 ItemSprite::ItemSprite()
     : ItemSprite{ItemId::Empty} {
 }
@@ -29,3 +31,5 @@ ItemSprite::ItemSprite(ItemSample item)
 re::SpriteComplex& ItemSprite::sprite() {
     return m_sprite;
 }
+
+} // namespace rw

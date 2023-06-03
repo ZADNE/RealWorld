@@ -6,6 +6,8 @@
 #include <RealWorld/player/Hitbox.hpp>
 #include <RealWorld/world/World.hpp>
 
+namespace rw {
+
 Hitbox::Hitbox(const glm::ivec2& botLeftPx, const glm::ivec2& dimsPx, const glm::ivec2& centerOffsetPx /* = glm::ivec2(0.0f)*/)
     : m_botLeftPx(botLeftPx)
     , m_dimsPx(dimsPx)
@@ -57,3 +59,5 @@ bool Hitbox::overlapsBlockwise(const glm::ivec2& pointPx) const {
     }
     return false;
 }
+
+} // namespace rw

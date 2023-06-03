@@ -6,6 +6,8 @@
 
 #include <RealWorld/constants/tile.hpp>
 
+namespace rw {
+
 /**
  * @brief Dimensions of a chunk, in tiles
  *
@@ -61,3 +63,5 @@ constexpr inline glm::ivec2 chToAt(
 constexpr inline int acToIndex(const glm::ivec2& posAc, const glm::ivec2& activeChunks) {
     return posAc.y * activeChunks.x + posAc.x;
 }
+
+} // namespace rw

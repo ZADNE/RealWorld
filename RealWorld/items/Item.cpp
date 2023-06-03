@@ -7,6 +7,8 @@
 
 #include <RealWorld/items/Item.hpp>
 
+namespace rw {
+
 Item::Item(const ItemSample& sample, int amount)
     : ItemSample(sample)
     , amount(amount) {
@@ -88,3 +90,5 @@ Item Item::operator*(int number) const {
     returnItem.amount *= number;
     return returnItem;
 }
+
+} // namespace rw

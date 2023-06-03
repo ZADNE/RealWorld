@@ -8,6 +8,8 @@
 
 using namespace ImGui;
 
+namespace rw {
+
 const char* k_keybindNotice =
     "Press a key to change the keybind.\nOr press Delete to cancel.";
 
@@ -252,3 +254,5 @@ void MainMenuRoom::controlsMenu() {
 
     EndTable();
 }
+
+} // namespace rw

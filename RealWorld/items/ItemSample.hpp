@@ -4,6 +4,8 @@
 #pragma once
 #include <RealWorld/items/ItemDatabase.hpp>
 
+namespace rw {
+
 /**
  * @brief Is an instance of a type of item.
  */
@@ -27,3 +29,5 @@ struct ItemSampleHasher {
         return ((size_t)otherSample.id | (size_t)otherSample.special << 16);
     }
 };
+
+} // namespace rw

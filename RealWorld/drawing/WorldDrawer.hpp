@@ -7,6 +7,8 @@
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
 
+namespace rw {
+
 /**
  * @brief Renders the world (i.e. tiles, shadows, minimap)
  */
@@ -55,3 +57,5 @@ private:
     TileDrawer   m_tileDrawer;
     ShadowDrawer m_shadowDrawer;
 };
+
+} // namespace rw

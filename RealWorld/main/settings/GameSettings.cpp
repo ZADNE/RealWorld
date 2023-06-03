@@ -10,6 +10,8 @@
 
 using json = nlohmann::json;
 
+namespace rw {
+
 const std::string SETTINGS_FILENAME = "game_settings.json";
 
 GameSettings::GameSettings() {
@@ -46,3 +48,5 @@ void GameSettings::save() {
     o << j.dump(2);
     o.close();
 }
+
+} // namespace rw

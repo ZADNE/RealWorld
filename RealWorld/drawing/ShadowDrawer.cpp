@@ -8,9 +8,6 @@
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
 
-constexpr int k_unitMask       = ~(k_iLightScale * iTilePx.x - 1);
-constexpr int k_halfUnitOffset = iTilePx.x * k_iLightScale / 2;
-
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 using enum vk::ImageLayout;
@@ -20,6 +17,10 @@ using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 using enum vma::AllocationCreateFlagBits;
 
+namespace rw {
+
+constexpr int       k_unitMask          = ~(k_iLightScale * iTilePx.x - 1);
+constexpr int       k_halfUnitOffset    = iTilePx.x * k_iLightScale / 2;
 constexpr glm::vec2 k_analysisGroupSize = glm::vec2{8.0f};
 
 glm::uvec3 getAnalysisGroupCount(const glm::vec2& viewSizeTi) {
@@ -299,3 +300,5 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     // Shadow drawing descriptor set
     shadowDrawingDS.write(eCombinedImageSampler, 0u, 0u, shadowsTex, eReadOnlyOptimal);
 }
+
+} // namespace rw

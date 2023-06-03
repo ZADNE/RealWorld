@@ -9,6 +9,8 @@
 
 #include <RealWorld/constants/chunk.hpp>
 
+namespace rw {
+
 /**
  * @brief Represents a fixed-size square grid of tiles.
  *
@@ -133,3 +135,5 @@ private:
     glm::ivec2           m_posCh{0, 0};
     mutable int m_stepsSinceLastOperation = 0; /**< Steps since last read/write op */
 };
+
+} // namespace rw

@@ -10,10 +10,10 @@
 int main(int argc, char* argv[]) {
     re::MainProgram::initialize();
 
-    GameSettings gameSettings{};
+    rw::GameSettings gameSettings{};
 
-    auto* mainMenuRoom = re::MainProgram::addRoom<MainMenuRoom>(gameSettings);
-    re::MainProgram::addRoom<WorldRoom>(gameSettings);
+    auto* mainMenuRoom = re::MainProgram::addRoom<rw::MainMenuRoom>(gameSettings);
+    re::MainProgram::addRoom<rw::WorldRoom>(gameSettings);
 
     return re::MainProgram::run(mainMenuRoom->name(), {});
 }

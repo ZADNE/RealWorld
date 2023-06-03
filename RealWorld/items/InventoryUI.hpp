@@ -11,6 +11,8 @@
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
 
+namespace rw {
+
 class ItemUser;
 class Inventory;
 
@@ -138,3 +140,5 @@ private:
     std::vector<ItemSprite> m_invItemSprites[static_cast<size_t>(Connection::Count)];
     bool m_open = false;
 };
+
+} // namespace rw

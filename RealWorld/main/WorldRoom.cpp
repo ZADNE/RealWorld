@@ -6,6 +6,8 @@
 #include <RealWorld/main/WorldRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
+namespace rw {
+
 #ifdef _DEBUG
 constexpr unsigned int k_frameRateLimit = 300u;
 #else
@@ -303,3 +305,5 @@ bool WorldRoom::saveWorld() {
 glm::mat4 WorldRoom::calculateWindowViewMat(const glm::vec2& windowDims) const {
     return glm::ortho(0.0f, windowDims.x, 0.0f, windowDims.y);
 }
+
+} // namespace rw

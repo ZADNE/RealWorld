@@ -3,14 +3,16 @@
  */
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 
-constexpr int        k_groupSize    = 16;
-constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
-
 using enum vk::ImageAspectFlagBits;
 using enum vk::ShaderStageFlagBits;
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
+
+namespace rw {
+
+constexpr int        k_groupSize    = 16;
+constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
 ChunkGeneratorCS::ChunkGeneratorCS() {
     m_descSet.write(
@@ -127,3 +129,5 @@ vk::ImageMemoryBarrier2 ChunkGeneratorCS::stepBarrier() const {
         m_tilesTex.image(),
         vk::ImageSubresourceRange{eColor, 0u, 1u, m_pushConstants.storeLayer, 1u}};
 }
+
+} // namespace rw

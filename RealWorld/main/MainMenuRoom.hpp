@@ -10,6 +10,8 @@
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/main/settings/combos.hpp>
 
+namespace rw {
+
 /**
  * @brief Holds the main menu and related objects.
  */
@@ -50,3 +52,5 @@ private:
     void displaySettingsMenu(); /**< Builds menu that changes settings */
     void controlsMenu();        /**< Builds menu that changes key bindings */
 };
+
+} // namespace rw

@@ -4,6 +4,8 @@
 #pragma once
 #include <RealWorld/constants/chunk.hpp>
 
+namespace rw {
+
 /**
  * @brief Width of the padding around the generated chunk.
  *
@@ -19,3 +21,5 @@ constexpr int k_genBorderWidth = 8;
  * @see k_genBorderWidth
  */
 constexpr glm::ivec2 k_genChunkSize = iChunkTi + 2 * k_genBorderWidth;
+
+} // namespace rw

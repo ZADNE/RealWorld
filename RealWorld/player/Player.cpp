@@ -14,6 +14,8 @@ using enum vk::MemoryPropertyFlagBits;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
+namespace rw {
+
 Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
     : m_playerTex(std::move(playerTex))
     , m_hitboxBuf(re::BufferCreateInfo{
@@ -102,3 +104,5 @@ void Player::draw(re::SpriteBatch& spriteBatch) {
 const glm::vec2& Player::botLeftPx() const {
     return m_hitboxStageBuf->botLeftPx[1 - m_pushConstants.writeIndex];
 }
+
+} // namespace rw

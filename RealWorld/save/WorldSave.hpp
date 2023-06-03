@@ -8,8 +8,10 @@
 
 #include <RealWorld/items/InventoryData.hpp>
 
+namespace rw {
+
 struct MetadataSave {
-    std::string path; // Including ending slash
+    std::string path; // Includes ending slash
     int         seed;
     std::string worldName;
 };
@@ -23,3 +25,5 @@ struct WorldSave {
     PlayerSave    player;
     InventoryData inventory;
 };
+
+} // namespace rw
