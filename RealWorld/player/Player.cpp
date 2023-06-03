@@ -82,7 +82,7 @@ void Player::step(
         S::eTransfer,                                   // Dst stage mask
         A::eTransferRead,                               // Dst access mask
         VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        VK_QUEUE_FAMILY_IGNORED,
         *m_hitboxBuf,
         copyRegion.srcOffset,
         copyRegion.size};

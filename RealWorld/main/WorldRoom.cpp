@@ -9,8 +9,7 @@
 #ifdef _DEBUG
 constexpr unsigned int k_frameRateLimit = 300u;
 #else
-constexpr unsigned int k_frameRateLimit =
-    re::Synchronizer::k_doNotLimitFramesPerSecond;
+constexpr unsigned int k_frameRateLimit = re::Synchronizer::k_doNotLimitFramesPerSecond;
 #endif // _DEBUG
 
 constexpr glm::vec4 k_skyBlue =
@@ -39,8 +38,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
 
 void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
     try {
-        const std::string& worldName =
-            std::any_cast<const std::string&>(args[0]);
+        const std::string& worldName = std::any_cast<const std::string&>(args[0]);
         if (!loadWorld(worldName)) {
             engine().scheduleRoomTransition(0, {});
             return;
@@ -50,10 +48,9 @@ void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
         re::fatalError("Bad transition paramaters to start WorldRoom session");
     }
 
-    m_worldView.setPosition(glm::vec2(m_player.center()));
+    m_worldView.setPosition(m_player.center());
     m_worldView.setCursorAbs(engine().cursorAbs());
-    glm::vec2 viewPos =
-        glm::vec2(m_player.center()) * 0.75f + m_worldView.cursorRel() * 0.25f;
+    glm::vec2 viewPos = m_player.center() * 0.75f + m_worldView.cursorRel() * 0.25f;
     m_worldView.setPosition(glm::floor(viewPos));
 }
 
@@ -129,17 +126,13 @@ void WorldRoom::windowResizedCallback(
 }
 
 void WorldRoom::performWorldSimulationStep(
-    const vk::CommandBuffer&         commandBuffer,
-    const WorldDrawer::ViewEnvelope& viewEnvelope
+    const vk::CommandBuffer& commandBuffer, const WorldDrawer::ViewEnvelope& viewEnvelope
 ) {
-    // Prepare for the simulation step (wait on barriers and do image layout
-    // transitions)
+    // Prepare for the simulation step
     m_world.beginStep(commandBuffer);
 
     // Simulate one physics step (load new chunks if required)
-    m_world.step(
-        commandBuffer, viewEnvelope.botLeftTi, viewEnvelope.topRightTi
-    );
+    m_world.step(commandBuffer, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
 
     // Modify the world with player's tools
     m_itemUser.step(
@@ -164,9 +157,9 @@ void WorldRoom::performWorldSimulationStep(
 
 void WorldRoom::analyzeWorldForDrawing(const vk::CommandBuffer& commandBuffer) {
     // Move the view based on movements of the player
-    glm::vec2 prevViewPos = m_worldView.center();
-    glm::vec2 targetViewPos =
-        glm::vec2(m_player.center()) * 0.75f + m_worldView.cursorRel() * 0.25f;
+    glm::vec2 prevViewPos   = m_worldView.center();
+    glm::vec2 targetViewPos = glm::vec2(m_player.center()) * 0.75f +
+                              m_worldView.cursorRel() * 0.25f;
     auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
     m_worldView.setCursorAbs(engine().cursorAbs());
     m_worldView.setPosition(glm::floor(viewPos));
@@ -178,13 +171,10 @@ void WorldRoom::analyzeWorldForDrawing(const vk::CommandBuffer& commandBuffer) {
     static float rad = 0.0f;
     rad += 0.01f;
     m_worldDrawer.addExternalLight(
-        m_worldView.cursorRel() +
-            glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f,
+        m_worldView.cursorRel() + glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f,
         re::Color{0u, 0u, 0u, 255u}
     );
-    m_worldDrawer.addExternalLight(
-        m_player.center(), re::Color{0u, 0u, 0u, 100u}
-    );
+    m_worldDrawer.addExternalLight(m_player.center(), re::Color{0u, 0u, 0u, 100u});
 
     // Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(commandBuffer);
@@ -296,9 +286,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     m_player.adoptSave(save.player, worldTex);
     m_playerInv.adoptInventoryData(save.inventory);
 
-    m_worldDrawer.setTarget(
-        worldTex, m_gameSettings.activeChunksArea() * iChunkTi
-    );
+    m_worldDrawer.setTarget(worldTex, m_gameSettings.activeChunksArea() * iChunkTi);
     return true;
 }
 

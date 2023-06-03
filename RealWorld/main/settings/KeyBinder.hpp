@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -6,7 +6,7 @@
 
 /**
  * @brief Represents all key bindings that RealWorld has
-*/
+ */
 enum class RealWorldKeyBindings {
     InvOpenClose,
     InvMoveAll,
@@ -46,10 +46,12 @@ enum class RealWorldKeyBindings {
 };
 
 struct BindingInfo {
-    constexpr BindingInfo(re::Key defaultValue, const char* name, const char* desc) :
-        defaultValue(defaultValue), name(name), desc(desc) {}
+    constexpr BindingInfo(re::Key defaultValue, const char* name, const char* desc)
+        : defaultValue(defaultValue)
+        , name(name)
+        , desc(desc) {}
 
-    re::Key defaultValue;
+    re::Key     defaultValue;
     const char* name;
     const char* desc;
 };
@@ -92,7 +94,7 @@ constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBinding
 
 /**
  * @brief Global keybinder object for the RealWorld game
-*/
+ */
 inline auto& keybinder() {
     static re::KeyBinder<RealWorldKeyBindings, BindingInfo, k_keybindingInfo> kb{};
     return kb;
@@ -100,7 +102,7 @@ inline auto& keybinder() {
 
 /**
  * @brief Shortcut for keybinder()[binding]
-*/
+ */
 inline re::Key keybinder(RealWorldKeyBindings binding) {
     return keybinder()[binding];
 }

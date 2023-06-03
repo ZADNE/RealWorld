@@ -8,14 +8,13 @@
 
 /**
  * @brief Is an abstract base class for all rooms of RealWorld.
-*/
-class Room : public re::Room {
+ */
+class Room: public re::Room {
 public:
-
-    Room(size_t name, const re::RoomDisplaySettings& rds) : re::Room(name, rds) {}
+    Room(size_t name, const re::RoomDisplaySettings& rds)
+        : re::Room(name, rds) {}
 
 protected:
-
     using enum RealWorldKeyBindings;
 
     auto keybindPressed(RealWorldKeyBindings binding) {

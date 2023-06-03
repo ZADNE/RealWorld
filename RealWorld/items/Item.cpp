@@ -1,29 +1,34 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/items/Item.hpp>
-
 #include <algorithm>
 
 #include <glm/common.hpp>
 
-Item::Item(const ItemSample& sample, int amount):
-    ItemSample(sample),
-    amount(amount){
+#include <RealWorld/items/Item.hpp>
 
+Item::Item(const ItemSample& sample, int amount)
+    : ItemSample(sample)
+    , amount(amount) {
 }
 
-Item::Item(ItemId id, int amount, float special/* = 0.0f*/):
-    ItemSample(id, special),
-    amount(amount){
-
+Item::Item(ItemId id, int amount, float special /* = 0.0f*/)
+    : ItemSample(id, special)
+    , amount(amount) {
 }
 
-void Item::merge(Item& item, float portion){
-    if (id != item.id) { return; }//Both items are not same type, cannot merge
-    if (special != item.special) { return; }//Both items do nat have same special, cannot merge
+void Item::merge(Item& item, float portion) {
+    if (id != item.id) {
+        // Items are not of same type, cannot merge
+        return;
+    }
+    if (special != item.special) {
+        // Items do not have the same special, cannot merge
+        return;
+    }
     int maxStack = ItemDatabase::md(id).maxStack;
-    int temp = glm::min(maxStack - amount, (int)(glm::ceil((float)item.amount * portion)));
+    int temp =
+        glm::min(maxStack - amount, (int)(glm::ceil((float)item.amount * portion)));
     amount += temp;
     item.amount -= temp;
     if (item.amount <= 0) {
@@ -31,10 +36,13 @@ void Item::merge(Item& item, float portion){
     }
 }
 
-void Item::insert(Item & item, float portion){
-    if (id != ItemId::Empty) { return; }//This is not empty item, cannot insert
-    special = item.special;
-    id = item.id;
+void Item::insert(Item& item, float portion) {
+    if (id != ItemId::Empty) {
+        // This is not empty item, cannot insert
+        return;
+    }
+    special      = item.special;
+    id           = item.id;
     int maxStack = ItemDatabase::md(id).maxStack;
     int temp = glm::min(maxStack, (int)(glm::ceil((float)item.amount * portion)));
     amount += temp;
@@ -44,13 +52,7 @@ void Item::insert(Item & item, float portion){
     }
 }
 
-void Item::swap(Item& item){
-    Item temp{ item };
-    item = (*this);
-    (*this) = temp;
-}
-
-int Item::operator--(){
+int Item::operator--() {
     int tmp = amount;
     if (--amount <= 0) {
         id = ItemId::Empty;
@@ -58,14 +60,14 @@ int Item::operator--(){
     return tmp;
 }
 
-int Item::operator--(int){
+int Item::operator--(int) {
     if (--amount <= 0) {
         id = ItemId::Empty;
     }
     return amount;
 }
 
-int Item::operator+=(int number){
+int Item::operator+=(int number) {
     amount += number;
     if (amount <= 0) {
         id = ItemId::Empty;
@@ -73,7 +75,7 @@ int Item::operator+=(int number){
     return amount;
 }
 
-int Item::operator-=(int number){
+int Item::operator-=(int number) {
     amount -= number;
     if (amount <= 0) {
         id = ItemId::Empty;

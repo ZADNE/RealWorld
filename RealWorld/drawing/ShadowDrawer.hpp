@@ -96,8 +96,8 @@ private:
 
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
-        re::Texture lightTex; // RGB = color of the light, A = intensity of the light
-        re::Texture       transluTex; // R = translucency of the unit
+        re::Texture lightTex; /**< RGB = color of the light, A = intensity of the light */
+        re::Texture       transluTex; /**< R = translucency of the unit */
         re::Texture       shadowsTex;
         AnalysisPC        analysisPC;
         ShadowDrawingPC   shadowDrawingPC;

@@ -7,6 +7,7 @@
 
 #include <RealEngine/graphics/cameras/View2D.hpp>
 #include <RealEngine/graphics/synchronization/Semaphore.hpp>
+
 #include <RealWorld/drawing/WorldDrawer.hpp>
 #include <RealWorld/generation/ChunkGeneratorCS.hpp>
 #include <RealWorld/items/Inventory.hpp>
@@ -27,9 +28,7 @@ public:
     void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
-    void render(
-        const vk::CommandBuffer& commandBuffer, double interpolationFactor
-    ) override;
+    void render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) override;
 
     void windowResizedCallback(
         const glm::ivec2& oldSize, const glm::ivec2& newSize
@@ -73,11 +72,10 @@ private:
 
     std::array<re::CommandBuffer, 2> m_computeCommandBuffer{
         vk::CommandBufferLevel::ePrimary, vk::CommandBufferLevel::ePrimary};
-    uint64_t          m_stepN = 1;
-    re::Semaphore     m_simulationFinishedSem{m_stepN};
-    re::SpriteBatch   m_spriteBatch{256, 64};
-    re::GeometryBatch m_geometryBatch{
-        vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
+    uint64_t        m_stepN = 1;
+    re::Semaphore   m_simulationFinishedSem{m_stepN};
+    re::SpriteBatch m_spriteBatch{256, 64};
+    re::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
 
     // View
     re::View2D m_worldView{engine().windowDims()};

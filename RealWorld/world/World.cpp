@@ -113,7 +113,7 @@ void World::beginStep(const vk::CommandBuffer& commandBuffer) {
         vk::ImageLayout::eReadOnlyOptimal, // Old image layout
         vk::ImageLayout::eGeneral,         // New image layout
         VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        VK_QUEUE_FAMILY_IGNORED,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -182,7 +182,7 @@ void World::endStep(const vk::CommandBuffer& commandBuffer) {
         eGeneral,                                       // Old image layout
         eReadOnlyOptimal,                               // New image layout
         VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        VK_QUEUE_FAMILY_IGNORED,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -207,7 +207,7 @@ void World::fluidDynamicsStep(
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
         VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        VK_QUEUE_FAMILY_IGNORED,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});

@@ -73,10 +73,8 @@ const re::Buffer& ChunkManager::setTarget(
         (*m_activeChunksStageBuf)->offsets[i] = k_chunkNotActive;
     }
     re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
-        vk::BufferCopy2 bufferCopy{// Copy whole buffer
-                                   0ull,
-                                   0ull,
-                                   bufSize};
+        // Copy whole buffer
+        vk::BufferCopy2 bufferCopy{0ull, 0ull, bufSize};
         commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
             m_activeChunksStageBuf->buffer(), // Src buffer
             m_activeChunksBuf->buffer(),      // Dst buffer
@@ -119,7 +117,7 @@ bool ChunkManager::saveChunks() {
         vk::ImageLayout::eReadOnlyOptimal, // Old image layout
         vk::ImageLayout::eGeneral,         // New image layout
         VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        VK_QUEUE_FAMILY_IGNORED,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -144,8 +142,8 @@ bool ChunkManager::saveChunks() {
             if (activeChunk != k_chunkNotActive) {
                 if (!planDownload(*commandBuffer, activeChunk, chToTi(posAc))) { // If stage is full
                     commandBuffer->end();
-                    commandBuffer.submitToComputeQueue(*downloadFinishedFence
-                    ); // Wait for the transfer to finish
+                    commandBuffer.submitToComputeQueue(*downloadFinishedFence);
+                    // Wait for the transfer to finish
                     downloadFinishedFence.wait();
                     downloadFinishedFence.reset();
                     saveAllChunksInTileStage();
@@ -164,7 +162,7 @@ bool ChunkManager::saveChunks() {
         vk::ImageLayout::eGeneral,         // Old image layout
         vk::ImageLayout::eReadOnlyOptimal, // New image layout
         VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        VK_QUEUE_FAMILY_IGNORED,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -187,14 +185,12 @@ void ChunkManager::beginStep() {
     // Check inactive chunks that have been inactive for too long
     for (auto it = m_inactiveChunks.begin();
          it != m_inactiveChunks.end();) { // For each inactive chunk
-        if (it->second.step() >= k_physicsStepsPerSecond * 60) { // If the chunk
-                                                                 // has not been
-                                                                 // used for a
-                                                                 // minute
-            saveChunk(it->second.tiles().data(), it->first); // Save the chunk
-                                                             // to disk
-            it = m_inactiveChunks.erase(it); // And remove it from the
-                                             // collection
+        // If the chunk has not been used for a minute
+        if (it->second.step() >= k_physicsStepsPerSecond * 60) {
+            // Save the chunk to disk
+            saveChunk(it->second.tiles().data(), it->first);
+            // And remove it from the collection
+            it = m_inactiveChunks.erase(it);
         } else {
             it++;
         }
@@ -246,8 +242,8 @@ void ChunkManager::planActivationOfChunks(
 }
 
 int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
-    if (m_transparentChunkChanges > 0) { // If there have been transparent
-                                         // changes
+    // If there have been transparent changes
+    if (m_transparentChunkChanges > 0) {
         // Reset the number of update chunks to zero
         (*m_activeChunksStageBuf)->dynamicsGroupSize.x = 0;
         // Copy the update active chunks storage buffer
@@ -280,7 +276,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
             S::eComputeShader,                              // Dst stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
             VK_QUEUE_FAMILY_IGNORED,
-            VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+            VK_QUEUE_FAMILY_IGNORED,
             m_activeChunksBuf->buffer(),
             offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
             VK_WHOLE_SIZE                                // Size
@@ -326,20 +322,21 @@ void ChunkManager::planActivation(
     if (it != m_inactiveChunks.end()) {
         // Query upload of the chunk
         if (planUpload(commandBuffer, it->second.tiles(), posCh, posAt)) {
-            m_inactiveChunks.erase(it); // Remove the chunk from inactive chunks
-            activeChunk = k_chunkBeingUploaded; // And signal that it is being
-                                                // uploaded
+            // Remove the chunk from inactive chunks
+            m_inactiveChunks.erase(it);
+            // And signal that it is being uploaded
+            activeChunk = k_chunkBeingUploaded;
         }
     } else {
         std::optional<std::vector<uint8_t>> tiles =
             ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
         if (tiles) { // If chunk has been loaded
             if (planUpload(commandBuffer, *tiles, posCh, posAt)) {
-                activeChunk = k_chunkBeingUploaded; // Signal that it is being
-                                                    // uploaded
+                // Signal that it is being uploaded
+                activeChunk = k_chunkBeingUploaded;
             } else {
-                // Could not upload the chunk -> at least store it as an
-                // inactive chunk
+                // Could not upload the chunk
+                // At least store it as an inactive chunk
                 m_inactiveChunks.emplace(posCh, Chunk{posCh, std::move(*tiles)});
             }
         } else {
@@ -403,13 +400,14 @@ bool ChunkManager::planDownload(
         m_tileStageStates[m_nextFreeTileStage] = {
             .transfer = TileStageTransferState::Downloading, .posCh = posCh};
         vk::DeviceSize bufOffset = m_nextFreeTileStage * k_chunkByteSize;
-        auto           copy      = vk::BufferImageCopy2{
+
+        auto copy = vk::BufferImageCopy2{
             bufOffset, // Buffer offset
             0u,
             0u,                          // Tightly packed
-                           {eColor, 0u, 0u, 1u},        // Subresource
-                           {posAt.x, posAt.y, 0u},      // Offset
-                           {iChunkTi.x, iChunkTi.y, 1u} // Extent
+            {eColor, 0u, 0u, 1u},        // Subresource
+            {posAt.x, posAt.y, 0u},      // Offset
+            {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
         commandBuffer.copyImageToBuffer2(vk::CopyImageToBufferInfo2{
             m_worldTex->image(),

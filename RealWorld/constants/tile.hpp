@@ -1,31 +1,42 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #pragma once
 #include <cstdint>
 
-#include <glm/vec2.hpp>
 #include <glm/common.hpp>
+#include <glm/vec2.hpp>
 
-//Physics steps per second
+// Physics steps per second
 constexpr int k_physicsStepsPerSecond = 100;
 
 /**
  * @brief Dimensions of a tile, in pixels
-*/
+ */
 constexpr glm::uvec2 uTilePx = glm::uvec2(4u, 4u);
 constexpr glm::ivec2 iTilePx = uTilePx;
-constexpr glm::vec2 TilePx = uTilePx;
-
+constexpr glm::vec2  TilePx  = uTilePx;
 
 enum class Block : uint8_t {
-    Stone, Dirt, Grass, ColdStone,
-    Sand, ColdDirt, ColdGrass, Mud,
-    MudGrass, DryGrass, HallowStone, HallowDirt,
+    Stone,
+    Dirt,
+    Grass,
+    ColdStone,
+    Sand,
+    ColdDirt,
+    ColdGrass,
+    Mud,
+    MudGrass,
+    DryGrass,
+    HallowStone,
+    HallowDirt,
     HallowGrass,
 
-    Water = 224, Lava, Steam,
-    Fire, Smoke,
+    Water = 224,
+    Lava,
+    Steam,
+    Fire,
+    Smoke,
 
     Acid = 254,
 
@@ -33,21 +44,33 @@ enum class Block : uint8_t {
 };
 
 enum class Wall : uint8_t {
-    Stone, Dirt, Grass, ColdStone,
-    Sand, ColdDirt, ColdGrass, Mud,
-    MudGrass, DryGrass, HallowStone, HallowDirt,
+    Stone,
+    Dirt,
+    Grass,
+    ColdStone,
+    Sand,
+    ColdDirt,
+    ColdGrass,
+    Mud,
+    MudGrass,
+    DryGrass,
+    HallowStone,
+    HallowDirt,
     HallowGrass,
 
     Air = 255
 };
 
 enum class TileAttrib : uint32_t {
-    BlockType = 0, BlockVar = 1, WallType = 2, WallVar = 3
+    BlockType = 0,
+    BlockVar  = 1,
+    WallType  = 2,
+    WallVar   = 3
 };
 
 enum class TileLayer : uint32_t {
     BlockLayer = static_cast<uint32_t>(TileAttrib::BlockType),
-    WallLayer = static_cast<uint32_t>(TileAttrib::WallType)
+    WallLayer  = static_cast<uint32_t>(TileAttrib::WallType)
 };
 
 /**
