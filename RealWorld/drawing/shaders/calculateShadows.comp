@@ -13,70 +13,68 @@ layout(set = 0, binding = 0)        uniform sampler2D                   u_lightT
 layout(set = 0, binding = 1)        uniform sampler2D                   u_transluTexture;
 layout(set = 0, binding = 2, rgba8) uniform restrict writeonly image2D  u_shadowsImage;
 
-vec2 analysisUVScale = 1.0 / textureSize(u_lightTexture, 0);
-const float UV_OFFSET = k_lightMaxRangeUn - 0.5;
+vec2 g_analysisUvScale = 1.0 / textureSize(u_lightTexture, 0);
+const float k_uvOffset = k_lightMaxRangeUn - 0.5;
 
-const float PI2 = 6.28318530718;
+const float k_piOver16 =    0.19634954084;
+const float k_piOver32 =    0.09817477042;
+const float k_piOver64 =    0.04908738521;
+const float k_piOver128 =   0.0245436926;
+const float k_piOver256 =   0.0122718463;
 
-const float PI_16 =     0.19634954084;
-const float PI_32 =     0.09817477042;
-const float PI_64 =     0.04908738521;
-const float PI_128 =    0.0245436926;
-const float PI_256 =    0.0122718463;
-
-void accumulate(inout vec4 accumulated, vec2 UV){
-    vec4 light = texture(u_lightTexture, UV);
-    vec4 translu = texture(u_transluTexture, UV).rrrr;
+void accumulate(inout vec4 accumulated, vec2 uv){
+    vec4 light = texture(u_lightTexture, uv);
+    vec4 translu = texture(u_transluTexture, uv).rrrr;
     accumulated = fma(accumulated, translu, light);
 }
 
-void ray(inout vec4 light, vec2 centerUV, vec2 dirUV, vec2 firstLast){
-    vec2 UV = centerUV + dirUV * firstLast.y;
+void ray(inout vec4 light, vec2 centerUv, vec2 dirUv, vec2 firstLast){
+    vec2 uv = centerUv + dirUv * firstLast.y;
     for (float i = firstLast.y; i >= firstLast.x; i--){
-        accumulate(light, UV);
-        UV -= dirUV;
+        accumulate(light, uv);
+        uv -= dirUv;
     }
 }
 
-vec4 ray1(vec2 centerUV, float a){
+vec4 ray1(vec2 centerUv, float a){
     vec4 light = vec4(0.0);
-    vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
-    ray(light, centerUV, dirUV, vec2(29.0, 32.0));
+    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    ray(light, centerUv, dirUv, vec2(29.0, 32.0));
     return light;
 }
 
-vec4 ray2(vec2 centerUV, float a){
-    vec4 light = ray1(centerUV, a + PI_256) + ray1(centerUV, a - PI_256);
-    vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
-    ray(light, centerUV, dirUV, vec2(15.0, 28.0));
+vec4 ray2(vec2 centerUv, float a){
+    vec4 light = ray1(centerUv, a + k_piOver256) + ray1(centerUv, a - k_piOver256);
+    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    ray(light, centerUv, dirUv, vec2(15.0, 28.0));
     return light;
 }
 
-vec4 ray4(vec2 centerUV, float a){
-    vec4 light = ray2(centerUV, a + PI_128) + ray2(centerUV, a - PI_128);
-    vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
-    ray(light, centerUV, dirUV, vec2(8.0, 14.0));
+vec4 ray4(vec2 centerUv, float a){
+    vec4 light = ray2(centerUv, a + k_piOver128) + ray2(centerUv, a - k_piOver128);
+    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    ray(light, centerUv, dirUv, vec2(8.0, 14.0));
     return light;
 }
 
-vec4 ray8(vec2 centerUV, float a){
-    vec4 light = ray4(centerUV, a + PI_64) + ray4(centerUV, a - PI_64);
-    vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
-    ray(light, centerUV, dirUV, vec2(4.0, 7.0));
+vec4 ray8(vec2 centerUv, float a){
+    vec4 light = ray4(centerUv, a + k_piOver64) + ray4(centerUv, a - k_piOver64);
+    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    ray(light, centerUv, dirUv, vec2(4.0, 7.0));
     return light;
 }
 
-vec4 ray16(vec2 centerUV, float a){
-    vec4 light = ray8(centerUV, a + PI_32) + ray8(centerUV, a - PI_32);
-    vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
-    ray(light, centerUV, dirUV, vec2(2.0, 3.0));
+vec4 ray16(vec2 centerUv, float a){
+    vec4 light = ray8(centerUv, a + k_piOver32) + ray8(centerUv, a - k_piOver32);
+    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    ray(light, centerUv, dirUv, vec2(2.0, 3.0));
     return light;
 }
 
-vec4 ray32(vec2 centerUV, float a){
-    vec4 light = ray16(centerUV, a + PI_16) + ray16(centerUV, a - PI_16);
-    vec2 dirUV = vec2(cos(a), sin(a)) * analysisUVScale;
-    ray(light, centerUV, dirUV, vec2(1.0, 1.0));
+vec4 ray32(vec2 centerUv, float a){
+    vec4 light = ray16(centerUv, a + k_piOver16) + ray16(centerUv, a - k_piOver16);
+    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    ray(light, centerUv, dirUv, vec2(1.0, 1.0));
     return light;
 }
 
@@ -84,17 +82,16 @@ void main(){
     //Calculate position and init variables
     const ivec2 ID = ivec2(gl_GlobalInvocationID);
     vec4 total = vec4(0.0);
-    const vec2 centerUV = (vec2(ID) + UV_OFFSET) * analysisUVScale;
+    const vec2 centerUv = (vec2(ID) + k_uvOffset) * g_analysisUvScale;
     
     //Eight tree rays, each sums 45 degrees
     for (float a = 0.0; a < 6.2; a += 0.78539816339){
-        total += ray32(centerUV, a);
+        total += ray32(centerUv, a);
     }
     
     //The center unit
-    accumulate(total, centerUV);
+    accumulate(total, centerUv);
     
-    //final = ((ID.x % 4 == 0)) ? vec4(0.0, 0.0, 0.0, 0.0) : vec4(0.0, 0.0, 0.0, 1.0);
     vec4 final = vec4(total.rgb, 1.0 - sqrt(total.a));
     imageStore(u_shadowsImage, ID, final);
 }
