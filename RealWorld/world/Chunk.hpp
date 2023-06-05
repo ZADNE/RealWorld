@@ -2,24 +2,25 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <vector>
 #include <exception>
+#include <vector>
 
 #include <glm/vec2.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
 
+namespace rw {
 
 /**
  * @brief Represents a fixed-size square grid of tiles.
  *
  * All chunks have the size of ChunkTi constant.
  *
- * A tile is defined by 4 values: block type, block variant, wall type and wall variant.
-*/
+ * A tile is defined by 4 values: block type, block variant, wall type and wall
+ * variant.
+ */
 class Chunk {
 public:
-
     /**
      * @brief Constructs empty chunk.
      */
@@ -28,16 +29,16 @@ public:
     /**
      * @brief Contructs chunk from raw bytes
      *
-     * @param chunkPosCh Position of the chunk, in chunk coordinates.
+     * @param posCh Position of the chunk, in chunk coordinates.
      * @param tiles Tiles of the chunk, size must be k_chunkByteSize
      * @throws std::exception If data does not hold enough bytes.
      */
-    Chunk(const glm::ivec2& chunkPosCh, const uint8_t* tiles);
+    Chunk(const glm::ivec2& posCh, const uint8_t* tiles);
 
     /**
      * @brief Constructs chunk by moving tiles in
-    */
-    Chunk(const glm::ivec2& chunkPosCh, std::vector<uint8_t>&& tiles);
+     */
+    Chunk(const glm::ivec2& posCh, std::vector<uint8_t>&& tiles);
 
     /**
      * @brief Gets a value of a tile inside the chunk.
@@ -92,9 +93,10 @@ public:
     /**
      * @brief Performs step on the chunk.
      *
-     * If the chunk is not active, the timer steps since last operation is incremented.
-     * If the chunk is active, timer is not incremented.
-     * Chunk is expected to be removed after a certain period of time with no read/write operations.
+     * If the chunk is not active, the timer steps since last operation is
+     * incremented. If the chunk is active, timer is not incremented. Chunk is
+     * expected to be removed after a certain period of time with no read/write
+     * operations.
      *
      * @return The number of steps since the last read/write operation
      */
@@ -108,7 +110,6 @@ public:
     const std::vector<uint8_t>& tiles() const;
 
 private:
-
     /**
      * @brief Checks whether given position is within bound of the chunk.
      *
@@ -130,7 +131,9 @@ private:
      */
     size_t calcIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const;
 
-    std::vector<uint8_t> m_tiles;                   /**< Tiles of the chunk */
-    glm::ivec2 m_chunkPosCh{0, 0};                  /**< Position of the chunk, measured in chunk coordinates */
-    mutable int m_stepsSinceLastOperation = 0;      /**< Steps since last read/write operation inside this chunk */
+    std::vector<uint8_t> m_tiles; /**< Tiles of the chunk */
+    glm::ivec2           m_posCh{0, 0};
+    mutable int m_stepsSinceLastOperation = 0; /**< Steps since last read/write op */
 };
+
+} // namespace rw

@@ -6,16 +6,17 @@
 
 #include <RealWorld/main/settings/KeyBinder.hpp>
 
+namespace rw {
+
 /**
  * @brief Is an abstract base class for all rooms of RealWorld.
-*/
-class Room : public RE::Room {
+ */
+class Room: public re::Room {
 public:
-
-    Room(size_t name, const RE::RoomDisplaySettings& rds) : RE::Room(name, rds) {}
+    Room(size_t name, const re::RoomDisplaySettings& rds)
+        : re::Room(name, rds) {}
 
 protected:
-
     using enum RealWorldKeyBindings;
 
     auto keybindPressed(RealWorldKeyBindings binding) {
@@ -30,3 +31,5 @@ protected:
         return engine().isKeyDown(keybinder(binding));
     }
 };
+
+} // namespace rw

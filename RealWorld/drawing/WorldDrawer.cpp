@@ -1,23 +1,26 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/drawing/WorldDrawer.hpp>
+#include <RealEngine/graphics/pipelines/Vertex.hpp>
 
-#include <RealEngine/rendering/pipelines/Vertex.hpp>
-
-#include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/light.hpp>
+#include <RealWorld/constants/tile.hpp>
+#include <RealWorld/drawing/WorldDrawer.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 
-WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights):
-    m_viewSizeTi(viewSizeTi(viewSizePx)),
-    m_tileDrawer(viewSizePx, m_viewSizeTi),
-    m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights) {
+namespace rw {
+
+WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights)
+    : m_viewSizeTi(viewSizeTi(viewSizePx))
+    , m_tileDrawer(viewSizePx, m_viewSizeTi)
+    , m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights) {
 }
 
-void WorldDrawer::setTarget(const RE::Texture& worldTexture, const glm::ivec2& worldTexSize) {
+void WorldDrawer::setTarget(
+    const re::Texture& worldTexture, const glm::ivec2& worldTexSize
+) {
     m_tileDrawer.setTarget(worldTexture, worldTexSize);
     m_shadowDrawer.setTarget(worldTexture, worldTexSize);
 }
@@ -32,16 +35,16 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
     m_botLeftPx = botLeftPx;
     m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
     return ViewEnvelope{
-        .botLeftTi = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi),
-        .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) + glm::ivec2(k_lightMaxRangeTi)
-    };
+        .botLeftTi  = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi),
+        .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) +
+                      glm::ivec2(k_lightMaxRangeTi)};
 }
 
 void WorldDrawer::beginStep(const vk::CommandBuffer& commandBuffer) {
     m_shadowDrawer.analyze(commandBuffer, m_botLeftTi);
 }
 
-void WorldDrawer::addExternalLight(const glm::ivec2& posPx, RE::Color col) {
+void WorldDrawer::addExternalLight(const glm::ivec2& posPx, re::Color col) {
     m_shadowDrawer.addExternalLight(posPx, col);
 }
 
@@ -64,3 +67,5 @@ void WorldDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
 glm::uvec2 WorldDrawer::viewSizeTi(const glm::vec2& viewSizePx) const {
     return glm::uvec2(glm::ceil(viewSizePx / TilePx)) + 1u;
 }
+
+} // namespace rw

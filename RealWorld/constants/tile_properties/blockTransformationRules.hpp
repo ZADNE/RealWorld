@@ -5,10 +5,10 @@
 #include <RealWorld/constants/tile_properties/blockTransformationProperties.hpp>
 #include <RealWorld/constants/tile.hpp>
 
+namespace rw {
+
 constexpr glm::uint EDGEb =                  1 << 0;
 constexpr glm::uint MIX_PROPSb =             1 << 1;//Mix properties with the other layer 
-
-
 //x = The properties that neighbors MUST have to transform
 //y = The properties that neighbors MUST NOT have to transform
 //z = Properties of the transformation
@@ -32,3 +32,5 @@ constexpr std::array<glm::uvec4, 16> k_blockTransformationRules = {
     glm::uvec4{ HALLOWb,                                0,                                      EDGEb | MIX_PROPSb,                 Block::HallowGrass},//Hallow mud grass
     glm::uvec4{ HALLOWb,                                0,                                      MIX_PROPSb,                         Block::HallowDirt},//Hallow dirt
 };
+
+} // namespace rw

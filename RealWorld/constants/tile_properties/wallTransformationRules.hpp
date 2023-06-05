@@ -4,7 +4,7 @@
 #pragma once
 #include <RealWorld/constants/tile_properties/blockTransformationRules.hpp>
 
-
+namespace rw {
 
 
 
@@ -32,3 +32,5 @@ constexpr std::array<glm::uvec4, 16> k_wallTransformationRules = {
     glm::uvec4{ HALLOWb,                                0,                                      EDGEb | MIX_PROPSb,                 Wall::HallowGrass},//Hallow mud grass
     glm::uvec4{ HALLOWb,                                0,                                      MIX_PROPSb,                         Wall::HallowDirt},//Hallow dirt
 };
+
+} // namespace rw

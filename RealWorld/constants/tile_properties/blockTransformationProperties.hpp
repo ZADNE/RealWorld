@@ -5,13 +5,13 @@
 #include <array>
 #include <glm/vec4.hpp>
 
+namespace rw {
+
 constexpr glm::uint STONEb =     1 << 0;
 constexpr glm::uint DIRTb =      1 << 1;
 constexpr glm::uint GRASSb =     1 << 2;
 constexpr glm::uint BURNINGb =   1 << 3;
 constexpr glm::uint HALLOWb =    1 << 4;
-
-
 //To be edited with propertiesHelper.txt
 constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
 //              Properties                                  The first applicable rule   The last applicable rule    Padding
@@ -272,3 +272,5 @@ constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
     glm::uvec4{ 0,                                          ~0,                         0,                          0},
     glm::uvec4{ 0,                                          ~0,                         0,                          0}
 };
+
+} // namespace rw

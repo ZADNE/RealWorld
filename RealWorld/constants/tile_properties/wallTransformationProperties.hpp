@@ -4,7 +4,7 @@
 #pragma once
 #include <RealWorld/constants/tile_properties/blockTransformationProperties.hpp>
 
-
+namespace rw {
 
 
 
@@ -272,3 +272,5 @@ constexpr std::array<glm::uvec4, 256> k_wallTransformationProperties = {
     glm::uvec4{ 0,                                          ~0,                         0,                          0},
     glm::uvec4{ 0,                                          ~0,                         0,                          0}
 };
+
+} // namespace rw

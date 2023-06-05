@@ -1,18 +1,21 @@
 ﻿/*!
  *  @author    Dubsky Tomas
-*/
-#include <RealWorld/world/Chunk.hpp>
-
+ */
 #include <stdexcept>
 
 #include <glm/gtx/string_cast.hpp>
 
-Chunk::Chunk(const glm::ivec2& chunkPosCh, const uint8_t* tiles):
-    Chunk(chunkPosCh, std::vector<uint8_t>{tiles, tiles + k_chunkByteSize}) {
+#include <RealWorld/world/Chunk.hpp>
+
+namespace rw {
+
+Chunk::Chunk(const glm::ivec2& posCh, const uint8_t* tiles)
+    : Chunk(posCh, std::vector<uint8_t>{tiles, tiles + k_chunkByteSize}) {
 }
 
-Chunk::Chunk(const glm::ivec2& chunkPosCh, std::vector<uint8_t>&& tiles):
-    m_chunkPosCh(chunkPosCh), m_tiles(tiles) {
+Chunk::Chunk(const glm::ivec2& posCh, std::vector<uint8_t>&& tiles)
+    : m_posCh(std::move(posCh))
+    , m_tiles(tiles) {
     assert(m_tiles.size() >= k_chunkByteSize);
 }
 
@@ -48,11 +51,14 @@ void Chunk::boundsCheck(const glm::uvec2& posTi) const {
     if (posTi.x >= uChunkTi.x || posTi.y >= uChunkTi.y) {
         throw std::out_of_range(
             "Tried to get tile " + glm::to_string(posTi) +
-            " which is outside of the requested chunk: " + glm::to_string(m_chunkPosCh)
+            " which is outside of the requested chunk: " + glm::to_string(m_posCh)
         );
     }
 }
 
 size_t Chunk::calcIndexToBuffer(TileAttrib type, const glm::uvec2& posTi) const {
-    return (static_cast<size_t>(posTi.y) * iChunkTi.x + posTi.x) * 4ull + static_cast<size_t>(type);
+    return (static_cast<size_t>(posTi.y) * iChunkTi.x + posTi.x) * 4ull +
+           static_cast<size_t>(type);
 }
+
+} // namespace rw

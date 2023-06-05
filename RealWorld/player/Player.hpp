@@ -4,21 +4,23 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-#include <RealEngine/rendering/pipelines/Pipeline.hpp>
-#include <RealEngine/rendering/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
 #include <RealWorld/player/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
+namespace rw {
+
 /**
  * @brief Simulates and draws the user-controlled character
-*/
+ */
 class Player {
 public:
+    Player()
+        : Player(re::TextureShaped{{.file = "player"}}) {}
 
-    Player();
-
-    void adoptSave(const PlayerSave& save, const RE::Texture& worldTexture);
+    void adoptSave(const PlayerSave& save, const re::Texture& worldTexture);
     void gatherSave(PlayerSave& save) const;
 
     glm::vec2 center() const;
@@ -26,42 +28,58 @@ public:
     /**
      * @brief Moves the player based on its surroundings tiles and user input
      * @param dir Walking direction: -1 = go left, 0 = stay still, +1 = go right
-     * @param jump The player jumps if this is true and if the player stands on solid ground
-     * @param autojump Determines whether the player should automatically jump over obstacles
-    */
+     * @param jump The player jumps if this is true and if the player stands on
+     * solid ground
+     * @param autojump Tells whether the player should automatically jump
+     * over obstacles
+     */
     void step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, bool autojump);
 
-    void draw(RE::SpriteBatch& spriteBatch);
+    void draw(re::SpriteBatch& spriteBatch);
 
 private:
+    struct PlayerHitboxSB {
+        glm::vec2 botLeftPx[2];
+        glm::vec2 dimsPx;
+        glm::vec2 velocityPx;
+    };
 
-    RE::TextureShaped m_playerTex{{.file = "player"}};
+    Player(re::TextureShaped&& playerTex)
+        : Player(
+              std::move(playerTex),
+              PlayerHitboxSB{
+                  .dimsPx = glm::ivec2(playerTex.subimageDims()) - glm::ivec2(1),
+                  .velocityPx = glm::vec2(0.0f, 0.0f)}
+          ) {}
+
+    Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
+
+    re::TextureShaped m_playerTex;
 
     struct PlayerMovementPC {
         float acceleration;
         float maxWalkVelocity;
         float jumpVelocity;
         float walkDirection;
-        glm::vec2 jump_autojump;
+        float jump;
+        float autojump;
+        int writeIndex; // Selects PlayerHitboxSB::botLeftPx, swings every step
     };
     PlayerMovementPC m_pushConstants{
-        .acceleration = 0.5f,
+        .acceleration    = 0.5f,
         .maxWalkVelocity = 6.0f,
-        .jumpVelocity = 7.0f
-    };
+        .jumpVelocity    = 7.0f,
+        .writeIndex      = 1};
 
-    struct PlayerHitboxSB {
-        glm::vec2 botLeftPx;
-        glm::vec2 dimsPx;
-        glm::vec2 velocityPx;
-    };
-    RE::Buffer m_hitboxBuf;
-    RE::Buffer m_hitboxStageBuf;
-    PlayerHitboxSB* m_hitboxStageMapped = m_hitboxStageBuf.map<PlayerHitboxSB>(0u, sizeof(PlayerHitboxSB));
+    re::Buffer                       m_hitboxBuf;
+    re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
 
-    RE::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
-    RE::Pipeline m_movePlayerPl{
-        {.pipelineLayout = *m_pipelineLayout}, {.comp = movePlayer_comp}
-    };
-    RE::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
+    re::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
+    re::Pipeline       m_movePlayerPl{
+              {.pipelineLayout = *m_pipelineLayout}, {.comp = movePlayer_comp}};
+    re::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
+
+    const glm::vec2& botLeftPx() const;
 };
+
+} // namespace rw

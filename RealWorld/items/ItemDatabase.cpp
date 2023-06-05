@@ -5,6 +5,8 @@
 
 #include <RealWorld/constants/tile.hpp>
 
+namespace rw {
+
 template<typename T>
 int i(T enumm) {
     return static_cast<int>(enumm);
@@ -54,3 +56,5 @@ const std::array<ItemMetadata, static_cast<size_t>(ItemId::Count)> ItemDatabase:
 const ItemMetadata& ItemDatabase::md(ItemId id) {
     return m_itemMetadata[static_cast<int>(id)];
 }
+
+} // namespace rw

@@ -1,7 +1,9 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/items/ItemSample.hpp>
+
+namespace rw {
 
 bool ItemSample::isEmpty() const {
     if (id == ItemId::Empty) {
@@ -9,3 +11,5 @@ bool ItemSample::isEmpty() const {
     }
     return false;
 }
+
+} // namespace rw

@@ -1,19 +1,19 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealEngine/program/MainProgram.hpp>
 
-#include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/main/WorldRoom.hpp>
+#include <RealWorld/main/settings/GameSettings.hpp>
 
 int main(int argc, char* argv[]) {
-    RE::MainProgram::initialize();
+    re::MainProgram::initialize();
 
-    GameSettings gameSettings{};
+    rw::GameSettings gameSettings{};
 
-    auto* mainMenuRoom = RE::MainProgram::addRoom<MainMenuRoom>(gameSettings);
-    RE::MainProgram::addRoom<WorldRoom>(gameSettings);
+    auto* mainMenuRoom = re::MainProgram::addRoom<rw::MainMenuRoom>(gameSettings);
+    re::MainProgram::addRoom<rw::WorldRoom>(gameSettings);
 
-    return RE::MainProgram::run(mainMenuRoom->name(), {});
+    return re::MainProgram::run(mainMenuRoom->name(), {});
 }
