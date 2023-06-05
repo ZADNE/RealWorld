@@ -14,6 +14,7 @@
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
 using enum vk::ImageAspectFlagBits;
+using enum vk::CommandBufferUsageFlagBits;
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
@@ -109,7 +110,7 @@ bool ChunkManager::saveChunks() {
     assert(m_nextFreeTileStage == 0);
     re::CommandBuffer commandBuffer{vk::CommandBufferLevel::ePrimary};
     re::Fence         downloadFinishedFence{{}};
-    commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    commandBuffer->begin({eOneTimeSubmit});
 
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eAllCommands,                   // Src stage mask
@@ -145,12 +146,10 @@ bool ChunkManager::saveChunks() {
                 if (!planDownload(*commandBuffer, activeChunk, chToTi(posAc))) { // If stage is full
                     commandBuffer->end();
                     commandBuffer.submitToComputeQueue(*downloadFinishedFence);
-                    // Wait for the transfer to finish
                     downloadFinishedFence.wait();
                     downloadFinishedFence.reset();
                     saveAllChunksInTileStage();
-                    commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit}
-                    );
+                    commandBuffer->begin({eOneTimeSubmit});
                 }
             }
         }
@@ -170,9 +169,7 @@ bool ChunkManager::saveChunks() {
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     commandBuffer->end();
-    commandBuffer.submitToComputeQueue(*downloadFinishedFence); // Waits for the
-                                                                // transfer to
-                                                                // finish
+    commandBuffer.submitToComputeQueue(*downloadFinishedFence);
     downloadFinishedFence.wait();
     downloadFinishedFence.reset();
     saveAllChunksInTileStage();

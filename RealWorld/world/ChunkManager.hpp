@@ -33,8 +33,7 @@ public:
         glm::ivec2 activeChunksMask;
         glm::ivec2 activeChunksArea;
         glm::ivec4 dynamicsGroupSize;
-        glm::ivec2 offsets[]; // First indexes: offsets of update chunks, in
-                              // tiles
+        glm::ivec2 offsets[]; // First indexes: offsets of update chunks, in tiles
         // Following indexes: absolute positions of chunks, in chunks
     };
 #pragma warning(pop)

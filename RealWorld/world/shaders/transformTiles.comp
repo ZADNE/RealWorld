@@ -24,14 +24,14 @@ uint invocHash(){
     uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
     return globalIndex ^ p_timeHash;
 }
-uint randomState = invocHash();
+uint g_randomState = invocHash();
 
 //Xorshift algorithm by George Marsaglia
 uint random(){
-    randomState ^= randomState << 13;
-    randomState ^= randomState >> 17;
-    randomState ^= randomState << 5;
-    return randomState;
+    g_randomState ^= g_randomState << 13;
+    g_randomState ^= g_randomState >> 17;
+    g_randomState ^= g_randomState << 5;
+    return g_randomState;
 }
 
 uvec2 random2(){
