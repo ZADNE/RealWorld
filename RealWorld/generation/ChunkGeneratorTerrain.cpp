@@ -1,7 +1,7 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/generation/TerrainGenerator.hpp>
+#include <RealWorld/generation/ChunkGenerator.hpp>
 
 using enum vk::ImageAspectFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -14,30 +14,20 @@ namespace rw {
 constexpr int        k_groupSize    = 16;
 constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
-TerrainGenerator::TerrainGenerator(GenerationPC& genPC)
-    : m_genPC(genPC) {
-    m_descSet.write(
-        vk::DescriptorType::eStorageImage, 0u, 0u, m_tilesTex, vk::ImageLayout::eGeneral
-    );
-    m_descSet.write(
-        vk::DescriptorType::eStorageImage, 1u, 0u, m_materialTex, vk::ImageLayout::eGeneral
-    );
-}
-
-void TerrainGenerator::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
+void ChunkGenerator::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet, {}
     );
 }
 
-void TerrainGenerator::generateBasicTerrain(const vk::CommandBuffer& commandBuffer) {
+void ChunkGenerator::generateBasicTerrain(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
     m_genPC.storeLayer = 0;
     commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
     commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-void TerrainGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
+void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
     auto pass = [&](const glm::ivec2& thresholds, size_t passes) {
         m_genPC.edgeConsolidationPromote = thresholds.x;
         m_genPC.edgeConsolidationReduce  = thresholds.y;
@@ -68,7 +58,7 @@ void TerrainGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) 
     doublePass({3, 4}, {4, 5}, 4);
 }
 
-void TerrainGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
+void ChunkGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
     // Wait for the edge consolidation to finish
     auto imageBarrier = stepBarrier();
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -79,7 +69,7 @@ void TerrainGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-void TerrainGenerator::finishGeneration(
+void ChunkGenerator::finishGeneration(
     const vk::CommandBuffer& commandBuffer,
     const re::Texture&       dstTex,
     const glm::ivec2&        dstOffset
@@ -113,7 +103,7 @@ void TerrainGenerator::finishGeneration(
     );
 }
 
-vk::ImageMemoryBarrier2 TerrainGenerator::stepBarrier() const {
+vk::ImageMemoryBarrier2 ChunkGenerator::stepBarrier() const {
     return vk::ImageMemoryBarrier2{
         S::eComputeShader,         // Src stage mask
         A::eShaderStorageWrite,    // Src access mask
