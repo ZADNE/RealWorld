@@ -1,14 +1,17 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealEngine/graphics/CommandBuffer.hpp>
-
 #include <RealWorld/generation/ChunkGenerator.hpp>
 
 namespace rw {
 
+ChunkGenerator::ChunkGenerator()
+    : m_terrainGen(m_genPC)
+    , m_treeGen(m_genPC) {
+}
+
 void ChunkGenerator::setSeed(int seed) {
-    m_pushConstants.seed = seed;
+    m_genPC.seed = seed;
 }
 
 void ChunkGenerator::generateChunk(
@@ -17,16 +20,16 @@ void ChunkGenerator::generateChunk(
     const re::Texture&       destinationTexture,
     const glm::ivec2&        destinationOffset
 ) {
-    m_pushConstants.chunkOffsetTi = posCh * iChunkTi;
+    m_genPC.chunkOffsetTi = posCh * iChunkTi;
 
-    prepareToGenerate(commandBuffer);
+    m_terrainGen.prepareToGenerate(commandBuffer);
 
     // Actual generation
-    generateBasicTerrain(commandBuffer);
-    consolidateEdges(commandBuffer);
-    selectVariant(commandBuffer);
+    m_terrainGen.generateBasicTerrain(commandBuffer);
+    m_terrainGen.consolidateEdges(commandBuffer);
+    m_terrainGen.selectVariant(commandBuffer);
 
-    finishGeneration(commandBuffer, destinationTexture, destinationOffset);
+    m_terrainGen.finishGeneration(commandBuffer, destinationTexture, destinationOffset);
 }
 
 } // namespace rw

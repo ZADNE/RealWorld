@@ -2,21 +2,18 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <array>
-
-#include <RealEngine/graphics/pipelines/Pipeline.hpp>
-#include <RealEngine/graphics/textures/Texture.hpp>
-
-#include <RealWorld/constants/generation.hpp>
+#include <RealWorld/generation/TerrainGenerator.hpp>
+#include <RealWorld/generation/TreeGenerator.hpp>
 
 namespace rw {
 
 /**
- * @brief Is an interface for chunk generators.
+ * @brief Generates new chunks
+ * @details The logic is divided into more classes: TerrainGenerator and TreeGenerator
  */
 class ChunkGenerator {
 public:
-    ChunkGenerator() {}
+    ChunkGenerator();
 
     /**
      * @brief Sets the seed that controls how the generated chunks look
@@ -41,25 +38,9 @@ public:
     );
 
 protected:
-    struct GenerationPC {
-        glm::ivec2 chunkOffsetTi;
-        int        seed;
-        glm::uint  storeLayer;
-        glm::uint  edgeConsolidationPromote;
-        glm::uint  edgeConsolidationReduce;
-    };
-
-    GenerationPC m_pushConstants;
-
-    virtual void prepareToGenerate(const vk::CommandBuffer& commandBuffer) = 0;
-    virtual void generateBasicTerrain(const vk::CommandBuffer& commandBuffer) = 0;
-    virtual void consolidateEdges(const vk::CommandBuffer& commandBuffer) = 0;
-    virtual void selectVariant(const vk::CommandBuffer& commandBuffer)    = 0;
-    virtual void finishGeneration(
-        const vk::CommandBuffer& commandBuffer,
-        const re::Texture&       dstTex,
-        const glm::ivec2&        dstOffset
-    ) = 0;
+    GenerationPC     m_genPC;
+    TerrainGenerator m_terrainGen;
+    TreeGenerator    m_treeGen;
 };
 
 } // namespace rw

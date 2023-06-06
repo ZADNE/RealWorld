@@ -14,8 +14,8 @@ Chunk::Chunk(const glm::ivec2& posCh, const uint8_t* tiles)
 }
 
 Chunk::Chunk(const glm::ivec2& posCh, std::vector<uint8_t>&& tiles)
-    : m_posCh(std::move(posCh))
-    , m_tiles(tiles) {
+    : m_posCh(posCh)
+    , m_tiles(std::move(tiles)) {
     assert(m_tiles.size() >= k_chunkByteSize);
 }
 

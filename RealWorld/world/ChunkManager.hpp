@@ -43,7 +43,7 @@ public:
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(ChunkGenerator& chunkGen, const re::PipelineLayout& pipelineLayout);
+    ChunkManager(const re::PipelineLayout& pipelineLayout);
 
     /**
      * @brief Retargets the chunk manager to a new world.
@@ -149,7 +149,7 @@ private:
     glm::uvec2   m_analyzeContinuityGroupCount{};
 
     std::string        m_folderPath;
-    ChunkGenerator&    m_chunkGen;
+    ChunkGenerator     m_chunkGen;
     const re::Texture* m_worldTex = nullptr;
     glm::ivec2         m_activeChunksMask{};
 

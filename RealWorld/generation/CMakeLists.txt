@@ -3,5 +3,7 @@ add_subdirectory(shaders)
 
 target_sources(RealWorld PRIVATE 
     ChunkGenerator.hpp          ChunkGenerator.cpp
-    ChunkGeneratorCS.hpp        ChunkGeneratorCS.cpp
+    GenerationPC.hpp            
+    TerrainGenerator.hpp        TerrainGenerator.cpp
+    TreeGenerator.hpp           TreeGenerator.cpp
 )

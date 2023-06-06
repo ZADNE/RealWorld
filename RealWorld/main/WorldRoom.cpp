@@ -26,7 +26,6 @@ constexpr re::RoomDisplaySettings k_initialSettings{
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
     : Room(1, k_initialSettings)
     , m_gameSettings(gameSettings)
-    , m_world(m_chunkGen)
     , m_worldDrawer(engine().windowDims(), 32u)
     , m_player()
     , m_playerInv({10, 4})

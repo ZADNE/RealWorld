@@ -54,9 +54,8 @@ static constexpr TilePropertiesUIB k_tileProperties = TilePropertiesUIB{
     .blockTransformationRules      = k_blockTransformationRules,
     .wallTransformationRules       = k_wallTransformationRules};
 
-World::World(ChunkGenerator& chunkGen)
-    : m_chunkManager(chunkGen, m_pipelineLayout)
-    , m_tilePropertiesBuf(re::BufferCreateInfo{
+World::World()
+    : m_tilePropertiesBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(TilePropertiesUIB),
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,

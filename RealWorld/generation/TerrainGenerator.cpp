@@ -1,7 +1,7 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/generation/ChunkGeneratorCS.hpp>
+#include <RealWorld/generation/TerrainGenerator.hpp>
 
 using enum vk::ImageAspectFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -14,7 +14,8 @@ namespace rw {
 constexpr int        k_groupSize    = 16;
 constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
-ChunkGeneratorCS::ChunkGeneratorCS() {
+TerrainGenerator::TerrainGenerator(GenerationPC& genPC)
+    : m_genPC(genPC) {
     m_descSet.write(
         vk::DescriptorType::eStorageImage, 0u, 0u, m_tilesTex, vk::ImageLayout::eGeneral
     );
@@ -23,33 +24,31 @@ ChunkGeneratorCS::ChunkGeneratorCS() {
     );
 }
 
-void ChunkGeneratorCS::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
+void TerrainGenerator::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet, {}
     );
 }
 
-void ChunkGeneratorCS::generateBasicTerrain(const vk::CommandBuffer& commandBuffer) {
+void TerrainGenerator::generateBasicTerrain(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
-    m_pushConstants.storeLayer = 0;
-    commandBuffer.pushConstants<GenerationPC>(
-        *m_pipelineLayout, eCompute, 0u, m_pushConstants
-    );
+    m_genPC.storeLayer = 0;
+    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
     commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
+void TerrainGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
     auto pass = [&](const glm::ivec2& thresholds, size_t passes) {
-        m_pushConstants.edgeConsolidationPromote = thresholds.x;
-        m_pushConstants.edgeConsolidationReduce  = thresholds.y;
+        m_genPC.edgeConsolidationPromote = thresholds.x;
+        m_genPC.edgeConsolidationReduce  = thresholds.y;
         for (size_t i = 0; i < passes; i++) {
-            m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
+            m_genPC.storeLayer = ~m_genPC.storeLayer & 1;
             // Wait for the previous pass to finish
             auto imageBarrier = stepBarrier();
             commandBuffer.pipelineBarrier2({{}, {}, {}, imageBarrier});
             // Consolidate
             commandBuffer.pushConstants<GenerationPC>(
-                *m_pipelineLayout, eCompute, 0u, m_pushConstants
+                *m_pipelineLayout, eCompute, 0u, m_genPC
             );
             commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
         }
@@ -69,20 +68,18 @@ void ChunkGeneratorCS::consolidateEdges(const vk::CommandBuffer& commandBuffer) 
     doublePass({3, 4}, {4, 5}, 4);
 }
 
-void ChunkGeneratorCS::selectVariant(const vk::CommandBuffer& commandBuffer) {
+void TerrainGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
     // Wait for the edge consolidation to finish
     auto imageBarrier = stepBarrier();
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     // Select variants
-    m_pushConstants.storeLayer = ~m_pushConstants.storeLayer & 1;
-    commandBuffer.pushConstants<GenerationPC>(
-        *m_pipelineLayout, eCompute, 0u, m_pushConstants
-    );
+    m_genPC.storeLayer = ~m_genPC.storeLayer & 1;
+    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
     commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-void ChunkGeneratorCS::finishGeneration(
+void TerrainGenerator::finishGeneration(
     const vk::CommandBuffer& commandBuffer,
     const re::Texture&       dstTex,
     const glm::ivec2&        dstOffset
@@ -98,7 +95,7 @@ void ChunkGeneratorCS::finishGeneration(
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED, // Ownership transition
         m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0u, 1u, m_pushConstants.storeLayer, 1u}};
+        vk::ImageSubresourceRange{eColor, 0u, 1u, m_genPC.storeLayer, 1u}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     // Copy the generated chunk to the world texture
     commandBuffer.copyImage(
@@ -107,7 +104,7 @@ void ChunkGeneratorCS::finishGeneration(
         dstTex.image(),
         vk::ImageLayout::eGeneral, // Dst image
         vk::ImageCopy{
-            vk::ImageSubresourceLayers{eColor, 0u, m_pushConstants.storeLayer, 1u}, // Src subresource
+            vk::ImageSubresourceLayers{eColor, 0u, m_genPC.storeLayer, 1u}, // Src subresource
             vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
             vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u}, // Dst subresource
             vk::Offset3D{dstOffset.x, dstOffset.y, 0},      // Dst offset
@@ -116,7 +113,7 @@ void ChunkGeneratorCS::finishGeneration(
     );
 }
 
-vk::ImageMemoryBarrier2 ChunkGeneratorCS::stepBarrier() const {
+vk::ImageMemoryBarrier2 TerrainGenerator::stepBarrier() const {
     return vk::ImageMemoryBarrier2{
         S::eComputeShader,         // Src stage mask
         A::eShaderStorageWrite,    // Src access mask
@@ -127,7 +124,7 @@ vk::ImageMemoryBarrier2 ChunkGeneratorCS::stepBarrier() const {
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED, // Ownership transition
         m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0u, 1u, m_pushConstants.storeLayer, 1u}};
+        vk::ImageSubresourceRange{eColor, 0u, 1u, m_genPC.storeLayer, 1u}};
 }
 
 } // namespace rw

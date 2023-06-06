@@ -28,9 +28,8 @@ public:
 
     /**
      * @brief Initializes the world
-     * @param The generator that will be used to generate new chunks
      */
-    World(ChunkGenerator& chunkGen);
+    World();
 
     /**
      * @copydoc ChunkHandler::numberOfInactiveChunks
@@ -130,7 +129,7 @@ private:
         re::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
         re::PipelineComputeSources{.comp = modifyTiles_comp}};
 
-    ChunkManager      m_chunkManager;
+    ChunkManager      m_chunkManager{m_pipelineLayout};
     const re::Buffer* m_activeChunksBuf = nullptr;
 
     bool m_permuteOrder = true;

@@ -9,7 +9,6 @@
 #include <RealEngine/graphics/synchronization/Semaphore.hpp>
 
 #include <RealWorld/drawing/WorldDrawer.hpp>
-#include <RealWorld/generation/ChunkGeneratorCS.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 #include <RealWorld/items/ItemUser.hpp>
@@ -84,13 +83,12 @@ private:
     glm::mat4  m_windowViewMat = calculateWindowViewMat(engine().windowDims());
 
     // Gameplay
-    ChunkGeneratorCS m_chunkGen;
-    World            m_world;
-    WorldDrawer      m_worldDrawer;
-    Player           m_player;
-    Inventory        m_playerInv;
-    ItemUser         m_itemUser;
-    InventoryUI      m_invUI;
+    World       m_world;
+    WorldDrawer m_worldDrawer;
+    Player      m_player;
+    Inventory   m_playerInv;
+    ItemUser    m_itemUser;
+    InventoryUI m_invUI;
 
     // Toggle states
     bool m_minimap = false;

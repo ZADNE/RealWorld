@@ -129,7 +129,7 @@ void MainMenuRoom::newWorldMenu() {
     TextUnformatted("Seed: ");
     SameLine();
     InputInt("##seed", &m_newWorldSeed);
-    if (Button("Create the world!")) {
+    if (Button("Create the world!") || engine().wasKeyPressed(re::Key::Return)) {
         if (WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed)) {
             engine().scheduleRoomTransition(1, {m_newWorldName});
         }

@@ -28,9 +28,8 @@ vk::DeviceSize calcActiveChunksBufSize(const glm::ivec2& activeChunksArea) {
                                  activeChunksArea.x * activeChunksArea.y);
 }
 
-ChunkManager::ChunkManager(ChunkGenerator& chunkGen, const re::PipelineLayout& pipelineLayout)
-    : m_chunkGen(chunkGen)
-    , m_tilesStageBuf(re::BufferCreateInfo{
+ChunkManager::ChunkManager(const re::PipelineLayout& pipelineLayout)
+    : m_tilesStageBuf(re::BufferCreateInfo{
           .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                         vma::AllocationCreateFlagBits::eHostAccessRandom,
           .sizeInBytes = k_tileStageSize * k_chunkByteSize,
