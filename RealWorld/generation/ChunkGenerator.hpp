@@ -46,9 +46,13 @@ public:
 
 protected:
     void prepareToGenerate(const vk::CommandBuffer& commandBuffer);
+
     void generateBasicTerrain(const vk::CommandBuffer& commandBuffer);
     void consolidateEdges(const vk::CommandBuffer& commandBuffer);
     void selectVariant(const vk::CommandBuffer& commandBuffer);
+
+    void generateTrees(const vk::CommandBuffer& commandBuffer);
+
     void finishGeneration(
         const vk::CommandBuffer& commandBuffer,
         const re::Texture&       dstTex,
@@ -67,14 +71,17 @@ protected:
 
     GenerationPC m_genPC;
 
-    re::PipelineLayout m_pipelineLayout{{}, {.comp = generateStructure_comp}};
-    re::Pipeline       m_generateStructurePl{
-              {.pipelineLayout = *m_pipelineLayout}, {.comp = generateStructure_comp}};
+    re::PipelineLayout m_pipelineLayout;
+    re::DescriptorSet  m_descSet{m_pipelineLayout, 0u};
+
+    re::Pipeline m_generateStructurePl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateStructure_comp}};
     re::Pipeline m_consolidateEdgesPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = consolidateEdges_comp}};
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = selectVariant_comp}};
-    re::DescriptorSet m_descSet{m_pipelineLayout, 0u};
+    re::Pipeline m_generateTreesPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateTrees_comp}};
 
     re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
@@ -88,6 +95,11 @@ protected:
         .extent        = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral}};
+
+    re::Buffer m_lSystemBuf{re::BufferCreateInfo{
+        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+        .sizeInBytes = sizeof(glm::uint) * 1024 + sizeof(float) * 1024,
+        .usage       = vk::BufferUsageFlagBits::eStorageBuffer}};
 };
 
 } // namespace rw

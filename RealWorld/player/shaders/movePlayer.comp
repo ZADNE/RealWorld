@@ -25,7 +25,7 @@ int pxToTi(float posPx){
 uint ground(vec2 posPx) {
     uint grnd = AIR.BLOCK_TYPE;
     int  yTi  = pxToTi(posPx.y - 1.0);
-    for (int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + s_dimsPx.x);
+    for (int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + b_dimsPx.x);
          ++xTi) {
         grnd = min(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);
     }
@@ -33,8 +33,8 @@ uint ground(vec2 posPx) {
 }
 
 bool overlapsBlocks(vec2 posPx) {
-    for (int yTi = pxToTi(posPx.y); yTi <= pxToTi(posPx.y + s_dimsPx.y); ++yTi) {
-        for (int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + s_dimsPx.x); ++xTi) {
+    for (int yTi = pxToTi(posPx.y); yTi <= pxToTi(posPx.y + b_dimsPx.y); ++yTi) {
+        for (int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + b_dimsPx.x); ++xTi) {
             if (isSolidBlock(tileLoad(ivec2(xTi, yTi)).BL_T)) {
                 return true;
             }
@@ -46,54 +46,54 @@ bool overlapsBlocks(vec2 posPx) {
 void tryJump(vec2 posPx, float jumpPower) {
     if (p_jump != 0.0 || // Jump
         (p_autojump != 0.0 && p_walkDirection != 0.0 &&
-         overlapsBlocks(posPx + vec2(s_velocityPx.x * 4.0, 0.0)))) { // Autojump
-        s_velocityPx.y = p_jumpVelocity * jumpPower;
+         overlapsBlocks(posPx + vec2(b_velocityPx.x * 4.0, 0.0)))) { // Autojump
+        b_velocityPx.y = p_jumpVelocity * jumpPower;
     }
 }
 
 void main() {
     if (p_walkDirection != 0.0) {
-        s_velocityPx.x += p_walkDirection * p_acceleration; // Walk
-        s_velocityPx.x = clamp(s_velocityPx.x, -p_maxWalkVelocity, p_maxWalkVelocity);
+        b_velocityPx.x += p_walkDirection * p_acceleration; // Walk
+        b_velocityPx.x = clamp(b_velocityPx.x, -p_maxWalkVelocity, p_maxWalkVelocity);
     } else {
-        s_velocityPx.x -= sign(s_velocityPx.x); // Friction
+        b_velocityPx.x -= sign(b_velocityPx.x); // Friction
     }
     // Read previous botLeft from buffer
-    vec2 botLeftPx = s_botLeftPx[1 - p_writeIndex];
+    vec2 botLeftPx = b_botLeftPx[1 - p_writeIndex];
 
     uint grnd = ground(botLeftPx);
     if (isSolidBlock(grnd)) { // Standing on solid ground
         tryJump(botLeftPx, 1.0);
     } else if (!isAirBlock(grnd)) { // Floating in a fluid
         tryJump(botLeftPx, 0.75);
-        s_velocityPx *= 0.9375;
-        s_velocityPx *= 0.9375;
-        s_velocityPx.y -= 0.1875; // Gravity
+        b_velocityPx *= 0.9375;
+        b_velocityPx *= 0.9375;
+        b_velocityPx.y -= 0.1875; // Gravity
     } else {                      // Falling through air
-        s_velocityPx.y -= 0.1875; // Gravity
+        b_velocityPx.y -= 0.1875; // Gravity
     }
 
-    vec2 truncVelPx = trunc(s_velocityPx);
-    if (overlapsBlocks(botLeftPx + vec2(s_velocityPx.x, 0.0))) {
-        float velSign = sign(s_velocityPx.x);
+    vec2 truncVelPx = trunc(b_velocityPx);
+    if (overlapsBlocks(botLeftPx + vec2(b_velocityPx.x, 0.0))) {
+        float velSign = sign(b_velocityPx.x);
         while (!overlapsBlocks(botLeftPx + vec2(velSign, 0.0))) {
             botLeftPx.x += velSign;
         }
-        s_velocityPx.x = 0.0;
+        b_velocityPx.x = 0.0;
     } else {
         botLeftPx.x += truncVelPx.x;
     }
 
-    if (overlapsBlocks(botLeftPx + vec2(0.0, s_velocityPx.y))) {
-        float velSign = sign(s_velocityPx.y);
+    if (overlapsBlocks(botLeftPx + vec2(0.0, b_velocityPx.y))) {
+        float velSign = sign(b_velocityPx.y);
         while (!overlapsBlocks(botLeftPx + vec2(0.0, velSign))) {
             botLeftPx.y += velSign;
         }
-        s_velocityPx.y = 0.0;
+        b_velocityPx.y = 0.0;
     } else {
         botLeftPx.y += truncVelPx.y;
     }
 
     // Write the new botLeft back to the buffer
-    s_botLeftPx[p_writeIndex] = botLeftPx;
+    b_botLeftPx[p_writeIndex] = botLeftPx;
 }

@@ -8,5 +8,5 @@ struct DynamicLight{
 };
 
 layout(set = 0, binding = DynamicLightsSB_BINDING, std430) readonly restrict buffer DynamicLightsSB {
-    DynamicLight s_lights[];
+    DynamicLight b_lights[];
 };

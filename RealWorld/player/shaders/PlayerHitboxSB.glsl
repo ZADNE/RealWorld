@@ -3,7 +3,7 @@
  */
 layout(std430, binding = PlayerHitboxSB_BINDING)
 restrict buffer PlayerHitboxSB {
-    vec2 s_botLeftPx[2];
-    vec2 s_dimsPx;
-    vec2 s_velocityPx;
+    vec2 b_botLeftPx[2];
+    vec2 b_dimsPx;
+    vec2 b_velocityPx;
 };

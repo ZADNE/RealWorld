@@ -103,18 +103,4 @@ void ChunkGenerator::finishGeneration(
     );
 }
 
-vk::ImageMemoryBarrier2 ChunkGenerator::stepBarrier() const {
-    return vk::ImageMemoryBarrier2{
-        S::eComputeShader,         // Src stage mask
-        A::eShaderStorageWrite,    // Src access mask
-        S::eComputeShader,         // Dst stage mask
-        A::eShaderStorageRead,     // Dst access mask
-        vk::ImageLayout::eGeneral, // Old image layout
-        vk::ImageLayout::eGeneral, // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
-        m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0u, 1u, m_genPC.storeLayer, 1u}};
-}
-
 } // namespace rw

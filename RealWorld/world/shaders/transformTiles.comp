@@ -58,7 +58,7 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
 
 void main(){
     random();
-    ivec2 centerTi = s_offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
+    ivec2 centerTi = b_offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
                     + (ivec2(random(), random()) & (k_invocDisplacement - 1));
     
     uvec4 tile = tileLoad(centerTi);
