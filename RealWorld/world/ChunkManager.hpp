@@ -31,7 +31,7 @@ public:
 #pragma warning(disable : 4200)
     struct ActiveChunksSB {
         glm::ivec2 activeChunksMask;
-        glm::ivec2 activeChunksArea;
+        glm::ivec2 worldTexSizeCh;
         glm::ivec4 dynamicsGroupSize;
         glm::ivec2 offsets[]; // First indexes: offsets of update chunks, in tiles
         // Following indexes: absolute positions of chunks, in chunks
@@ -45,27 +45,22 @@ public:
      */
     ChunkManager(const re::PipelineLayout& pipelineLayout);
 
+    struct TargetInfo {
+        int seed;               /**< Seed of the new world */
+        std::string folderPath; /**< Path to the folder that contains the new world */
+        const re::Texture& worldTex; /**< The world texture that will be managed */
+        const glm::ivec2&  worldTexSizeCh; /**< Must be a multiple of 8 */
+        re::DescriptorSet& descriptorSet;  /**< Seed of the new world */
+        const re::Buffer&  bodiesBuf;
+    };
+
     /**
-     * @brief Retargets the chunk manager to a new world.
-     *
-     * @detail                  Frees all chunks of the previous world (does not
-     * save them).
-     *
-     * @param seed              Seed of the new world.
-     * @param folderPath        Path to the folder that contains the new world.
-     * @param worldTex          The world texture that will receive the loaded
-     * chunks
-     * @param activeChunksArea  Size of the main texture that holds active
-     * chunks. Measured in chunks, must be multiples of 8
-     * @return                  Active chunks storage buffer
+     * @brief   Retargets the chunk manager to a new world.
+     * @detail  Frees all chunks of the previous world without saving them.
+     * @param targetInfo    Info about the new world
+     * @return              Active chunks storage buffer
      */
-    const re::Buffer& setTarget(
-        int                seed,
-        std::string        folderPath,
-        const re::Texture& worldTex,
-        re::DescriptorSet& descriptorSet,
-        const glm::ivec2&  activeChunksArea
-    );
+    const re::Buffer& setTarget(const TargetInfo& targetInfo);
 
     /**
      * @brief Saves all chunks, keeps them in the memory.
@@ -85,8 +80,7 @@ public:
 
     /**
      * @brief Plans activation of chunks that overlap given rectangular area
-     * @param commandBuffer Command buffer that will be used to record the
-     * commands
+     * @param commandBuffer Command buffer that will record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
      * @warning Must be called between beginStep() and endStep().
@@ -151,7 +145,7 @@ private:
     std::string        m_folderPath;
     ChunkGenerator     m_chunkGen;
     const re::Texture* m_worldTex = nullptr;
-    glm::ivec2         m_activeChunksMask{};
+    glm::ivec2         m_worldTexSizeMask{};
 
     // Tile stage
     static constexpr auto k_tileStageSize = 8;
@@ -163,6 +157,8 @@ private:
     std::array<TileStageState, k_tileStageSize> m_tileStageStates{};
     int                                         m_nextFreeTileStage = 0;
     re::BufferMapped<unsigned char>             m_tilesStageBuf;
+
+    const re::Buffer* m_bodiesBuf = nullptr;
 };
 
 } // namespace rw

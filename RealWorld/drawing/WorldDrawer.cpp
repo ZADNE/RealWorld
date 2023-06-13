@@ -19,10 +19,10 @@ WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExte
 }
 
 void WorldDrawer::setTarget(
-    const re::Texture& worldTexture, const glm::ivec2& worldTexSize
+    const re::Texture& worldTex, const glm::ivec2& worldTexSizeTi
 ) {
-    m_tileDrawer.setTarget(worldTexture, worldTexSize);
-    m_shadowDrawer.setTarget(worldTexture, worldTexSize);
+    m_tileDrawer.setTarget(worldTex, worldTexSizeTi);
+    m_shadowDrawer.setTarget(worldTex, worldTexSizeTi);
 }
 
 void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {

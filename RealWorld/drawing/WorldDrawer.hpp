@@ -16,7 +16,7 @@ class WorldDrawer {
 public:
     WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights);
 
-    void setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize);
+    void setTarget(const re::Texture& worldTex, const glm::ivec2& worldTexSizeTi);
     void resizeView(const glm::uvec2& viewSizePx);
 
     struct ViewEnvelope {

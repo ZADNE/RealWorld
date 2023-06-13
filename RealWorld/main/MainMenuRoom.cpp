@@ -47,10 +47,8 @@ MainMenuRoom::MainMenuRoom(GameSettings& gameSettings)
     , m_resolution(std::find(
           k_resolutions.begin(), k_resolutions.end(), engine().windowDims()
       ))
-    , m_activeChunksArea(std::find(
-          k_activeChunkAreas.begin(),
-          k_activeChunkAreas.end(),
-          m_gameSettings.activeChunksArea()
+    , m_worldTexSize(std::find(
+          k_worldTexSizes.begin(), k_worldTexSizes.end(), m_gameSettings.worldTexSize()
       )) {
 }
 
@@ -191,9 +189,9 @@ void MainMenuRoom::displaySettingsMenu() {
     }
 
     if (comboSelect(
-            k_activeChunkAreas, "Active chunks area", width, m_activeChunksArea, ivec2ToString
+            k_worldTexSizes, "World texture size", width, m_worldTexSize, ivec2ToString
         )) {
-        m_gameSettings.setActiveChunksArea(*m_activeChunksArea);
+        m_gameSettings.setWorldTexSize(*m_worldTexSize);
         m_gameSettings.save();
     }
 }

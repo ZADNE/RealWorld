@@ -41,8 +41,8 @@ private:
     bool m_fullscreen = engine().isWindowFullscreen();
     bool m_borderless = engine().isWindowBorderless();
     bool m_vSync      = engine().isWindowVSynced();
-    decltype(k_resolutions)::const_iterator      m_resolution;
-    decltype(k_activeChunkAreas)::const_iterator m_activeChunksArea;
+    decltype(k_resolutions)::const_iterator   m_resolution;
+    decltype(k_worldTexSizes)::const_iterator m_worldTexSize;
 
     bool m_drawKeybindListeningPopup = false; /**< True if currently listening */
 

@@ -67,13 +67,13 @@ World::World()
 }
 
 const re::Texture& World::adoptSave(
-    const MetadataSave& save, const glm::ivec2& activeChunksArea
+    const MetadataSave& save, const glm::ivec2& worldTexSizeCh
 ) {
     m_seed      = save.seed;
     m_worldName = save.worldName;
 
     // Resize the world texture
-    glm::uvec2 texSize = iChunkTi * activeChunksArea;
+    glm::uvec2 texSize = chToTi(worldTexSizeCh);
     using enum vk::ImageUsageFlagBits;
     m_worldTex = re::Texture{re::TextureCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eDedicatedMemory,
@@ -82,9 +82,15 @@ const re::Texture& World::adoptSave(
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled}};
     m_descriptorSet.write(eStorageImage, 0u, 0u, *m_worldTex, eGeneral);
 
-    m_activeChunksBuf = &m_chunkManager.setTarget(
-        m_seed, save.path, *m_worldTex, m_descriptorSet, activeChunksArea
-    );
+    auto& bodiesBuf = m_bodySimulator.adoptSave(save, worldTexSizeCh);
+
+    m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
+        .seed           = m_seed,
+        .folderPath     = save.path,
+        .worldTex       = *m_worldTex,
+        .worldTexSizeCh = worldTexSizeCh,
+        .descriptorSet  = m_descriptorSet,
+        .bodiesBuf      = bodiesBuf});
 
     return *m_worldTex;
 }

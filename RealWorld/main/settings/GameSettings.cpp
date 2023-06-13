@@ -19,8 +19,8 @@ GameSettings::GameSettings() {
     json          j;
     try {
         i >> j;
-        m_activeChunksArea.x = j["active_chunks_area"]["width"].get<int>();
-        m_activeChunksArea.y = j["active_chunks_area"]["height"].get<int>();
+        m_worldTexSize.x = j["world_tex_size"]["width"].get<int>();
+        m_worldTexSize.y = j["world_tex_size"]["height"].get<int>();
     } catch (...) {
         // Settings either don't exist or are currupted
         i.close();
@@ -36,13 +36,13 @@ GameSettings::GameSettings() {
 }
 
 void GameSettings::reset() {
-    m_activeChunksArea = glm::ivec2(8, 8);
+    m_worldTexSize = glm::ivec2(32, 32);
 }
 
 void GameSettings::save() {
     nlohmann::ordered_json j = {
-        {"active_chunks_area",
-         {{"width", m_activeChunksArea.x}, {"height", m_activeChunksArea.y}}}};
+        {"world_tex_size",
+         {{"width", m_worldTexSize.x}, {"height", m_worldTexSize.y}}}};
 
     std::ofstream o(SETTINGS_FILENAME, std::ofstream::trunc);
     o << j.dump(2);

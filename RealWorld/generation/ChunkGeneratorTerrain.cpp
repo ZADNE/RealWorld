@@ -72,7 +72,7 @@ void ChunkGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
 void ChunkGenerator::finishGeneration(
     const vk::CommandBuffer& commandBuffer,
     const re::Texture&       dstTex,
-    const glm::ivec2&        dstOffset
+    const glm::ivec2&        dstOffsetTi
 ) {
     // Wait for the generation to finish
     auto imageBarrier = vk::ImageMemoryBarrier2{
@@ -97,7 +97,7 @@ void ChunkGenerator::finishGeneration(
             vk::ImageSubresourceLayers{eColor, 0u, m_genPC.storeLayer, 1u}, // Src subresource
             vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
             vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u}, // Dst subresource
-            vk::Offset3D{dstOffset.x, dstOffset.y, 0},      // Dst offset
+            vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0},  // Dst offset
             vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}         // Copy Extent
         }
     );

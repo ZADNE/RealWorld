@@ -29,19 +29,22 @@ public:
      */
     void setSeed(int seed);
 
+    struct OutputInfo {
+        const re::Texture& dstTex; /**< Receives the generated tiles */
+        const glm::ivec2& dstOffsetTi; /**< Offset within dstTex where to put the chunk*/
+        const re::Buffer& bodiesBuf; /**< Receives the generated bodies */
+    };
+
     /**
-     * @brief Generates a chunk. The pixels are stored inside given texture at
-     * given position.
+     * @brief Generates a chunk - tiles, bodies and particles
      * @param commandBuffer Command buffer that is used for the generation
      * @param posCh Position of the chunk (measured in chunks)
-     * @param dstTex The texture that will receive the generated chunk
-     * @param dstOffset Offset within dstTex where the texels/tiles will be copied to
+     * @param outputInfo Describes where to put the generated data
      */
     void generateChunk(
         const vk::CommandBuffer& commandBuffer,
         const glm::ivec2&        posCh,
-        const re::Texture&       dstTex,
-        const glm::ivec2&        dstOffset
+        const OutputInfo&        outputInfo
     );
 
 protected:
@@ -56,7 +59,7 @@ protected:
     void finishGeneration(
         const vk::CommandBuffer& commandBuffer,
         const re::Texture&       dstTex,
-        const glm::ivec2&        dstOffset
+        const glm::ivec2&        dstOffsetTi
     );
 
     vk::ImageMemoryBarrier2 stepBarrier() const; /**< Helper func */

@@ -46,18 +46,18 @@ constexpr inline glm::ivec2 chToTi(const glm::ivec2& posCh) {
  * @brief Converts a position in chunks to its active form equivalent
  */
 constexpr inline glm::ivec2 chToAc(
-    const glm::ivec2& posCh, const glm::ivec2& activeChunksMask
+    const glm::ivec2& posCh, const glm::ivec2& worldTexSizeMask
 ) {
-    return posCh & activeChunksMask;
+    return posCh & worldTexSizeMask;
 }
 
 /**
  * @brief Converts a position in chunks to its active form measured in tiles
  */
 constexpr inline glm::ivec2 chToAt(
-    const glm::ivec2& posCh, const glm::ivec2& activeChunksMask
+    const glm::ivec2& posCh, const glm::ivec2& worldTexSizeMask
 ) {
-    return chToTi(chToAc(posCh, activeChunksMask));
+    return chToTi(chToAc(posCh, worldTexSizeMask));
 }
 
 constexpr inline int acToIndex(const glm::ivec2& posAc, const glm::ivec2& activeChunks) {

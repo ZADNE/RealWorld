@@ -32,14 +32,14 @@ public:
      */
     void reset();
 
-    const glm::ivec2& activeChunksArea() const { return m_activeChunksArea; }
+    const glm::ivec2& worldTexSize() const { return m_worldTexSize; }
 
-    void setActiveChunksArea(const glm::ivec2& activeChunksArea) {
-        m_activeChunksArea = activeChunksArea;
+    void setWorldTexSize(const glm::ivec2& worldTexSize) {
+        m_worldTexSize = worldTexSize;
     }
 
 private:
-    glm::ivec2 m_activeChunksArea;
+    glm::ivec2 m_worldTexSize;
 };
 
 } // namespace rw

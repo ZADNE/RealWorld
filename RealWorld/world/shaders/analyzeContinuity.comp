@@ -11,19 +11,19 @@ layout( local_size_x = 8,
         local_size_z = 1
 ) in;
 
-int maxNumberOfUpdateChunks = b_activeChunksMask.x * b_activeChunksMask.y;
+int maxNumberOfUpdateChunks = b_worldTexSizeMask.x * b_worldTexSizeMask.y;
 
-ivec2 getActiveChunk(ivec2 pos){
-    return b_offsets[maxNumberOfUpdateChunks + pos.y * b_activeChunksArea.x + pos.x];
+ivec2 activeChunkAtPos(ivec2 pos){
+    return b_offsets[maxNumberOfUpdateChunks + pos.y * b_worldTexSizeCh.x + pos.x];
 }
 
 void main(){
     //Gather chunks
     const ivec2 posCh = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 ch00 = getActiveChunk(posCh);
-    ivec2 ch01 = getActiveChunk((posCh + ivec2(0, 1)) & b_activeChunksMask);
-    ivec2 ch10 = getActiveChunk((posCh + ivec2(1, 0)) & b_activeChunksMask);
-    ivec2 ch11 = getActiveChunk((posCh + ivec2(1, 1)) & b_activeChunksMask);
+    ivec2 ch00 = activeChunkAtPos(posCh);
+    ivec2 ch01 = activeChunkAtPos((posCh + ivec2(0, 1)) & b_worldTexSizeMask);
+    ivec2 ch10 = activeChunkAtPos((posCh + ivec2(1, 0)) & b_worldTexSizeMask);
+    ivec2 ch11 = activeChunkAtPos((posCh + ivec2(1, 1)) & b_worldTexSizeMask);
     
     //Test their continuity
     if ((ch00 + ivec2(0, 1)) == ch01 &&

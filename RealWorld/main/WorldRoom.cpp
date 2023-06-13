@@ -283,11 +283,11 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
         return false;
 
     const auto& worldTex =
-        m_world.adoptSave(save.metadata, m_gameSettings.activeChunksArea());
+        m_world.adoptSave(save.metadata, m_gameSettings.worldTexSize());
     m_player.adoptSave(save.player, worldTex);
     m_playerInv.adoptInventoryData(save.inventory);
 
-    m_worldDrawer.setTarget(worldTex, m_gameSettings.activeChunksArea() * iChunkTi);
+    m_worldDrawer.setTarget(worldTex, m_gameSettings.worldTexSize() * iChunkTi);
     return true;
 }
 

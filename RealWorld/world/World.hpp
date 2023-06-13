@@ -13,6 +13,7 @@
 #include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
 #include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/save/WorldSave.hpp>
+#include <RealWorld/world/BodySimulator.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
 
 namespace rw {
@@ -74,15 +75,13 @@ public:
     void endStep(const vk::CommandBuffer& commandBuffer);
 
     /**
-     * @brief                   Sets this world class to simulate the world
-     * inside the given save
-     * @param save              Save of the world to run
-     * @param activeChunksArea  Size of the main texture that holds active
-     * chunks. Measured in chunks, must be multiples of 8
-     * @returns                 The new world texture
+     * @brief   Sets this world class to simulate the world inside the given save
+     * @param save          Save of the world to run
+     * @param worldTexSize  Must be multiples of 8
+     * @returns             The new world texture
      */
     const re::Texture& adoptSave(
-        const MetadataSave& save, const glm::ivec2& activeChunksArea
+        const MetadataSave& save, const glm::ivec2& worldTexSizeCh
     );
 
     void gatherSave(MetadataSave& save) const;
@@ -131,6 +130,8 @@ private:
 
     ChunkManager      m_chunkManager{m_pipelineLayout};
     const re::Buffer* m_activeChunksBuf = nullptr;
+
+    BodySimulator m_bodySimulator;
 
     bool m_permuteOrder = true;
 };
