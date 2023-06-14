@@ -22,13 +22,13 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(PlayerHitboxSB),
           .usage       = eStorageBuffer | eTransferDst | eTransferSrc,
-          .initData    = &initSb})
+          .initData    = re::objectToByteSpan(initSb)})
     , m_hitboxStageBuf(re::BufferCreateInfo{
           .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                         vma::AllocationCreateFlagBits::eHostAccessRandom,
           .sizeInBytes = sizeof(PlayerHitboxSB),
           .usage       = eTransferDst | eTransferSrc,
-          .initData    = &initSb}) {
+          .initData    = re::objectToByteSpan(initSb)}) {
     m_descriptorSet.write(
         vk::DescriptorType::eStorageBuffer, 1u, 0u, m_hitboxBuf, 0u, sizeof(PlayerHitboxSB)
     );

@@ -46,10 +46,10 @@ public:
     ChunkManager(const re::PipelineLayout& pipelineLayout);
 
     struct TargetInfo {
-        int seed;               /**< Seed of the new world */
-        std::string folderPath; /**< Path to the folder that contains the new world */
+        int seed;                      /**< Seed of the new world */
+        const std::string& folderPath; /**< Path to the folder that contains the new world */
         const re::Texture& worldTex; /**< The world texture that will be managed */
-        const glm::ivec2&  worldTexSizeCh; /**< Must be a multiple of 8 */
+        glm::ivec2         worldTexSizeCh; /**< Must be a multiple of 8 */
         re::DescriptorSet& descriptorSet;  /**< Seed of the new world */
         const re::Buffer&  bodiesBuf;
     };

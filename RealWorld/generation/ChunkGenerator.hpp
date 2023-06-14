@@ -20,31 +20,32 @@ namespace rw {
  */
 class ChunkGenerator {
 public:
+    /**
+     * @brief Needs to have its target set before it can be used
+     */
     ChunkGenerator();
 
+    struct TargetInfo {
+        const re::Texture& worldTex; /**< Receives the generated tiles */
+        glm::ivec2         worldTexSizeCh;
+        const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
+        int                seed;      /**< Controls how generated chunks look */
+    };
+
     /**
-     * @brief Sets the seed that controls how the generated chunks look
-     *
-     * @param seed Seed of the world
+     * @brief Sets where to put the generated data
      */
-    void setSeed(int seed);
+    void setTarget(const TargetInfo& targetInfo);
 
     struct OutputInfo {
-        const re::Texture& dstTex; /**< Receives the generated tiles */
-        const glm::ivec2& dstOffsetTi; /**< Offset within dstTex where to put the chunk*/
-        const re::Buffer& bodiesBuf; /**< Receives the generated bodies */
+        glm::ivec2 posCh; /**< Position of the chunk */
     };
 
     /**
      * @brief Generates a chunk - tiles, bodies and particles
-     * @param commandBuffer Command buffer that is used for the generation
-     * @param posCh Position of the chunk (measured in chunks)
-     * @param outputInfo Describes where to put the generated data
      */
     void generateChunk(
-        const vk::CommandBuffer& commandBuffer,
-        const glm::ivec2&        posCh,
-        const OutputInfo&        outputInfo
+        const vk::CommandBuffer& commandBuffer, const OutputInfo& outputInfo
     );
 
 protected:
@@ -57,12 +58,14 @@ protected:
     void generateTrees(const vk::CommandBuffer& commandBuffer);
 
     void finishGeneration(
-        const vk::CommandBuffer& commandBuffer,
-        const re::Texture&       dstTex,
-        const glm::ivec2&        dstOffsetTi
+        const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh
     );
 
     vk::ImageMemoryBarrier2 stepBarrier() const; /**< Helper func */
+
+    const re::Texture* m_worldTex = nullptr;
+    glm::ivec2         m_worldTexSizeCh;
+    const re::Buffer*  m_bodiesBuf = nullptr;
 
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;

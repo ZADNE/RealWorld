@@ -41,7 +41,11 @@ ChunkManager::ChunkManager(const re::PipelineLayout& pipelineLayout)
 
 const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
     m_folderPath = targetInfo.folderPath;
-    m_chunkGen.setSeed(targetInfo.seed);
+    m_chunkGen.setTarget(ChunkGenerator::TargetInfo{
+        .worldTex       = targetInfo.worldTex,
+        .worldTexSizeCh = targetInfo.worldTexSizeCh,
+        .bodiesBuf      = targetInfo.bodiesBuf,
+        .seed           = targetInfo.seed});
     m_worldTex  = &targetInfo.worldTex;
     m_bodiesBuf = &targetInfo.bodiesBuf;
 
@@ -334,11 +338,9 @@ void ChunkManager::planActivation(
             }
         } else {
             // Chunk is not on the disk, it has to be generated
-            ChunkGenerator::OutputInfo outputInfo{
-                .dstTex      = *m_worldTex,
-                .dstOffsetTi = posAt,
-                .bodiesBuf   = *m_bodiesBuf};
-            m_chunkGen.generateChunk(commandBuffer, posCh, outputInfo);
+            m_chunkGen.generateChunk(
+                commandBuffer, ChunkGenerator::OutputInfo{.posCh = posCh}
+            );
             activeChunk = posCh;
             m_transparentChunkChanges++;
         }

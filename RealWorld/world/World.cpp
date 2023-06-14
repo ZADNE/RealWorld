@@ -59,7 +59,7 @@ World::World()
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(TilePropertiesUIB),
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
-          .initData    = &k_tileProperties})
+          .initData    = re::objectToByteSpan(k_tileProperties)})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
     m_descriptorSet.write(
         eUniformBuffer, 2u, 0u, m_tilePropertiesBuf, 0ull, VK_WHOLE_SIZE

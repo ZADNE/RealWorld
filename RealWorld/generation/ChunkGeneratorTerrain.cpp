@@ -69,38 +69,4 @@ void ChunkGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-void ChunkGenerator::finishGeneration(
-    const vk::CommandBuffer& commandBuffer,
-    const re::Texture&       dstTex,
-    const glm::ivec2&        dstOffsetTi
-) {
-    // Wait for the generation to finish
-    auto imageBarrier = vk::ImageMemoryBarrier2{
-        S::eComputeShader,                              // Src stage mask
-        A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
-        S::eTransfer,                                   // Dst stage mask
-        A::eTransferRead,                               // Dst access mask
-        vk::ImageLayout::eGeneral,                      // Old image layout
-        vk::ImageLayout::eGeneral,                      // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
-        m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0u, 1u, m_genPC.storeLayer, 1u}};
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
-    // Copy the generated chunk to the world texture
-    commandBuffer.copyImage(
-        m_tilesTex.image(),
-        vk::ImageLayout::eGeneral, // Src image
-        dstTex.image(),
-        vk::ImageLayout::eGeneral, // Dst image
-        vk::ImageCopy{
-            vk::ImageSubresourceLayers{eColor, 0u, m_genPC.storeLayer, 1u}, // Src subresource
-            vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
-            vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u}, // Dst subresource
-            vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0},  // Dst offset
-            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}         // Copy Extent
-        }
-    );
-}
-
 } // namespace rw
