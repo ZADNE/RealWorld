@@ -43,7 +43,7 @@ public:
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(const re::PipelineLayout& pipelineLayout);
+    explicit ChunkManager(const re::PipelineLayout& pipelineLayout);
 
     struct TargetInfo {
         int seed;                      /**< Seed of the new world */
@@ -157,8 +157,6 @@ private:
     std::array<TileStageState, k_tileStageSize> m_tileStageStates{};
     int                                         m_nextFreeTileStage = 0;
     re::BufferMapped<unsigned char>             m_tilesStageBuf;
-
-    const re::Buffer* m_bodiesBuf = nullptr;
 };
 
 } // namespace rw

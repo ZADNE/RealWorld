@@ -1,7 +1,24 @@
 /*! 
  *  @author    Dubsky Tomas
  */
-const float TilePx =            4.0;
+const uvec2 uTilePx = {4, 4};
+const ivec2 iTilePx = ivec2(uTilePx);
+const vec2  TilePx  = vec2(uTilePx);
+const ivec2 k_tileLowZeroBits = {2, 2};
+
+vec2 pxToTi(vec2 posPx) {
+    return floor(posPx / TilePx);
+}
+ivec2 pxToTi(ivec2 posPx) {
+    return posPx >> k_tileLowZeroBits;
+}
+
+vec2 tiToPx(vec2 posTi) {
+    return posTi * TilePx;
+}
+ivec2 tiToPx(ivec2 posTi) {
+    return posTi << k_tileLowZeroBits;
+}
 
 const ivec2 iChunkTi =        {128, 128};
 
@@ -41,6 +58,7 @@ const uint DRY_GRASS_BL =       9;
 const uint HALLOW_STONE_BL =    10;
 const uint HALLOW_DIRT_BL =     11;
 const uint HALLOW_GRASS_BL =    12;
+const uint HIGHLIGHTER_BL =     223;
 //Fluids
 const uint FIRST_FLUID_BL =     224;//1110 0000b
 const uint WATER_BL =           224;
@@ -51,6 +69,8 @@ const uint SMOKE_BL =           228;
 const uint ACID_BL =            254;
 const uint AIR_BL =             255;
 const uint NEVER_BL =           256;
+
+
 //Walls
 const uint STONE_WL =           0;
 const uint DIRT_WL =            1;
@@ -65,6 +85,7 @@ const uint DRY_GRASS_WL =       9;
 const uint HALLOW_STONE_WL =    10;
 const uint HALLOW_DIRT_WL =     11;
 const uint HALLOW_GRASS_WL =    12;
+const uint HIGHLIGHTER_WL =     223;
 const uint AIR_WL =             255;
 const uint NEVER_WL =           256;
 
@@ -83,6 +104,7 @@ const uvec4 DRY_GRASS =         {DRY_GRASS_BL,      0,    DRY_GRASS_WL,     0};
 const uvec4 HALLOW_STONE =      {HALLOW_STONE_BL,   0,    HALLOW_STONE_WL,  0};
 const uvec4 HALLOW_DIRT =       {HALLOW_DIRT_BL,    0,    HALLOW_DIRT_WL,   0};
 const uvec4 HALLOW_GRASS =      {HALLOW_GRASS_BL,   0,    HALLOW_GRASS_WL,  0};
+const uvec4 HIGHLIGHTER =       {HIGHLIGHTER_BL,    0,    HIGHLIGHTER_WL,   0};
 
 const uvec2 WATER =             {WATER_BL,          0};
 const uvec2 LAVA =              {LAVA_BL,           0};

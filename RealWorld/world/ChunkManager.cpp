@@ -46,8 +46,7 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
         .worldTexSizeCh = targetInfo.worldTexSizeCh,
         .bodiesBuf      = targetInfo.bodiesBuf,
         .seed           = targetInfo.seed});
-    m_worldTex  = &targetInfo.worldTex;
-    m_bodiesBuf = &targetInfo.bodiesBuf;
+    m_worldTex = &targetInfo.worldTex;
 
     // Recalculate active chunks mask and analyzer dispatch size
     m_worldTexSizeMask            = targetInfo.worldTexSizeCh - 1;

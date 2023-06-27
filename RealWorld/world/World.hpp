@@ -115,23 +115,23 @@ private:
     };
     WorldDynamicsPC m_worldDynamicsPC;
 
-    re::PipelineLayout m_pipelineLayout{
-        {}, re::PipelineComputeSources{.comp = transformTiles_comp}};
-    re::DescriptorSet m_descriptorSet{m_pipelineLayout, 0u};
+    re::PipelineLayout m_simulationPL{
+        {}, re::PipelineComputeSources{.comp = simulationPL_comp}};
+    re::DescriptorSet m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
     re::Pipeline      m_simulateFluidsPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
         re::PipelineComputeSources{.comp = simulateFluids_comp}};
     re::Pipeline m_transformTilesPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
         re::PipelineComputeSources{.comp = transformTiles_comp}};
     re::Pipeline m_modifyTilesPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_pipelineLayout},
+        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
         re::PipelineComputeSources{.comp = modifyTiles_comp}};
 
-    ChunkManager      m_chunkManager{m_pipelineLayout};
+    ChunkManager      m_chunkManager{m_simulationPL};
     const re::Buffer* m_activeChunksBuf = nullptr;
 
-    BodySimulator m_bodySimulator;
+    BodySimulator m_bodySimulator{m_simulationPL};
 
     bool m_permuteOrder = true;
 };

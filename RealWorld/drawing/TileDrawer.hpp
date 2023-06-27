@@ -42,7 +42,7 @@ private:
 
     PushConstants      m_pushConstants;
     re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descriptorSet{m_pipelineLayout, 0u};
+    re::DescriptorSet  m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
     re::Pipeline       m_drawTilesPl;
     re::Pipeline       m_drawMinimapPl;
 };

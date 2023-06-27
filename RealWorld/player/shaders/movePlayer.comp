@@ -14,10 +14,6 @@ layout( local_size_x = 1,
         local_size_z = 1
 ) in;
 
-ivec2 pxToTi(vec2 posPx){
-    return ivec2(floor(posPx / TilePx));
-}
-
 int pxToTi(float posPx){
     return int(floor(posPx / TilePx));
 }

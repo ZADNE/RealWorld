@@ -283,9 +283,9 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
           {.viewMat    = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y),
            .viewSizeTi = viewSizeTi}
       )
-    , analysisDS(analysisPll, 0u)
-    , calculationDS(calculationPll, 0u)
-    , shadowDrawingDS(shadowDrawingPll, 0u) {
+    , analysisDS(analysisPll.descriptorSetLayout(0))
+    , calculationDS(calculationPll.descriptorSetLayout(0))
+    , shadowDrawingDS(shadowDrawingPll.descriptorSetLayout(0)) {
     using enum vk::DescriptorType;
     // Analysis descriptor set
     analysisDS.write(eStorageImage, 0u, 0u, lightTex, eGeneral);

@@ -34,7 +34,7 @@ public:
     /**
      * @brief Contructs a UI that is not connected to any inventories
      */
-    InventoryUI(const glm::vec2& windowSize);
+    explicit InventoryUI(const glm::vec2& windowSize);
 
     InventoryUI(const InventoryUI&)            = delete; /**< Noncopyable */
     InventoryUI& operator=(const InventoryUI&) = delete; /**< Noncopyable */

@@ -1,0 +1,18 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/tile.glsl>
+const uint worldImage_BINDING = 0;
+#include <RealWorld/world/shaders/tileLoadStore.glsl>
+const uint ActiveChunksSB_BINDING = 1;
+#include <RealWorld/world/shaders/ActiveChunksSB.glsl>
+const uint TilePropertiesUB_BINDING = 2;
+#include <RealWorld/world/shaders/TilePropertiesUB.glsl>
+const int BodiesSB_BINDING = 3;
+#include <RealWorld/world/shaders/BodiesSB.glsl>
+#include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
+
+void main(){
+    //Used only for creation of pipeline layout
+}

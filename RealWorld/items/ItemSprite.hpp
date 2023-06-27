@@ -15,8 +15,8 @@ namespace rw {
 class ItemSprite {
 public:
     ItemSprite();
-    ItemSprite(ItemId id);
-    ItemSprite(ItemSample item);
+    explicit ItemSprite(ItemId id);
+    explicit ItemSprite(ItemSample item);
 
     re::SpriteComplex& sprite();
 

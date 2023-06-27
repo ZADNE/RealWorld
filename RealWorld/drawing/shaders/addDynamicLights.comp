@@ -14,20 +14,20 @@ layout( local_size_x = 8,
 
 layout(set = 0, binding = 0, rgba8) uniform restrict image2D u_lightImage;
 
-const int TO_UNIT_BITS = k_lightScaleBits + 2;
-const float TO_UNIT_SCALE = 1.0 / k_iLightScale / TilePx;
+const int k_toUnitBits = k_lightScaleBits + 2;
+const vec2 k_toUnitScale = vec2(1.0, 1.0) / k_iLightScale / TilePx;
 
 void main(){
     if (gl_GlobalInvocationID.x < p_lightCount){
         ivec2 lightPosPx = b_lights[gl_GlobalInvocationID.x].posPx - p_addLightOffsetPx;
-        ivec2 lightPosUn = lightPosPx >> TO_UNIT_BITS;
+        ivec2 lightPosUn = lightPosPx >> k_toUnitBits;
         ivec2 editPos = lightPosUn + ivec2(gl_LocalInvocationID.yz);
         bvec2 lowerClip = greaterThanEqual(editPos, ivec2(0));
         bvec2 upperClip = lessThan(editPos, imageSize(u_lightImage));
         if (all(bvec4(lowerClip, upperClip))){//If inside the light image
             vec4 editCol = imageLoad(u_lightImage, editPos);
             vec4 lightCol = unpackUnorm4x8(b_lights[gl_GlobalInvocationID.x].col);
-            vec2 f = fract(lightPosPx * TO_UNIT_SCALE + vec2(gl_LocalInvocationID.yz));
+            vec2 f = fract(lightPosPx * k_toUnitScale + vec2(gl_LocalInvocationID.yz));
             vec2 diff = vec2(1.0) - abs(f - vec2(gl_LocalInvocationID.yz));
             editCol += lightCol * diff.x * diff.y;
             imageStore(u_lightImage, editPos, editCol);

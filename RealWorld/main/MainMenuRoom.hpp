@@ -17,7 +17,7 @@ namespace rw {
  */
 class MainMenuRoom: public Room {
 public:
-    MainMenuRoom(GameSettings& gameSettings);
+    explicit MainMenuRoom(GameSettings& gameSettings);
 
     void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;

@@ -17,7 +17,7 @@ class Inventory: public InventoryData {
     friend class ItemCombinator;
 
 public:
-    Inventory(const glm::ivec2& size)
+    explicit Inventory(const glm::ivec2& size)
         : InventoryData{size} {}
 
     Inventory(const Inventory&)            = delete; /**< Noncopyable */

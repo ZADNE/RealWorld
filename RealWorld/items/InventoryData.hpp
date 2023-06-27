@@ -18,7 +18,7 @@ class InventoryData {
 
 public:
     InventoryData() {}
-    InventoryData(glm::ivec2 dims)
+    explicit InventoryData(glm::ivec2 dims)
         : m_dims(dims)
         , m_items(slotCount()) {}
 

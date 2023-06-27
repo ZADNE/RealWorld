@@ -24,7 +24,7 @@ namespace rw {
  */
 class WorldRoom: public Room {
 public:
-    WorldRoom(const GameSettings& gameSettings);
+    explicit WorldRoom(const GameSettings& gameSettings);
 
     void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;
@@ -72,7 +72,8 @@ private:
         ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
     std::array<re::CommandBuffer, 2> m_computeCommandBuffer{
-        vk::CommandBufferLevel::ePrimary, vk::CommandBufferLevel::ePrimary};
+        re::CommandBuffer{vk::CommandBufferLevel::ePrimary},
+        re::CommandBuffer{vk::CommandBufferLevel::ePrimary}};
     uint64_t        m_stepN = 1;
     re::Semaphore   m_simulationFinishedSem{m_stepN};
     re::SpriteBatch m_spriteBatch{256, 64};

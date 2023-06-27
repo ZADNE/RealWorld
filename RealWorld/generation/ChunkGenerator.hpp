@@ -5,6 +5,7 @@
 #include <RealEngine/graphics/CommandBuffer.hpp>
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
+#include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/constants/generation.hpp>
@@ -78,7 +79,7 @@ protected:
     GenerationPC m_genPC;
 
     re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descSet{m_pipelineLayout, 0u};
+    re::DescriptorSet  m_descSet{m_pipelineLayout.descriptorSetLayout(0)};
 
     re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = generateStructure_comp}};

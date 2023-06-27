@@ -40,7 +40,7 @@ private:
     static void savePlayer(const PlayerSave& pd, const std::string& path);
     static void saveInventory(const InventoryData& inventory, const std::string& path);
 
-    static std::string m_saveFolder;
+    static inline std::string s_saveFolder = "saves";
 };
 
 } // namespace rw

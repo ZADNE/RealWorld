@@ -27,9 +27,7 @@ void readBinary(std::ifstream& file, T& x) {
     file.read(reinterpret_cast<char*>(&x), sizeof(x));
 }
 
-std::string WorldSaveLoader::m_saveFolder = "saves";
-
-const std::string WORLD_INFO_FILENAME = "world_info.json";
+const std::string k_worldInfoFilename = "world_info.json";
 
 bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     WorldSave save;
@@ -56,7 +54,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
 
 bool WorldSaveLoader::loadWorld(WorldSave& save, const std::string& worldName) {
     unsigned int ticks        = SDL_GetTicks();
-    std::string  pathToFolder = m_saveFolder + "/" + worldName + "/";
+    std::string  pathToFolder = s_saveFolder + '/' + worldName + '/';
     save.metadata.path        = pathToFolder;
 
     try {
@@ -75,9 +73,8 @@ bool WorldSaveLoader::saveWorld(
 ) {
     if (worldName == "")
         return false;
-    unsigned int ticks        = SDL_GetTicks();
-    std::string  pathToFolder = m_saveFolder + "/" + save.metadata.worldName +
-                               "/";
+    unsigned int ticks = SDL_GetTicks();
+    std::string pathToFolder = s_saveFolder + '/' + save.metadata.worldName + '/';
     bool alreadyExists = std::filesystem::exists(pathToFolder);
     if (alreadyExists && creatingNew)
         return false;
@@ -98,22 +95,22 @@ bool WorldSaveLoader::saveWorld(
 }
 
 bool WorldSaveLoader::deleteWorld(const std::string& worldName) {
-    return std::filesystem::remove_all(m_saveFolder + "/" + worldName) > 0;
+    return std::filesystem::remove_all(s_saveFolder + '/' + worldName) > 0;
 }
 
 void WorldSaveLoader::searchSavedWorlds(std::vector<std::string>& names) {
     names.clear();
-    if (!std::filesystem::is_directory(m_saveFolder)) {
-        std::filesystem::create_directory(m_saveFolder);
+    if (!std::filesystem::is_directory(s_saveFolder)) {
+        std::filesystem::create_directory(s_saveFolder);
     }
 
-    for (const auto& entry : std::filesystem::directory_iterator(m_saveFolder)) {
+    for (const auto& entry : std::filesystem::directory_iterator(s_saveFolder)) {
         names.push_back(entry.path().filename().string());
     }
 }
 
 void WorldSaveLoader::loadMetadata(MetadataSave& metadata, const std::string& path) {
-    std::ifstream  i(path + WORLD_INFO_FILENAME);
+    std::ifstream  i(path + k_worldInfoFilename);
     nlohmann::json j;
     i >> j;
     metadata.worldName = j["world"]["name"].get<std::string>();
@@ -171,7 +168,7 @@ void WorldSaveLoader::saveMetadata(
     nlohmann::json j = {
         {"world", {{"name", metadata.worldName}, {"seed", metadata.seed}}}};
 
-    std::ofstream o(path + WORLD_INFO_FILENAME, std::ofstream::trunc);
+    std::ofstream o(path + k_worldInfoFilename, std::ofstream::trunc);
     o << j.dump(2);
     o.close();
 }
