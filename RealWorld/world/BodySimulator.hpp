@@ -16,6 +16,13 @@ namespace rw {
 
 class BodySimulator {
 public:
+    explicit BodySimulator(const re::PipelineLayout& simulationPL);
+
+    void step(const vk::CommandBuffer& commandBuffer);
+
+    const re::Buffer& adoptSave(const glm::ivec2& worldTexSizeCh);
+
+private:
     struct Body {
         glm::ivec2 bottomCenterPx;
         glm::ivec2 sizePx;
@@ -40,19 +47,11 @@ public:
     };
 #pragma warning(pop)
 
-    explicit BodySimulator(const re::PipelineLayout& simulationPL);
-
-    void step(const vk::CommandBuffer& commandBuffer);
-
-    const re::Buffer& adoptSave(
-        const MetadataSave& save, const glm::ivec2& worldTexSizeCh
-    );
-
-private:
     /**
      * @brief Size of header is same as 1 body
      */
-    static_assert(sizeof(BodiesSBHeader) == sizeof(Body));
+    static constexpr int k_bodyHeaderSize = sizeof(BodiesSBHeader) / sizeof(Body);
+    static_assert(k_bodyHeaderSize * sizeof(Body) == sizeof(BodiesSBHeader));
 
     std::optional<re::Buffer> m_bodiesBuf;
     re::Pipeline              m_simulateBodiesPl;

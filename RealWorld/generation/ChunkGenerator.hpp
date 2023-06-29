@@ -29,8 +29,10 @@ public:
     struct TargetInfo {
         const re::Texture& worldTex; /**< Receives the generated tiles */
         glm::ivec2         worldTexSizeCh;
-        const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
-        int                seed;      /**< Controls how generated chunks look */
+        const re::Buffer&  bodiesBuf;   /**< Receives the generated bodies */
+        const re::Buffer&  rootsBuf;    /**< Receives the generated roots */
+        const re::Buffer&  branchesBuf; /**< Receives the generated branches */
+        int                seed; /**< Controls how generated chunks look */
     };
 
     /**
@@ -66,7 +68,9 @@ protected:
 
     const re::Texture* m_worldTex = nullptr;
     glm::ivec2         m_worldTexSizeCh;
-    const re::Buffer*  m_bodiesBuf = nullptr;
+    const re::Buffer*  m_bodiesBuf   = nullptr;
+    const re::Buffer*  m_rootsBuf    = nullptr;
+    const re::Buffer*  m_branchesBuf = nullptr;
 
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;

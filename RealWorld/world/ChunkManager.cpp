@@ -45,6 +45,8 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
         .worldTex       = targetInfo.worldTex,
         .worldTexSizeCh = targetInfo.worldTexSizeCh,
         .bodiesBuf      = targetInfo.bodiesBuf,
+        .rootsBuf       = targetInfo.rootsBuf,
+        .branchesBuf    = targetInfo.branchesBuf,
         .seed           = targetInfo.seed});
     m_worldTex = &targetInfo.worldTex;
 

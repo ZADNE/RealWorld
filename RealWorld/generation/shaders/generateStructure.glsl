@@ -4,7 +4,7 @@
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/constants/generation.glsl>
-#include <RealWorld/constants/biomes.glsl>
+#include <RealWorld/constants/biome.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 

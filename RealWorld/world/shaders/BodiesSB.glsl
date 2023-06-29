@@ -10,11 +10,11 @@ struct Body {
 };
 
 layout(set = 0, binding = BodiesSB_BINDING, std430) restrict buffer BodiesSB {
-    uint b_dispatchX;
-    uint b_dispatchY;
-    uint b_dispatchZ;
+    uint b_bodiesDispatchX;
+    uint b_bodiesDispatchY;
+    uint b_bodiesDispatchZ;
     int  b_currentBodyCount;
     int  b_maxBodyCount;
-    int  b_padding[3];
+    int  b_bodiesPadding[3];
     Body b_bodies[];
 };

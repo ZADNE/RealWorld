@@ -5,5 +5,6 @@ target_sources(RealWorld PRIVATE
     Chunk.hpp                   Chunk.cpp
     ChunkManager.hpp            ChunkManager.cpp
     ParticleSimulator.hpp       ParticleSimulator.cpp
+    TreeSimulator.hpp           TreeSimulator.cpp
     World.hpp                   World.cpp
 )

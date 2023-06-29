@@ -18,22 +18,18 @@ ChunkGenerator::ChunkGenerator()
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
-                  {0u, eStorageImage, 1u, eCompute},  // tilesImage
-                  {1u, eStorageImage, 1u, eCompute},  // materialImage
-                  {2u, eStorageBuffer, 1u, eCompute}, // LSystemSB
-                  {3u, eStorageBuffer, 1u, eCompute}  // bodiesSB
+                  {0, eStorageImage, 1, eCompute},  // tilesImage
+                  {1, eStorageImage, 1, eCompute},  // materialImage
+                  {2, eStorageBuffer, 1, eCompute}, // LSystemSB
+                  {3, eStorageBuffer, 1, eCompute}, // bodiesSB
+                  {4, eStorageBuffer, 1, eCompute}, // rootsSB
+                  {5, eStorageBuffer, 1, eCompute}  // branchesSB
               }},
-              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(GenerationPC)}}}
+              .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       ) {
-    m_descSet.write(
-        vk::DescriptorType::eStorageImage, 0u, 0u, m_tilesTex, vk::ImageLayout::eGeneral
-    );
-    m_descSet.write(
-        vk::DescriptorType::eStorageImage, 1u, 0u, m_materialTex, vk::ImageLayout::eGeneral
-    );
-    m_descSet.write(
-        vk::DescriptorType::eStorageBuffer, 2u, 0u, m_lSystemBuf, 0ull, VK_WHOLE_SIZE
-    );
+    m_descSet.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
+    m_descSet.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
+    m_descSet.write(eStorageBuffer, 2, 0, m_lSystemBuf, 0, VK_WHOLE_SIZE);
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
@@ -41,9 +37,11 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_worldTex       = &targetInfo.worldTex;
     m_worldTexSizeCh = targetInfo.worldTexSizeCh;
     m_bodiesBuf      = &targetInfo.bodiesBuf;
-    m_descSet.write(
-        vk::DescriptorType::eStorageBuffer, 3u, 0u, *m_bodiesBuf, 0ull, VK_WHOLE_SIZE
-    );
+    m_rootsBuf       = &targetInfo.rootsBuf;
+    m_branchesBuf    = &targetInfo.branchesBuf;
+    m_descSet.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, VK_WHOLE_SIZE);
+    m_descSet.write(eStorageBuffer, 4, 0, *m_rootsBuf, 0, VK_WHOLE_SIZE);
+    m_descSet.write(eStorageBuffer, 5, 0, *m_branchesBuf, 0, VK_WHOLE_SIZE);
 }
 
 void ChunkGenerator::generateChunk(
@@ -66,16 +64,16 @@ void ChunkGenerator::generateChunk(
 
 vk::ImageMemoryBarrier2 ChunkGenerator::stepBarrier() const {
     return vk::ImageMemoryBarrier2{
-        S::eComputeShader,         // Src stage mask
-        A::eShaderStorageWrite,    // Src access mask
-        S::eComputeShader,         // Dst stage mask
-        A::eShaderStorageRead,     // Dst access mask
-        vk::ImageLayout::eGeneral, // Old image layout
-        vk::ImageLayout::eGeneral, // New image layout
+        S::eComputeShader,      // Src stage mask
+        A::eShaderStorageWrite, // Src access mask
+        S::eComputeShader,      // Dst stage mask
+        A::eShaderStorageRead,  // Dst access mask
+        eGeneral,               // Old image layout
+        eGeneral,               // New image layout
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED, // Ownership transition
         m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0u, 1u, m_genPC.storeLayer, 1u}};
+        vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
 }
 
 void ChunkGenerator::finishGeneration(
@@ -87,26 +85,26 @@ void ChunkGenerator::finishGeneration(
         A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
         S::eTransfer,                                   // Dst stage mask
         A::eTransferRead,                               // Dst access mask
-        vk::ImageLayout::eGeneral,                      // Old image layout
-        vk::ImageLayout::eGeneral,                      // New image layout
+        eGeneral,                                       // Old image layout
+        eGeneral,                                       // New image layout
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED, // Ownership transition
         m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0u, 1u, m_genPC.storeLayer, 1u}};
+        vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     // Copy the generated chunk to the world texture
     auto dstOffsetTi = chToAt(posCh, m_worldTexSizeCh - 1);
     commandBuffer.copyImage(
         m_tilesTex.image(),
-        vk::ImageLayout::eGeneral, // Src image
+        eGeneral, // Src image
         m_worldTex->image(),
-        vk::ImageLayout::eGeneral, // Dst image
+        eGeneral, // Dst image
         vk::ImageCopy{
-            vk::ImageSubresourceLayers{eColor, 0u, m_genPC.storeLayer, 1u}, // Src subresource
+            vk::ImageSubresourceLayers{eColor, 0, m_genPC.storeLayer, 1}, // Src subresource
             vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
-            vk::ImageSubresourceLayers{eColor, 0u, 0u, 1u}, // Dst subresource
-            vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0},  // Dst offset
-            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}         // Copy Extent
+            vk::ImageSubresourceLayers{eColor, 0, 0, 1},   // Dst subresource
+            vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
+            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}        // Copy Extent
         }
     );
 }

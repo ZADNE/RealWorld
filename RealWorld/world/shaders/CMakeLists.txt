@@ -2,8 +2,12 @@
     ActiveChunksSB.glsl         
     analyzeContinuity.comp      
     BodiesSB.glsl               
+    BranchesSB.glsl             
+    LSystemSB.glsl             
     modifyTiles.comp            
+    RootsSB.glsl                
     simulateBodies.comp         
+    simulateBranches.comp       
     simulateFluids.comp         
     simulationPL.comp           
     tileLoad.glsl               tileLoadStore.glsl

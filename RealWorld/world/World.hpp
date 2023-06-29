@@ -15,6 +15,7 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/world/BodySimulator.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
+#include <RealWorld/world/TreeSimulator.hpp>
 
 namespace rw {
 
@@ -132,6 +133,7 @@ private:
     const re::Buffer* m_activeChunksBuf = nullptr;
 
     BodySimulator m_bodySimulator{m_simulationPL};
+    TreeSimulator m_treeSimulator{m_simulationPL};
 
     bool m_permuteOrder = true;
 };

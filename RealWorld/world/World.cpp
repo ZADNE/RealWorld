@@ -80,11 +80,14 @@ const re::Texture& World::adoptSave(
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled}};
     m_simulationDS.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
 
-    // Resize bodies buffer
-    auto& bodiesBuf = m_bodySimulator.adoptSave(save, worldTexSizeCh);
-    m_simulationDS.write(
-        vk::DescriptorType::eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE
-    );
+    // Body simulator
+    const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
+    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE);
+
+    // Tree simulator
+    auto treeBuffers = m_treeSimulator.adoptSave(worldTexSizeCh);
+    m_simulationDS.write(eStorageBuffer, 4, 0, treeBuffers.rootsBuf, 0, VK_WHOLE_SIZE);
+    m_simulationDS.write(eStorageBuffer, 5, 0, treeBuffers.branchesBuf, 0, VK_WHOLE_SIZE);
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
@@ -93,7 +96,9 @@ const re::Texture& World::adoptSave(
         .worldTex       = *m_worldTex,
         .worldTexSizeCh = worldTexSizeCh,
         .descriptorSet  = m_simulationDS,
-        .bodiesBuf      = bodiesBuf});
+        .bodiesBuf      = bodiesBuf,
+        .rootsBuf       = treeBuffers.rootsBuf,
+        .branchesBuf    = treeBuffers.branchesBuf});
 
     return *m_worldTex;
 }
@@ -150,6 +155,9 @@ int World::step(
 
     // Bodies
     m_bodySimulator.step(commandBuffer);
+
+    // Trees
+    m_treeSimulator.step(commandBuffer);
 
     // Tile transformations
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);

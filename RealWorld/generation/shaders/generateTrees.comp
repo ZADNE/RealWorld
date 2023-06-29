@@ -2,9 +2,16 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/bodies.glsl>
+#include <RealWorld/constants/body.glsl>
+#include <RealWorld/constants/tree.glsl>
+const int LSystemSB_BINDING = 2;
+#include <RealWorld/world/shaders/LSystemSB.glsl>
 const int BodiesSB_BINDING = 3;
 #include <RealWorld/world/shaders/BodiesSB.glsl>
+const int RootsSB_BINDING = 4;
+#include <RealWorld/world/shaders/RootsSB.glsl>
+const int BranchesSB_BINDING = 5;
+#include <RealWorld/world/shaders/BranchesSB.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 
 layout( local_size_x = 8,
@@ -12,18 +19,12 @@ layout( local_size_x = 8,
         local_size_z = 1
 ) in;
 
-
-layout(set = 0, binding = 2, std430) restrict buffer LSystemSB {
-    uint b_symbols[1024];
-    float b_values[1024];
-};
-
 uint ceilDiv(uint a, uint b){
     return (a + b - 1) / b;
 }
 
 void main(){
-    int bodyIndex = atomicAdd(b_currentBodyCount, 1);
+    /*int bodyIndex = atomicAdd(b_currentBodyCount, 1);
     if (bodyIndex < b_maxBodyCount) {
         // Determine horizon
         float pPx = float(p_chunkOffsetTi.x + int(gl_LocalInvocationIndex) * 5) * TilePx.x;
@@ -43,5 +44,26 @@ void main(){
     barrier();
     if (gl_LocalInvocationID.x == 0) {
         b_dispatchX = ceilDiv(uint(b_currentBodyCount), k_simulateBodiesGroupSizeX);
+    }*/
+    int rootIndex = atomicAdd(b_currentBodyCount, 3);
+    if ((rootIndex + 3) <= b_maxBranchCount) {
+        // Determine horizon
+        float pPx = float(p_chunkOffsetTi.x + int(gl_LocalInvocationIndex) * 5) * TilePx.x;
+        vec2 biomeClimate = biomeClimate(pPx, p_seed);
+        Biome biome = biomeStructure(biomeClimate);
+        vec2 horizon = horizon(pPx, biome, p_seed);
+        // Place the tree on the horizon
+        b_branches[rootIndex].lenPx = 5.0 * TilePx.x;
+        b_bodies[rootIndex].sizePx = tiToPx(ivec2(4, 7));
+        b_bodies[rootIndex].velocityPx = ivec2(0, 0);
+        b_bodies[rootIndex].rotationRad = vec2(0, 0);
+    } else {
+        atomicAdd(b_currentBodyCount, -3);
+    }
+
+    // Set indirect dispatch size
+    barrier();
+    if (gl_LocalInvocationID.x == 0) {
+        b_branchesDispatchX = ceilDiv(uint(b_currentBranchCount), k_simulateBranchesGroupSizeX);
     }
 }

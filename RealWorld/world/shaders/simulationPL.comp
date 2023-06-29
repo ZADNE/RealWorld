@@ -2,7 +2,6 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/tile.glsl>
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 const uint ActiveChunksSB_BINDING = 1;
@@ -11,6 +10,10 @@ const uint TilePropertiesUB_BINDING = 2;
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 const int BodiesSB_BINDING = 3;
 #include <RealWorld/world/shaders/BodiesSB.glsl>
+const int RootsSB_BINDING = 4;
+#include <RealWorld/world/shaders/RootsSB.glsl>
+const int BranchesSB_BINDING = 5;
+#include <RealWorld/world/shaders/BranchesSB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 
 void main(){

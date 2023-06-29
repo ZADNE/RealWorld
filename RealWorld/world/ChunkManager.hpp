@@ -33,8 +33,8 @@ public:
         glm::ivec2 activeChunksMask;
         glm::ivec2 worldTexSizeCh;
         glm::ivec4 dynamicsGroupSize;
-        glm::ivec2 offsets[]; // First indexes: offsets of update chunks, in tiles
-        // Following indexes: absolute positions of chunks, in chunks
+        glm::ivec2 offsets[]; // First indices: offsets of update chunks, in tiles
+        // Following indices: absolute positions of chunks, in chunks
     };
 #pragma warning(pop)
 
@@ -52,6 +52,8 @@ public:
         glm::ivec2         worldTexSizeCh; /**< Must be a multiple of 8 */
         re::DescriptorSet& descriptorSet;  /**< Seed of the new world */
         const re::Buffer&  bodiesBuf;
+        const re::Buffer&  rootsBuf;
+        const re::Buffer&  branchesBuf;
     };
 
     /**
