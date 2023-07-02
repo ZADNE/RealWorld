@@ -40,12 +40,14 @@ private:
     };
 
     struct BranchesSBHeader {
-        glm::uint dispatchX;
-        glm::uint dispatchY;
-        glm::uint dispatchZ;
-        int       currentBranchCount;
-        int       maxBranchCount;
-        int       padding[3];
+        glm::uint dispatchX          = 0;
+        glm::uint dispatchY          = 1;
+        glm::uint dispatchZ          = 1;
+        int       currentRootCount   = 0;
+        int       maxRootCount       = 0;
+        int       currentBranchCount = 0;
+        int       maxBranchCount     = 0;
+        int       padding[1];
     };
 
 #pragma warning(push)
@@ -65,7 +67,7 @@ private:
 
     std::optional<re::Buffer> m_rootsBuf;
     std::optional<re::Buffer> m_branchesBuf;
-    re::Pipeline              m_simulateBranchesPl;
+    re::Pipeline              m_simulateTreesPl;
 };
 
 } // namespace rw

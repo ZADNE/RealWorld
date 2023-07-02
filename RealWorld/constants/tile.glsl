@@ -6,19 +6,15 @@ const ivec2 iTilePx = ivec2(uTilePx);
 const vec2  TilePx  = vec2(uTilePx);
 const ivec2 k_tileLowZeroBits = {2, 2};
 
-vec2 pxToTi(vec2 posPx) {
-    return floor(posPx / TilePx);
-}
-ivec2 pxToTi(ivec2 posPx) {
-    return posPx >> k_tileLowZeroBits;
-}
+vec2  pxToTi(vec2 posPx)  { return floor(posPx / TilePx); }
+float pxToTi(float posPx) { return floor(posPx / TilePx.x); }
+ivec2 pxToTi(ivec2 posPx) { return posPx >> k_tileLowZeroBits; }
+int   pxToTi(int posPx)   { return posPx >> k_tileLowZeroBits.x; }
 
-vec2 tiToPx(vec2 posTi) {
-    return posTi * TilePx;
-}
-ivec2 tiToPx(ivec2 posTi) {
-    return posTi << k_tileLowZeroBits;
-}
+vec2  tiToPx(vec2 posTi)  { return posTi * TilePx; }
+float tiToPx(float posTi) { return posTi * TilePx.x; }
+ivec2 tiToPx(ivec2 posTi) { return posTi << k_tileLowZeroBits; }
+int   tiToPx(int posTi)   { return posTi << k_tileLowZeroBits.x; }
 
 const ivec2 iChunkTi =        {128, 128};
 

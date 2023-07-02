@@ -14,14 +14,10 @@ layout( local_size_x = 1,
         local_size_z = 1
 ) in;
 
-int pxToTi(float posPx){
-    return int(floor(posPx / TilePx));
-}
-
 uint ground(vec2 posPx) {
     uint grnd = AIR.BLOCK_TYPE;
-    int  yTi  = pxToTi(posPx.y - 1.0);
-    for (int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + b_dimsPx.x);
+    int  yTi  = int(pxToTi(posPx.y - 1.0));
+    for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + b_dimsPx.x);
          ++xTi) {
         grnd = min(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);
     }
@@ -29,8 +25,8 @@ uint ground(vec2 posPx) {
 }
 
 bool overlapsBlocks(vec2 posPx) {
-    for (int yTi = pxToTi(posPx.y); yTi <= pxToTi(posPx.y + b_dimsPx.y); ++yTi) {
-        for (int xTi = pxToTi(posPx.x); xTi <= pxToTi(posPx.x + b_dimsPx.x); ++xTi) {
+    for (int yTi = int(pxToTi(posPx.y)); yTi <= pxToTi(posPx.y + b_dimsPx.y); ++yTi) {
+        for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + b_dimsPx.x); ++xTi) {
             if (isSolidBlock(tileLoad(ivec2(xTi, yTi)).BL_T)) {
                 return true;
             }

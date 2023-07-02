@@ -7,8 +7,10 @@
 
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
-const int BodiesSB_BINDING = 3;
-#include <RealWorld/world/shaders/BodiesSB.glsl>
+const int RootsSB_BINDING = 4;
+#include <RealWorld/world/shaders/RootsSB.glsl>
+const int BranchesSB_BINDING = 5;
+#include <RealWorld/world/shaders/BranchesSB.glsl>
 
 layout( local_size_x = k_simulateBodiesGroupSizeX,
         local_size_y = k_simulateBodiesGroupSizeY,
@@ -16,8 +18,8 @@ layout( local_size_x = k_simulateBodiesGroupSizeX,
 ) in;
 
 void main(){
-    if (gl_GlobalInvocationID.x < b_currentBodyCount) {
-    ivec2 posTi = ivec2(b_bodies[gl_GlobalInvocationID.x].bottomCenterPx / TilePx);
+    /*if (gl_GlobalInvocationID.x < b_currentBodyCount) {
+        ivec2 posTi = ivec2(b_bodies[gl_GlobalInvocationID.x].bottomCenterPx / TilePx);
         tileStore(posTi, HIGHLIGHTER);
-    }
+    }*/
 }

@@ -7,8 +7,8 @@
     modifyTiles.comp            
     RootsSB.glsl                
     simulateBodies.comp         
-    simulateBranches.comp       
     simulateFluids.comp         
+    simulateTrees.comp          
     simulationPL.comp           
     tileLoad.glsl               tileLoadStore.glsl
     TilePropertiesUB.glsl       

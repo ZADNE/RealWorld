@@ -98,8 +98,11 @@ bool Inventory::fill(
     return false;
 }
 
-int Inventory::
-    remove(const Item& item, const glm::ivec2& startSlot /* = glm::ivec2(0, 0)*/, bool reload /* = true*/) {
+int Inventory::remove(
+    const Item& item,
+    const glm::ivec2& startSlot /* = glm::ivec2(0, 0)*/,
+    bool reload /* = true*/
+) {
     if (item.amount <= 0) {
         return 0;
     }

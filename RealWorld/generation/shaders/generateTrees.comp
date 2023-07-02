@@ -4,15 +4,14 @@
 #version 460
 #include <RealWorld/constants/body.glsl>
 #include <RealWorld/constants/tree.glsl>
-const int LSystemSB_BINDING = 2;
-#include <RealWorld/world/shaders/LSystemSB.glsl>
-const int BodiesSB_BINDING = 3;
-#include <RealWorld/world/shaders/BodiesSB.glsl>
 const int RootsSB_BINDING = 4;
 #include <RealWorld/world/shaders/RootsSB.glsl>
 const int BranchesSB_BINDING = 5;
 #include <RealWorld/world/shaders/BranchesSB.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
+
+const float k_piHalf = 1.57079632679;
+const float k_piQuarter = 0.785398163;
 
 layout( local_size_x = 8,
         local_size_y = 1,
@@ -23,42 +22,51 @@ uint ceilDiv(uint a, uint b){
     return (a + b - 1) / b;
 }
 
+uint packLowerBits(uint a, uint b){
+    return (b << 16) | (a & 0xFFFF);
+}
+
 void main(){
-    /*int bodyIndex = atomicAdd(b_currentBodyCount, 1);
-    if (bodyIndex < b_maxBodyCount) {
-        // Determine horizon
-        float pPx = float(p_chunkOffsetTi.x + int(gl_LocalInvocationIndex) * 5) * TilePx.x;
-        vec2 biomeClimate = biomeClimate(pPx, p_seed);
-        Biome biome = biomeStructure(biomeClimate);
-        vec2 horizon = horizon(pPx, biome, p_seed);
-        // Place the body on the horizon
-        b_bodies[bodyIndex].bottomCenterPx = ivec2(pPx, horizon.x);
-        b_bodies[bodyIndex].sizePx = tiToPx(ivec2(4, 7));
-        b_bodies[bodyIndex].velocityPx = ivec2(0, 0);
-        b_bodies[bodyIndex].rotationRad = vec2(0, 0);
-    } else {
-        atomicAdd(b_currentBodyCount, -1);
+    // Calculate the horizon
+    float pPx = float(p_chunkOffsetTi.x + int(gl_LocalInvocationIndex) * 5) * TilePx.x;
+    vec2 biomeClimate = biomeClimate(pPx, p_seed);
+    Biome biome = biomeStructure(biomeClimate);
+    float horizonPx = horizon(pPx, biome, p_seed).r;
+    int horizonTi = int(pxToTi(horizonPx));
+    if (horizonTi < p_chunkOffsetTi.y || horizonTi >= p_chunkOffsetTi.y) {
+        // The chunk is not on the horizon -> do not generate any trees
+        return;
     }
 
-    // Set indirect dispatch size
-    barrier();
-    if (gl_LocalInvocationID.x == 0) {
-        b_dispatchX = ceilDiv(uint(b_currentBodyCount), k_simulateBodiesGroupSizeX);
-    }*/
-    int rootIndex = atomicAdd(b_currentBodyCount, 3);
-    if ((rootIndex + 3) <= b_maxBranchCount) {
-        // Determine horizon
-        float pPx = float(p_chunkOffsetTi.x + int(gl_LocalInvocationIndex) * 5) * TilePx.x;
-        vec2 biomeClimate = biomeClimate(pPx, p_seed);
-        Biome biome = biomeStructure(biomeClimate);
-        vec2 horizon = horizon(pPx, biome, p_seed);
-        // Place the tree on the horizon
-        b_branches[rootIndex].lenPx = 5.0 * TilePx.x;
-        b_bodies[rootIndex].sizePx = tiToPx(ivec2(4, 7));
-        b_bodies[rootIndex].velocityPx = ivec2(0, 0);
-        b_bodies[rootIndex].rotationRad = vec2(0, 0);
+    uint rootIndex = atomicAdd(b_currentRootCount, 1);
+    uint branchIndex = atomicAdd(b_currentBranchCount, 5);
+    if (rootIndex < b_maxRootCount && (branchIndex + 5) < b_currentBranchCount) {
+        // Place the root on the horizon
+        b_roots[rootIndex].posPx = vec2(pPx, horizonPx);
+        //Add 5 branches
+        b_branches[branchIndex] = Branch(
+            tiToPx(15.0),
+            k_piHalf, k_piHalf,
+            packLowerBits(branchIndex + 1, branchIndex + 3));
+        b_branches[branchIndex + 1] = Branch(
+            tiToPx(10.0),
+            k_piQuarter, k_piQuarter,
+            packLowerBits(branchIndex + 3, branchIndex + 4));
+        b_branches[branchIndex + 2] = Branch(
+            tiToPx(10.0),
+            -k_piQuarter, -k_piQuarter,
+            packLowerBits(branchIndex + 4, branchIndex + 5));
+        b_branches[branchIndex + 3] = Branch(
+            tiToPx(5.0),
+            -k_piQuarter, -k_piQuarter,
+            packLowerBits(0, 0));
+        b_branches[branchIndex + 4] = Branch(
+            tiToPx(5.0),
+            k_piQuarter, k_piQuarter,
+            packLowerBits(0, 0));
     } else {
-        atomicAdd(b_currentBodyCount, -3);
+        atomicAdd(b_currentRootCount, -1);
+        atomicAdd(b_currentBranchCount, -5);
     }
 
     // Set indirect dispatch size
