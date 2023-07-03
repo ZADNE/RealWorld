@@ -108,14 +108,14 @@ void ItemUser::render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb) {
         if (m_shape == World::ModificationShape::Disk) {
             constexpr float k_quality   = 16.0f;
             constexpr float k_angleIncr = glm::pi<float>() * 2.0f / k_quality;
-            std::array<re::VertexPOCO, static_cast<size_t>(k_quality * 2.0f)> vertices;
+            std::array<re::VertexPoCo, static_cast<size_t>(k_quality * 2.0f)> vertices;
             for (float i = 0.0f; i < k_quality; i++) {
                 float     a = i * k_angleIncr;
                 glm::vec2 p = center + glm::vec2{cos(a), sin(a)} * radPx;
                 vertices[static_cast<size_t>(i * 2.0f) % vertices.size()] =
-                    re::VertexPOCO{p, col};
+                    re::VertexPoCo{p, col};
                 vertices[static_cast<size_t>(i * 2.0f - 1.0f) % vertices.size()] =
-                    re::VertexPOCO{p, col};
+                    re::VertexPoCo{p, col};
             }
             gb.addVertices(vertices);
         } else if (m_shape == World::ModificationShape::Square) {
@@ -123,7 +123,7 @@ void ItemUser::render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb) {
             auto tr = center + glm::vec2{+radPx, +radPx};
             auto br = center + glm::vec2{+radPx, -radPx};
             auto bl = center + glm::vec2{-radPx, -radPx};
-            std::array<re::VertexPOCO, 8> vertices = std::to_array<re::VertexPOCO>({
+            std::array<re::VertexPoCo, 8> vertices = std::to_array<re::VertexPoCo>({
                 {tl, col},
                 {tr, col},
                 {tr, col},

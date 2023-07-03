@@ -12,10 +12,10 @@ using json = nlohmann::json;
 
 namespace rw {
 
-const std::string SETTINGS_FILENAME = "game_settings.json";
+const std::string k_settingsFilename = "game_settings.json";
 
 GameSettings::GameSettings() {
-    std::ifstream i(SETTINGS_FILENAME);
+    std::ifstream i(k_settingsFilename);
     json          j;
     try {
         i >> j;
@@ -24,10 +24,10 @@ GameSettings::GameSettings() {
     } catch (...) {
         // Settings either don't exist or are currupted
         i.close();
-        if (std::filesystem::exists(SETTINGS_FILENAME)) {
+        if (std::filesystem::exists(k_settingsFilename)) {
             // Back up previous settings
             std::filesystem::rename(
-                SETTINGS_FILENAME, SETTINGS_FILENAME + ".backup"
+                k_settingsFilename, k_settingsFilename + ".backup"
             );
         }
         reset(); // Reset settings to default values
@@ -44,7 +44,7 @@ void GameSettings::save() {
         {"world_tex_size",
          {{"width", m_worldTexSize.x}, {"height", m_worldTexSize.y}}}};
 
-    std::ofstream o(SETTINGS_FILENAME, std::ofstream::trunc);
+    std::ofstream o(k_settingsFilename, std::ofstream::trunc);
     o << j.dump(2);
     o.close();
 }
