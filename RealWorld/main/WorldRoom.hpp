@@ -15,6 +15,7 @@
 #include <RealWorld/main/Room.hpp>
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/player/Player.hpp>
+#include <RealWorld/world/TreesPoC.hpp>
 #include <RealWorld/world/World.hpp>
 
 namespace rw {
@@ -90,6 +91,7 @@ private:
     Inventory   m_playerInv;
     ItemUser    m_itemUser;
     InventoryUI m_invUI;
+    TreesPoC    m_treesPoC;
 
     // Toggle states
     bool m_minimap = false;

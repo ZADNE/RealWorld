@@ -94,6 +94,8 @@ void WorldRoom::step() {
 
     // Manipulate the inventory based on user's input
     updateInventoryAndUI();
+
+    m_treesPoC.step();
 }
 
 void WorldRoom::render(
@@ -246,6 +248,7 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     m_spriteBatch.nextBatch();
     m_invUI.draw(m_spriteBatch, engine().cursorAbs());
     m_spriteBatch.drawBatch(commandBuffer, m_windowViewMat);
+    m_treesPoC.draw(commandBuffer, m_windowViewMat);
     // Minimap
     if (m_minimap) {
         m_worldDrawer.drawMinimap(commandBuffer);

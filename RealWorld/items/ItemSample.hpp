@@ -15,7 +15,7 @@ struct ItemSample {
         : id(id)
         , special(special){};
 
-    auto operator<=>(const ItemSample&) const = default;
+    friend auto operator<=>(const ItemSample&, const ItemSample&) = default;
 
     // ItemSample is considered empty if its ItemId == ItemId::Empty
     bool isEmpty() const;
