@@ -16,14 +16,16 @@ public:
 
 private:
     struct Branch {
-        float        stiffness;
-        float        weight;
         glm::vec2    absPosPx; // Absolute
         float        lengthPx;
+        float        radiusPx;
+        float        density;
+        float        stiffness;
         float        absAngleNorm; // Absolute
         float        relAngleNorm; // Relative to parent
-        float        angleVelNorm;
+        float        angleVelNorm; // Absolute
         unsigned int parentIndex;
+        bool         living;
     };
 
     std::array<std::vector<Branch>, 2> m_branches;
@@ -40,6 +42,8 @@ private:
     void addBranch(
         float        lengthPx,
         float        radiusPx,
+        float        density,
+        float        stiffness,
         float        angleNorm,
         unsigned int parentIndex,
         glm::vec2    absPosPx = {}
