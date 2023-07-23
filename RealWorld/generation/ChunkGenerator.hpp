@@ -6,6 +6,7 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
+#include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/constants/generation.hpp>
@@ -29,10 +30,10 @@ public:
     struct TargetInfo {
         const re::Texture& worldTex; /**< Receives the generated tiles */
         glm::ivec2         worldTexSizeCh;
-        const re::Buffer&  bodiesBuf;   /**< Receives the generated bodies */
-        const re::Buffer&  rootsBuf;    /**< Receives the generated roots */
-        const re::Buffer&  branchesBuf; /**< Receives the generated branches */
-        int                seed; /**< Controls how generated chunks look */
+        const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
+        const re::StepDoubleBuffered<re::Buffer>& branchesBuf; /**< Receives the
+                                                                  generated branches */
+        int seed; /**< Controls how generated chunks look */
     };
 
     /**
@@ -66,11 +67,10 @@ protected:
 
     vk::ImageMemoryBarrier2 stepBarrier() const; /**< Helper func */
 
-    const re::Texture* m_worldTex = nullptr;
-    glm::ivec2         m_worldTexSizeCh;
-    const re::Buffer*  m_bodiesBuf   = nullptr;
-    const re::Buffer*  m_rootsBuf    = nullptr;
-    const re::Buffer*  m_branchesBuf = nullptr;
+    const re::Texture*                        m_worldTex = nullptr;
+    glm::ivec2                                m_worldTexSizeCh;
+    const re::Buffer*                         m_bodiesBuf = nullptr;
+    re::StepDoubleBuffered<const re::Buffer*> m_branchesBuf{nullptr, nullptr};
 
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;
@@ -82,8 +82,10 @@ protected:
 
     GenerationPC m_genPC;
 
-    re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descSet{m_pipelineLayout.descriptorSetLayout(0)};
+    re::PipelineLayout                        m_pipelineLayout;
+    re::StepDoubleBuffered<re::DescriptorSet> m_descSet{
+        re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
+        re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};
 
     re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = generateStructure_comp}};

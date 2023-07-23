@@ -9,6 +9,7 @@
 #include <RealEngine/graphics/buffers/Buffer.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
+#include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
 
@@ -21,33 +22,37 @@ public:
     void step(const vk::CommandBuffer& commandBuffer);
 
     struct Buffers {
-        const re::Buffer& rootsBuf;
-        const re::Buffer& branchesBuf;
+        const re::StepDoubleBuffered<re::Buffer>& branchesBuf;
     };
 
     Buffers adoptSave(const glm::ivec2& worldTexSizeCh);
 
 private:
-    struct Root {
-        glm::vec2 posPx;
-    };
-
     struct Branch {
-        float     lenPx;
-        float     rotNaturalRad;
-        float     rotCurrentRad;
-        glm::uint childrenBeginEnd; // 16-bit indices
+        struct Angles {
+            uint8_t absAngleNorm;     // Absolute
+            uint8_t relRestAngleNorm; // Relative to parent
+            uint8_t angleVelNorm;     // Absolute
+            uint8_t unused{0};
+        };
+        static_assert(sizeof(Angles) % 4 == 0);
+
+        glm::vec2    absPosPx; // Absolute
+        unsigned int parentIndex;
+        Angles       angles;
+        float        lengthPx;
+        float        radiusPx;
+        float        density;
+        float        stiffness;
     };
 
     struct BranchesSBHeader {
         glm::uint dispatchX          = 0;
         glm::uint dispatchY          = 1;
         glm::uint dispatchZ          = 1;
-        int       currentRootCount   = 0;
-        int       maxRootCount       = 0;
         int       currentBranchCount = 0;
         int       maxBranchCount     = 0;
-        int       padding[1];
+        int       padding[3];
     };
 
 #pragma warning(push)
@@ -65,9 +70,8 @@ private:
                                               sizeof(Branch);
     static_assert(k_branchHeaderSize * sizeof(Branch) == sizeof(BranchesSBHeader));
 
-    std::optional<re::Buffer> m_rootsBuf;
-    std::optional<re::Buffer> m_branchesBuf;
-    re::Pipeline              m_simulateTreesPl;
+    std::optional<re::StepDoubleBuffered<re::Buffer>> m_branchesBuf;
+    re::Pipeline                                      m_simulateTreesPl;
 };
 
 } // namespace rw

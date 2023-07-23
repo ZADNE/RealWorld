@@ -17,31 +17,28 @@ TreeSimulator::TreeSimulator(const re::PipelineLayout& simulationPL)
 
 void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateTreesPl);
-    commandBuffer.dispatchIndirect(
+    /*commandBuffer.dispatchIndirect(
         **m_branchesBuf, offsetof(BranchesSBHeader, dispatchX)
-    );
+    );*/
 }
 
 TreeSimulator::Buffers TreeSimulator::adoptSave(const glm::ivec2& worldTexSizeCh) {
-    auto maxRootCount = k_rootsPerChunk * worldTexSizeCh.x * worldTexSizeCh.y;
     auto maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                           k_branchHeaderSize;
 
-    BranchesSBHeader initHeader{
-        .maxRootCount = maxRootCount, .maxBranchCount = maxBranchCount};
+    BranchesSBHeader initHeader{.maxBranchCount = maxBranchCount};
 
-    m_rootsBuf = re::Buffer{re::BufferCreateInfo{
-        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(Root) * maxRootCount,
-        .usage       = eStorageBuffer}};
+    auto createBranchBuffer = [&] {
+        return re::Buffer{re::BufferCreateInfo{
+            .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+            .sizeInBytes = sizeof(BranchesSBHeader) + sizeof(Branch) * maxBranchCount,
+            .usage    = eStorageBuffer | eIndirectBuffer,
+            .initData = re::objectToByteSpan(initHeader)}};
+    };
 
-    m_branchesBuf = re::Buffer{re::BufferCreateInfo{
-        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(BranchesSBHeader) + sizeof(Branch) * maxBranchCount,
-        .usage    = eStorageBuffer | eIndirectBuffer,
-        .initData = re::objectToByteSpan(initHeader)}};
+    m_branchesBuf.emplace(createBranchBuffer(), createBranchBuffer());
 
-    return {.rootsBuf = *m_rootsBuf, .branchesBuf = *m_branchesBuf};
+    return {*m_branchesBuf};
 }
 
 } // namespace rw

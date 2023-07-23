@@ -16,7 +16,7 @@ constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
 void ChunkGenerator::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet, {}
+        vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descSet.write(), {}
     );
 }
 

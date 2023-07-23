@@ -118,8 +118,10 @@ private:
 
     re::PipelineLayout m_simulationPL{
         {}, re::PipelineComputeSources{.comp = simulationPL_comp}};
-    re::DescriptorSet m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
-    re::Pipeline      m_simulateFluidsPl{
+    re::StepDoubleBuffered<re::DescriptorSet> m_simulationDS{
+        re::DescriptorSet{m_simulationPL.descriptorSetLayout(0)},
+        re::DescriptorSet{m_simulationPL.descriptorSetLayout(0)}};
+    re::Pipeline m_simulateFluidsPl{
         re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
         re::PipelineComputeSources{.comp = simulateFluids_comp}};
     re::Pipeline m_transformTilesPl{

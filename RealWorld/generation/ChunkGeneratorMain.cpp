@@ -22,14 +22,15 @@ ChunkGenerator::ChunkGenerator()
                   {1, eStorageImage, 1, eCompute},  // materialImage
                   {2, eStorageBuffer, 1, eCompute}, // LSystemSB
                   {3, eStorageBuffer, 1, eCompute}, // bodiesSB
-                  {4, eStorageBuffer, 1, eCompute}, // rootsSB
-                  {5, eStorageBuffer, 1, eCompute}  // branchesSB
+                  {4, eStorageBuffer, 1, eCompute}  // branchesSB
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       ) {
-    m_descSet.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
-    m_descSet.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
-    m_descSet.write(eStorageBuffer, 2, 0, m_lSystemBuf, 0, VK_WHOLE_SIZE);
+    m_descSet.forEach([&](auto& ds) {
+        ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
+        ds.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
+        ds.write(eStorageBuffer, 2, 0, m_lSystemBuf, 0, VK_WHOLE_SIZE);
+    });
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
@@ -37,11 +38,17 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_worldTex       = &targetInfo.worldTex;
     m_worldTexSizeCh = targetInfo.worldTexSizeCh;
     m_bodiesBuf      = &targetInfo.bodiesBuf;
-    m_rootsBuf       = &targetInfo.rootsBuf;
-    m_branchesBuf    = &targetInfo.branchesBuf;
-    m_descSet.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, VK_WHOLE_SIZE);
-    m_descSet.write(eStorageBuffer, 4, 0, *m_rootsBuf, 0, VK_WHOLE_SIZE);
-    m_descSet.write(eStorageBuffer, 5, 0, *m_branchesBuf, 0, VK_WHOLE_SIZE);
+    m_branchesBuf.forEach(
+        [&](auto& buf, const auto& branchBuf) { buf = &branchBuf; },
+        targetInfo.branchesBuf
+    );
+    m_descSet.forEach(
+        [&](auto& ds, const auto& branchBuf) {
+            ds.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, VK_WHOLE_SIZE);
+            ds.write(eStorageBuffer, 4, 0, *branchBuf, 0, VK_WHOLE_SIZE);
+        },
+        m_branchesBuf
+    );
 }
 
 void ChunkGenerator::generateChunk(

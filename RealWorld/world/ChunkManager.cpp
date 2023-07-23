@@ -45,7 +45,6 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
         .worldTex       = targetInfo.worldTex,
         .worldTexSizeCh = targetInfo.worldTexSizeCh,
         .bodiesBuf      = targetInfo.bodiesBuf,
-        .rootsBuf       = targetInfo.rootsBuf,
         .branchesBuf    = targetInfo.branchesBuf,
         .seed           = targetInfo.seed});
     m_worldTex = &targetInfo.worldTex;
@@ -83,9 +82,11 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
             bufferCopy                        // Region
         });
     });
-    targetInfo.descriptorSet.write(
-        vk::DescriptorType::eStorageBuffer, 1u, 0u, *m_activeChunksBuf, 0ull, bufSize
-    );
+    targetInfo.descriptorSet.forEach([&](auto& ds) {
+        ds.write(
+            vk::DescriptorType::eStorageBuffer, 1u, 0u, *m_activeChunksBuf, 0ull, bufSize
+        );
+    });
 
     // Clear remnants of previous world
     m_inactiveChunks.clear();

@@ -5,7 +5,6 @@
     BranchesSB.glsl             
     LSystemSB.glsl             
     modifyTiles.comp            
-    RootsSB.glsl                
     simulateBodies.comp         
     simulateFluids.comp         
     simulateTrees.comp          

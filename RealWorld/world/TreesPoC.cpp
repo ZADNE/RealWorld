@@ -115,7 +115,7 @@ void TreesPoC::step() {
             momentOfInertia;
 
         float angleDiffToRestNorm = angularDifference(
-            glm::fract(parent.absAngleNorm + b.relAngleNorm), b.absAngleNorm
+            glm::fract(parent.absAngleNorm + b.relRestAngleNorm), b.absAngleNorm
         );
 
         // If bent too much or parent already broke
@@ -130,8 +130,9 @@ void TreesPoC::step() {
             b.absAngleNorm += b.angleVelNorm;
             b.absAngleNorm = glm::fract(b.absAngleNorm);
 
-            b.absPosPx = parent.absPosPx +
-                         toCartesian(b.lengthPx, parent.absAngleNorm + b.relAngleNorm);
+            b.absPosPx =
+                parent.absPosPx +
+                toCartesian(b.lengthPx, parent.absAngleNorm + b.relRestAngleNorm);
         }
 
         // Store the modified branch
@@ -175,15 +176,15 @@ void TreesPoC::addBranch(
     glm::vec2    absPosPx /*= {}*/
 ) {
     float absAngleNorm{};
-    float relAngleNorm{};
+    float relRestAngleNorm{};
     if (parentIndex != ~0u) { // If it is child branch
         const Branch& parent = m_branches[0][parentIndex];
         absAngleNorm         = glm::fract(parent.absAngleNorm + angleNorm);
-        relAngleNorm         = glm::fract(angleNorm);
+        relRestAngleNorm     = glm::fract(angleNorm);
         absPosPx = parent.absPosPx + toCartesian(lengthPx, absAngleNorm);
-    } else { // If it root branch
-        absAngleNorm = glm::fract(angleNorm);
-        relAngleNorm = 0.0;
+    } else { // If it is root branch
+        absAngleNorm     = glm::fract(angleNorm);
+        relRestAngleNorm = 0.0;
     }
 
     Branch b{
@@ -193,7 +194,7 @@ void TreesPoC::addBranch(
         density,
         stiffness,
         absAngleNorm,
-        relAngleNorm,
+        relRestAngleNorm,
         0.0,
         parentIndex != ~0 ? parentIndex : (unsigned)m_branches[0].size(),
         true};

@@ -61,7 +61,9 @@ World::World()
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties)})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
-    m_simulationDS.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, VK_WHOLE_SIZE);
+    m_simulationDS.forEach([&](auto& ds) {
+        ds.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, VK_WHOLE_SIZE);
+    });
 }
 
 const re::Texture& World::adoptSave(
@@ -78,16 +80,12 @@ const re::Texture& World::adoptSave(
         .format     = vk::Format::eR8G8B8A8Uint,
         .extent     = {texSize, 1},
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled}};
-    m_simulationDS.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
-    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE);
 
     // Tree simulator
     auto treeBuffers = m_treeSimulator.adoptSave(worldTexSizeCh);
-    m_simulationDS.write(eStorageBuffer, 4, 0, treeBuffers.rootsBuf, 0, VK_WHOLE_SIZE);
-    m_simulationDS.write(eStorageBuffer, 5, 0, treeBuffers.branchesBuf, 0, VK_WHOLE_SIZE);
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
@@ -97,8 +95,16 @@ const re::Texture& World::adoptSave(
         .worldTexSizeCh = worldTexSizeCh,
         .descriptorSet  = m_simulationDS,
         .bodiesBuf      = bodiesBuf,
-        .rootsBuf       = treeBuffers.rootsBuf,
         .branchesBuf    = treeBuffers.branchesBuf});
+
+    m_simulationDS.forEach(
+        [&](auto& ds, const auto& branchBuf) {
+            ds.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
+            ds.write(eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE);
+            ds.write(eStorageBuffer, 4, 0, branchBuf, 0, VK_WHOLE_SIZE);
+        },
+        treeBuffers.branchesBuf
+    );
 
     return *m_worldTex;
 }
@@ -143,7 +149,7 @@ int World::step(
     m_chunkManager.beginStep();
     m_chunkManager.planActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
     commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
+        vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS.write(), {}
     );
     int activatedChunks = m_chunkManager.endStep(commandBuffer);
 

@@ -22,7 +22,7 @@ private:
         float        density;
         float        stiffness;
         float        absAngleNorm; // Absolute
-        float        relAngleNorm; // Relative to parent
+        float        relRestAngleNorm; // Relative to parent
         float        angleVelNorm; // Absolute
         unsigned int parentIndex;
         bool         living;

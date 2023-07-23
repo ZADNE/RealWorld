@@ -4,9 +4,7 @@
 #version 460
 #include <RealWorld/constants/body.glsl>
 #include <RealWorld/constants/tree.glsl>
-const int RootsSB_BINDING = 4;
-#include <RealWorld/world/shaders/RootsSB.glsl>
-const int BranchesSB_BINDING = 5;
+const int BranchesSB_BINDING = 4;
 #include <RealWorld/world/shaders/BranchesSB.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 
@@ -41,8 +39,6 @@ void main(){
     uint rootIndex = atomicAdd(b_currentRootCount, 1);
     uint branchIndex = atomicAdd(b_currentBranchCount, 5);
     if (rootIndex < b_maxRootCount && (branchIndex + 5) < b_currentBranchCount) {
-        // Place the root on the horizon
-        b_roots[rootIndex].posPx = vec2(pPx, horizonPx);
         //Add 5 branches
         b_branches[branchIndex] = Branch(
             tiToPx(15.0),
