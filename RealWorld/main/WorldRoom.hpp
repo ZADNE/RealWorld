@@ -72,7 +72,7 @@ private:
     ImFont*             m_arial =
         ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
-    std::array<re::CommandBuffer, 2> m_computeCommandBuffer{
+    re::StepDoubleBuffered<re::CommandBuffer> m_stepCommandBuffer{
         re::CommandBuffer{vk::CommandBufferLevel::ePrimary},
         re::CommandBuffer{vk::CommandBufferLevel::ePrimary}};
     uint64_t        m_stepN = 1;

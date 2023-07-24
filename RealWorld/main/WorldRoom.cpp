@@ -61,11 +61,11 @@ void WorldRoom::sessionEnd() {
 
 void WorldRoom::step() {
     // Get the command buffer of the current step
-    auto& commandBuffer = m_computeCommandBuffer[(++m_stepN) & 1];
+    auto& commandBuffer = m_stepCommandBuffer.write();
 
     // Wait for the command buffer to be consumed.
     // It should already be consumed thanks to RealEngine's step() timing
-    m_simulationFinishedSem.wait(m_stepN - 2);
+    m_simulationFinishedSem.wait(++m_stepN - 2);
 
     commandBuffer->reset();
     commandBuffer->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
@@ -95,7 +95,7 @@ void WorldRoom::step() {
     // Manipulate the inventory based on user's input
     updateInventoryAndUI();
 
-    //m_treesPoC.step();
+    // m_treesPoC.step();
 }
 
 void WorldRoom::render(
@@ -248,8 +248,8 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     m_spriteBatch.nextBatch();
     m_invUI.draw(m_spriteBatch, engine().cursorAbs());
     m_spriteBatch.drawBatch(commandBuffer, m_windowViewMat);
-    //m_treesPoC.draw(commandBuffer, m_windowViewMat);
-    // Minimap
+    // m_treesPoC.draw(commandBuffer, m_windowViewMat);
+    //  Minimap
     if (m_minimap) {
         m_worldDrawer.drawMinimap(commandBuffer);
     }

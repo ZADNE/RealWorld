@@ -11,15 +11,17 @@ using enum vk::BufferUsageFlagBits;
 namespace rw {
 
 TreeSimulator::TreeSimulator(const re::PipelineLayout& simulationPL)
-    : m_simulateTreesPl{
+    : m_simulateAndRasterizeBranchesPl{
           {.pipelineLayout = *simulationPL}, {.comp = simulateTrees_comp}} {
 }
 
 void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateTreesPl);
-    /*commandBuffer.dispatchIndirect(
-        **m_branchesBuf, offsetof(BranchesSBHeader, dispatchX)
-    );*/
+    commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eCompute, *m_simulateAndRasterizeBranchesPl
+    );
+    commandBuffer.dispatchIndirect(
+        *m_branchesBuf->write(), offsetof(BranchesSBHeader, branchCount)
+    );
 }
 
 TreeSimulator::Buffers TreeSimulator::adoptSave(const glm::ivec2& worldTexSizeCh) {

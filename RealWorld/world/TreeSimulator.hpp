@@ -47,12 +47,12 @@ private:
     };
 
     struct BranchesSBHeader {
-        glm::uint dispatchX          = 0;
-        glm::uint dispatchY          = 1;
-        glm::uint dispatchZ          = 1;
-        int       currentBranchCount = 0;
-        int       maxBranchCount     = 0;
-        int       padding[3];
+        uint32_t branchCount    = 0;
+        uint32_t instanceCount  = 4;
+        uint32_t firstBranch    = 0;
+        uint32_t firstInstance  = 0;
+        int      maxBranchCount = 0;
+        int      padding[3];
     };
 
 #pragma warning(push)
@@ -71,7 +71,7 @@ private:
     static_assert(k_branchHeaderSize * sizeof(Branch) == sizeof(BranchesSBHeader));
 
     std::optional<re::StepDoubleBuffered<re::Buffer>> m_branchesBuf;
-    re::Pipeline                                      m_simulateTreesPl;
+    re::Pipeline m_simulateAndRasterizeBranchesPl;
 };
 
 } // namespace rw
