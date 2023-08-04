@@ -7,6 +7,8 @@
 #include <glm/vec2.hpp>
 
 #include <RealEngine/graphics/buffers/Buffer.hpp>
+#include <RealEngine/graphics/output_control/Framebuffer.hpp>
+#include <RealEngine/graphics/output_control/RenderPass.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
@@ -71,7 +73,9 @@ private:
     static_assert(k_branchHeaderSize * sizeof(Branch) == sizeof(BranchesSBHeader));
 
     std::optional<re::StepDoubleBuffered<re::Buffer>> m_branchesBuf;
-    re::Pipeline m_simulateAndRasterizeBranchesPl;
+    re::Pipeline                   m_simulateAndRasterizeBranchesPl;
+    re::RenderPass                 m_renderPass;
+    std::optional<re::Framebuffer> m_framebuffer;
 };
 
 } // namespace rw
