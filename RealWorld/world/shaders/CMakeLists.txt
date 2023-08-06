@@ -7,10 +7,12 @@
     modifyTiles.comp            
     simulateBodies.comp         
     simulateFluids.comp         
-    simulateTrees.comp          
+    simulAndRasterizeTrees.vert simulAndRasterizeTrees.tesc
+    simulAndRasterizeTrees.tese simulAndRasterizeTrees.frag
     simulationPL.comp           
     tileLoad.glsl               tileLoadStore.glsl
     TilePropertiesUB.glsl       
     transformTiles.comp         
+    TreeDynamicsPC.glsl         
     WorldDynamicsPC.glsl        
 )

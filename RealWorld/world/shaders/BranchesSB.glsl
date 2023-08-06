@@ -3,20 +3,32 @@
  */
 
 struct Branch {
-    float lenPx;
-    float naturalRotRad;
-    float currentRotRad;
-    uint  childrenBeginEnd; // 16-bit indices
+    vec2    absPosTi; // Absolute
+    uint    parentIndex;
+    uint    angles;
+    float   radiusTi;
+    float   lengthTi;
+    float   density;
+    float   stiffness;
 };
 
-layout(set = 0, binding = BranchesSB_BINDING, std430) restrict buffer BranchesSB {
-    uint   b_branchesDispatchX;
-    uint   b_branchesDispatchY;
-    uint   b_branchesDispatchZ;
-    int    b_currentRootCount;
-    int    b_maxRootCount;
-    int    b_currentBranchCount;
-    int    b_maxBranchCount;
-    int    b_branchesPadding[3];
-    Branch b_branches[];
+struct BranchesSBHeader {
+    uint    branchCount;
+    uint    instanceCount;
+    uint    firstBranch;
+    uint    firstInstance;
+    int     maxBranchCount;
+    int     padding[3];
 };
+
+layout(set = 0, binding = BranchesSBWrite_BINDING, std430)
+writeonly restrict buffer BranchesSBWrite {
+    BranchesSBHeader    header;
+    Branch              branches[];
+} b_branchesWrite;
+
+layout(set = 0, binding = BranchesSBRead_BINDING, std430)
+readonly restrict buffer BranchesSBRead {
+    BranchesSBHeader    header;
+    Branch              branches[];
+} b_branchesRead;

@@ -12,6 +12,7 @@
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
+#include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
 
@@ -27,7 +28,7 @@ public:
         const re::StepDoubleBuffered<re::Buffer>& branchesBuf;
     };
 
-    Buffers adoptSave(const glm::ivec2& worldTexSizeCh);
+    Buffers adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
 
 private:
     struct Branch {
@@ -39,11 +40,11 @@ private:
         };
         static_assert(sizeof(Angles) % 4 == 0);
 
-        glm::vec2    absPosPx; // Absolute
+        glm::vec2    absPosTi;
         unsigned int parentIndex;
         Angles       angles;
-        float        lengthPx;
-        float        radiusPx;
+        float        radiusTi;
+        float        lengthTi;
         float        density;
         float        stiffness;
     };

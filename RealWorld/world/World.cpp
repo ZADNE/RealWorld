@@ -79,13 +79,14 @@ const re::Texture& World::adoptSave(
         .allocFlags = vma::AllocationCreateFlagBits::eDedicatedMemory,
         .format     = vk::Format::eR8G8B8A8Uint,
         .extent     = {texSize, 1},
-        .usage      = eStorage | eTransferSrc | eTransferDst | eSampled}};
+        .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
+                 eColorAttachment | eInputAttachment}};
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
 
     // Tree simulator
-    auto treeBuffers = m_treeSimulator.adoptSave(worldTexSizeCh);
+    auto treeBuffers = m_treeSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
@@ -199,8 +200,7 @@ void World::modify(
 }
 
 void World::endStep(const vk::CommandBuffer& commandBuffer) {
-    // Transit world texture back to readonly-optimal layout so that it can
-    // rendered
+    // Transit world texture back to readonly-optimal layout so that it can rendered
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eComputeShader,                              // Src stage mask
         A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask

@@ -112,6 +112,7 @@ private:
         glm::uvec2 modifySetValue;
         float      modifyRadius;
         glm::uint  timeHash;
+        float      timeSec; // Does not start from zero after startup
         glm::uint  updateOrder = 0b00011011'00011011'00011011'00011011;
     };
     WorldDynamicsPC m_worldDynamicsPC;

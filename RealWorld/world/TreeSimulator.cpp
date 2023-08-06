@@ -2,16 +2,17 @@
  *  @author    Dubsky Tomas
  */
 
+#include <RealWorld/constants/chunk.hpp>
 #include <RealWorld/constants/tree.hpp>
 #include <RealWorld/world/TreeSimulator.hpp>
-#include <RealWorld/world/shaders/simulateTrees_comp.hpp>
+#include <RealWorld/world/shaders/AllShaders.hpp>
 
 using enum vk::BufferUsageFlagBits;
 
 namespace rw {
 
 TreeSimulator::TreeSimulator(const re::PipelineLayout& simulationPL)
-    : m_simulateAndRasterizeBranchesPl{{.pipelineLayout = *simulationPL}, {.comp = simulateTrees_comp}}
+    : m_simulateAndRasterizeBranchesPl{{.pipelineLayout = *simulationPL}, {.comp = simulateFluids_comp}}
     , m_renderPass([]() {
         constexpr static auto attachmentDesc = vk::AttachmentDescription2{
             // The world texture attachment
@@ -48,9 +49,12 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
     );
 }
 
-TreeSimulator::Buffers TreeSimulator::adoptSave(const glm::ivec2& worldTexSizeCh) {
+TreeSimulator::Buffers TreeSimulator::adoptSave(
+    const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh
+) {
     auto maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                           k_branchHeaderSize;
+    glm::uvec2 worldTexSizeTi = chToTi(worldTexSizeCh);
 
     BranchesSBHeader initHeader{.maxBranchCount = maxBranchCount};
 
@@ -63,6 +67,14 @@ TreeSimulator::Buffers TreeSimulator::adoptSave(const glm::ivec2& worldTexSizeCh
     };
 
     m_branchesBuf.emplace(createBranchBuffer(), createBranchBuffer());
+
+    m_framebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
+        {},
+        *m_renderPass,
+        worldTex.imageView(),
+        worldTexSizeTi.x,
+        worldTexSizeTi.y,
+        1u}};
 
     return {*m_branchesBuf};
 }
