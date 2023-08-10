@@ -5,6 +5,7 @@
     BranchesSB.glsl             
     LSystemSB.glsl             
     modifyTiles.comp            
+    normAngles.glsl             
     simulateBodies.comp         
     simulateFluids.comp         
     simulAndRasterizeTrees.vert simulAndRasterizeTrees.tesc

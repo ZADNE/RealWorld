@@ -10,9 +10,6 @@ const uint TilePropertiesUB_BINDING = 2;
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 const int BodiesSB_BINDING = 3;
 #include <RealWorld/world/shaders/BodiesSB.glsl>
-const int BranchesSBWrite_BINDING = 4;
-const int BranchesSBRead_BINDING = 5;
-#include <RealWorld/world/shaders/BranchesSB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 
 void main(){

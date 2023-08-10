@@ -2,17 +2,32 @@
  *  @author    Dubsky Tomas
  */
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/tree.hpp>
 #include <RealWorld/world/TreeSimulator.hpp>
-#include <RealWorld/world/shaders/AllShaders.hpp>
 
 using enum vk::BufferUsageFlagBits;
+using enum vk::ShaderStageFlagBits;
+
+using D = vk::DescriptorType;
 
 namespace rw {
 
-TreeSimulator::TreeSimulator(const re::PipelineLayout& simulationPL)
-    : m_simulateAndRasterizeBranchesPl{{.pipelineLayout = *simulationPL}, {.comp = simulateFluids_comp}}
+constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
+
+TreeSimulator::TreeSimulator()
+    : m_pipelineLayout(
+          {},
+          re::PipelineLayoutDescription{
+              .bindings =
+                  {{{0, D::eStorageBuffer, 1, eVertex},
+                    {1, D::eStorageBuffer, 1, eVertex}}},
+              .ranges = {vk::PushConstantRange{
+                  eVertex | eTessellationEvaluation, 0u, sizeof(TreeDynamicsPC)}}}
+      )
     , m_renderPass([]() {
         constexpr static auto attachmentDesc = vk::AttachmentDescription2{
             // The world texture attachment
@@ -41,12 +56,44 @@ TreeSimulator::TreeSimulator(const re::PipelineLayout& simulationPL)
 }
 
 void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
+    m_treeDynamicsPC.timeSec += k_stepDurationSec;
+    commandBuffer.beginRenderPass2(
+        vk::RenderPassBeginInfo{
+            *m_renderPass,
+            **m_framebuffer,
+            vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}},
+            {}},
+        vk::SubpassBeginInfo{vk::SubpassContents::eInline}
+    );
+    commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        *m_pipelineLayout,
+        0u,
+        *m_descriptorSets.read(),
+        {}
+    );
+
+    glm::vec2 viewport{m_worldTexSizeTi};
+    commandBuffer.setViewport(
+        0u, vk::Viewport{0.0f, 0.0, viewport.x, viewport.y, 0.0f, 1.0f}
+    );
+    commandBuffer.setScissor(
+        0u,
+        vk::Rect2D{
+            {0, 0},                                  // x, y
+            {m_worldTexSizeTi.x, m_worldTexSizeTi.y} // width, height
+        }
+    );
+    commandBuffer.pushConstants<TreeDynamicsPC>(
+        *m_pipelineLayout, eVertex | eTessellationEvaluation, 0u, m_treeDynamicsPC
+    );
     commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, *m_simulateAndRasterizeBranchesPl
+        vk::PipelineBindPoint::eGraphics, *m_simulateAndRasterizeBranchesPl
     );
-    commandBuffer.dispatchIndirect(
-        *m_branchesBuf->write(), offsetof(BranchesSBHeader, branchCount)
+    commandBuffer.drawIndirect(
+        *m_branchesBuf->write(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
+    commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
 }
 
 TreeSimulator::Buffers TreeSimulator::adoptSave(
@@ -54,7 +101,10 @@ TreeSimulator::Buffers TreeSimulator::adoptSave(
 ) {
     auto maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                           k_branchHeaderSize;
-    glm::uvec2 worldTexSizeTi = chToTi(worldTexSizeCh);
+    m_worldTexSizeTi = chToTi(worldTexSizeCh);
+    m_treeDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
+    m_treeDynamicsPC.mvpMat =
+        glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
 
     BranchesSBHeader initHeader{.maxBranchCount = maxBranchCount};
 
@@ -67,13 +117,20 @@ TreeSimulator::Buffers TreeSimulator::adoptSave(
     };
 
     m_branchesBuf.emplace(createBranchBuffer(), createBranchBuffer());
+    auto writeDescriptor =
+        [&](re::DescriptorSet& set, re::Buffer& first, re::Buffer& second) {
+            set.write(D::eStorageBuffer, 0u, 0u, first, 0ull, VK_WHOLE_SIZE);
+            set.write(D::eStorageBuffer, 1u, 0u, second, 0ull, VK_WHOLE_SIZE);
+        };
+    writeDescriptor(m_descriptorSets[0], (*m_branchesBuf)[0], (*m_branchesBuf)[1]);
+    writeDescriptor(m_descriptorSets[1], (*m_branchesBuf)[1], (*m_branchesBuf)[0]);
 
     m_framebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
         {},
         *m_renderPass,
         worldTex.imageView(),
-        worldTexSizeTi.x,
-        worldTexSizeTi.y,
+        m_worldTexSizeTi.x,
+        m_worldTexSizeTi.y,
         1u}};
 
     return {*m_branchesBuf};

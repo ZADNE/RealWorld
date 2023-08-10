@@ -54,9 +54,10 @@ const uint DRY_GRASS_BL =       9;
 const uint HALLOW_STONE_BL =    10;
 const uint HALLOW_DIRT_BL =     11;
 const uint HALLOW_GRASS_BL =    12;
+const uint WOOD_BL =            13;
 const uint HIGHLIGHTER_BL =     223;
 //Fluids
-const uint FIRST_FLUID_BL =     224;//1110 0000b
+const uint FIRST_FLUID_BL =     224;//0b1110'0000
 const uint WATER_BL =           224;
 const uint LAVA_BL =            225;
 const uint STEAM_BL =           226;
@@ -81,6 +82,7 @@ const uint DRY_GRASS_WL =       9;
 const uint HALLOW_STONE_WL =    10;
 const uint HALLOW_DIRT_WL =     11;
 const uint HALLOW_GRASS_WL =    12;
+const uint WOOD_WL =            13;
 const uint HIGHLIGHTER_WL =     223;
 const uint AIR_WL =             255;
 const uint NEVER_WL =           256;
@@ -100,6 +102,7 @@ const uvec4 DRY_GRASS =         {DRY_GRASS_BL,      0,    DRY_GRASS_WL,     0};
 const uvec4 HALLOW_STONE =      {HALLOW_STONE_BL,   0,    HALLOW_STONE_WL,  0};
 const uvec4 HALLOW_DIRT =       {HALLOW_DIRT_BL,    0,    HALLOW_DIRT_WL,   0};
 const uvec4 HALLOW_GRASS =      {HALLOW_GRASS_BL,   0,    HALLOW_GRASS_WL,  0};
+const uvec4 WOOD =              {WOOD_BL,           0,    WOOD_WL,          0};
 const uvec4 HIGHLIGHTER =       {HIGHLIGHTER_BL,    0,    HIGHLIGHTER_WL,   0};
 
 const uvec2 WATER =             {WATER_BL,          0};

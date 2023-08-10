@@ -22,7 +22,8 @@ ChunkGenerator::ChunkGenerator()
                   {1, eStorageImage, 1, eCompute},  // materialImage
                   {2, eStorageBuffer, 1, eCompute}, // LSystemSB
                   {3, eStorageBuffer, 1, eCompute}, // bodiesSB
-                  {4, eStorageBuffer, 1, eCompute}  // branchesSB
+                  {4, eStorageBuffer, 1, eCompute}, // branchesSBWrite
+                  {5, eStorageBuffer, 1, eCompute}  // branchesSBWrite
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       ) {
@@ -45,10 +46,17 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_descSet.forEach(
         [&](auto& ds, const auto& branchBuf) {
             ds.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, VK_WHOLE_SIZE);
-            ds.write(eStorageBuffer, 4, 0, *branchBuf, 0, VK_WHOLE_SIZE);
         },
         m_branchesBuf
     );
+    auto writeDescriptor = [&](re::DescriptorSet& set,
+                               const re::Buffer&  first,
+                               const re::Buffer&  second) {
+        set.write(eStorageBuffer, 4, 0, first, 0, VK_WHOLE_SIZE);
+        set.write(eStorageBuffer, 5, 0, second, 0, VK_WHOLE_SIZE);
+    };
+    writeDescriptor(m_descSet[0], *m_branchesBuf[0], *m_branchesBuf[1]);
+    writeDescriptor(m_descSet[1], *m_branchesBuf[1], *m_branchesBuf[0]);
 }
 
 void ChunkGenerator::generateChunk(

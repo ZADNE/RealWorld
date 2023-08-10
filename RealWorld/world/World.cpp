@@ -61,9 +61,7 @@ World::World()
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties)})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
-    m_simulationDS.forEach([&](auto& ds) {
-        ds.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, VK_WHOLE_SIZE);
-    });
+    m_simulationDS.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, VK_WHOLE_SIZE);
 }
 
 const re::Texture& World::adoptSave(
@@ -81,9 +79,11 @@ const re::Texture& World::adoptSave(
         .extent     = {texSize, 1},
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
                  eColorAttachment | eInputAttachment}};
+    m_simulationDS.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
+    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE);
 
     // Tree simulator
     auto treeBuffers = m_treeSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
@@ -97,15 +97,6 @@ const re::Texture& World::adoptSave(
         .descriptorSet  = m_simulationDS,
         .bodiesBuf      = bodiesBuf,
         .branchesBuf    = treeBuffers.branchesBuf});
-
-    m_simulationDS.forEach(
-        [&](auto& ds, const auto& branchBuf) {
-            ds.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
-            ds.write(eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE);
-            ds.write(eStorageBuffer, 4, 0, branchBuf, 0, VK_WHOLE_SIZE);
-        },
-        treeBuffers.branchesBuf
-    );
 
     return *m_worldTex;
 }
@@ -150,21 +141,21 @@ int World::step(
     m_chunkManager.beginStep();
     m_chunkManager.planActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
     commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS.write(), {}
+        vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );
     int activatedChunks = m_chunkManager.endStep(commandBuffer);
-
-    // Set up commandBuffer state for simulation
-    xorshift32(m_worldDynamicsPC.timeHash);
-    commandBuffer.pushConstants(
-        *m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash)
-    );
 
     // Bodies
     m_bodySimulator.step(commandBuffer);
 
     // Trees
     m_treeSimulator.step(commandBuffer);
+
+    // Set up commandBuffer state for simulation
+    xorshift32(m_worldDynamicsPC.timeHash);
+    commandBuffer.pushConstants(
+        *m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash)
+    );
 
     // Tile transformations
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);

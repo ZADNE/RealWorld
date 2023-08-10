@@ -112,17 +112,14 @@ private:
         glm::uvec2 modifySetValue;
         float      modifyRadius;
         glm::uint  timeHash;
-        float      timeSec; // Does not start from zero after startup
         glm::uint  updateOrder = 0b00011011'00011011'00011011'00011011;
     };
     WorldDynamicsPC m_worldDynamicsPC;
 
     re::PipelineLayout m_simulationPL{
         {}, re::PipelineComputeSources{.comp = simulationPL_comp}};
-    re::StepDoubleBuffered<re::DescriptorSet> m_simulationDS{
-        re::DescriptorSet{m_simulationPL.descriptorSetLayout(0)},
-        re::DescriptorSet{m_simulationPL.descriptorSetLayout(0)}};
-    re::Pipeline m_simulateFluidsPl{
+    re::DescriptorSet m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
+    re::Pipeline      m_simulateFluidsPl{
         re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
         re::PipelineComputeSources{.comp = simulateFluids_comp}};
     re::Pipeline m_transformTilesPl{
@@ -136,7 +133,7 @@ private:
     const re::Buffer* m_activeChunksBuf = nullptr;
 
     BodySimulator m_bodySimulator{m_simulationPL};
-    TreeSimulator m_treeSimulator{m_simulationPL};
+    TreeSimulator m_treeSimulator{};
 
     bool m_permuteOrder = true;
 };

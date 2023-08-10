@@ -4,6 +4,7 @@
 #pragma once
 #include <cmath>
 #include <cstdint>
+#include <bit>
 
 #include <glm/vec2.hpp>
 
@@ -38,6 +39,7 @@ enum class Block : uint8_t {
     HallowStone,
     HallowDirt,
     HallowGrass,
+    Wood,
 
     Highlighter = 223,
     Water       = 224,
@@ -65,6 +67,7 @@ enum class Wall : uint8_t {
     HallowStone,
     HallowDirt,
     HallowGrass,
+    Wood,
 
     Air = 255
 };

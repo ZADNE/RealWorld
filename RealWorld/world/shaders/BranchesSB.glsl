@@ -13,9 +13,9 @@ struct Branch {
 };
 
 struct BranchesSBHeader {
-    uint    branchCount;
+    uint    vertexCount;
     uint    instanceCount;
-    uint    firstBranch;
+    uint    firstVertex;
     uint    firstInstance;
     int     maxBranchCount;
     int     padding[3];
@@ -23,12 +23,12 @@ struct BranchesSBHeader {
 
 layout(set = 0, binding = BranchesSBWrite_BINDING, std430)
 writeonly restrict buffer BranchesSBWrite {
-    BranchesSBHeader    header;
-    Branch              branches[];
-} b_branchesWrite;
+    BranchesSBHeader    b_branchesHeaderWrite;
+    Branch              b_branchesWrite[];
+};
 
 layout(set = 0, binding = BranchesSBRead_BINDING, std430)
 readonly restrict buffer BranchesSBRead {
-    BranchesSBHeader    header;
-    Branch              branches[];
-} b_branchesRead;
+    BranchesSBHeader    b_branchesHeaderRead;
+    Branch              b_branchesRead[];
+};
