@@ -8,7 +8,7 @@
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 const int BodiesSB_BINDING = 3;
-#include <RealWorld/world/shaders/BodiesSB.glsl>
+#include <RealWorld/trees/shaders/BodiesSB.glsl>
 
 layout( local_size_x = k_simulateBodiesGroupSizeX,
         local_size_y = k_simulateBodiesGroupSizeY,

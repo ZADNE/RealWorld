@@ -4,6 +4,7 @@
 #pragma once
 #include <optional>
 
+#include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
 #include <RealEngine/graphics/buffers/Buffer.hpp>
@@ -16,7 +17,7 @@
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/world/shaders/AllShaders.hpp>
+#include <RealWorld/trees/shaders/AllShaders.hpp>
 
 namespace rw {
 
@@ -84,16 +85,16 @@ private:
 
     re::PipelineLayout m_pipelineLayout;
     re::RenderPass     m_renderPass;
-    re::Pipeline       m_simulateAndRasterizeBranchesPl{
+    re::Pipeline       m_rasterizeBranchesPl{
               {.pipelineLayout     = *m_pipelineLayout,
                .topology           = vk::PrimitiveTopology::ePatchList,
                .patchControlPoints = 1,
                .enableBlend        = false,
                .renderPass         = *m_renderPass},
-              {.vert = simulAndRasterizeTrees_vert,
-               .tesc = simulAndRasterizeTrees_tesc,
-               .tese = simulAndRasterizeTrees_tese,
-               .frag = simulAndRasterizeTrees_frag}};
+              {.vert = rasterizeTrees_vert,
+               .tesc = rasterizeTrees_tesc,
+               .tese = rasterizeTrees_tese,
+               .frag = rasterizeTrees_frag}};
     re::StepDoubleBuffered<re::DescriptorSet> m_descriptorSets{
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};

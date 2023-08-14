@@ -13,9 +13,9 @@
 #include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
 #include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/world/BodySimulator.hpp>
+#include <RealWorld/trees/BodySimulator.hpp>
+#include <RealWorld/trees/TreeSimulator.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
-#include <RealWorld/world/TreeSimulator.hpp>
 
 namespace rw {
 

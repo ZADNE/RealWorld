@@ -6,7 +6,7 @@
 #include <RealWorld/constants/tree.glsl>
 const int BranchesSBWrite_BINDING = 4;
 const int BranchesSBRead_BINDING = 5;
-#include <RealWorld/world/shaders/BranchesSB.glsl>
+#include <RealWorld/trees/shaders/BranchesSB.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 
 const float k_piHalf = 1.57079632679;

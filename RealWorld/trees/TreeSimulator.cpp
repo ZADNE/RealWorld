@@ -7,7 +7,7 @@
 #include <RealWorld/constants/chunk.hpp>
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/tree.hpp>
-#include <RealWorld/world/TreeSimulator.hpp>
+#include <RealWorld/trees/TreeSimulator.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -88,20 +88,27 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
         *m_pipelineLayout, eVertex | eTessellationEvaluation, 0u, m_treeDynamicsPC
     );
     commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eGraphics, *m_simulateAndRasterizeBranchesPl
+        vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl
     );
     commandBuffer.drawIndirect(
         *m_branchesBuf->write(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
     commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
+    vk::BufferCopy2 bufferCopy{
+        offsetof(BranchesSB, header),
+        offsetof(BranchesSB, header),
+        sizeof(BranchesSB)};
+    commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
+        *m_branchesBuf->write(), *m_branchesBuf->read(), bufferCopy});
 }
 
 TreeSimulator::Buffers TreeSimulator::adoptSave(
     const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh
 ) {
-    auto maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
-                          k_branchHeaderSize;
-    m_worldTexSizeTi = chToTi(worldTexSizeCh);
+    auto maxBranchCount = 1 /*k_branchesPerChunk * worldTexSizeCh.x *
+                           worldTexSizeCh.y - k_branchHeaderSize*/
+        ;
+    m_worldTexSizeTi                = chToTi(worldTexSizeCh);
     m_treeDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
     m_treeDynamicsPC.mvpMat =
         glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
@@ -112,7 +119,7 @@ TreeSimulator::Buffers TreeSimulator::adoptSave(
         return re::Buffer{re::BufferCreateInfo{
             .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
             .sizeInBytes = sizeof(BranchesSBHeader) + sizeof(Branch) * maxBranchCount,
-            .usage    = eStorageBuffer | eIndirectBuffer,
+            .usage = eStorageBuffer | eIndirectBuffer | eTransferSrc | eTransferDst,
             .initData = re::objectToByteSpan(initHeader)}};
     };
 

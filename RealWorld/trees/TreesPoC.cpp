@@ -10,7 +10,7 @@
 #include <glm/gtc/noise.hpp>
 #include <glm/trigonometric.hpp>
 
-#include <RealWorld/world/TreesPoC.hpp>
+#include <RealWorld/trees/TreesPoC.hpp>
 
 namespace rw {
 

@@ -9,7 +9,7 @@ const uint ActiveChunksSB_BINDING = 1;
 const uint TilePropertiesUB_BINDING = 2;
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 const int BodiesSB_BINDING = 3;
-#include <RealWorld/world/shaders/BodiesSB.glsl>
+#include <RealWorld/trees/shaders/BodiesSB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 
 void main(){

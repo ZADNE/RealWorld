@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 
-#include <RealWorld/world/ParticleSimulator.hpp>
+#include <RealWorld/trees/ParticleSimulator.hpp>
 
 namespace rw {
 

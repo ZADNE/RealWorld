@@ -9,9 +9,9 @@ layout(location = 3) out uint  o_instanceIndex;
 
 const int BranchesSBWrite_BINDING = 0;
 const int BranchesSBRead_BINDING = 1;
-#include <RealWorld/world/shaders/BranchesSB.glsl>
-#include <RealWorld/world/shaders/normAngles.glsl>
-#include <RealWorld/world/shaders/TreeDynamicsPC.glsl>
+#include <RealWorld/trees/shaders/BranchesSB.glsl>
+#include <RealWorld/trees/shaders/normAngles.glsl>
+#include <RealWorld/trees/shaders/TreeDynamicsPC.glsl>
 
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 const float k_third = 0.33333333333;
@@ -22,11 +22,11 @@ const float k_third = 0.33333333333;
 
 void main(){
     // Indices
-    const uint vertexIndex = gl_VertexIndex >> 2;
+    const uint branchIndex = gl_VertexIndex >> 2;
     const uint instanceIndex = gl_VertexIndex & 0x3;
 
     // Outputs for next stage
-    Branch b = b_branchesRead[vertexIndex];
+    Branch b = b_branchesRead[branchIndex];
     o_posTi = b.absPosTi;
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
     vec4 angles = unpackUnorm4x8(b.angles);
@@ -34,10 +34,10 @@ void main(){
     o_instanceIndex = instanceIndex;
 
     // Simulation
-    /*if (instanceIndex == 0){
+    if (instanceIndex == 0){
         const Branch parent = b_branchesRead[b.parentIndex];
         vec4 parentAngles = unpackUnorm4x8(parent.angles);
-        float         wind   = hash11(p_timeSec);
+        /*float         wind   = hash11(p_timeSec);
         wind += 0.3 * hash11(p_timeSec * 10.0);
 
         float volume = k_pi * b.radiusTi * b.radiusTi * b.lengthTi;
@@ -66,13 +66,14 @@ void main(){
         angles.angleVelNorm += angularAcc;
         angles.absAngleNorm += angles.angleVelNorm;
         angles.absAngleNorm = fract(angles.absAngleNorm);
-        b.angles = packUnorm4x8(angles);
+        b.angles = packUnorm4x8(angles);*/
 
-        b.absPosTi =
+        b.absPosTi +=
+            vec2(0.000, 1.0); +
             parent.absPosTi +
             toCartesian(b.lengthTi, parentAngles.absAngleNorm + angles.relRestAngleNorm);
 
         // Store the modified branch
-        b_branchesWrite[gl_VertexIndex] = b;
-    }*/
+        b_branchesWrite[branchIndex] = b;
+    }
 }
