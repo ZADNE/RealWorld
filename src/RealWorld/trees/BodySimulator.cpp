@@ -4,7 +4,7 @@
 
 #include <RealWorld/constants/body.hpp>
 #include <RealWorld/trees/BodySimulator.hpp>
-#include <RealWorld/world/shaders/simulateBodies_comp.hpp>
+#include <RealWorld/trees/shaders/simulateBodies_comp.hpp>
 
 using enum vk::BufferUsageFlagBits;
 
