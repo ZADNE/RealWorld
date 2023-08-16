@@ -1,11 +1,11 @@
 ﻿target_shaders(RealWorld PRIVATE
     BodiesSB.glsl               
     BranchesSB.glsl             
-    LSystemSB.glsl             
+    LSystemSB.glsl              
     normAngles.glsl             
     simulateBodies.comp         
-    rasterizeTrees.vert         rasterizeTrees.tesc
-    rasterizeTrees.tese         rasterizeTrees.frag
+    rasterizeBranches.vert      rasterizeBranches.frag
+    tessellateBranches.tesc     tessellateBranches.tese
     TreeDynamicsPC.glsl         
-    unrasterizeTrees.frag       
+    unrasterizeBranches.vert    unrasterizeBranches.frag
 )

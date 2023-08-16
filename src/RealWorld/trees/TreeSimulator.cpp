@@ -13,6 +13,8 @@ using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;
 
 using D = vk::DescriptorType;
+using S = vk::PipelineStageFlagBits;
+using A = vk::AccessFlagBits;
 
 namespace rw {
 
@@ -24,11 +26,12 @@ TreeSimulator::TreeSimulator()
           re::PipelineLayoutDescription{
               .bindings =
                   {{{0, D::eStorageBuffer, 1, eVertex},
-                    {1, D::eStorageBuffer, 1, eVertex}}},
+                    {1, D::eStorageBuffer, 1, eVertex},
+                    {2, D::eInputAttachment, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
                   eVertex | eTessellationEvaluation, 0u, sizeof(TreeDynamicsPC)}}}
       )
-    , m_renderPass([]() {
+    , m_rasterizationRenderPass([]() {
         constexpr static auto attachmentDesc = vk::AttachmentDescription2{
             // The world texture attachment
             {},
@@ -43,15 +46,36 @@ TreeSimulator::TreeSimulator()
         };
         constexpr static auto worldTexAttachmentRef = vk::AttachmentReference2{
             0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor};
-        static auto subpassDescription = vk::SubpassDescription2{
-            {},
-            vk::PipelineBindPoint::eGraphics,
+        static std::array subpassDescriptions = std::to_array<vk::SubpassDescription2>(
+            {vk::SubpassDescription2{
+                 {},
+                 vk::PipelineBindPoint::eGraphics,
+                 0,
+                 worldTexAttachmentRef, // Input
+                 worldTexAttachmentRef  // Color
+             },
+             vk::SubpassDescription2{
+                 {},
+                 vk::PipelineBindPoint::eGraphics,
+                 0,
+                 worldTexAttachmentRef, // Input
+                 worldTexAttachmentRef  // Color
+             }}
+        );
+        constexpr static auto subpassDependency = vk::SubpassDependency2{
             0,
-            worldTexAttachmentRef, // Input
-            worldTexAttachmentRef  // Color
-        };
+            1,
+            S::eColorAttachmentOutput, // Src stage
+            S::eFragmentShader,        // Dst stage
+            A::eColorAttachmentWrite,  // Src access
+            A::eInputAttachmentRead,   // Dst access
+            vk::DependencyFlagBits::eByRegion};
+
         return vk::RenderPassCreateInfo2{
-            vk::RenderPassCreateFlags{}, attachmentDesc, subpassDescription};
+            vk::RenderPassCreateFlags{},
+            attachmentDesc,
+            subpassDescriptions,
+            subpassDependency};
     }()) {
 }
 
@@ -59,7 +83,7 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
     m_treeDynamicsPC.timeSec += k_stepDurationSec;
     commandBuffer.beginRenderPass2(
         vk::RenderPassBeginInfo{
-            *m_renderPass,
+            *m_rasterizationRenderPass,
             **m_framebuffer,
             vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}},
             {}},
@@ -69,10 +93,9 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
         vk::PipelineBindPoint::eGraphics,
         *m_pipelineLayout,
         0u,
-        *m_descriptorSets.read(),
+        *m_descriptorSets.write(),
         {}
     );
-
     glm::vec2 viewport{m_worldTexSizeTi};
     commandBuffer.setViewport(
         0u, vk::Viewport{0.0f, 0.0, viewport.x, viewport.y, 0.0f, 1.0f}
@@ -87,9 +110,25 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.pushConstants<TreeDynamicsPC>(
         *m_pipelineLayout, eVertex | eTessellationEvaluation, 0u, m_treeDynamicsPC
     );
-    commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl
+    // Unrasterize branches from previous step
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
+    commandBuffer.drawIndirect(
+        *m_branchesBuf->write(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
+
+    commandBuffer.nextSubpass2(
+        vk::SubpassBeginInfo{vk::SubpassContents::eInline}, vk::SubpassEndInfo{}
+    );
+
+    // Rasterize moved branches
+    commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        *m_pipelineLayout,
+        0u,
+        *m_descriptorSets.read(),
+        {}
+    );
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
     commandBuffer.drawIndirect(
         *m_branchesBuf->write(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
@@ -105,9 +144,8 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
 TreeSimulator::Buffers TreeSimulator::adoptSave(
     const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh
 ) {
-    auto maxBranchCount = 1 /*k_branchesPerChunk * worldTexSizeCh.x *
-                           worldTexSizeCh.y - k_branchHeaderSize*/
-        ;
+    auto maxBranchCount = 1;/*k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
+                          k_branchHeaderSize;*/
     m_worldTexSizeTi                = chToTi(worldTexSizeCh);
     m_treeDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
     m_treeDynamicsPC.mvpMat =
@@ -128,13 +166,14 @@ TreeSimulator::Buffers TreeSimulator::adoptSave(
         [&](re::DescriptorSet& set, re::Buffer& first, re::Buffer& second) {
             set.write(D::eStorageBuffer, 0u, 0u, first, 0ull, VK_WHOLE_SIZE);
             set.write(D::eStorageBuffer, 1u, 0u, second, 0ull, VK_WHOLE_SIZE);
+            set.write(D::eInputAttachment, 2u, 0u, worldTex, vk::ImageLayout::eGeneral);
         };
     writeDescriptor(m_descriptorSets[0], (*m_branchesBuf)[0], (*m_branchesBuf)[1]);
     writeDescriptor(m_descriptorSets[1], (*m_branchesBuf)[1], (*m_branchesBuf)[0]);
 
     m_framebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
         {},
-        *m_renderPass,
+        *m_rasterizationRenderPass,
         worldTex.imageView(),
         m_worldTexSizeTi.x,
         m_worldTexSizeTi.y,

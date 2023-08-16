@@ -67,9 +67,12 @@ void main(){
         angles.absAngleNorm += angles.angleVelNorm;
         angles.absAngleNorm = fract(angles.absAngleNorm);
         b.angles = packUnorm4x8(angles);*/
-
+        
+        angles.absAngleNorm += 1.0/256.0;
+        angles.absAngleNorm = fract(angles.absAngleNorm);
+        b.angles = packUnorm4x8(angles);
         b.absPosTi +=
-            vec2(0.000, 1.0); +
+            vec2(0.000, 0.01); +
             parent.absPosTi +
             toCartesian(b.lengthTi, parentAngles.absAngleNorm + angles.relRestAngleNorm);
 

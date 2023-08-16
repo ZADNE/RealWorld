@@ -84,17 +84,28 @@ private:
     TreeDynamicsPC m_treeDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
-    re::RenderPass     m_renderPass;
-    re::Pipeline       m_rasterizeBranchesPl{
+    re::RenderPass     m_rasterizationRenderPass;
+    re::Pipeline       m_unrasterizeBranchesPl{
               {.pipelineLayout     = *m_pipelineLayout,
                .topology           = vk::PrimitiveTopology::ePatchList,
                .patchControlPoints = 1,
                .enableBlend        = false,
-               .renderPass         = *m_renderPass},
-              {.vert = rasterizeTrees_vert,
-               .tesc = rasterizeTrees_tesc,
-               .tese = rasterizeTrees_tese,
-               .frag = rasterizeTrees_frag}};
+               .renderPass         = *m_rasterizationRenderPass},
+              {.vert = unrasterizeBranches_vert,
+               .tesc = tessellateBranches_tesc,
+               .tese = tessellateBranches_tese,
+               .frag = unrasterizeBranches_frag}};
+    re::Pipeline m_rasterizeBranchesPl{
+        {.pipelineLayout     = *m_pipelineLayout,
+         .topology           = vk::PrimitiveTopology::ePatchList,
+         .patchControlPoints = 1,
+         .enableBlend        = false,
+         .renderPass         = *m_rasterizationRenderPass,
+         .subpassIndex       = 1},
+        {.vert = rasterizeBranches_vert,
+         .tesc = tessellateBranches_tesc,
+         .tese = tessellateBranches_tese,
+         .frag = rasterizeBranches_frag}};
     re::StepDoubleBuffered<re::DescriptorSet> m_descriptorSets{
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};
