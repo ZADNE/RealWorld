@@ -27,8 +27,8 @@ public:
     void drawMinimap(const vk::CommandBuffer& commandBuffer);
 
 private:
-    re::TextureShaped m_blockAtlasTex{{.file = "blockAtlas"}};
-    re::TextureShaped m_wallAtlasTex{{.file = "wallAtlas"}};
+    re::TextureShaped m_blockAtlasTex{re::TextureSeed{"blockAtlas"}};
+    re::TextureShaped m_wallAtlasTex{re::TextureSeed{"wallAtlas"}};
 
     struct PushConstants {
         glm::mat4  viewMat;

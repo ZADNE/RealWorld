@@ -55,8 +55,8 @@ public:
     );
 
 private:
-    re::TextureShaped m_blockLightAtlasTex{{.file = "blockLightAtlas"}};
-    re::TextureShaped m_wallLightAtlasTex{{.file = "wallLightAtlas"}};
+    re::TextureShaped m_blockLightAtlasTex{re::TextureSeed{"blockLightAtlas"}};
+    re::TextureShaped m_wallLightAtlasTex{re::TextureSeed{"wallLightAtlas"}};
 
     re::PipelineLayout m_analysisPll;
     re::Pipeline       m_analyzeTilesPl;

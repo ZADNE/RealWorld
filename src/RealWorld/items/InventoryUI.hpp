@@ -126,7 +126,7 @@ private:
     ItemUser* m_itemUser = nullptr;
 
     glm::vec2         m_windowSize;
-    re::TextureShaped m_slotTex{{.file = "slot"}};
+    re::TextureShaped m_slotTex{re::TextureSeed{"slot"}};
     glm::vec2         m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
 
     Item       m_heldItem{};

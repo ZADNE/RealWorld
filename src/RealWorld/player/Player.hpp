@@ -18,7 +18,7 @@ namespace rw {
 class Player {
 public:
     Player()
-        : Player(re::TextureShaped{{.file = "player"}}) {}
+        : Player(re::TextureShaped{re::TextureSeed{"player"}}) {}
 
     void adoptSave(const PlayerSave& save, const re::Texture& worldTexture);
     void gatherSave(PlayerSave& save) const;

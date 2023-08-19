@@ -253,12 +253,14 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
              vk::BufferCopy2{
                  offsetof(
                      ActiveChunksSB,
-                     offsets[m_worldTexSizeMask.x * m_worldTexSizeMask.y]
-                 ),
+                     offsets[0]
+                 ) + sizeof(ActiveChunksSB::offsets[0])
+                   * m_worldTexSizeMask.x * m_worldTexSizeMask.y,
                  offsetof(
                      ActiveChunksSB,
-                     offsets[m_worldTexSizeMask.x * m_worldTexSizeMask.y]
-                 ),
+                     offsets[0]
+                 ) + sizeof(ActiveChunksSB::offsets[0])
+                   * m_worldTexSizeMask.x * m_worldTexSizeMask.y,
                  sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)}}
         );
         commandBuffer.copyBuffer2(vk::CopyBufferInfo2{

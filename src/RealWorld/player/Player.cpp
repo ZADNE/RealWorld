@@ -76,7 +76,8 @@ void Player::step(
 
     // Copy back the results
     size_t writeOffset =
-        offsetof(PlayerHitboxSB, botLeftPx[m_pushConstants.writeIndex]);
+        offsetof(PlayerHitboxSB, botLeftPx[0])
+        + sizeof(PlayerHitboxSB::botLeftPx[0]) * m_pushConstants.writeIndex;
     auto copyRegion = vk::BufferCopy2{writeOffset, writeOffset, sizeof(glm::vec2)};
     auto bufferBarrier = vk::BufferMemoryBarrier2{
         S::eComputeShader,                              // Src stage mask
