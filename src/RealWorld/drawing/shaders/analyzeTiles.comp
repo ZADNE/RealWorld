@@ -30,7 +30,7 @@ void main(){
             uvec4 tile = texelFetch(u_worldTexture, (readBasePosTi + ivec2(x, y)) & p_worldTexMask, 0);
             //Process its translucency
             bool airBlock = isAirBlock(tile.BLOCK_TYPE);
-            translu.r += airBlock ? (205.0/255.0) : (160.0/255.0);
+            translu.r += airBlock ? (200.0/255.0) : (150.0/255.0);
             //Process it as a light source
             vec4 blockLight = texelFetch(u_blockLightAtlas, ivec2(tile.yx), 0);
             vec4 wallLight = texelFetch(u_wallLightAtlas, ivec2(tile.wz), 0);

@@ -31,16 +31,16 @@ const vec2 k_ray8Bounds = vec2(4.0, k_ray4Bounds.x - 1.0);
 const vec2 k_ray16Bounds = vec2(2.0, k_ray8Bounds.x - 1.0);
 const vec2 k_ray32Bounds = vec2(1.0, k_ray16Bounds.x - 1.0);
 
-void accumulate(inout vec4 accumulated, vec2 uv){
-    vec4 light = texture(u_lightTexture, uv);
+void accumulate(inout vec4 accumulated, vec2 uv, float lightMultiplier){
+    vec4 light = texture(u_lightTexture, uv) * vec4(1.0, 1.0, 1.0, lightMultiplier);
     vec4 translu = texture(u_transluTexture, uv).rrrr;
     accumulated = fma(accumulated, translu, light);
 }
 
-void ray(inout vec4 light, vec2 centerUv, vec2 dirUv, vec2 firstLast){
+void ray(inout vec4 light, vec2 centerUv, vec2 dirUv, vec2 firstLast, float lightMult){
     vec2 uv = centerUv + dirUv * firstLast.y;
     for (float i = firstLast.y; i >= firstLast.x; i--){
-        accumulate(light, uv);
+        accumulate(light, uv, lightMult);
         uv -= dirUv;
     }
 }
@@ -48,42 +48,42 @@ void ray(inout vec4 light, vec2 centerUv, vec2 dirUv, vec2 firstLast){
 vec4 ray1(vec2 centerUv, float a){
     vec4 light = vec4(0.0);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_ray1Bounds);
+    ray(light, centerUv, dirUv, k_ray1Bounds, 1.0);
     return light;
 }
 
 vec4 ray2(vec2 centerUv, float a){
     vec4 light = ray1(centerUv, a + k_piOver256) + ray1(centerUv, a - k_piOver256);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_ray2Bounds);
+    ray(light, centerUv, dirUv, k_ray2Bounds, 2.0);
     return light;
 }
 
 vec4 ray4(vec2 centerUv, float a){
     vec4 light = ray2(centerUv, a + k_piOver128) + ray2(centerUv, a - k_piOver128);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_ray4Bounds);
+    ray(light, centerUv, dirUv, k_ray4Bounds, 4.0);
     return light;
 }
 
 vec4 ray8(vec2 centerUv, float a){
     vec4 light = ray4(centerUv, a + k_piOver64) + ray4(centerUv, a - k_piOver64);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_ray8Bounds);
+    ray(light, centerUv, dirUv, k_ray8Bounds, 8.0);
     return light;
 }
 
 vec4 ray16(vec2 centerUv, float a){
     vec4 light = ray8(centerUv, a + k_piOver32) + ray8(centerUv, a - k_piOver32);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_ray16Bounds);
+    ray(light, centerUv, dirUv, k_ray16Bounds, 16.0);
     return light;
 }
 
 vec4 ray32(vec2 centerUv, float a){
     vec4 light = ray16(centerUv, a + k_piOver16) + ray16(centerUv, a - k_piOver16);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_ray32Bounds);
+    ray(light, centerUv, dirUv, k_ray32Bounds, 32.0);
     return light;
 }
 
@@ -99,7 +99,7 @@ void main(){
     }
     
     //The center unit
-    accumulate(total, centerUv);
+    total += texture(u_lightTexture, centerUv);
     
     vec4 final = vec4(total.rgb, 1.0 - sqrt(total.a));
     imageStore(u_shadowsImage, ID, final);
