@@ -13,7 +13,7 @@ const int BranchesSBRead_BINDING = 1;
 #include <RealWorld/trees/shaders/normAngles.glsl>
 #include <RealWorld/trees/shaders/TreeDynamicsPC.glsl>
 
-#include <RealWorld/generation/external_shaders/float_hash.glsl>
+#include <RealWorld/generation/external_shaders/snoise.glsl>
 const float k_third = 0.33333333333;
 
 #define absAngleNorm x
@@ -37,8 +37,8 @@ void main(){
     if (instanceIndex == 0){
         const Branch parent = b_branchesRead[b.parentIndex];
         vec4 parentAngles = unpackUnorm4x8(parent.angles);
-        /*float         wind   = hash11(p_timeSec);
-        wind += 0.3 * hash11(p_timeSec * 10.0);
+        float         wind   = snoise(vec2(b.absPosTi.x * 0.01, p_timeSec * 0.1), 0.0);
+        wind += 0.5 * snoise(vec2(b.absPosTi.x * 0.01, p_timeSec * 0.1 * 2.0), 0.0);
 
         float volume = k_pi * b.radiusTi * b.radiusTi * b.lengthTi;
         float weight = volume * b.density;
@@ -66,13 +66,9 @@ void main(){
         angles.angleVelNorm += angularAcc;
         angles.absAngleNorm += angles.angleVelNorm;
         angles.absAngleNorm = fract(angles.absAngleNorm);
-        b.angles = packUnorm4x8(angles);*/
-        
-        angles.absAngleNorm += 1.0/256.0;
-        angles.absAngleNorm = fract(angles.absAngleNorm);
         b.angles = packUnorm4x8(angles);
-        b.absPosTi +=
-            vec2(0.000, 0.01); +
+
+        b.absPosTi =
             parent.absPosTi +
             toCartesian(b.lengthTi, parentAngles.absAngleNorm + angles.relRestAngleNorm);
 

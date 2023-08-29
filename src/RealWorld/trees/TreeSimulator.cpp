@@ -144,8 +144,8 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
 TreeSimulator::Buffers TreeSimulator::adoptSave(
     const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh
 ) {
-    auto maxBranchCount = 1;/*k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
-                          k_branchHeaderSize;*/
+    auto maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
+                          k_branchHeaderSize;
     m_worldTexSizeTi                = chToTi(worldTexSizeCh);
     m_treeDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
     m_treeDynamicsPC.mvpMat =

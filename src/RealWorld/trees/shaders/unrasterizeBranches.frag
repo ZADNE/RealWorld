@@ -11,8 +11,8 @@ uniform usubpassInput u_worldTexSI;
 
 void main(){
     uvec4 prevTile = subpassLoad(u_worldTexSI);
-    if (prevTile.BL_T == WOOD.BL_T){
-        o_tile = AIR;
+    if (prevTile.WL_T == WOOD.WL_T){
+        o_tile = uvec4(prevTile.BL, AIR.WL);
     } else {
         o_tile = prevTile;
     }
