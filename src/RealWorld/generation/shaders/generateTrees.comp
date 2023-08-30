@@ -29,7 +29,7 @@ void main(){
         return;
     }
 
-    uint index = atomicAdd(b_branchesHeaderWrite.vertexCount, 16) / 4;
+    uint index = atomicAdd(b_branchesHeaderWrite.vertexCount, 4);
     if (index + 4 <= b_branchesHeaderRead.maxBranchCount) {
         horizonPx -= 24.0;
         float lengthTi = 6.0;
@@ -72,6 +72,6 @@ void main(){
             stiffness * 0.5
         );
     } else {
-        atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-16));
+        atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-4));
     }
 }
