@@ -12,7 +12,7 @@ layout( local_size_x = 8,
         local_size_z = 2
 ) in;
 
-layout(set = 0, binding = 0, rgba8) uniform restrict image2D u_lightImage;
+layout(set = 0, binding = 0, r32ui) uniform restrict uimage2D u_lightImage;
 
 const int k_toUnitBits = k_lightScaleBits + 2;
 const vec2 k_toUnitScale = vec2(1.0, 1.0) / k_iLightScale / TilePx;
@@ -30,7 +30,7 @@ void main(){
             vec2 f = fract(lightPosPx * k_toUnitScale + vec2(gl_LocalInvocationID.yz));
             vec2 diff = vec2(1.0) - abs(f - vec2(gl_LocalInvocationID.yz));
             editCol += lightCol * diff.x * diff.y;
-            imageStore(u_lightImage, editPos, editCol);
+            //imageStore(u_lightImage, editPos, editCol); TODO
         }
     }
 }

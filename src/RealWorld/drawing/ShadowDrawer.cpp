@@ -265,10 +265,28 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     : analysisGroupCount(getAnalysisGroupCount(viewSizeTi))
     , calculationGroupCount(getShadowsCalculationGroupCount(viewSizeTi))
     , lightTex(re::TextureCreateInfo{
+          .flags  = vk::ImageCreateFlagBits::eMutableFormat,
+          .format = vk::Format::eR8G8B8A8Unorm,
           .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
           .initialLayout = eGeneral,
-          .magFilter     = vk::Filter::eLinear})
+          .pNext =
+              [] {
+                  constexpr static auto formats = std::to_array(
+                      {vk::Format::eR8G8B8A8Unorm, vk::Format::eR32Uint}
+                  );
+                  constexpr static vk::ImageFormatListCreateInfo formatList{
+                      formats.size(), formats.data()};
+                  return &formatList;
+              }(),
+          .magFilter = vk::Filter::eLinear})
+    , lightTexR32ImageView(vk::ImageViewCreateInfo{
+          {},
+          lightTex.image(),
+          vk::ImageViewType::e2D,
+          vk::Format::eR32Uint,
+          vk::ComponentMapping{},
+          vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}})
     , transluTex(re::TextureCreateInfo{
           .format = vk::Format::eR8Unorm,
           .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
@@ -288,7 +306,12 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     , shadowDrawingDS(shadowDrawingPll.descriptorSetLayout(0)) {
     using enum vk::DescriptorType;
     // Analysis descriptor set
-    analysisDS.write(eStorageImage, 0u, 0u, lightTex, eGeneral);
+    analysisDS.write(
+        eStorageImage,
+        0u,
+        0u,
+        vk::DescriptorImageInfo{lightTex.sampler(), *lightTexR32ImageView, eGeneral}
+    );
     analysisDS.write(eStorageImage, 1u, 0u, transluTex, eGeneral);
     analysisDS.write(eCombinedImageSampler, 3u, 0u, blockLightAtlasTex, eReadOnlyOptimal);
     analysisDS.write(eCombinedImageSampler, 4u, 0u, wallLightAtlasTex, eReadOnlyOptimal);

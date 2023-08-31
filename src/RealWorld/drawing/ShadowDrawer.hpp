@@ -8,6 +8,7 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
+#include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
 #include <RealWorld/drawing/ExternalLight.hpp>
@@ -99,6 +100,7 @@ private:
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
         re::Texture lightTex; /**< RGB = color of the light, A = intensity of the light */
+        re::ImageView     lightTexR32ImageView;
         re::Texture       transluTex; /**< R = translucency of the unit */
         re::Texture       shadowsTex;
         AnalysisPC        analysisPC;
