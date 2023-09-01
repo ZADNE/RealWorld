@@ -17,6 +17,12 @@ layout(set = 0, binding = 0, r32ui) uniform restrict uimage2D u_lightImage;
 const int k_toUnitBits = k_lightScaleBits + 2;
 const vec2 k_toUnitScale = vec2(1.0, 1.0) / k_iLightScale / TilePx;
 
+vec4 lightOfThisUnit(vec4 lightTotal, vec2 lightPosPx, vec2 relUn){
+    vec2 posUnFract = fract(lightPosPx * k_toUnitScale + relUn);
+    vec2 portion = vec2(1.0) - abs(posUnFract - relUn);
+    return lightTotal * portion.x * portion.y;
+}
+
 void main(){
     if (gl_GlobalInvocationID.x < p_lightCount){
         ivec2 lightPosPx = b_lights[gl_GlobalInvocationID.x].posPx - p_addLightOffsetPx;
@@ -25,12 +31,19 @@ void main(){
         bvec2 lowerClip = greaterThanEqual(editPos, ivec2(0));
         bvec2 upperClip = lessThan(editPos, imageSize(u_lightImage));
         if (all(bvec4(lowerClip, upperClip))){//If inside the light image
-            vec4 editCol = imageLoad(u_lightImage, editPos);
-            vec4 lightCol = unpackUnorm4x8(b_lights[gl_GlobalInvocationID.x].col);
-            vec2 f = fract(lightPosPx * k_toUnitScale + vec2(gl_LocalInvocationID.yz));
-            vec2 diff = vec2(1.0) - abs(f - vec2(gl_LocalInvocationID.yz));
-            editCol += lightCol * diff.x * diff.y;
-            //imageStore(u_lightImage, editPos, editCol); TODO
+            vec4 dynLightUnit = lightOfThisUnit(
+                unpackUnorm4x8(b_lights[gl_GlobalInvocationID.x].col),
+                lightPosPx,
+                vec2(gl_LocalInvocationID.yz));
+
+            uint last = imageLoad(u_lightImage, editPos).r;
+            uint expected;
+            do {
+                vec4 wantedLight = unpackUnorm4x8(last) + dynLightUnit;
+                uint wanted = packUnorm4x8(wantedLight);
+                expected = last;
+                last = imageAtomicCompSwap(u_lightImage, editPos, expected, wanted);
+            } while (last != expected);
         }
     }
 }
