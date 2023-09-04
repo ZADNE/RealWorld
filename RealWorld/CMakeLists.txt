@@ -1,8 +1,0 @@
-﻿add_subdirectory(constants)
-add_subdirectory(drawing)
-add_subdirectory(generation)
-add_subdirectory(items)
-add_subdirectory(main)
-add_subdirectory(player)
-add_subdirectory(save)
-add_subdirectory(world)

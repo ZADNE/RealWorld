@@ -1,0 +1,46 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/light.glsl>
+#include <RealWorld/drawing/shaders/AnalysisPC.glsl>
+
+layout( local_size_x = k_analysisGroupSize,
+        local_size_y = k_analysisGroupSize,
+        local_size_z = 1
+) in;
+
+layout(set = 0, binding = 0, r32ui) uniform restrict writeonly uimage2D u_lightImage;
+layout(set = 0, binding = 1, r8) uniform restrict writeonly image2D     u_transluImage;
+layout(set = 0, binding = 2) uniform usampler2D                         u_worldTexture;
+layout(set = 0, binding = 3) uniform sampler2D                          u_blockLightAtlas;
+layout(set = 0, binding = 4) uniform sampler2D                          u_wallLightAtlas;
+
+const float TO_UNIT_SCALE = 1.0 / (k_iLightScale * k_iLightScale);
+
+void main(){
+    //Calculate position and init variables
+    const ivec2 readBasePosTi = p_analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << k_lightScaleBits);
+    vec4 light = vec4(0.0);//RGB = color of the light, A = intensity of the light
+    vec4 translu = vec4(0.0);//R = translucency of the unit
+    //Analyze the thread's area
+    for (int y = 0; y < k_iLightScale; y++){
+        for (int x = 0; x < k_iLightScale; x++){
+            //Fetch the tile
+            uvec4 tile = texelFetch(u_worldTexture, (readBasePosTi + ivec2(x, y)) & p_worldTexMask, 0);
+            //Process its translucency
+            bool airBlock = isAirBlock(tile.BLOCK_TYPE);
+            translu.r += airBlock ? (200.0/255.0) : (150.0/255.0);
+            //Process it as a light source
+            vec4 blockLight = texelFetch(u_blockLightAtlas, ivec2(tile.yx), 0);
+            vec4 wallLight = texelFetch(u_wallLightAtlas, ivec2(tile.wz), 0);
+            vec4 tileLight = airBlock ? wallLight : blockLight;
+            light += tileLight;
+        }
+    }
+    //Scale
+    light *= TO_UNIT_SCALE;
+    imageStore(u_lightImage, ivec2(gl_GlobalInvocationID), uvec4(packUnorm4x8(light)));
+    translu.r *= TO_UNIT_SCALE;
+    imageStore(u_transluImage, ivec2(gl_GlobalInvocationID), translu);
+}

@@ -1,0 +1,77 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/body.glsl>
+#include <RealWorld/constants/tree.glsl>
+const int BranchesSBWrite_BINDING = 4;
+const int BranchesSBRead_BINDING = 5;
+#include <RealWorld/trees/shaders/BranchesSB.glsl>
+#include <RealWorld/generation/shaders/generateStructure.glsl>
+
+const float k_piHalf = 1.57079632679;
+const float k_piQuarter = 0.785398163;
+
+layout( local_size_x = 16,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+void main(){
+    // Calculate the horizon
+    float pPx = float(p_chunkOffsetTi.x - int(gl_LocalInvocationIndex) * 5) * TilePx.x;
+    vec2 biomeClimate = biomeClimate(pPx, p_seed);
+    Biome biome = biomeStructure(biomeClimate);
+    float horizonPx = horizon(pPx, biome, p_seed).r;
+    int horizonTi = int(pxToTi(horizonPx));
+    if (horizonTi < p_chunkOffsetTi.y || horizonTi >= (p_chunkOffsetTi.y + iChunkTi.y)) {
+        // The chunk is not on the horizon -> do not generate any trees
+        return;
+    }
+
+    uint index = atomicAdd(b_branchesHeaderWrite.vertexCount, 4);
+    if (index + 4 <= b_branchesHeaderRead.maxBranchCount) {
+        horizonPx -= 24.0;
+        float lengthTi = 6.0;
+        float stiffness = 1.0;
+        float density = 2.0;
+        b_branchesWrite[index + 0] = Branch(
+            pxToTi(vec2(pPx, horizonPx + lengthTi * TilePx * 0.0)),
+            index + 0,
+            packUnorm4x8(vec4(0.0, 0.0, 0.0, 0.0)),
+            0.0,
+            0.0,
+            density,
+            stiffness
+        );
+        b_branchesWrite[index + 1] = Branch(
+            pxToTi(vec2(pPx, horizonPx + lengthTi * TilePx * 0.0)),
+            index + 0,
+            packUnorm4x8(vec4(0.25, 0.25, 0.0, 0.0)),
+            0.5,
+            lengthTi,
+            density,
+            stiffness
+        );
+        b_branchesWrite[index + 2] = Branch(
+            pxToTi(vec2(pPx, horizonPx + lengthTi * TilePx * 1.0)),
+            index + 1,
+            packUnorm4x8(vec4(0.25, 0.0, 0.0, 0.0)),
+            0.5,
+            lengthTi,
+            density,
+            stiffness * 0.75
+        );
+        b_branchesWrite[index + 3] = Branch(
+            pxToTi(vec2(pPx, horizonPx + lengthTi * TilePx * 2.0)),
+            index + 2,
+            packUnorm4x8(vec4(0.25, 0.0, 0.0, 0.0)),
+            0.5,
+            lengthTi,
+            density,
+            stiffness * 0.5
+        );
+    } else {
+        atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-4));
+    }
+}
