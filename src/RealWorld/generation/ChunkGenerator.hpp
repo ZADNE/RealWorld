@@ -11,6 +11,7 @@
 
 #include <RealWorld/constants/generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
+#include <RealWorld/trees/Branch.hpp>
 
 namespace rw {
 
@@ -67,6 +68,8 @@ protected:
 
     vk::ImageMemoryBarrier2 stepBarrier() const; /**< Helper func */
 
+    static re::Buffer createTreeTemplatesBuffer();
+
     const re::Texture*                        m_worldTex = nullptr;
     glm::ivec2                                m_worldTexSizeCh;
     const re::Buffer*                         m_bodiesBuf = nullptr;
@@ -109,10 +112,7 @@ protected:
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral}};
 
-    re::Buffer m_lSystemBuf{re::BufferCreateInfo{
-        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(glm::uint) * 1024 + sizeof(float) * 1024,
-        .usage       = vk::BufferUsageFlagBits::eStorageBuffer}};
+    re::Buffer m_treeTemplatesBuf = createTreeTemplatesBuffer();
 };
 
 } // namespace rw

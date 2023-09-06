@@ -20,7 +20,7 @@ ChunkGenerator::ChunkGenerator()
               .bindings = {{
                   {0, eStorageImage, 1, eCompute},  // tilesImage
                   {1, eStorageImage, 1, eCompute},  // materialImage
-                  {2, eStorageBuffer, 1, eCompute}, // LSystemSB
+                  {2, eUniformBuffer, 1, eCompute}, // TreeTemplatesUB
                   {3, eStorageBuffer, 1, eCompute}, // bodiesSB
                   {4, eStorageBuffer, 1, eCompute}, // branchesSBWrite
                   {5, eStorageBuffer, 1, eCompute}  // branchesSBWrite
@@ -30,7 +30,7 @@ ChunkGenerator::ChunkGenerator()
     m_descSet.forEach([&](auto& ds) {
         ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
         ds.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
-        ds.write(eStorageBuffer, 2, 0, m_lSystemBuf, 0, VK_WHOLE_SIZE);
+        ds.write(eUniformBuffer, 2, 0, m_treeTemplatesBuf, 0, VK_WHOLE_SIZE);
     });
 }
 

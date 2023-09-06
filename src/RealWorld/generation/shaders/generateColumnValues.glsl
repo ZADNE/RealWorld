@@ -1,6 +1,9 @@
 /*!
  *  @author     Dubsky Tomas
  */
+#ifndef GENERATE_COLUMN_VALUES_GLSL
+#define GENERATE_COLUMN_VALUES_GLSL
+
 vec3 columnValues(float x, float columnWidth, float seed){
     float ratio = x / columnWidth;
     float columnX = floor(ratio);
@@ -66,3 +69,5 @@ vec2 smootherColumnValue_x_dx(float x, float columnWidth, float seed){
     vec2 step = smootherStep_x_dx(vals.z);
     return vec2(mix(vals.x, vals.y, step.x), step.y * (vals.y - vals.x));
 }
+
+#endif // GENERATE_COLUMN_VALUES_GLSL

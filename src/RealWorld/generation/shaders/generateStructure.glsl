@@ -1,6 +1,9 @@
 /*!
  *  @author     Dubsky Tomas
  */
+#ifndef GENERATE_STRUCTURE_GLSL
+#define GENERATE_STRUCTURE_GLSL
+
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/constants/generation.glsl>
@@ -131,3 +134,5 @@ void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
     
     tile = occupied ? material : uvec4(AIR.BL_T, material.BL_V, material.WL);
 }
+
+#endif // GENERATE_STRUCTURE_GLSL

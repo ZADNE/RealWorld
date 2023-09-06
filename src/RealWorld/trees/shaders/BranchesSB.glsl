@@ -1,16 +1,10 @@
 /*!
  *  @author     Dubsky Tomas
  */
+#ifndef BRANCHES_SB_GLSL
+#define BRANCHES_SB_GLSL
 
-struct Branch {
-    vec2    absPosTi; // Absolute
-    uint    parentIndex;
-    uint    angles;
-    float   radiusTi;
-    float   lengthTi;
-    float   density;
-    float   stiffness;
-};
+#include <RealWorld/trees/shaders/Branch.glsl>
 
 struct BranchesSBHeader {
     uint    vertexCount;
@@ -32,3 +26,5 @@ readonly restrict buffer BranchesSBRead {
     BranchesSBHeader    b_branchesHeaderRead;
     Branch              b_branchesRead[];
 };
+
+#endif // BRANCHES_SB_GLSL

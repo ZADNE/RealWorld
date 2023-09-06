@@ -1,4 +1,7 @@
 //License in file: snoise-License.txt
+#ifndef SNOISE_GLSL
+#define SNOISE_GLSL
+
 vec2 hash(vec2 p){
     p = vec2( dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3)) );
     return -1.0 + 2.0*fract(sin(p)*43758.5453123);
@@ -21,3 +24,5 @@ float snoise(in vec2 p, float seed){
         dot(c, hash(i + 1.0 + seed)));
     return dot(n, vec3(70.0));
 }
+
+#endif // SNOISE_GLSL

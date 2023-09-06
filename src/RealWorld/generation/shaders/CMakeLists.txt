@@ -5,4 +5,5 @@
     generateTrees.comp          
     GenerationPC.glsl           
     selectVariant.comp          
+    TreeTemplatesUB.glsl        
 )

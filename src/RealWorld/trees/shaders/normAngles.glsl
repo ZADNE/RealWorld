@@ -1,6 +1,8 @@
 /*!
  *  @author     Dubsky Tomas
  */
+#ifndef NORM_ANGLES_GLSL
+#define NORM_ANGLES_GLSL
 
 const float k_pi =  3.14159265359;
 const float k_2pi = 6.28318530718;
@@ -22,3 +24,5 @@ float angularDifference(float target, float current) {
     diff += (diff > 0.5f) ? -1.0f : (diff < -0.5f) ? 1.0f : 0.0f;
     return diff;
 }
+
+#endif // NORM_ANGLES_GLSL

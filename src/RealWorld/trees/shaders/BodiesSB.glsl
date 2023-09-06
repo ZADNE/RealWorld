@@ -1,6 +1,8 @@
 /*!
  *  @author     Dubsky Tomas
  */
+#ifndef BODIES_SB_GLSL
+#define BODIES_SB_GLSL
 
 struct Body {
     ivec2 bottomCenterPx;
@@ -9,7 +11,8 @@ struct Body {
     vec2  rotationRad; /**< y component is unused */
 };
 
-layout(set = 0, binding = BodiesSB_BINDING, std430) restrict buffer BodiesSB {
+layout(set = 0, binding = BodiesSB_BINDING, std430)
+restrict buffer BodiesSB {
     uint b_bodiesDispatchX;
     uint b_bodiesDispatchY;
     uint b_bodiesDispatchZ;
@@ -18,3 +21,5 @@ layout(set = 0, binding = BodiesSB_BINDING, std430) restrict buffer BodiesSB {
     int  b_bodiesPadding[3];
     Body b_bodies[];
 };
+
+#endif // BODIES_SB_GLSL

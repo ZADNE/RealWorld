@@ -1,6 +1,9 @@
 /*! 
  *  @author    Dubsky Tomas
  */
+#ifndef BIOME_GLSL
+#define BIOME_GLSL
+
 #include <RealWorld/constants/tile.glsl>
 
 const uvec4 STONE_TILES[] = {
@@ -34,3 +37,5 @@ const Biome BIOMES[3][3] = {
     {       DIRTLAND,           GRASSLAND,          SWAMP           },  //-normal
     {       DESERT,             SAVANNA,            RAINFOREST      }   //-high
 };
+
+#endif // BIOME_GLSL

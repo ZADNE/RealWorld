@@ -17,10 +17,15 @@
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
+#include <RealWorld/trees/Branch.hpp>
 #include <RealWorld/trees/shaders/AllShaders.hpp>
 
 namespace rw {
 
+/**
+ * @brief   Simulates swaying and growth of trees
+ * @details Rasterizes and unrasterizes the trees to the world texture.
+ */
 class TreeSimulator {
 public:
     TreeSimulator();
@@ -34,24 +39,6 @@ public:
     Buffers adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
 
 private:
-    struct Branch {
-        struct Angles {
-            uint8_t absAngleNorm;     // Absolute
-            uint8_t relRestAngleNorm; // Relative to parent
-            uint8_t angleVelNorm;     // Absolute
-            uint8_t unused{0};
-        };
-        static_assert(sizeof(Angles) % 4 == 0);
-
-        glm::vec2    absPosTi;
-        unsigned int parentIndex;
-        Angles       angles;
-        float        radiusTi;
-        float        lengthTi;
-        float        density;
-        float        stiffness;
-    };
-
     struct BranchesSBHeader {
         uint32_t vertexCount    = 0;
         uint32_t instanceCount  = 1;

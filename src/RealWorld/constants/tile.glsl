@@ -1,6 +1,9 @@
 /*! 
  *  @author    Dubsky Tomas
  */
+#ifndef TILE_GLSL
+#define TILE_GLSL
+
 const uvec2 uTilePx = {4, 4};
 const ivec2 iTilePx = ivec2(uTilePx);
 const vec2  TilePx  = vec2(uTilePx);
@@ -128,3 +131,5 @@ bool isAirWall(uint wall_type){ return wall_type == AIR_WL; }
 bvec2 isSolidTile(uvec2 tile_type){ return lessThan(tile_type, FIRST_FLUID.TL_T); }
 bvec2 isFluidTile(uvec2 tile_type){ return greaterThanEqual(tile_type, FIRST_FLUID.TL_T); }
 bvec2 isAirTile(uvec2 tile_type){ return equal(tile_type, AIR.TL_T); }
+
+#endif // TILE_GLSL

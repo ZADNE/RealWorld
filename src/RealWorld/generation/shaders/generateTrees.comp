@@ -4,6 +4,8 @@
 #version 460
 #include <RealWorld/constants/body.glsl>
 #include <RealWorld/constants/tree.glsl>
+const int TreeTemplatesUB_BINDING = 3;
+#include <RealWorld/generation/shaders/TreeTemplatesUB.glsl>
 const int BranchesSBWrite_BINDING = 4;
 const int BranchesSBRead_BINDING = 5;
 #include <RealWorld/trees/shaders/BranchesSB.glsl>
@@ -31,7 +33,6 @@ void main(){
 
     uint index = atomicAdd(b_branchesHeaderWrite.vertexCount, 4);
     if (index + 4 <= b_branchesHeaderRead.maxBranchCount) {
-        horizonPx -= 24.0;
         float lengthTi = 6.0;
         float stiffness = 1.0;
         float density = 2.0;

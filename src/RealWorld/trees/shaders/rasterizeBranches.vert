@@ -30,7 +30,7 @@ void main(){
     // Simulation
     const Branch parent = b_branchesRead[b.parentIndex];
     vec4 parentAngles = unpackUnorm4x8(parent.angles);
-    float         wind   = snoise(vec2(b.absPosTi.x * 0.01, p_timeSec * 0.1), 0.0);
+    float wind = snoise(vec2(b.absPosTi.x * 0.01, p_timeSec * 0.1), 0.0);
     wind += 0.5 * snoise(vec2(b.absPosTi.x * 0.01, p_timeSec * 0.1 * 2.0), 0.0);
 
     float volume = k_pi * b.radiusTi * b.radiusTi * b.lengthTi;
@@ -61,9 +61,7 @@ void main(){
     angles.absAngleNorm = fract(angles.absAngleNorm);
     b.angles = packUnorm4x8(angles);
 
-    b.absPosTi =
-        parent.absPosTi +
-        toCartesian(b.lengthTi, parentAngles.absAngleNorm + angles.relRestAngleNorm);
+    b.absPosTi = parent.absPosTi + toCartesian(parent.lengthTi, parentAngles.absAngleNorm);
 
     // Store the modified branch
     b_branchesWrite[gl_VertexIndex] = b;

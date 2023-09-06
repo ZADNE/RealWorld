@@ -1,4 +1,7 @@
-//License in file: float_hash-License.txt
+//License in file: float_GLSLash-License.txt
+#ifndef FLOAT_HASH_GLSL
+#define FLOAT_HASH_GLSL
+
 //  1 out, 1 in...
 float hash11(float p){
     p = fract(p * .1031);
@@ -78,3 +81,5 @@ vec4 hash44(vec4 p4){
     p4 += dot(p4, p4.wzxy+33.33);
     return fract((p4.xxyz+p4.yzzw)*p4.zywx);
 }
+
+#endif // FLOAT_HASH_GLSL

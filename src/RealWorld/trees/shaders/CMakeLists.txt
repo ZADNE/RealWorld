@@ -1,7 +1,7 @@
 ﻿target_shaders(RealWorld PRIVATE
     BodiesSB.glsl               
+    Branch.glsl                 
     BranchesSB.glsl             
-    LSystemSB.glsl              
     normAngles.glsl             
     simulateBodies.comp         
     rasterizeBranches.vert      rasterizeBranches.frag

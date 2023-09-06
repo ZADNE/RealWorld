@@ -1,7 +1,11 @@
 /*!
  *  @author     Dubsky Tomas
  */
-layout(set = 0, binding = worldImage_BINDING, rgba8ui) uniform restrict readonly uimage2D u_worldImage;
+#ifndef TILE_LOAD_GLSL
+#define TILE_LOAD_GLSL
+
+layout(set = 0, binding = worldImage_BINDING, rgba8ui)
+uniform restrict readonly uimage2D u_worldImage;
 
 //Converts world position to image position
 ivec2 imPos(ivec2 posTi){
@@ -21,3 +25,5 @@ uvec4 tileLoad(ivec2 posTi){
 uvec4 tileLoadIm(ivec2 posIm){
     return imageLoad(u_worldImage, posIm);
 }
+
+#endif // TILE_LOAD_GLSL
