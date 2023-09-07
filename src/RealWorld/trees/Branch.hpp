@@ -4,7 +4,9 @@
 #pragma once
 #include <cstdint>
 
+#include <glm/packing.hpp>
 #include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 
 namespace rw {
 
@@ -17,20 +19,42 @@ namespace rw {
  */
 struct Branch {
     /**
-     * @brief Holds tightly packed angles related to the branch
+     * @brief Holds angles related to the branch
      */
     struct Angles {
-        uint8_t absAngleNorm;     // Current absolute angle of the branch
-        uint8_t relRestAngleNorm; // Relative angle to parent that the branch is
+        float absAngleNorm{};     // Current absolute angle of the branch
+        float relRestAngleNorm{}; // Relative angle to parent that the branch is
                                   // trying to keep
-        uint8_t angleVelNorm;     // Current angular velocity of the angle
-        uint8_t unused{0};
+        float angleVelNorm{};     // Current angular velocity of the angle
     };
-    static_assert(sizeof(Angles) == sizeof(glm::uint));
+
+    /**
+     * @brief Is tightly packed representation of rw::Branch::Angles
+     */
+    struct PackedAngles {
+        PackedAngles(const Angles& a)
+            : PackedAngles{glm::packUnorm4x8(
+                  {a.absAngleNorm, a.relRestAngleNorm, a.angleVelNorm, 0.0f}
+              )} {}
+
+        PackedAngles(const glm::vec4& angles)
+            : PackedAngles{glm::packUnorm4x8(angles)} {}
+
+        PackedAngles(glm::uint packed_)
+            : packed(packed_) {}
+
+        Angles unpack() const {
+            glm::vec4 unpacked = glm::unpackUnorm4x8(packed);
+            return Angles{unpacked.x, unpacked.y, unpacked.z};
+        }
+
+        glm::uint packed;
+    };
+    static_assert(sizeof(PackedAngles) == sizeof(glm::uint));
 
     glm::vec2    absPosTi; // Position of the end that connected to parent
     unsigned int parentIndex;
-    Angles       angles;
+    PackedAngles angles;
     float        radiusTi;
     float        lengthTi;
     float        density;

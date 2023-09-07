@@ -8,7 +8,7 @@
 
 layout(set = 0, binding = TreeTemplatesUB_BINDING, std430)
 restrict buffer TreeTemplatesUB {
-    Branch b_branches[];
+    Branch b_treeTemplateBranches[];
 };
 
 #endif // TREE_TEMPLATES_UB_GLSL
