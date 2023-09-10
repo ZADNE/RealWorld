@@ -24,6 +24,5 @@ void main(){
     Branch b = b_branchesRead[gl_VertexIndex];
     o_posTi = b.absPosTi;
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
-    vec4 angles = unpackUnorm4x8(b.angles);
-    o_angleNorm = angles.absAngleNorm;
+    o_angleNorm = b.angles.absAngleNorm;
 }

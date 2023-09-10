@@ -45,7 +45,7 @@ private:
         uint32_t firstVertex    = 0;
         uint32_t firstInstance  = 0;
         int      maxBranchCount = 0;
-        int      padding[3];
+        int      padding[7];
     };
 
 #pragma warning(push)

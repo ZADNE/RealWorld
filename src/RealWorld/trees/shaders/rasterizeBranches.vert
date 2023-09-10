@@ -24,19 +24,17 @@ void main(){
     Branch b = b_branchesRead[gl_VertexIndex];
     o_posTi = b.absPosTi;
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
-    vec4 angles = unpackUnorm4x8(b.angles);
-    o_angleNorm = angles.absAngleNorm;
+    o_angleNorm = b.angles.absAngleNorm;
 
     // Simulation
     const Branch parent = b_branchesRead[b.parentIndex];
-    vec4 parentAngles = unpackUnorm4x8(parent.angles);
-    float wind = snoise(vec2(b.absPosTi.x * 0.01, p_timeSec * 0.1), 0.0);
-    wind += 0.5 * snoise(vec2(b.absPosTi.x * 0.01, p_timeSec * 0.1 * 2.0), 0.0);
+    float wind = snoise(vec2(b.absPosTi.x * 0.001, p_timeSec * 0.1), 0.0);
+    wind += 0.5 * snoise(vec2(b.absPosTi.x * 0.001, p_timeSec * 0.1 * 2.0), 0.0);
 
     float volume = k_pi * b.radiusTi * b.radiusTi * b.lengthTi;
     float weight = volume * b.density;
 
-    vec2 force = vec2(wind * b.radiusTi * b.lengthTi, weight * -0.01);
+    vec2 force = vec2(wind * b.radiusTi * b.lengthTi * 0.1, weight * -0.01);
 
     float forceAngle = atan(force.y, force.x);
     float forceSize  = length(force);
@@ -47,21 +45,20 @@ void main(){
 
     float angularAcc =
         b.lengthTi * forceSize *
-        sin(forceAngle - angles.absAngleNorm * k_2pi) /
+        sin(forceAngle - b.angles.absAngleNorm * k_2pi) /
         momentOfInertia;
 
     float angleDiffToRestNorm = angularDifference(
-        fract(parentAngles.absAngleNorm + angles.relRestAngleNorm), angles.absAngleNorm
+        fract(parent.angles.absAngleNorm + b.angles.relRestAngleNorm), b.angles.absAngleNorm
     );
 
-    angularAcc += b.stiffness * angleDiffToRestNorm - angles.angleVelNorm * 0.2;
+    angularAcc += b.stiffness * angleDiffToRestNorm - b.angles.angleVelNorm * 0.875;
 
-    angles.angleVelNorm += angularAcc;
-    angles.absAngleNorm += angles.angleVelNorm;
-    angles.absAngleNorm = fract(angles.absAngleNorm);
-    b.angles = packUnorm4x8(angles);
+    b.angles.angleVelNorm += angularAcc;
+    b.angles.absAngleNorm += b.angles.angleVelNorm;
+    b.angles.absAngleNorm = fract(b.angles.absAngleNorm);
 
-    b.absPosTi = parent.absPosTi + toCartesian(parent.lengthTi, parentAngles.absAngleNorm);
+    b.absPosTi = parent.absPosTi + toCartesian(parent.lengthTi, parent.angles.absAngleNorm);
 
     // Store the modified branch
     b_branchesWrite[gl_VertexIndex] = b;

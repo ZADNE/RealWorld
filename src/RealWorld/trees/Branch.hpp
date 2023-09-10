@@ -54,11 +54,13 @@ struct Branch {
 
     glm::vec2    absPosTi; // Position of the end that connected to parent
     unsigned int parentIndex;
-    PackedAngles angles;
-    float        radiusTi;
-    float        lengthTi;
-    float        density;
-    float        stiffness; // Resistance to bending
+    // PackedAngles angles;
+    float     radiusTi;
+    float     lengthTi;
+    float     density;
+    float     stiffness; // Resistance to bending
+    float     padding;
+    glm::vec4 angles{};
 };
 
 } // namespace rw

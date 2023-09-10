@@ -4,7 +4,7 @@
 #version 460
 #include <RealWorld/constants/body.glsl>
 #include <RealWorld/constants/tree.glsl>
-const int TreeTemplatesUB_BINDING = 3;
+const int TreeTemplatesUB_BINDING = 2;
 #include <RealWorld/generation/shaders/TreeTemplatesUB.glsl>
 const int BranchesSBWrite_BINDING = 4;
 const int BranchesSBRead_BINDING = 5;
@@ -48,10 +48,11 @@ void main(){
     b_branchesWrite[writeIndex] = Branch(
         pxToTi(vec2(pPx, horizonPx)) + tmplt.absPosTi,
         rootIndex + tmplt.parentIndex,
-        tmplt.angles,
         tmplt.radiusTi,
         tmplt.lengthTi,
         tmplt.density,
-        tmplt.stiffness
+        tmplt.stiffness,
+        0.0,
+        tmplt.angles
     );
 }

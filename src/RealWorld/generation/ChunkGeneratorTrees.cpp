@@ -7,6 +7,7 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/trigonometric.hpp>
 
+#include <RealWorld/constants/tree.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
 
 namespace rw {
@@ -57,9 +58,9 @@ std::vector<Branch> interpret(
         glm::vec2      absPosTi{0.0};
         Branch::Angles angles;
         if (parentIndex != ~0u) { // If it is child branch
-            const Branch&  parent       = branches[parentIndex];
-            Branch::Angles parentAngles = parent.angles.unpack();
-            angles.absAngleNorm = glm::fract(parentAngles.absAngleNorm + angleNorm);
+            const Branch& parent = branches[parentIndex];
+            // Branch::Angles parentAngles = parent.angles.unpack();
+            angles.absAngleNorm     = glm::fract(parent.angles.x + angleNorm);
             angles.relRestAngleNorm = glm::fract(angleNorm);
             absPosTi = parent.absPosTi + toCartesian(lengthTi, angles.absAngleNorm);
         } else { // If it is root branch
@@ -70,11 +71,12 @@ std::vector<Branch> interpret(
         branches.emplace_back(
             absPosTi,
             parentIndex != ~0 ? parentIndex : (unsigned)branches.size(),
-            angles,
             radiusTi,
             lengthTi,
             density,
-            stiffness
+            stiffness,
+            0.0f,
+            glm::vec4{angles.absAngleNorm, angles.relRestAngleNorm, angles.angleVelNorm, 0.0f}
         );
     };
 
@@ -110,7 +112,7 @@ std::vector<Branch> interpret(
             );
             state.angleNorm   = 0.0;
             state.parentIndex = branches.size() - 1;
-            state.radiusTi *= 0.75f;
+            state.radiusTi *= 0.875f;
             state.stiffness *= 0.75;
             break;
         case '+': state.angleNorm += 0.05; break;
@@ -135,8 +137,10 @@ re::Buffer ChunkGenerator::createTreeTemplatesBuffer() {
     std::vector<Branch> oak = interpret(
         derive("F", "FF-[-F+F+F]+[+F-F-F]", 2),
         InterpretationInitState{
-            .lengthTi = 15.0, .radiusTi = 2.0, .density = 1.0, .stiffness = 0.2}
+            .lengthTi = 10.0, .radiusTi = 2.0, .density = 4.0, .stiffness = 1.0}
     );
+
+    assert(oak.size() == k_treeTemplatesBranchCount);
 
     return re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
