@@ -5,5 +5,4 @@ target_sources(RealWorld PRIVATE
     Branch.hpp                  
     ParticleSimulator.hpp       ParticleSimulator.cpp
     TreeSimulator.hpp           TreeSimulator.cpp
-    TreesPoC.hpp                TreesPoC.cpp
 )
