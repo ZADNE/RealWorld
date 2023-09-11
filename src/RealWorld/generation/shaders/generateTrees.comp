@@ -48,11 +48,13 @@ void main(){
     b_branchesWrite[writeIndex] = Branch(
         pxToTi(vec2(pPx, horizonPx)) + tmplt.absPosTi,
         rootIndex + tmplt.parentIndex,
+        tmplt.absAngleNorm,
+        tmplt.relRestAngleNorm,
+        tmplt.angleVelNorm,
         tmplt.radiusTi,
         tmplt.lengthTi,
         tmplt.density,
         tmplt.stiffness,
-        0.0,
-        tmplt.angles
+        vec2(0.0, 0.0)
     );
 }

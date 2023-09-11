@@ -15,14 +15,10 @@ const int BranchesSBRead_BINDING = 1;
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 const float k_third = 0.33333333333;
 
-#define absAngleNorm x
-#define relRestAngleNorm y
-#define angleVelNorm z
-
 void main(){
     // Outputs for next stage
     Branch b = b_branchesRead[gl_VertexIndex];
     o_posTi = b.absPosTi;
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
-    o_angleNorm = b.angles.absAngleNorm;
+    o_angleNorm = b.absAngleNorm;
 }

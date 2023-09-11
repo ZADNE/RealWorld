@@ -12,9 +12,11 @@
 using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;
 
-using D = vk::DescriptorType;
-using S = vk::PipelineStageFlagBits;
-using A = vk::AccessFlagBits;
+using D  = vk::DescriptorType;
+using S  = vk::PipelineStageFlagBits;
+using S2 = vk::PipelineStageFlagBits2;
+using A  = vk::AccessFlagBits;
+using A2 = vk::AccessFlagBits2;
 
 namespace rw {
 
@@ -100,7 +102,7 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}, vk::SubpassEndInfo{}
     );
 
-    // Rasterize moved branches
+    // Simulate and rasterize branches
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics,
         *m_pipelineLayout,
@@ -113,7 +115,18 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
         *m_branchesBuf->write(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
     commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
-    vk::BufferCopy2 bufferCopy{
+    auto bufferBarrier = vk::BufferMemoryBarrier2{
+        S2::eVertexShader,                                // Src stage mask
+        A2::eShaderStorageWrite | A2::eShaderStorageRead, // Src access mask
+        S2::eTransfer,                                    // Dst stage mask
+        A2::eTransferRead,                                // Dst access mask
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored, // Ownership transition
+        *m_branchesBuf->write(),
+        offsetof(BranchesSB, header),
+        sizeof(BranchesSB)};
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
+    constexpr static vk::BufferCopy2 bufferCopy{
         offsetof(BranchesSB, header),
         offsetof(BranchesSB, header),
         sizeof(BranchesSB)};
@@ -148,8 +161,8 @@ TreeSimulator::Buffers TreeSimulator::adoptSave(
     m_branchesBuf.emplace(createBranchBuffer(), createBranchBuffer());
     auto writeDescriptor =
         [&](re::DescriptorSet& set, re::Buffer& first, re::Buffer& second) {
-            set.write(D::eStorageBuffer, 0u, 0u, first, 0ull, VK_WHOLE_SIZE);
-            set.write(D::eStorageBuffer, 1u, 0u, second, 0ull, VK_WHOLE_SIZE);
+            set.write(D::eStorageBuffer, 0u, 0u, first, 0ull, vk::WholeSize);
+            set.write(D::eStorageBuffer, 1u, 0u, second, 0ull, vk::WholeSize);
             set.write(D::eStorageImage, 2u, 0u, worldTex, vk::ImageLayout::eGeneral);
         };
     writeDescriptor(m_descriptorSets[0], (*m_branchesBuf)[0], (*m_branchesBuf)[1]);

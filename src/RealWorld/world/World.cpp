@@ -61,7 +61,7 @@ World::World()
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties)})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
-    m_simulationDS.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, VK_WHOLE_SIZE);
+    m_simulationDS.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, vk::WholeSize);
 }
 
 const re::Texture& World::adoptSave(
@@ -82,7 +82,7 @@ const re::Texture& World::adoptSave(
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
-    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE);
+    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, vk::WholeSize);
 
     // Tree simulator
     auto treeBuffers = m_treeSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
@@ -124,8 +124,8 @@ void World::beginStep(const vk::CommandBuffer& commandBuffer) {
         A::eShaderStorageRead,             // Dst access mask
         vk::ImageLayout::eReadOnlyOptimal, // Old image layout
         vk::ImageLayout::eGeneral,         // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -198,8 +198,8 @@ void World::endStep(const vk::CommandBuffer& commandBuffer) {
         A::eShaderSampledRead,                          // Dst access mask
         eGeneral,                                       // Old image layout
         eReadOnlyOptimal,                               // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -223,8 +223,8 @@ void World::fluidDynamicsStep(
         A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});

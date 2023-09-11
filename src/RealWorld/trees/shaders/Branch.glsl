@@ -10,13 +10,14 @@
 struct Branch {
     vec2    absPosTi;
     uint    parentIndex;
-    //uint    angles;
+    float   absAngleNorm;
+    float   relRestAngleNorm;
+    float   angleVelNorm;
     float   radiusTi;
     float   lengthTi;
     float   density;
     float   stiffness;
-    float   padding;
-    vec4    angles;
+    vec2    padding;
 };
 
 #endif // BRANCH_GLSL

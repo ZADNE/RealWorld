@@ -117,8 +117,8 @@ bool ChunkManager::saveChunks() {
         A::eTransferRead,                  // Dst access mask
         vk::ImageLayout::eReadOnlyOptimal, // Old image layout
         vk::ImageLayout::eGeneral,         // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -160,8 +160,8 @@ bool ChunkManager::saveChunks() {
         {},                                // Dst access mask
         vk::ImageLayout::eGeneral,         // Old image layout
         vk::ImageLayout::eReadOnlyOptimal, // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
     commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
@@ -274,11 +274,11 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
             A::eTransferWrite,                              // Src access mask
             S::eComputeShader,                              // Dst stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-            VK_QUEUE_FAMILY_IGNORED,
-            VK_QUEUE_FAMILY_IGNORED,
+            vk::QueueFamilyIgnored,
+            vk::QueueFamilyIgnored,
             m_activeChunksBuf->buffer(),
             offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
-            VK_WHOLE_SIZE                                // Size
+            vk::WholeSize                                // Size
         };
         commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}}
         );

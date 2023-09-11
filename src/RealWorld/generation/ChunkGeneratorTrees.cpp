@@ -55,28 +55,30 @@ std::vector<Branch> interpret(
                          float        stiffness,
                          float        angleNorm,
                          unsigned int parentIndex) {
-        glm::vec2      absPosTi{0.0};
-        Branch::Angles angles;
+        glm::vec2 absPosTi{0.0};
+        float     absAngleNorm;
+        float     relRestAngleNorm;
         if (parentIndex != ~0u) { // If it is child branch
             const Branch& parent = branches[parentIndex];
-            // Branch::Angles parentAngles = parent.angles.unpack();
-            angles.absAngleNorm     = glm::fract(parent.angles.x + angleNorm);
-            angles.relRestAngleNorm = glm::fract(angleNorm);
-            absPosTi = parent.absPosTi + toCartesian(lengthTi, angles.absAngleNorm);
+            absAngleNorm         = glm::fract(parent.absAngleNorm + angleNorm);
+            relRestAngleNorm     = glm::fract(angleNorm);
+            absPosTi = parent.absPosTi + toCartesian(lengthTi, absAngleNorm);
         } else { // If it is root branch
-            angles.absAngleNorm     = glm::fract(angleNorm);
-            angles.relRestAngleNorm = 0.0;
+            absAngleNorm     = glm::fract(angleNorm);
+            relRestAngleNorm = 0.0;
         }
 
         branches.emplace_back(
             absPosTi,
             parentIndex != ~0 ? parentIndex : (unsigned)branches.size(),
+            absAngleNorm,
+            relRestAngleNorm,
+            0.0f,
             radiusTi,
             lengthTi,
             density,
             stiffness,
-            0.0f,
-            glm::vec4{angles.absAngleNorm, angles.relRestAngleNorm, angles.angleVelNorm, 0.0f}
+            glm::vec2{}
         );
     };
 

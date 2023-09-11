@@ -15,16 +15,12 @@ const int BranchesSBRead_BINDING = 1;
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 const float k_third = 0.33333333333;
 
-#define absAngleNorm x
-#define relRestAngleNorm y
-#define angleVelNorm z
-
 void main(){
     // Outputs for next stage
     Branch b = b_branchesRead[gl_VertexIndex];
     o_posTi = b.absPosTi;
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
-    o_angleNorm = b.angles.absAngleNorm;
+    o_angleNorm = b.absAngleNorm;
 
     // Simulation
     const Branch parent = b_branchesRead[b.parentIndex];
@@ -45,20 +41,20 @@ void main(){
 
     float angularAcc =
         b.lengthTi * forceSize *
-        sin(forceAngle - b.angles.absAngleNorm * k_2pi) /
+        sin(forceAngle - b.absAngleNorm * k_2pi) /
         momentOfInertia;
 
     float angleDiffToRestNorm = angularDifference(
-        fract(parent.angles.absAngleNorm + b.angles.relRestAngleNorm), b.angles.absAngleNorm
+        fract(parent.absAngleNorm + b.relRestAngleNorm), b.absAngleNorm
     );
 
-    angularAcc += b.stiffness * angleDiffToRestNorm - b.angles.angleVelNorm * 0.875;
+    angularAcc += b.stiffness * angleDiffToRestNorm - b.angleVelNorm * 0.875;
 
-    b.angles.angleVelNorm += angularAcc;
-    b.angles.absAngleNorm += b.angles.angleVelNorm;
-    b.angles.absAngleNorm = fract(b.angles.absAngleNorm);
+    b.angleVelNorm += angularAcc;
+    b.absAngleNorm += b.angleVelNorm;
+    b.absAngleNorm = fract(b.absAngleNorm);
 
-    b.absPosTi = parent.absPosTi + toCartesian(parent.lengthTi, parent.angles.absAngleNorm);
+    b.absPosTi = parent.absPosTi + toCartesian(parent.lengthTi, parent.absAngleNorm);
 
     // Store the modified branch
     b_branchesWrite[gl_VertexIndex] = b;

@@ -30,7 +30,7 @@ ChunkGenerator::ChunkGenerator()
     m_descSet.forEach([&](auto& ds) {
         ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
         ds.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
-        ds.write(eUniformBuffer, 2, 0, m_treeTemplatesBuf, 0, VK_WHOLE_SIZE);
+        ds.write(eUniformBuffer, 2, 0, m_treeTemplatesBuf, 0, vk::WholeSize);
     });
 }
 
@@ -45,15 +45,15 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     );
     m_descSet.forEach(
         [&](auto& ds, const auto& branchBuf) {
-            ds.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, VK_WHOLE_SIZE);
+            ds.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, vk::WholeSize);
         },
         m_branchesBuf
     );
     auto writeDescriptor = [&](re::DescriptorSet& set,
                                const re::Buffer&  first,
                                const re::Buffer&  second) {
-        set.write(eStorageBuffer, 4, 0, first, 0, VK_WHOLE_SIZE);
-        set.write(eStorageBuffer, 5, 0, second, 0, VK_WHOLE_SIZE);
+        set.write(eStorageBuffer, 4, 0, first, 0, vk::WholeSize);
+        set.write(eStorageBuffer, 5, 0, second, 0, vk::WholeSize);
     };
     writeDescriptor(m_descSet[0], *m_branchesBuf[0], *m_branchesBuf[1]);
     writeDescriptor(m_descSet[1], *m_branchesBuf[1], *m_branchesBuf[0]);
@@ -85,8 +85,8 @@ vk::ImageMemoryBarrier2 ChunkGenerator::stepBarrier() const {
         A::eShaderStorageRead,  // Dst access mask
         eGeneral,               // Old image layout
         eGeneral,               // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored, // Ownership transition
         m_tilesTex.image(),
         vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
 }
@@ -102,8 +102,8 @@ void ChunkGenerator::finishGeneration(
         A::eTransferRead,                               // Dst access mask
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // Ownership transition
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored, // Ownership transition
         m_tilesTex.image(),
         vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
