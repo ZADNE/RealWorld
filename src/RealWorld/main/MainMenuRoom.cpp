@@ -222,7 +222,7 @@ void MainMenuRoom::controlsMenu() {
         TableNextColumn();
 
         RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
-        if (Button(re::keyToString(keybinder(binding)).data())) {
+        if (Button(re::toString(keybinder(binding)).data())) {
             keybinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(
                 binding, *this
             );
