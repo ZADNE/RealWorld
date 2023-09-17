@@ -66,7 +66,7 @@ protected:
         const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh
     );
 
-    vk::ImageMemoryBarrier2 stepBarrier() const; /**< Helper func */
+    vk::ImageMemoryBarrier2 worldTexBarrier() const; /**< Helper func */
 
     static re::Buffer createTreeTemplatesBuffer();
 

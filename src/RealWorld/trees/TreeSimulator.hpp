@@ -22,6 +22,23 @@
 
 namespace rw {
 
+struct BranchesSBHeader {
+    uint32_t vertexCount    = 0;
+    uint32_t instanceCount  = 1;
+    uint32_t firstVertex    = 0;
+    uint32_t firstInstance  = 0;
+    int      maxBranchCount = 0;
+    int      padding[7];
+};
+
+#pragma warning(push)
+#pragma warning(disable : 4200)
+struct BranchesSB {
+    BranchesSBHeader header;
+    Branch           branches[];
+};
+#pragma warning(pop)
+
 /**
  * @brief   Simulates swaying and growth of trees
  * @details Rasterizes and unrasterizes the trees to the world texture.
@@ -39,22 +56,6 @@ public:
     Buffers adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
 
 private:
-    struct BranchesSBHeader {
-        uint32_t vertexCount    = 0;
-        uint32_t instanceCount  = 1;
-        uint32_t firstVertex    = 0;
-        uint32_t firstInstance  = 0;
-        int      maxBranchCount = 0;
-        int      padding[7];
-    };
-
-#pragma warning(push)
-#pragma warning(disable : 4200)
-    struct BranchesSB {
-        BranchesSBHeader header;
-        Branch           branches[];
-    };
-#pragma warning(pop)
 
     /**
      * @brief Size of header is same as 2 branches

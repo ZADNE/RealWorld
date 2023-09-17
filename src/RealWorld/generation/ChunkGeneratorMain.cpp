@@ -77,7 +77,7 @@ void ChunkGenerator::generateChunk(
     finishGeneration(commandBuffer, outputInfo.posCh);
 }
 
-vk::ImageMemoryBarrier2 ChunkGenerator::stepBarrier() const {
+vk::ImageMemoryBarrier2 ChunkGenerator::worldTexBarrier() const {
     return vk::ImageMemoryBarrier2{
         S::eComputeShader,      // Src stage mask
         A::eShaderStorageWrite, // Src access mask

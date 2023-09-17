@@ -34,7 +34,7 @@ void main(){
     }
 
     if (gl_LocalInvocationIndex == 0){
-        uint rootIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, gl_WorkGroupSize.x);
+        rootIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, gl_WorkGroupSize.x);
         if ((rootIndex + gl_WorkGroupSize.x) > b_branchesHeaderRead.maxBranchCount) {
             rootIndex = ~0;
             atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-gl_WorkGroupSize.x));

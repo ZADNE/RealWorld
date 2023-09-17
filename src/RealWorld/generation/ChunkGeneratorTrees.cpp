@@ -9,6 +9,10 @@
 
 #include <RealWorld/constants/tree.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
+#include <RealWorld/trees/TreeSimulator.hpp>
+
+using S = vk::PipelineStageFlagBits2;
+using A = vk::AccessFlagBits2;
 
 namespace rw {
 
@@ -133,6 +137,23 @@ std::vector<Branch> interpret(
 void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateTreesPl);
     commandBuffer.dispatch(1u, 1u, 1u);
+    vk::BufferMemoryBarrier2 bufferBarrier{
+        S::eComputeShader,                              // Src stage mask
+        A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
+        S::eTransfer,                                   // Dst stage mask
+        A::eTransferRead,                               // Dst access mask
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored, // Ownership transition
+        **m_branchesBuf.write(),
+        offsetof(BranchesSB, header),
+        sizeof(BranchesSB::header)};
+    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
+    constexpr static vk::BufferCopy2 bufferCopy{
+        offsetof(BranchesSB, header),
+        offsetof(BranchesSB, header),
+        sizeof(BranchesSB::header)};
+    commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
+        **m_branchesBuf.write(), **m_branchesBuf.read(), bufferCopy});
 }
 
 re::Buffer ChunkGenerator::createTreeTemplatesBuffer() {

@@ -95,7 +95,7 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
     // Unrasterize branches from previous step
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
     commandBuffer.drawIndirect(
-        *m_branchesBuf->write(), offsetof(BranchesSBHeader, vertexCount), 1, 0
+        *m_branchesBuf->read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
 
     commandBuffer.nextSubpass2(
@@ -112,26 +112,9 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
     );
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
     commandBuffer.drawIndirect(
-        *m_branchesBuf->write(), offsetof(BranchesSBHeader, vertexCount), 1, 0
+        *m_branchesBuf->read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
     commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
-    auto bufferBarrier = vk::BufferMemoryBarrier2{
-        S2::eVertexShader,                                // Src stage mask
-        A2::eShaderStorageWrite | A2::eShaderStorageRead, // Src access mask
-        S2::eTransfer,                                    // Dst stage mask
-        A2::eTransferRead,                                // Dst access mask
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored, // Ownership transition
-        *m_branchesBuf->write(),
-        offsetof(BranchesSB, header),
-        sizeof(BranchesSB)};
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
-    constexpr static vk::BufferCopy2 bufferCopy{
-        offsetof(BranchesSB, header),
-        offsetof(BranchesSB, header),
-        sizeof(BranchesSB)};
-    commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
-        *m_branchesBuf->write(), *m_branchesBuf->read(), bufferCopy});
 }
 
 TreeSimulator::Buffers TreeSimulator::adoptSave(
