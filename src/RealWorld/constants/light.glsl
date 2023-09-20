@@ -4,7 +4,7 @@
 #ifndef LIGHT_GLSL
 #define LIGHT_GLSL
 
-#include <RealWorld/constants/tile.glsl>
+const int k_lightMaxRangeTi =   160;
 
 const int k_analysisGroupSize = 8;
 

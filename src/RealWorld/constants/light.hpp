@@ -5,7 +5,7 @@
 
 namespace rw {
 
-constexpr int k_lightMaxRangeTi = 128;
+constexpr int k_lightMaxRangeTi = 160;
 
 constexpr int   k_iLightScale    = 4;
 constexpr float k_lightScale     = k_iLightScale;

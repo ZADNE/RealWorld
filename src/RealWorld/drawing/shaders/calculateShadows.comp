@@ -24,10 +24,10 @@ const float k_piOver128 =   0.0245436926;
 const float k_piOver256 =   0.0122718463;
 const float k_piOver512 =   0.00613592315;
 
-const vec2 k_ray1Bounds = vec2(21.0, 32.0);
+const vec2 k_ray1Bounds = vec2(21.0, 40.0);
 const vec2 k_ray2Bounds = vec2(11.0, k_ray1Bounds.x - 1.0);
 const vec2 k_ray4Bounds = vec2(6.0, k_ray2Bounds.x - 1.0);
-const vec2 k_ray8Bounds = vec2(4.0, k_ray4Bounds.x - 1.0);
+const vec2 k_ray8Bounds = vec2(3.0, k_ray4Bounds.x - 1.0);
 const vec2 k_ray16Bounds = vec2(2.0, k_ray8Bounds.x - 1.0);
 const vec2 k_ray32Bounds = vec2(1.0, k_ray16Bounds.x - 1.0);
 

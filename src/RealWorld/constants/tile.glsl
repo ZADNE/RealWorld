@@ -21,8 +21,6 @@ int   tiToPx(int posTi)   { return posTi << k_tileLowZeroBits.x; }
 
 const ivec2 iChunkTi =        {128, 128};
 
-const int k_lightMaxRangeTi =   128;
-
 #define TILE xyzw
 #define TILE_TYPE xz
 #define TILE_VAR yw

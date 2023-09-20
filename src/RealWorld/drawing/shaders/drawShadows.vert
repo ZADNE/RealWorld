@@ -2,6 +2,7 @@
  *  @author     Dubsky Tomas
  */
 #version 460
+#include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/light.glsl>
 #include <RealWorld/drawing/shaders/ShadowDrawingPC.glsl>
 
