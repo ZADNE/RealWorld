@@ -135,9 +135,22 @@ std::vector<Branch> interpret(
 } // namespace
 
 void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateTreesPl);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_prepareTreesPl);
     commandBuffer.dispatch(1u, 1u, 1u);
-    vk::BufferMemoryBarrier2 bufferBarrier{
+    vk::BufferMemoryBarrier2 treePreparationBarrier{
+        S::eComputeShader,       // Src stage mask
+        A::eShaderStorageWrite,  // Src access mask
+        S::eDrawIndirect,        // Dst stage mask
+        A::eIndirectCommandRead, // Dst access mask
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored, // Ownership transition
+        *m_treePreparationBuf,
+        0,
+        sizeof(glm::uvec4)};
+    commandBuffer.pipelineBarrier2({{}, {}, treePreparationBarrier, {}});
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateTreesPl);
+    commandBuffer.dispatchIndirect(*m_treePreparationBuf, 0);
+    vk::BufferMemoryBarrier2 branchesHeaderBarrier{
         S::eComputeShader,                              // Src stage mask
         A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
         S::eTransfer,                                   // Dst stage mask
@@ -147,7 +160,7 @@ void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
         **m_branchesBuf.write(),
         offsetof(BranchesSB, header),
         sizeof(BranchesSB::header)};
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
+    commandBuffer.pipelineBarrier2({{}, {}, branchesHeaderBarrier, {}});
     constexpr static vk::BufferCopy2 bufferCopy{
         offsetof(BranchesSB, header),
         offsetof(BranchesSB, header),

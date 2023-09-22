@@ -96,6 +96,8 @@ protected:
         {.pipelineLayout = *m_pipelineLayout}, {.comp = consolidateEdges_comp}};
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = selectVariant_comp}};
+    re::Pipeline m_prepareTreesPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = prepareTrees_comp}};
     re::Pipeline m_generateTreesPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = generateTrees_comp}};
 
@@ -113,6 +115,7 @@ protected:
         .initialLayout = vk::ImageLayout::eGeneral}};
 
     re::Buffer m_treeTemplatesBuf = createTreeTemplatesBuffer();
+    re::Buffer m_treePreparationBuf;
 };
 
 } // namespace rw

@@ -31,7 +31,7 @@ const Biome DESERT =        {SAND,          {0., 500.},         {0., 0.},       
 const Biome SAVANNA =       {DRY_GRASS,     {250., 800.},       {100., 100.},       {200., 200.}};
 const Biome RAINFOREST =    {MUD_GRASS,     {250., 1000.},      {150., 160.},       {240., 280.}};
 
-const Biome BIOMES[3][3] = {
+const Biome k_biomes[3][3] = {
 //humidity> |low                |normal             |high            temperature \/
     {       MOUNTAINS,          TUNDRA,             TAIGA           },  //-low
     {       DIRTLAND,           GRASSLAND,          SWAMP           },  //-normal

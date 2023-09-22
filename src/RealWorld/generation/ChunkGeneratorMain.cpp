@@ -10,6 +10,7 @@ using enum vk::ImageAspectFlagBits;
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
+using B = vk::BufferUsageFlagBits;
 
 namespace rw {
 
@@ -23,14 +24,20 @@ ChunkGenerator::ChunkGenerator()
                   {2, eUniformBuffer, 1, eCompute}, // TreeTemplatesUB
                   {3, eStorageBuffer, 1, eCompute}, // bodiesSB
                   {4, eStorageBuffer, 1, eCompute}, // branchesSBWrite
-                  {5, eStorageBuffer, 1, eCompute}  // branchesSBWrite
+                  {5, eStorageBuffer, 1, eCompute}, // branchesSBWrite
+                  {6, eStorageBuffer, 1, eCompute}  // TreePreparationSB
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
-      ) {
+      )
+    , m_treePreparationBuf(re::BufferCreateInfo{
+          .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+          .sizeInBytes = sizeof(glm::uvec4),
+          .usage       = B::eStorageBuffer | B::eIndirectBuffer}) {
     m_descSet.forEach([&](auto& ds) {
         ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
         ds.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
         ds.write(eUniformBuffer, 2, 0, m_treeTemplatesBuf, 0, vk::WholeSize);
+        ds.write(eStorageBuffer, 6, 0, m_treePreparationBuf, 0, vk::WholeSize);
     });
 }
 

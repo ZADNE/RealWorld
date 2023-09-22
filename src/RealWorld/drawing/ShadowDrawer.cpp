@@ -305,6 +305,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     , calculationDS(calculationPll.descriptorSetLayout(0))
     , shadowDrawingDS(shadowDrawingPll.descriptorSetLayout(0)) {
     using enum vk::DescriptorType;
+
     // Analysis descriptor set
     analysisDS.write(
         eStorageImage,
@@ -316,10 +317,12 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     analysisDS.write(eCombinedImageSampler, 3u, 0u, blockLightAtlasTex, eReadOnlyOptimal);
     analysisDS.write(eCombinedImageSampler, 4u, 0u, wallLightAtlasTex, eReadOnlyOptimal);
     analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf, 0ull, vk::WholeSize);
+
     // Calculation descriptor set
     calculationDS.write(eCombinedImageSampler, 0u, 0u, lightTex, eReadOnlyOptimal);
     calculationDS.write(eCombinedImageSampler, 1u, 0u, transluTex, eReadOnlyOptimal);
     calculationDS.write(eStorageImage, 2u, 0u, shadowsTex, eGeneral);
+
     // Shadow drawing descriptor set
     shadowDrawingDS.write(eCombinedImageSampler, 0u, 0u, shadowsTex, eReadOnlyOptimal);
 }

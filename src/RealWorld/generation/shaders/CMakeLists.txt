@@ -4,6 +4,8 @@
     generateStructure.comp      generateStructure.glsl
     generateTrees.comp          
     GenerationPC.glsl           
+    prepareTrees.comp           
     selectVariant.comp          
+    TreePreparationSB.glsl       
     TreeTemplatesUB.glsl        
 )

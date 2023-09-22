@@ -10,7 +10,7 @@
 #extension GL_EXT_scalar_block_layout : require
 layout(set = 0, binding = TreeTemplatesUB_BINDING, std430)
 restrict uniform TreeTemplatesUB {
-    Branch b_treeTemplateBranches[k_treeTemplatesBranchCount];
+    Branch u_treeTemplateBranches[k_treeTemplatesBranchCount];
 };
 
 #endif // TREE_TEMPLATES_UB_GLSL

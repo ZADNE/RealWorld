@@ -1,0 +1,33 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+const int TreePreparationSB_BINDING = 6;
+#define TreePreparationSB_ACCESS writeonly
+#include <RealWorld/generation/shaders/TreePreparationSB.glsl>
+#include <RealWorld/generation/shaders/generateStructure.glsl>
+
+const float k_piHalf = 1.57079632679;
+const float k_piQuarter = 0.785398163;
+
+layout( local_size_x = 32,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+void main(){
+    if (gl_LocalInvocationIndex == 0){
+        // Calculate the horizon
+        float pPx = float(p_chunkOffsetTi.x) * TilePx.x;
+        vec2 biomeClimate = biomeClimate(pPx, p_seed);
+        Biome biome = biomeStructure(biomeClimate);
+        float horizonPx = horizon(pPx, biome, p_seed).r;
+        int horizonTi = int(pxToTi(horizonPx));
+        if (horizonTi < p_chunkOffsetTi.y || horizonTi >= (p_chunkOffsetTi.y + iChunkTi.y)) {
+            // The chunk is not on the horizon -> do not generate any trees
+            b_dispatchSize = uvec4(0);
+        } else {
+            b_dispatchSize = uvec4(1, 1, 1, 0);
+        }
+    }
+}

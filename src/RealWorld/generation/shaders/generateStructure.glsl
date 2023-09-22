@@ -26,14 +26,14 @@ vec2 biomeClimate(float x, float seed){
 
 Biome biomeStructure(vec2 biomeClimate){
     biomeClimate = fract(biomeClimate);
-    biomeClimate *= vec2(BIOMES.length() - 1, BIOMES[0].length() - 1);
+    biomeClimate *= vec2(k_biomes.length() - 1, k_biomes[0].length() - 1);
     ivec2 ll = ivec2(biomeClimate);
     vec2 frac = fract(biomeClimate);
     //Gather
-    Biome b00 = BIOMES[ll.x][ll.y];
-    Biome b01 = BIOMES[ll.x][ll.y + 1];
-    Biome b10 = BIOMES[ll.x + 1][ll.y];
-    Biome b11 = BIOMES[ll.x + 1][ll.y + 1];
+    Biome b00 = k_biomes[ll.x][ll.y];
+    Biome b01 = k_biomes[ll.x][ll.y + 1];
+    Biome b10 = k_biomes[ll.x + 1][ll.y];
+    Biome b11 = k_biomes[ll.x + 1][ll.y + 1];
     //Interpolate over X axis
     b00.elevation = mix(b00.elevation, b10.elevation, frac.x);
     b01.elevation = mix(b01.elevation, b11.elevation, frac.x);
@@ -105,8 +105,8 @@ uvec2 stoneTile(vec2 posPx, float age, float baseSolidity, float seed){
 uvec2 surfaceTile(vec2 posPx, vec2 biomeClimate, float seed){
     vec2 climateDither = hash23(vec3(posPx, seed)) * 0.1 - vec2(0.05);
     vec2 climate = clamp(biomeClimate + climateDither, vec2(0.0), vec2(0.99999));
-    ivec2 indices = ivec2(vec2(BIOMES.length(), BIOMES[0].length()) * climate);
-    return BIOMES[indices.x][indices.y].tiles.TILE_TYPE;
+    ivec2 indices = ivec2(vec2(k_biomes.length(), k_biomes[0].length()) * climate);
+    return k_biomes[indices.x][indices.y].tiles.TILE_TYPE;
 }
 
 float horizonProximityFactor(float horizon, float y, float width, float low, float high){
