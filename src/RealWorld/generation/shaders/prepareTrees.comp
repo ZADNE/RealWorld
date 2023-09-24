@@ -15,19 +15,31 @@ layout( local_size_x = 32,
         local_size_z = 1
 ) in;
 
+const uint k_invocOffsetTi = iChunkTi.x / gl_WorkGroupSize.x;
+
+shared uint s_newVegetationCount;
+shared uint s_greenMass;
+
 void main(){
+    // Init shared vars
     if (gl_LocalInvocationIndex == 0){
-        // Calculate the horizon
-        float pPx = float(p_chunkOffsetTi.x) * TilePx.x;
-        vec2 biomeClimate = biomeClimate(pPx, p_seed);
-        Biome biome = biomeStructure(biomeClimate);
-        float horizonPx = horizon(pPx, biome, p_seed).r;
-        int horizonTi = int(pxToTi(horizonPx));
-        if (horizonTi < p_chunkOffsetTi.y || horizonTi >= (p_chunkOffsetTi.y + iChunkTi.y)) {
-            // The chunk is not on the horizon -> do not generate any trees
-            b_dispatchSize = uvec4(0);
-        } else {
-            b_dispatchSize = uvec4(1, 1, 1, 0);
-        }
+        s_newVegetationCount = 0;
+        s_greenMass = 0;
+    }
+    barrier();
+
+    // Sum green mass
+    float pPx = float(p_chunkOffsetTi.x + gl_LocalInvocationIndex * k_invocOffsetTi) * TilePx.x;
+    vec2 biomeClimate = biomeClimate(pPx, p_seed);
+    atomicAdd(s_greenMass, uint(biomeClimate.x * biomeClimate.y));
+
+    /*if (gl_LocalInvocationIndex == 0 && horizonTi >= p_chunkOffsetTi.y && horizonTi < (p_chunkOffsetTi.y + iChunkTi.y)) {
+        // The chunk is on the horizon
+        atomicAdd(s_newVegetationCount, 1);
+    }*/
+
+    barrier();
+    if (gl_LocalInvocationIndex == 0){
+        b_dispatchSize = uvec4(s_newVegetationCount, 1, 1, 0);
     }
 }

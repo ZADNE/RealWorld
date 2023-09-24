@@ -21,7 +21,7 @@ layout( local_size_x = 64,
         local_size_z = 1
 ) in;
 
-shared uint rootIndex;
+shared uint s_rootIndex;
 
 void main(){
     // Calculate the horizon
@@ -31,20 +31,20 @@ void main(){
     float horizonPx = horizon(pPx, biome, p_seed).r;
 
     if (gl_LocalInvocationIndex == 0){
-        rootIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, gl_WorkGroupSize.x);
-        if ((rootIndex + gl_WorkGroupSize.x) > b_branchesHeaderRead.maxBranchCount) {
-            rootIndex = ~0;
+        s_rootIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, gl_WorkGroupSize.x);
+        if ((s_rootIndex + gl_WorkGroupSize.x) > b_branchesHeaderRead.maxBranchCount) {
+            s_rootIndex = ~0;
             atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-gl_WorkGroupSize.x));
         }
     }
     barrier();
-    if (rootIndex == ~0) return;
+    if (s_rootIndex == ~0) return;
 
-    uint writeIndex = rootIndex + gl_LocalInvocationIndex;
+    uint writeIndex = s_rootIndex + gl_LocalInvocationIndex;
     Branch tmplt = u_treeTemplateBranches[gl_LocalInvocationIndex];
     b_branchesWrite[writeIndex] = Branch(
         pxToTi(vec2(pPx, horizonPx)) + tmplt.absPosTi,
-        rootIndex + tmplt.parentIndex,
+        s_rootIndex + tmplt.parentIndex,
         tmplt.absAngleNorm,
         tmplt.relRestAngleNorm,
         tmplt.angleVelNorm,

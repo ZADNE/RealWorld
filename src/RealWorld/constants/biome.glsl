@@ -38,4 +38,31 @@ const Biome k_biomes[3][3] = {
     {       DESERT,             SAVANNA,            RAINFOREST      }   //-high
 };
 
+/**
+ * @param biomeClimate x = temperature, y = humidity
+ */
+Biome biomeStructure(vec2 biomeClimate){
+    biomeClimate = fract(biomeClimate);
+    biomeClimate *= vec2(k_biomes.length() - 1, k_biomes[0].length() - 1);
+    ivec2 ll = ivec2(biomeClimate);
+    vec2 frac = fract(biomeClimate);
+    //Gather
+    Biome b00 = k_biomes[ll.x][ll.y];
+    Biome b01 = k_biomes[ll.x][ll.y + 1];
+    Biome b10 = k_biomes[ll.x + 1][ll.y];
+    Biome b11 = k_biomes[ll.x + 1][ll.y + 1];
+    //Interpolate over X axis
+    b00.elevation = mix(b00.elevation, b10.elevation, frac.x);
+    b01.elevation = mix(b01.elevation, b11.elevation, frac.x);
+    b00.roughness = mix(b00.roughness, b10.roughness, frac.x);
+    b01.roughness = mix(b01.roughness, b11.roughness, frac.x);
+    b00.surfaceWidth = mix(b00.surfaceWidth, b10.surfaceWidth, frac.x);
+    b01.surfaceWidth = mix(b01.surfaceWidth, b11.surfaceWidth, frac.x);
+    //Interpolate over Y axis
+    b00.elevation = mix(b00.elevation, b01.elevation, frac.y);
+    b00.roughness = mix(b00.roughness, b01.roughness, frac.y);
+    b00.surfaceWidth = mix(b00.surfaceWidth, b01.surfaceWidth, frac.y);
+    return b00;
+}
+
 #endif // BIOME_GLSL
