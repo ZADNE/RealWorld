@@ -13,4 +13,4 @@ restrict uniform TreeTemplatesUB {
     Branch u_treeTemplateBranches[k_treeTemplatesBranchCount];
 };
 
-#endif // TREE_TEMPLATES_UB_GLSL
+#endif // !TREE_TEMPLATES_UB_GLSL

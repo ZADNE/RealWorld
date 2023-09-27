@@ -15,4 +15,4 @@ readonly restrict buffer DynamicLightsSB {
     DynamicLight b_lights[];
 };
 
-#endif // DYNAMIC_LIGHTS_SB_GLSL
+#endif // !DYNAMIC_LIGHTS_SB_GLSL

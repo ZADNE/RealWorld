@@ -7,4 +7,4 @@
 const int k_genBorderWidth = 8;
 const int k_genGroupSize = 16;
 
-#endif // GENERATION_GLSL
+#endif // !GENERATION_GLSL

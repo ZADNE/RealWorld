@@ -130,4 +130,4 @@ bvec2 isSolidTile(uvec2 tile_type){ return lessThan(tile_type, FIRST_FLUID.TL_T)
 bvec2 isFluidTile(uvec2 tile_type){ return greaterThanEqual(tile_type, FIRST_FLUID.TL_T); }
 bvec2 isAirTile(uvec2 tile_type){ return equal(tile_type, AIR.TL_T); }
 
-#endif // TILE_GLSL
+#endif // !TILE_GLSL

@@ -15,4 +15,4 @@ restrict uniform WorldDynamicsPC {
     uint    p_updateOrder;
 };
 
-#endif // WORLD_DYNAMICS_PC_GLSL
+#endif // !WORLD_DYNAMICS_PC_GLSL

@@ -25,4 +25,4 @@ float snoise(in vec2 p, float seed){
     return dot(n, vec3(70.0));
 }
 
-#endif // SNOISE_GLSL
+#endif // !SNOISE_GLSL

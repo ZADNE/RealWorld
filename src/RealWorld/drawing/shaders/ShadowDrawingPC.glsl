@@ -13,4 +13,4 @@ uniform ShadowDrawingPC {
     ivec2   p_readOffsetTi;
 };
 
-#endif // SHADOW_DRAWING_PC_GLSL
+#endif // !SHADOW_DRAWING_PC_GLSL

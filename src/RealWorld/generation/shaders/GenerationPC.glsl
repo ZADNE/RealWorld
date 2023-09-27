@@ -13,4 +13,4 @@ uniform GenerationPC {
     uint    p_edgeConsolidationReduce;
 };
 
-#endif // GENERATION_PC_GLSL
+#endif // !GENERATION_PC_GLSL

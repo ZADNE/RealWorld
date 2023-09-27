@@ -13,4 +13,4 @@ TreePreparationSB_ACCESS restrict buffer TreePreparationSB {
     uvec4 b_dispatchSize;
 };
 
-#endif // TREE_PREPARATION_SB_GLSL
+#endif // !TREE_PREPARATION_SB_GLSL

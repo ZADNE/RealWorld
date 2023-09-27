@@ -25,4 +25,4 @@ float angularDifference(float target, float current) {
     return diff;
 }
 
-#endif // NORM_ANGLES_GLSL
+#endif // !NORM_ANGLES_GLSL

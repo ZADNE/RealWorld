@@ -1,4 +1,5 @@
 ﻿target_shaders(RealWorld PRIVATE 
+    biome.glsl                  
     consolidateEdges.comp       
     generateColumnValues.glsl   
     generateStructure.comp      generateStructure.glsl
@@ -8,4 +9,5 @@
     selectVariant.comp          
     TreePreparationSB.glsl       
     TreeTemplatesUB.glsl        
+    vegetation.glsl             
 )

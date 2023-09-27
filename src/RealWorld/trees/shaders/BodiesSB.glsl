@@ -22,4 +22,4 @@ restrict buffer BodiesSB {
     Body b_bodies[];
 };
 
-#endif // BODIES_SB_GLSL
+#endif // !BODIES_SB_GLSL

@@ -26,4 +26,4 @@ uvec4 tileLoadIm(ivec2 posIm){
     return imageLoad(u_worldImage, posIm);
 }
 
-#endif // TILE_LOAD_GLSL
+#endif // !TILE_LOAD_GLSL

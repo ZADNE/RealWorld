@@ -11,4 +11,4 @@ restrict buffer PlayerHitboxSB {
     vec2 b_velocityPx;
 };
 
-#endif // PLAYER_HITBOX_SB_GLSL
+#endif // !PLAYER_HITBOX_SB_GLSL

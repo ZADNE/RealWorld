@@ -10,4 +10,4 @@ const uint k_simulateBranchesGroupSizeZ = 1;
 
 const uint k_treeTemplatesBranchCount = 65;
 
-#endif // TREE_GLSL
+#endif // !TREE_GLSL

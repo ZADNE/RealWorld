@@ -13,4 +13,4 @@ restrict buffer ActiveChunksSB {
                                 //Following indices: absolute positions of chunks, in chunks
 };
 
-#endif // ACTIVE_CHUNKS_SB_GLSL
+#endif // !ACTIVE_CHUNKS_SB_GLSL

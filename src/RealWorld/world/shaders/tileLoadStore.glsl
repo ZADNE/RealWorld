@@ -36,4 +36,4 @@ void tileStoreIm(ivec2 posIm, uvec4 tile){
     imageStore(u_worldImage, posIm, tile);
 }
 
-#endif // TILE_LOAD_STORE_GLSL
+#endif // !TILE_LOAD_STORE_GLSL

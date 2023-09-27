@@ -82,4 +82,4 @@ vec4 hash44(vec4 p4){
     return fract((p4.xxyz+p4.yzzw)*p4.zywx);
 }
 
-#endif // FLOAT_HASH_GLSL
+#endif // !FLOAT_HASH_GLSL

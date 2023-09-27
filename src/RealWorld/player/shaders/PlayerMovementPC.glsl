@@ -16,4 +16,4 @@ uniform PlayerMovementPC {
     int     p_writeIndex;// Selects PlayerHitboxSB::botLeftPx, swings every step
 };
 
-#endif // PLAYER_MOVEMENT_PC_GLSL
+#endif // !PLAYER_MOVEMENT_PC_GLSL

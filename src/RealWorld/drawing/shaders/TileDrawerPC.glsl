@@ -16,4 +16,4 @@ uniform TileDrawerPC {
     vec2    p_minimapSize;
 };
 
-#endif // TILE_DRAWER_PC_GLSL
+#endif // !TILE_DRAWER_PC_GLSL

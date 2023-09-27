@@ -6,8 +6,8 @@
 
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
+#include <RealWorld/generation/shaders/biome.glsl>
 #include <RealWorld/constants/generation.glsl>
-#include <RealWorld/constants/biome.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 
@@ -113,4 +113,4 @@ void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
     tile = occupied ? material : uvec4(AIR.BL_T, material.BL_V, material.WL);
 }
 
-#endif // GENERATE_STRUCTURE_GLSL
+#endif // !GENERATE_STRUCTURE_GLSL

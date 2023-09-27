@@ -27,4 +27,4 @@ readonly restrict buffer BranchesSBRead {
     Branch              b_branchesRead[];
 };
 
-#endif // BRANCHES_SB_GLSL
+#endif // !BRANCHES_SB_GLSL

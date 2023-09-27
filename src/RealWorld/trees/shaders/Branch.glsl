@@ -20,4 +20,4 @@ struct Branch {
     vec2    padding;
 };
 
-#endif // BRANCH_GLSL
+#endif // !BRANCH_GLSL

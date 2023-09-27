@@ -11,4 +11,4 @@ restrict uniform TreeDynamicsPC {
     float p_timeSec;
 };
 
-#endif // TREE_DYNAMICS_PC
+#endif // !TREE_DYNAMICS_PC

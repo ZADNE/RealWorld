@@ -30,4 +30,4 @@ restrict uniform TilePropertiesUB {
     uvec4 u_wallTransformationRules[16];
 };
 
-#endif // TILE_PROPERTIES_UB_GLSL
+#endif // !TILE_PROPERTIES_UB_GLSL

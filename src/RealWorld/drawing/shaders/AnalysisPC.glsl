@@ -13,4 +13,4 @@ uniform AnalysisPC {
     uint    p_lightCount;
 };
 
-#endif // ANALYSIS_PC_GLSL
+#endif // !ANALYSIS_PC_GLSL
