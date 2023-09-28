@@ -4,6 +4,7 @@
 #version 460
 #include <RealWorld/constants/body.glsl>
 #include <RealWorld/constants/tree.glsl>
+#include <RealWorld/world/shaders/random.glsl>
 const int TreeTemplatesUB_BINDING = 2;
 #include <RealWorld/generation/shaders/TreeTemplatesUB.glsl>
 const int BranchesSBWrite_BINDING = 4;
@@ -11,7 +12,7 @@ const int BranchesSBRead_BINDING = 5;
 #include <RealWorld/trees/shaders/BranchesSB.glsl>
 const int TreePreparationSB_BINDING = 6;
 #include <RealWorld/generation/shaders/TreePreparationSB.glsl>
-#include <RealWorld/generation/shaders/generateStructure.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
 
 const float k_piHalf = 1.57079632679;
 const float k_piQuarter = 0.785398163;
@@ -21,35 +22,34 @@ layout( local_size_x = 64,
         local_size_z = 1
 ) in;
 
-shared uint s_rootIndex;
+shared TreeDescription s_treeDescr;
+
+float scaleAngle(float a, float s){
+    return fract(a < 0.5 ? a * s : 1.0 - (1.0 - a) * s);
+}
 
 void main(){
-    // Calculate the horizon
-    float pPx = float(p_chunkOffsetTi.x) * TilePx.x;
-    vec2 biomeClimate = biomeClimate(pPx, p_seed);
-    Biome biome = biomeStructure(biomeClimate);
-    float horizonPx = horizon(pPx, biome, p_seed).r;
-
-    if (gl_LocalInvocationIndex == 0){
-        s_rootIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, gl_WorkGroupSize.x);
-        if ((s_rootIndex + gl_WorkGroupSize.x) > b_branchesHeaderRead.maxBranchCount) {
-            s_rootIndex = ~0;
-            atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-gl_WorkGroupSize.x));
-        }
+    // Load tree description
+    if (gl_LocalInvocationID.x == 0){
+        s_treeDescr = b_treeDescriptions[gl_WorkGroupID.x];
     }
     barrier();
-    if (s_rootIndex == ~0) return;
 
-    uint writeIndex = s_rootIndex + gl_LocalInvocationIndex;
-    Branch tmplt = u_treeTemplateBranches[gl_LocalInvocationIndex];
-    b_branchesWrite[writeIndex] = Branch(
-        pxToTi(vec2(pPx, horizonPx)) + tmplt.absPosTi,
-        s_rootIndex + tmplt.parentIndex,
+    // Load and randomize branch template
+    Branch tmplt = u_treeTemplateBranches[gl_LocalInvocationID.x];
+    tmplt.relRestAngleNorm = fract(bool(s_treeDescr.randomSeed & 1) ? tmplt.relRestAngleNorm : -tmplt.relRestAngleNorm);
+    tmplt.relRestAngleNorm = scaleAngle(tmplt.relRestAngleNorm, s_treeDescr.angleFactor);
+    g_randomState = s_treeDescr.randomSeed ^ gl_LocalInvocationID.x * 2017;
+
+    // Write the branch
+    b_branchesWrite[s_treeDescr.rootIndex + gl_LocalInvocationID.x] = Branch(
+        tmplt.absPosTi          + s_treeDescr.rootPosTi,
+        tmplt.parentIndex       + s_treeDescr.rootIndex,
         tmplt.absAngleNorm,
         tmplt.relRestAngleNorm,
         tmplt.angleVelNorm,
-        tmplt.radiusTi,
-        tmplt.lengthTi,
+        tmplt.radiusTi          * s_treeDescr.sizeFactor,
+        tmplt.lengthTi          * s_treeDescr.sizeFactor,
         tmplt.density,
         tmplt.stiffness,
         vec2(0.0, 0.0)

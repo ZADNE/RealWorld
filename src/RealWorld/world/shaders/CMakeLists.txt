@@ -2,6 +2,7 @@
     ActiveChunksSB.glsl         
     analyzeContinuity.comp      
     modifyTiles.comp            
+    random.glsl                 
     simulateFluids.comp         
     simulationPL.comp           
     tileLoad.glsl               tileLoadStore.glsl

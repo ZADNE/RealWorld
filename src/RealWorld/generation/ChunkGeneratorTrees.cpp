@@ -46,6 +46,7 @@ struct InterpretationInitState {
     float radiusTi;
     float density;
     float stiffness;
+    float angleChange;
 };
 
 std::vector<Branch> interpret(
@@ -92,6 +93,7 @@ std::vector<Branch> interpret(
         float        radiusTi;
         float        density;
         float        stiffness;
+        float        angleChange;
         float        angleNorm;
         unsigned int parentIndex;
     };
@@ -101,6 +103,7 @@ std::vector<Branch> interpret(
         initState.radiusTi,
         initState.density,
         initState.stiffness,
+        initState.angleChange,
         0.0f,
         0u
     );
@@ -121,8 +124,8 @@ std::vector<Branch> interpret(
             state.radiusTi *= 0.875f;
             state.stiffness *= 0.75;
             break;
-        case '+': state.angleNorm += 0.05; break;
-        case '-': state.angleNorm -= 0.05; break;
+        case '+': state.angleNorm += state.angleChange; break;
+        case '-': state.angleNorm -= state.angleChange; break;
         case '[': stack.emplace(stack.top()); break;
         case ']': stack.pop(); break;
         default: break;
@@ -135,32 +138,39 @@ std::vector<Branch> interpret(
 } // namespace
 
 void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
+    // Dispatch preparation
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_prepareTreesPl);
     commandBuffer.dispatch(1u, 1u, 1u);
-    vk::BufferMemoryBarrier2 treePreparationBarrier{
-        S::eComputeShader,       // Src stage mask
-        A::eShaderStorageWrite,  // Src access mask
-        S::eDrawIndirect,        // Dst stage mask
-        A::eIndirectCommandRead, // Dst access mask
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored, // Ownership transition
-        *m_treePreparationBuf,
-        0,
-        sizeof(glm::uvec4)};
-    commandBuffer.pipelineBarrier2({{}, {}, treePreparationBarrier, {}});
+
+    // Add barriers to generation
+    std::array<vk::BufferMemoryBarrier2, 2> treeBarriers = {
+        vk::BufferMemoryBarrier2{
+            S::eComputeShader,                               // Src stage mask
+            A::eShaderStorageWrite,                          // Src access mask
+            S::eDrawIndirect | S::eComputeShader,            // Dst stage mask
+            A::eIndirectCommandRead | A::eShaderStorageRead, // Dst access mask
+            vk::QueueFamilyIgnored,
+            vk::QueueFamilyIgnored, // Ownership transition
+            *m_treePreparationBuf,
+            0,
+            vk::WholeSize},
+        vk::BufferMemoryBarrier2{
+            S::eComputeShader,                              // Src stage mask
+            A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
+            S::eTransfer,                                   // Dst stage mask
+            A::eTransferRead,                               // Dst access mask
+            vk::QueueFamilyIgnored,
+            vk::QueueFamilyIgnored, // Ownership transition
+            **m_branchesBuf.write(),
+            offsetof(BranchesSB, header),
+            sizeof(BranchesSB::header)}};
+    commandBuffer.pipelineBarrier2({{}, {}, treeBarriers, {}});
+
+    // Dispatch generation
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateTreesPl);
     commandBuffer.dispatchIndirect(*m_treePreparationBuf, 0);
-    vk::BufferMemoryBarrier2 branchesHeaderBarrier{
-        S::eComputeShader,                              // Src stage mask
-        A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
-        S::eTransfer,                                   // Dst stage mask
-        A::eTransferRead,                               // Dst access mask
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored, // Ownership transition
-        **m_branchesBuf.write(),
-        offsetof(BranchesSB, header),
-        sizeof(BranchesSB::header)};
-    commandBuffer.pipelineBarrier2({{}, {}, branchesHeaderBarrier, {}});
+
+    // Copy branch header
     constexpr static vk::BufferCopy2 bufferCopy{
         offsetof(BranchesSB, header),
         offsetof(BranchesSB, header),
@@ -173,7 +183,11 @@ re::Buffer ChunkGenerator::createTreeTemplatesBuffer() {
     std::vector<Branch> oak = interpret(
         derive("F", "FF-[-F+F+F]+[+F-F-F]", 2),
         InterpretationInitState{
-            .lengthTi = 10.0, .radiusTi = 2.0, .density = 4.0, .stiffness = 1.0}
+            .lengthTi    = 10.0,
+            .radiusTi    = 2.0,
+            .density     = 4.0,
+            .stiffness   = 1.0,
+            .angleChange = 0.05}
     );
 
     assert(oak.size() == k_treeTemplatesBranchCount);

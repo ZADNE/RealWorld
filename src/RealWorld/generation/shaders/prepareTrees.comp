@@ -2,11 +2,15 @@
  *  @author     Dubsky Tomas
  */
 #version 460
+#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/generateStructure.glsl>
+#include <RealWorld/generation/shaders/vegetation.glsl>
+const int BranchesSBWrite_BINDING = 4;
+const int BranchesSBRead_BINDING = 5;
+#include <RealWorld/trees/shaders/BranchesSB.glsl>
 const int TreePreparationSB_BINDING = 6;
 #define TreePreparationSB_ACCESS writeonly
 #include <RealWorld/generation/shaders/TreePreparationSB.glsl>
-#include <RealWorld/generation/shaders/generateStructure.glsl>
-#include <RealWorld/generation/shaders/vegetation.glsl>
 
 const float k_piHalf = 1.57079632679;
 const float k_piQuarter = 0.785398163;
@@ -16,26 +20,62 @@ layout( local_size_x = 32,
         local_size_z = 1
 ) in;
 
-const uint k_invocOffsetTi = iChunkTi.x / gl_WorkGroupSize.x;
+const int k_invocOffsetTi = iChunkTi.x / int(gl_WorkGroupSize.x);
+const int k_randomOffsetTi = k_invocOffsetTi - 1;
+
+int horizonPosTi(){
+    int basePosTi = p_chunkOffsetTi.x + int(gl_LocalInvocationID.x) * k_invocOffsetTi;
+    int randomOffsetTi = int(gl_LocalInvocationID.x) & k_randomOffsetTi;
+    return basePosTi + randomOffsetTi;
+}
 
 shared uint s_newVegetationCount;
 
+const uint k_treeBranchCount = 64;
+
 void main(){
     // Init shared vars
-    if (gl_LocalInvocationIndex == 0){
+    if (gl_LocalInvocationID.x == 0){
         s_newVegetationCount = 0;
     }
     barrier();
 
-    // Sum green mass
-    float pPx = float(p_chunkOffsetTi.x + gl_LocalInvocationIndex * k_invocOffsetTi) * TilePx.x;
+    g_randomState =
+        uint(p_chunkOffsetTi.y << 16 | p_chunkOffsetTi.x) ^
+        uint(gl_LocalInvocationID.x * 2713) ^
+        uint(p_seed);
+    int pTi = horizonPosTi();
+    float pPx = tiToPx(pTi);
     vec2 biomeClimate = biomeClimate(pPx, p_seed);
-    float greenMass = biomeClimate.x * biomeClimate.y;
+    Biome biome = biomeStructure(biomeClimate);
+    float horizonPx = horizon(pPx, biome, p_seed).r;
+    int horizonTi = int(pxToTi(horizonPx));
 
-    /*if (gl_LocalInvocationIndex == 0 && horizonTi >= p_chunkOffsetTi.y && horizonTi < (p_chunkOffsetTi.y + iChunkTi.y)) {
-        // The chunk is on the horizon
-        atomicAdd(s_newVegetationCount, 1);
-    }*/
+    // If on the horizon
+    if (horizonTi >= p_chunkOffsetTi.y && horizonTi < (p_chunkOffsetTi.y + iChunkTi.y)) {
+        Vegetation veg = biomeVegetation(biomeClimate);
+        // If probability test succeeds
+        if (randomFloat() < veg.distr.w){
+            // If there is space for the new tree in the branch buffer
+            uint rootIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, k_treeBranchCount);
+            if ((rootIndex + k_treeBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
+                // Prepare new tree
+                float greenMass = biomeClimate.x + biomeClimate.y;
+                uint treeIndex = atomicAdd(s_newVegetationCount, 1);
+                b_treeDescriptions[treeIndex] = TreeDescription(
+                    rootIndex,
+                    random(),
+                    vec2(pTi, horizonTi),
+                    greenMass * 0.25 + 0.5,
+                    randomFloat() + 0.5
+                );
+            } else {
+                // No space for new branches
+                atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-k_treeBranchCount));
+            }
+        }
+    }
+
 
     barrier();
     if (gl_LocalInvocationIndex == 0){

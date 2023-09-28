@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/world/shaders/random.glsl>
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 const uint ActiveChunksSB_BINDING = 1;
@@ -24,19 +25,6 @@ uint invocHash(){
     uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
     return globalIndex ^ p_timeHash;
 }
-uint g_randomState = invocHash();
-
-//Xorshift algorithm by George Marsaglia
-uint random(){
-    g_randomState ^= g_randomState << 13;
-    g_randomState ^= g_randomState >> 17;
-    g_randomState ^= g_randomState << 5;
-    return g_randomState;
-}
-
-uvec2 random2(){
-    return uvec2(random(), random());
-}
 
 const ivec2 k_nearbyOffsets[] = {
                 {-1, +2},   {+0, +2},   {+1, +2},
@@ -57,6 +45,7 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
 }
 
 void main(){
+    g_randomState = invocHash();
     random();
     ivec2 centerTi = b_offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
                     + (ivec2(random(), random()) & (k_invocDisplacement - 1));

@@ -8,9 +8,18 @@
 #define TreePreparationSB_ACCESS readonly
 #endif
 
+struct TreeDescription{
+    uint  rootIndex; // Index to the branch buffer
+    uint  randomSeed;
+    vec2  rootPosTi;
+    float sizeFactor;
+    float angleFactor;
+};
+
 layout(binding = TreePreparationSB_BINDING, std430)
 TreePreparationSB_ACCESS restrict buffer TreePreparationSB {
-    uvec4 b_dispatchSize;
+    uvec4           b_dispatchSize;
+    TreeDescription b_treeDescriptions[];
 };
 
 #endif // !TREE_PREPARATION_SB_GLSL

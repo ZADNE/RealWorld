@@ -14,6 +14,14 @@ using B = vk::BufferUsageFlagBits;
 
 namespace rw {
 
+struct TreeDescription {
+    glm::uint rootIndex; // Index to the branch buffer
+    glm::uint padding;
+    glm::vec2 posTi;
+    float     lengthFactor;
+    float     angleFactor;
+};
+
 ChunkGenerator::ChunkGenerator()
     : m_pipelineLayout(
           {},
@@ -31,7 +39,7 @@ ChunkGenerator::ChunkGenerator()
       )
     , m_treePreparationBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(glm::uvec4),
+          .sizeInBytes = sizeof(glm::uvec4) + sizeof(TreeDescription) * 32,
           .usage       = B::eStorageBuffer | B::eIndirectBuffer}) {
     m_descSet.forEach([&](auto& ds) {
         ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
