@@ -5,7 +5,7 @@
 #define PLAYER_MOVEMENT_PC_GLSL
 
 #extension GL_EXT_scalar_block_layout : require
-layout(push_constant, std430)
+layout (push_constant, std430)
 uniform PlayerMovementPC {
     float   p_acceleration;
     float   p_maxWalkVelocity;

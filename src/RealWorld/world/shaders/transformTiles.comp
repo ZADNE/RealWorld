@@ -16,7 +16,7 @@ const int k_transformGroupSize = 4;
 
 const ivec2 k_invocDisplacement = iChunkTi / k_transformGroupSize;
 
-layout( local_size_x = k_transformGroupSize,
+layout (local_size_x = k_transformGroupSize,
         local_size_y = k_transformGroupSize,
         local_size_z = 1
 ) in;

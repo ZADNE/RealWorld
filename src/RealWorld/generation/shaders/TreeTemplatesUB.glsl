@@ -8,7 +8,7 @@
 #include <RealWorld/trees/shaders/Branch.glsl>
 
 #extension GL_EXT_scalar_block_layout : require
-layout(set = 0, binding = TreeTemplatesUB_BINDING, std430)
+layout (set = 0, binding = TreeTemplatesUB_BINDING, std430)
 restrict uniform TreeTemplatesUB {
     Branch u_treeTemplateBranches[k_treeTemplatesBranchCount];
 };

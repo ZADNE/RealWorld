@@ -4,7 +4,7 @@
 #ifndef TILE_LOAD_GLSL
 #define TILE_LOAD_GLSL
 
-layout(set = 0, binding = worldImage_BINDING, rgba8ui)
+layout (set = 0, binding = worldImage_BINDING, rgba8ui)
 uniform restrict readonly uimage2D u_worldImage;
 
 //Converts world position to image position

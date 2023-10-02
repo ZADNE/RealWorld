@@ -5,7 +5,7 @@
 #define TILE_DRAWER_PC_GLSL
 
 #extension GL_EXT_scalar_block_layout : require
-layout(push_constant, std430)
+layout (push_constant, std430)
 uniform TileDrawerPC {
     mat4    p_viewMat;
     ivec2   p_worldTexMask;

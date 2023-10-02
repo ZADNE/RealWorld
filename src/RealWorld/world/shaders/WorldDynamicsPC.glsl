@@ -4,7 +4,7 @@
 #ifndef WORLD_DYNAMICS_PC_GLSL
 #define WORLD_DYNAMICS_PC_GLSL
 
-layout(push_constant, std430)
+layout (push_constant, std430)
 restrict uniform WorldDynamicsPC {
     ivec2   p_globalPosTi;
     uint    p_modifyTarget;

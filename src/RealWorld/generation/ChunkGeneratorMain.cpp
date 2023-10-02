@@ -15,10 +15,12 @@ using B = vk::BufferUsageFlagBits;
 namespace rw {
 
 struct TreeDescription {
-    glm::uint rootIndex; // Index to the branch buffer
+    glm::uint templateRootIndex; // Index to the template buffer
+    glm::uint writeIndex;        // Index to the branch buffer
+    glm::uint randomSeed;
     glm::uint padding;
-    glm::vec2 posTi;
-    float     lengthFactor;
+    glm::vec2 rootPosTi;
+    float     sizeFactor;
     float     angleFactor;
 };
 

@@ -2,14 +2,14 @@
  *  @author    Dubsky Tomas
  */
 #version 460
-layout(vertices = 1) out;
-layout(location = 0) patch out vec2  o_posTi;
-layout(location = 1) patch out vec2  o_sizeTi;
-layout(location = 2) patch out float o_angleNorm;
+layout (vertices = 1) out;
+layout (location = 0) patch out vec2  o_posTi;
+layout (location = 1) patch out vec2  o_sizeTi;
+layout (location = 2) patch out float o_angleNorm;
 
-layout(location = 0) in vec2  i_posTi[];
-layout(location = 1) in vec2  i_sizeTi[];
-layout(location = 2) in float i_angleNorm[];
+layout (location = 0) in vec2  i_posTi[];
+layout (location = 1) in vec2  i_sizeTi[];
+layout (location = 2) in float i_angleNorm[];
 
 void main() {
     gl_TessLevelOuter[0] = 1.0f;

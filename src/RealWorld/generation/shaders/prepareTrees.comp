@@ -15,7 +15,7 @@ const int TreePreparationSB_BINDING = 6;
 const float k_piHalf = 1.57079632679;
 const float k_piQuarter = 0.785398163;
 
-layout( local_size_x = 32,
+layout (local_size_x = 32,
         local_size_y = 1,
         local_size_z = 1
 ) in;
@@ -57,14 +57,16 @@ void main(){
         // If probability test succeeds
         if (randomFloat() < veg.distr.w){
             // If there is space for the new tree in the branch buffer
-            uint rootIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, k_treeBranchCount);
-            if ((rootIndex + k_treeBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
+            uint writeIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, k_treeBranchCount);
+            if ((writeIndex + k_treeBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
                 // Prepare new tree
                 float greenMass = biomeClimate.x + biomeClimate.y;
                 uint treeIndex = atomicAdd(s_newVegetationCount, 1);
                 b_treeDescriptions[treeIndex] = TreeDescription(
-                    rootIndex,
+                    0,
+                    writeIndex,
                     random(),
+                    0,
                     vec2(pTi, horizonTi),
                     greenMass * 0.25 + 0.5,
                     randomFloat() + 0.5

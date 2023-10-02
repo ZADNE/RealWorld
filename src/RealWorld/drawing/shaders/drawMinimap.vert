@@ -4,7 +4,7 @@
 #version 460
 #include <RealWorld/drawing/shaders/TileDrawerPC.glsl>
 
-layout(location = 0) out vec2 o_minimapUV;
+layout (location = 0) out vec2 o_minimapUV;
 
 
 const vec2 k_uv[4] = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}, {1.0, 1.0}};

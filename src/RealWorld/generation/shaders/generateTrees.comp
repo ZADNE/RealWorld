@@ -17,7 +17,7 @@ const int TreePreparationSB_BINDING = 6;
 const float k_piHalf = 1.57079632679;
 const float k_piQuarter = 0.785398163;
 
-layout( local_size_x = 64,
+layout (local_size_x = 64,
         local_size_y = 1,
         local_size_z = 1
 ) in;
@@ -36,15 +36,15 @@ void main(){
     barrier();
 
     // Load and randomize branch template
-    Branch tmplt = u_treeTemplateBranches[gl_LocalInvocationID.x];
+    Branch tmplt = u_treeTemplateBranches[s_treeDescr.templateRootIndex + gl_LocalInvocationID.x];
     tmplt.relRestAngleNorm = fract(bool(s_treeDescr.randomSeed & 1) ? tmplt.relRestAngleNorm : -tmplt.relRestAngleNorm);
     tmplt.relRestAngleNorm = scaleAngle(tmplt.relRestAngleNorm, s_treeDescr.angleFactor);
     g_randomState = s_treeDescr.randomSeed ^ gl_LocalInvocationID.x * 2017;
 
     // Write the branch
-    b_branchesWrite[s_treeDescr.rootIndex + gl_LocalInvocationID.x] = Branch(
+    b_branchesWrite[s_treeDescr.writeIndex + gl_LocalInvocationID.x] = Branch(
         tmplt.absPosTi          + s_treeDescr.rootPosTi,
-        tmplt.parentIndex       + s_treeDescr.rootIndex,
+        tmplt.parentIndex       + s_treeDescr.writeIndex,
         tmplt.absAngleNorm,
         tmplt.relRestAngleNorm,
         tmplt.angleVelNorm,

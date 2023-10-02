@@ -10,7 +10,7 @@ const uint worldImage_BINDING = 0;
 const int BodiesSB_BINDING = 3;
 #include <RealWorld/trees/shaders/BodiesSB.glsl>
 
-layout( local_size_x = k_simulateBodiesGroupSizeX,
+layout (local_size_x = k_simulateBodiesGroupSizeX,
         local_size_y = k_simulateBodiesGroupSizeY,
         local_size_z = k_simulateBodiesGroupSizeZ
 ) in;

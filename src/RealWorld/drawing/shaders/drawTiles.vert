@@ -5,11 +5,11 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/drawing/shaders/TileDrawerPC.glsl>
 
-layout(location = 0) out vec4 o_tileColor;
+layout (location = 0) out vec4 o_tileColor;
 
-layout(set = 0, binding = 0) uniform usampler2D u_worldTexture;
-layout(set = 0, binding = 1) uniform sampler2D  u_blockAtlas;
-layout(set = 0, binding = 2) uniform sampler2D  u_wallAtlas;
+layout (set = 0, binding = 0) uniform usampler2D u_worldTexture;
+layout (set = 0, binding = 1) uniform sampler2D  u_blockAtlas;
+layout (set = 0, binding = 2) uniform sampler2D  u_wallAtlas;
 
 const vec2 POS[4] = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}, {1.0, 1.0}};
 

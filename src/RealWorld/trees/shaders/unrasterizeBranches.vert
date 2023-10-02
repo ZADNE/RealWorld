@@ -2,9 +2,9 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-layout(location = 0) out vec2  o_posTi;
-layout(location = 1) out vec2  o_sizeTi;
-layout(location = 2) out float o_angleNorm;
+layout (location = 0) out vec2  o_posTi;
+layout (location = 1) out vec2  o_sizeTi;
+layout (location = 2) out float o_angleNorm;
 
 const int BranchesSBWrite_BINDING = 0;
 const int BranchesSBRead_BINDING = 1;

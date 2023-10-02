@@ -9,14 +9,16 @@
 #endif
 
 struct TreeDescription{
-    uint  rootIndex; // Index to the branch buffer
+    uint  templateRootIndex;    // Index to the template buffer
+    uint  writeIndex;           // Index to the branch buffer
     uint  randomSeed;
+    uint  padding;
     vec2  rootPosTi;
     float sizeFactor;
     float angleFactor;
 };
 
-layout(binding = TreePreparationSB_BINDING, std430)
+layout (binding = TreePreparationSB_BINDING, std430)
 TreePreparationSB_ACCESS restrict buffer TreePreparationSB {
     uvec4           b_dispatchSize;
     TreeDescription b_treeDescriptions[];

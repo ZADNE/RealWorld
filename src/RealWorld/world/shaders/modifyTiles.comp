@@ -8,7 +8,7 @@ const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 
-layout( local_size_x = 16,
+layout (local_size_x = 16,
         local_size_y = 16,
         local_size_z = 1
 ) in;

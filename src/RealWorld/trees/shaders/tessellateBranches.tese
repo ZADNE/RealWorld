@@ -2,10 +2,10 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-layout(quads, equal_spacing) in;
-layout(location = 0) patch in vec2  i_posTi;
-layout(location = 1) patch in vec2  i_sizeTi;
-layout(location = 2) patch in float i_angleNorm;
+layout (quads, equal_spacing) in;
+layout (location = 0) patch in vec2  i_posTi;
+layout (location = 1) patch in vec2  i_sizeTi;
+layout (location = 2) patch in float i_angleNorm;
 
 #include <RealWorld/trees/shaders/normAngles.glsl>
 #include <RealWorld/trees/shaders/TreeDynamicsPC.glsl>

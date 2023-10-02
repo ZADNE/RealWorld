@@ -4,7 +4,7 @@
 #ifndef ACTIVE_CHUNKS_SB_GLSL
 #define ACTIVE_CHUNKS_SB_GLSL
 
-layout(set = 0, binding = ActiveChunksSB_BINDING, std430)
+layout (set = 0, binding = ActiveChunksSB_BINDING, std430)
 restrict buffer ActiveChunksSB {
     ivec2 b_worldTexSizeMask;
     ivec2 b_worldTexSizeCh;
