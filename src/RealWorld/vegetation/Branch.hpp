@@ -10,11 +10,11 @@
 namespace rw {
 
 /**
- * @brief   Is a solid section of a tree
+ * @brief   Is a solid section of a vegetation
  * @details A branch is always attached to end of a parent branch.
  *          The root branch is parent of itself.
- *          Trees may only bend in pivots that connect these sections.
- * @see     TreeSimulator
+ *          Vegetation may only bend in pivots that connect these sections.
+ * @see     VegSimulator
  */
 struct Branch {
     glm::vec2 absPosTi; // Position of the end that is connected to parent

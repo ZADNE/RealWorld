@@ -6,5 +6,4 @@ target_sources_and_shaders(RealWorld PRIVATE
     chunk.hpp                   
     light.hpp                   light.glsl
     tile.hpp                    tile.glsl
-    tree.hpp                    tree.glsl
 )

@@ -11,7 +11,7 @@
 
 #include <RealWorld/constants/generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
-#include <RealWorld/trees/Branch.hpp>
+#include <RealWorld/vegetation/Branch.hpp>
 
 namespace rw {
 
@@ -19,7 +19,7 @@ namespace rw {
  * @brief Generates new chunks
  * @details The class is implemented in multiple files:
  *          ChunkGeneratorMain.cpp, ChunkGeneratorTerrain.cpp and
- *          ChunkGeneratorTree.cpp.
+ *          ChunkGeneratorVeg.cpp.
  */
 class ChunkGenerator {
 public:
@@ -60,7 +60,7 @@ protected:
     void consolidateEdges(const vk::CommandBuffer& commandBuffer);
     void selectVariant(const vk::CommandBuffer& commandBuffer);
 
-    void generateTrees(const vk::CommandBuffer& commandBuffer);
+    void generateVegetation(const vk::CommandBuffer& commandBuffer);
 
     void finishGeneration(
         const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh
@@ -68,7 +68,7 @@ protected:
 
     vk::ImageMemoryBarrier2 worldTexBarrier() const; /**< Helper func */
 
-    static re::Buffer createTreeTemplatesBuffer();
+    static re::Buffer createVegTemplatesBuffer();
 
     const re::Texture*                        m_worldTex = nullptr;
     glm::ivec2                                m_worldTexSizeCh;
@@ -96,10 +96,10 @@ protected:
         {.pipelineLayout = *m_pipelineLayout}, {.comp = consolidateEdges_comp}};
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = selectVariant_comp}};
-    re::Pipeline m_prepareTreesPl{
-        {.pipelineLayout = *m_pipelineLayout}, {.comp = prepareTrees_comp}};
-    re::Pipeline m_generateTreesPl{
-        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateTrees_comp}};
+    re::Pipeline m_prepareVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = prepareVeg_comp}};
+    re::Pipeline m_generateVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateVeg_comp}};
 
     re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
@@ -114,8 +114,8 @@ protected:
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral}};
 
-    re::Buffer m_treeTemplatesBuf = createTreeTemplatesBuffer();
-    re::Buffer m_treePreparationBuf;
+    re::Buffer m_vegTemplatesBuf = createVegTemplatesBuffer();
+    re::Buffer m_vegPreparationBuf;
 };
 
 } // namespace rw

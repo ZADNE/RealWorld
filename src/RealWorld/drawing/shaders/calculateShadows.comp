@@ -88,17 +88,17 @@ vec4 ray32(vec2 centerUv, float a){
 }
 
 void main(){
-    //Calculate position and init variables
+    // Calculate position and init variables
     const ivec2 ID = ivec2(gl_GlobalInvocationID);
     vec4 total = vec4(0.0);
     const vec2 centerUv = (vec2(ID) + k_uvOffset) * g_analysisUvScale;
     
-    //Eight tree rays, each sums 45 degrees
+    // Eight tree-like rays, each sums 45 degrees
     for (float a = k_piOver512; a < 6.2; a += k_piOver4){
         total += ray32(centerUv, a);
     }
     
-    //The center unit
+    // The center unit
     total += texture(u_lightTexture, centerUv);
     
     vec4 final = vec4(total.rgb, 1.0 - sqrt(total.a));

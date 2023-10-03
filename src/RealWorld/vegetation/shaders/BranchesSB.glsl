@@ -4,7 +4,7 @@
 #ifndef BRANCHES_SB_GLSL
 #define BRANCHES_SB_GLSL
 
-#include <RealWorld/trees/shaders/Branch.glsl>
+#include <RealWorld/vegetation/shaders/Branch.glsl>
 
 struct BranchesSBHeader {
     uint    vertexCount;

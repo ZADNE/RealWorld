@@ -6,8 +6,7 @@
 
 #include <RealWorld/constants/chunk.hpp>
 #include <RealWorld/constants/tile.hpp>
-#include <RealWorld/constants/tree.hpp>
-#include <RealWorld/trees/TreeSimulator.hpp>
+#include <RealWorld/vegetation/VegSimulator.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -20,9 +19,10 @@ using A2 = vk::AccessFlagBits2;
 
 namespace rw {
 
-constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
+constexpr float k_stepDurationSec  = 1.0f / k_physicsStepsPerSecond;
+constexpr int   k_branchesPerChunk = 16;
 
-TreeSimulator::TreeSimulator()
+VegSimulator::VegSimulator()
     : m_pipelineLayout(
           {},
           re::PipelineLayoutDescription{
@@ -31,7 +31,7 @@ TreeSimulator::TreeSimulator()
                     {1, D::eStorageBuffer, 1, eVertex},
                     {2, D::eStorageImage, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
-                  eVertex | eTessellationEvaluation, 0u, sizeof(TreeDynamicsPC)}}}
+                  eVertex | eTessellationEvaluation, 0u, sizeof(VegDynamicsPC)}}}
       )
     , m_rasterizationRenderPass([]() {
         static std::array subpassDescriptions = std::to_array<vk::SubpassDescription2>(
@@ -64,8 +64,8 @@ TreeSimulator::TreeSimulator()
     }()) {
 }
 
-void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
-    m_treeDynamicsPC.timeSec += k_stepDurationSec;
+void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
+    m_vegDynamicsPC.timeSec += k_stepDurationSec;
     commandBuffer.beginRenderPass2(
         vk::RenderPassBeginInfo{
             *m_rasterizationRenderPass,
@@ -89,8 +89,8 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
             vk::Offset2D{0, 0},
             vk::Extent2D{m_worldTexSizeTi.x * 2, m_worldTexSizeTi.y * 2}}
     );
-    commandBuffer.pushConstants<TreeDynamicsPC>(
-        *m_pipelineLayout, eVertex | eTessellationEvaluation, 0u, m_treeDynamicsPC
+    commandBuffer.pushConstants<VegDynamicsPC>(
+        *m_pipelineLayout, eVertex | eTessellationEvaluation, 0u, m_vegDynamicsPC
     );
     // Unrasterize branches from previous step
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
@@ -117,14 +117,14 @@ void TreeSimulator::step(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
 }
 
-TreeSimulator::Buffers TreeSimulator::adoptSave(
+VegSimulator::Buffers VegSimulator::adoptSave(
     const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh
 ) {
     auto maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                           k_branchHeaderSize;
-    m_worldTexSizeTi                = chToTi(worldTexSizeCh);
-    m_treeDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
-    m_treeDynamicsPC.mvpMat         = glm::ortho<float>(
+    m_worldTexSizeTi               = chToTi(worldTexSizeCh);
+    m_vegDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
+    m_vegDynamicsPC.mvpMat         = glm::ortho<float>(
         m_worldTexSizeTi.x * -0.5f,
         m_worldTexSizeTi.x * 1.5f,
         m_worldTexSizeTi.y * -0.5f,

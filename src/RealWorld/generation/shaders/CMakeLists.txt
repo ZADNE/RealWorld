@@ -3,11 +3,11 @@
     consolidateEdges.comp       
     generateColumnValues.glsl   
     generateStructure.comp      generateStructure.glsl
-    generateTrees.comp          
+    generateVeg.comp            
     GenerationPC.glsl           
-    prepareTrees.comp           
+    prepareVeg.comp             
     selectVariant.comp          
-    TreePreparationSB.glsl       
-    TreeTemplatesUB.glsl        
     vegetation.glsl             
+    VegPreparationSB.glsl       
+    VegTemplatesUB.glsl         
 )

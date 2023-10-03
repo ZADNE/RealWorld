@@ -1,0 +1,61 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/body.glsl>
+#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/vegetation.glsl>
+const int VegTemplatesUB_BINDING = 2;
+#include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
+const int BranchesSBWrite_BINDING = 4;
+const int BranchesSBRead_BINDING = 5;
+#include <RealWorld/vegetation/shaders/BranchesSB.glsl>
+const int VegPreparationSB_BINDING = 6;
+#include <RealWorld/generation/shaders/VegPreparationSB.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
+
+const float k_piHalf = 1.57079632679;
+const float k_piQuarter = 0.785398163;
+
+layout (local_size_x = 64,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+shared VegInstance  s_instance;
+shared uvec2        s_tmpltSize;
+
+float scaleAngle(float a, float s){
+    return fract(a < 0.5 ? a * s : 1.0 - (1.0 - a) * s);
+}
+
+void main(){
+    // Load vegetation instance description
+    if (gl_LocalInvocationID.x == 0){
+        s_instance = b_vegInstances[gl_WorkGroupID.x];
+        s_tmpltSize = k_vegTemplates[s_instance.templateIndex];
+    }
+    barrier();
+
+    if (gl_LocalInvocationID.x < s_tmpltSize.y){
+        // Load and randomize branch template
+        Branch tmplt = u_vegTemplateBranches[s_tmpltSize.x + gl_LocalInvocationID.x];
+        tmplt.relRestAngleNorm = fract(bool(s_instance.randomSeed & 1) ? tmplt.relRestAngleNorm : -tmplt.relRestAngleNorm);
+        tmplt.relRestAngleNorm = scaleAngle(tmplt.relRestAngleNorm, s_instance.angleFactor);
+        g_randomState = s_instance.randomSeed ^ gl_LocalInvocationID.x * 2017;
+
+        // Write the branch
+        b_branchesWrite[s_instance.writeIndex + gl_LocalInvocationID.x] = Branch(
+            tmplt.absPosTi          + s_instance.rootPosTi,
+            tmplt.parentIndex       + s_instance.writeIndex,
+            tmplt.absAngleNorm,
+            tmplt.relRestAngleNorm,
+            tmplt.angleVelNorm,
+            tmplt.radiusTi          * s_instance.sizeFactor,
+            tmplt.lengthTi          * s_instance.sizeFactor,
+            tmplt.density,
+            tmplt.stiffness,
+            vec2(0.0, 0.0)
+        );
+    }
+}

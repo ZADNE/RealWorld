@@ -17,8 +17,8 @@
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/trees/Branch.hpp>
-#include <RealWorld/trees/shaders/AllShaders.hpp>
+#include <RealWorld/vegetation/Branch.hpp>
+#include <RealWorld/vegetation/shaders/AllShaders.hpp>
 
 namespace rw {
 
@@ -40,12 +40,12 @@ struct BranchesSB {
 #pragma warning(pop)
 
 /**
- * @brief   Simulates swaying and growth of trees
- * @details Rasterizes and unrasterizes the trees to the world texture.
+ * @brief   Simulates swaying and growth of vegetation
+ * @details Rasterizes and unrasterizes the vegetation to the world texture.
  */
-class TreeSimulator {
+class VegSimulator {
 public:
-    TreeSimulator();
+    VegSimulator();
 
     void step(const vk::CommandBuffer& commandBuffer);
 
@@ -56,7 +56,6 @@ public:
     Buffers adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
 
 private:
-
     /**
      * @brief Size of header is same as 2 branches
      */
@@ -64,12 +63,12 @@ private:
                                               sizeof(Branch);
     static_assert(k_branchHeaderSize * sizeof(Branch) == sizeof(BranchesSBHeader));
 
-    struct TreeDynamicsPC {
+    struct VegDynamicsPC {
         glm::mat4 mvpMat;
         glm::vec2 worldTexSizeTi;
         float     timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
     };
-    TreeDynamicsPC m_treeDynamicsPC;
+    VegDynamicsPC m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
     re::RenderPass     m_rasterizationRenderPass;

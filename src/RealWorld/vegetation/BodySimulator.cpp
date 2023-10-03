@@ -3,8 +3,8 @@
  */
 
 #include <RealWorld/constants/body.hpp>
-#include <RealWorld/trees/BodySimulator.hpp>
-#include <RealWorld/trees/shaders/simulateBodies_comp.hpp>
+#include <RealWorld/vegetation/BodySimulator.hpp>
+#include <RealWorld/vegetation/shaders/simulateBodies_comp.hpp>
 
 using enum vk::BufferUsageFlagBits;
 

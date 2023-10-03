@@ -7,9 +7,8 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/trigonometric.hpp>
 
-#include <RealWorld/constants/tree.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/trees/TreeSimulator.hpp>
+#include <RealWorld/vegetation/VegSimulator.hpp>
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
@@ -18,20 +17,36 @@ namespace rw {
 
 namespace {
 
+constexpr size_t k_vegTemplatesBranchCount = 51;
+
 glm::vec2 toCartesian(float len, float angleNorm) {
     float angle = angleNorm * glm::two_pi<float>();
     return {len * glm::cos(angle), len * glm::sin(angle)};
 }
 
-std::string derive(std::string_view axiom, std::string_view fRewrite, size_t nIters) {
+using RewriteRule = std::pair<char, std::string_view>;
+
+std::string derive(
+    std::string_view axiom, std::span<const RewriteRule> rewriteRules, size_t nIters
+) {
     std::string sentence{axiom};
     std::string next;
+
+    // Do nIters iterations
     for (size_t i = 0; i < nIters; i++) {
         next.clear();
         next.reserve(sentence.size() * 4);
+        // Try to rewrite each character
         for (char c : sentence) {
-            if (c == 'F') {
-                next.append(fRewrite);
+            // Find the rule that can be applied
+            auto it = std::find_if(
+                rewriteRules.begin(),
+                rewriteRules.end(),
+                [&](const RewriteRule& rule) { return c == rule.first; }
+            );
+            // Apply the rule (if found) or just copy the character
+            if (it != rewriteRules.end()) {
+                next.append(it->second);
             } else {
                 next.push_back(c);
             }
@@ -49,11 +64,11 @@ struct InterpretationInitState {
     float angleChange;
 };
 
-std::vector<Branch> interpret(
-    std::string_view sentence, const InterpretationInitState& initState
+void interpret(
+    std::vector<Branch>&           branches,
+    std::string_view               sentence,
+    const InterpretationInitState& initState
 ) {
-    std::vector<Branch> branches;
-
     auto addBranch = [&](float        lengthTi,
                          float        radiusTi,
                          float        density,
@@ -110,7 +125,8 @@ std::vector<Branch> interpret(
     for (char c : sentence) {
         TurtleState& state = stack.top();
         switch (c) {
-        case 'F':
+        case 'B':
+        case 'S':
             addBranch(
                 state.lengthTi,
                 state.radiusTi,
@@ -131,19 +147,17 @@ std::vector<Branch> interpret(
         default: break;
         }
     }
-
-    return branches;
 }
 
 } // namespace
 
-void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
+void ChunkGenerator::generateVegetation(const vk::CommandBuffer& commandBuffer) {
     // Dispatch preparation
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_prepareTreesPl);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_prepareVegPl);
     commandBuffer.dispatch(1u, 1u, 1u);
 
     // Add barriers to generation
-    std::array<vk::BufferMemoryBarrier2, 2> treeBarriers = {
+    std::array<vk::BufferMemoryBarrier2, 2> vegBarriers = {
         vk::BufferMemoryBarrier2{
             S::eComputeShader,                               // Src stage mask
             A::eShaderStorageWrite,                          // Src access mask
@@ -151,7 +165,7 @@ void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
             A::eIndirectCommandRead | A::eShaderStorageRead, // Dst access mask
             vk::QueueFamilyIgnored,
             vk::QueueFamilyIgnored, // Ownership transition
-            *m_treePreparationBuf,
+            *m_vegPreparationBuf,
             0,
             vk::WholeSize},
         vk::BufferMemoryBarrier2{
@@ -164,11 +178,11 @@ void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
             **m_branchesBuf.write(),
             offsetof(BranchesSB, header),
             sizeof(BranchesSB::header)}};
-    commandBuffer.pipelineBarrier2({{}, {}, treeBarriers, {}});
+    commandBuffer.pipelineBarrier2({{}, {}, vegBarriers, {}});
 
     // Dispatch generation
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateTreesPl);
-    commandBuffer.dispatchIndirect(*m_treePreparationBuf, 0);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
+    commandBuffer.dispatchIndirect(*m_vegPreparationBuf, 0);
 
     // Copy branch header
     constexpr static vk::BufferCopy2 bufferCopy{
@@ -179,9 +193,14 @@ void ChunkGenerator::generateTrees(const vk::CommandBuffer& commandBuffer) {
         **m_branchesBuf.write(), **m_branchesBuf.read(), bufferCopy});
 }
 
-re::Buffer ChunkGenerator::createTreeTemplatesBuffer() {
-    std::vector<Branch> oak = interpret(
-        derive("F", "FF-[-F+F+F]+[+F-F-F]", 2),
+re::Buffer ChunkGenerator::createVegTemplatesBuffer() {
+    std::vector<Branch> branches;
+    branches.reserve(k_vegTemplatesBranchCount);
+
+    // Oak
+    interpret(
+        branches,
+        derive("B", std::to_array<RewriteRule>({{'B', "SS-[-B+B+B]+[+B-B-B]"}}), 2),
         InterpretationInitState{
             .lengthTi    = 10.0,
             .radiusTi    = 2.0,
@@ -190,13 +209,13 @@ re::Buffer ChunkGenerator::createTreeTemplatesBuffer() {
             .angleChange = 0.05}
     );
 
-    assert(oak.size() == k_treeTemplatesBranchCount);
+    assert(branches.size() == k_vegTemplatesBranchCount);
 
     return re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(Branch) * oak.size(),
+        .sizeInBytes = sizeof(Branch) * branches.size(),
         .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
-        .initData    = std::as_bytes(std::span{oak})}};
+        .initData    = std::as_bytes(std::span{branches})}};
 }
 
 } // namespace rw

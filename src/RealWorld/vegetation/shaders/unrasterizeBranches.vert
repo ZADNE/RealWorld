@@ -8,9 +8,9 @@ layout (location = 2) out float o_angleNorm;
 
 const int BranchesSBWrite_BINDING = 0;
 const int BranchesSBRead_BINDING = 1;
-#include <RealWorld/trees/shaders/BranchesSB.glsl>
-#include <RealWorld/trees/shaders/normAngles.glsl>
-#include <RealWorld/trees/shaders/TreeDynamicsPC.glsl>
+#include <RealWorld/vegetation/shaders/BranchesSB.glsl>
+#include <RealWorld/vegetation/shaders/normAngles.glsl>
+#include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
 
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 const float k_third = 0.33333333333;

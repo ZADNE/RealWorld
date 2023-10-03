@@ -4,5 +4,5 @@ target_sources(RealWorld PRIVATE
     BodySimulator.hpp           BodySimulator.cpp
     Branch.hpp                  
     ParticleSimulator.hpp       ParticleSimulator.cpp
-    TreeSimulator.hpp           TreeSimulator.cpp
+    VegSimulator.hpp            VegSimulator.cpp
 )

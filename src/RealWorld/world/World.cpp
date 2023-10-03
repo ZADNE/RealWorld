@@ -84,8 +84,8 @@ const re::Texture& World::adoptSave(
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
     m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, vk::WholeSize);
 
-    // Tree simulator
-    auto treeBuffers = m_treeSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
+    // Vegetation simulator
+    auto vegBuffers = m_vegSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
@@ -95,7 +95,7 @@ const re::Texture& World::adoptSave(
         .worldTexSizeCh = worldTexSizeCh,
         .descriptorSet  = m_simulationDS,
         .bodiesBuf      = bodiesBuf,
-        .branchesBuf    = treeBuffers.branchesBuf});
+        .branchesBuf    = vegBuffers.branchesBuf});
 
     return *m_worldTex;
 }
@@ -147,8 +147,8 @@ int World::step(
     // Bodies
     m_bodySimulator.step(commandBuffer);
 
-    // Trees
-    m_treeSimulator.step(commandBuffer);
+    // Vegetation
+    m_vegSimulator.step(commandBuffer);
 
     // Set up commandBuffer state for simulation
     xorshift32(m_worldDynamicsPC.timeHash);

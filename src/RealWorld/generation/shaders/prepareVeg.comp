@@ -7,15 +7,15 @@
 #include <RealWorld/generation/shaders/vegetation.glsl>
 const int BranchesSBWrite_BINDING = 4;
 const int BranchesSBRead_BINDING = 5;
-#include <RealWorld/trees/shaders/BranchesSB.glsl>
-const int TreePreparationSB_BINDING = 6;
-#define TreePreparationSB_ACCESS writeonly
-#include <RealWorld/generation/shaders/TreePreparationSB.glsl>
+#include <RealWorld/vegetation/shaders/BranchesSB.glsl>
+const int VegPreparationSB_BINDING = 6;
+#define VegPreparationSB_ACCESS writeonly
+#include <RealWorld/generation/shaders/VegPreparationSB.glsl>
 
 const float k_piHalf = 1.57079632679;
 const float k_piQuarter = 0.785398163;
 
-layout (local_size_x = 32,
+layout (local_size_x = 64,
         local_size_y = 1,
         local_size_z = 1
 ) in;
@@ -29,14 +29,12 @@ int horizonPosTi(){
     return basePosTi + randomOffsetTi;
 }
 
-shared uint s_newVegetationCount;
-
-const uint k_treeBranchCount = 64;
+shared uint s_vegInstanceCount;
 
 void main(){
     // Init shared vars
     if (gl_LocalInvocationID.x == 0){
-        s_newVegetationCount = 0;
+        s_vegInstanceCount = 0;
     }
     barrier();
 
@@ -53,17 +51,19 @@ void main(){
 
     // If on the horizon
     if (horizonTi >= p_chunkOffsetTi.y && horizonTi < (p_chunkOffsetTi.y + iChunkTi.y)) {
+        // Select vegetation to generate
         Vegetation veg = biomeVegetation(biomeClimate);
+        uint templateIndex = 0;
+        const uint vegBranchCount = k_vegTemplates[templateIndex].y;
         // If probability test succeeds
         if (randomFloat() < veg.distr.w){
-            // If there is space for the new tree in the branch buffer
-            uint writeIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, k_treeBranchCount);
-            if ((writeIndex + k_treeBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
-                // Prepare new tree
+            // If there is space for new branches in the branch buffer
+            uint writeIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, vegBranchCount);
+            if ((writeIndex + vegBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
+                // Create instance to be generated
                 float greenMass = biomeClimate.x + biomeClimate.y;
-                uint treeIndex = atomicAdd(s_newVegetationCount, 1);
-                b_treeDescriptions[treeIndex] = TreeDescription(
-                    0,
+                b_vegInstances[atomicAdd(s_vegInstanceCount, 1)] = VegInstance(
+                    templateIndex,
                     writeIndex,
                     random(),
                     0,
@@ -73,14 +73,13 @@ void main(){
                 );
             } else {
                 // No space for new branches
-                atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-k_treeBranchCount));
+                atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-vegBranchCount));
             }
         }
     }
 
-
     barrier();
     if (gl_LocalInvocationIndex == 0){
-        b_dispatchSize = uvec4(s_newVegetationCount, 1, 1, 0);
+        b_dispatchSize = uvec4(s_vegInstanceCount, 1, 1, 0);
     }
 }

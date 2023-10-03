@@ -14,7 +14,7 @@ using B = vk::BufferUsageFlagBits;
 
 namespace rw {
 
-struct TreeDescription {
+struct VegInstance {
     glm::uint templateRootIndex; // Index to the template buffer
     glm::uint writeIndex;        // Index to the branch buffer
     glm::uint randomSeed;
@@ -31,23 +31,23 @@ ChunkGenerator::ChunkGenerator()
               .bindings = {{
                   {0, eStorageImage, 1, eCompute},  // tilesImage
                   {1, eStorageImage, 1, eCompute},  // materialImage
-                  {2, eUniformBuffer, 1, eCompute}, // TreeTemplatesUB
+                  {2, eUniformBuffer, 1, eCompute}, // VegTemplatesUB
                   {3, eStorageBuffer, 1, eCompute}, // bodiesSB
                   {4, eStorageBuffer, 1, eCompute}, // branchesSBWrite
                   {5, eStorageBuffer, 1, eCompute}, // branchesSBWrite
-                  {6, eStorageBuffer, 1, eCompute}  // TreePreparationSB
+                  {6, eStorageBuffer, 1, eCompute}  // VegPreparationSB
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       )
-    , m_treePreparationBuf(re::BufferCreateInfo{
+    , m_vegPreparationBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(glm::uvec4) + sizeof(TreeDescription) * 32,
+          .sizeInBytes = sizeof(glm::uvec4) + sizeof(VegInstance) * 32,
           .usage       = B::eStorageBuffer | B::eIndirectBuffer}) {
     m_descSet.forEach([&](auto& ds) {
         ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
         ds.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
-        ds.write(eUniformBuffer, 2, 0, m_treeTemplatesBuf, 0, vk::WholeSize);
-        ds.write(eStorageBuffer, 6, 0, m_treePreparationBuf, 0, vk::WholeSize);
+        ds.write(eUniformBuffer, 2, 0, m_vegTemplatesBuf, 0, vk::WholeSize);
+        ds.write(eStorageBuffer, 6, 0, m_vegPreparationBuf, 0, vk::WholeSize);
     });
 }
 
@@ -88,8 +88,8 @@ void ChunkGenerator::generateChunk(
     consolidateEdges(commandBuffer);
     selectVariant(commandBuffer);
 
-    // Tree generation
-    generateTrees(commandBuffer);
+    // Vegetation generation
+    generateVegetation(commandBuffer);
 
     finishGeneration(commandBuffer, outputInfo.posCh);
 }

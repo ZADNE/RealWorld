@@ -7,8 +7,8 @@ layout (location = 0) patch in vec2  i_posTi;
 layout (location = 1) patch in vec2  i_sizeTi;
 layout (location = 2) patch in float i_angleNorm;
 
-#include <RealWorld/trees/shaders/normAngles.glsl>
-#include <RealWorld/trees/shaders/TreeDynamicsPC.glsl>
+#include <RealWorld/vegetation/shaders/normAngles.glsl>
+#include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
 
 vec2 imPos(vec2 posTi){
     return fract(posTi / p_worldTexSizeTi) * p_worldTexSizeTi;

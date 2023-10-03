@@ -11,17 +11,17 @@ struct Vegetation {
     vec4 distr;
 };
 
-const Vegetation k_mountainVeg =    {{0.8, 0.2, 0.0, 0.010}};
-const Vegetation k_tundraVeg =      {{0.6, 0.4, 0.0, 0.040}};
-const Vegetation k_taigaVeg =       {{0.2, 0.2, 0.6, 0.100}};
+const Vegetation k_mountainVeg =    {{0.8, 0.2, 0.0, 0.0050}};
+const Vegetation k_tundraVeg =      {{0.6, 0.4, 0.0, 0.0200}};
+const Vegetation k_taigaVeg =       {{0.2, 0.2, 0.6, 0.0500}};
 
-const Vegetation k_grasslandVeg =   {{0.8, 0.2, 0.0, 0.050}};
-const Vegetation k_forestVeg =      {{0.6, 0.4, 0.0, 0.150}};
-const Vegetation k_swampVeg =       {{0.2, 0.2, 0.6, 0.100}};
+const Vegetation k_grasslandVeg =   {{0.8, 0.2, 0.0, 0.0250}};
+const Vegetation k_forestVeg =      {{0.6, 0.4, 0.0, 0.0750}};
+const Vegetation k_swampVeg =       {{0.2, 0.2, 0.6, 0.0500}};
 
-const Vegetation k_desertVeg =      {{0.8, 0.2, 0.0, 0.001}};
-const Vegetation k_savannaVeg =     {{0.6, 0.4, 0.0, 0.005}};
-const Vegetation k_rainforestVeg =  {{0.2, 0.2, 0.6, 0.200}};
+const Vegetation k_desertVeg =      {{0.8, 0.2, 0.0, 0.0005}};
+const Vegetation k_savannaVeg =     {{0.6, 0.4, 0.0, 0.0025}};
+const Vegetation k_rainforestVeg =  {{0.2, 0.2, 0.6, 0.1000}};
 
 const Vegetation k_biomeVegetations[3][3] = {
 //humidity> |low                |normal             |high           temperature \/
@@ -55,5 +55,13 @@ Vegetation biomeVegetation(vec2 biomeClimate){
     b00.distr = mix(b00.distr, b01.distr, frac.y);
     return b00;
 }
+
+
+
+
+// x = index of first branch, y = branch count
+const uvec2 k_vegTemplates[] = {{0, 51}};
+
+const uint k_vegTemplatesBranchCount = 51;
 
 #endif // !VEGETATION_GLSL

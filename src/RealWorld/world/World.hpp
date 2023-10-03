@@ -13,8 +13,8 @@
 #include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
 #include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/trees/BodySimulator.hpp>
-#include <RealWorld/trees/TreeSimulator.hpp>
+#include <RealWorld/vegetation/BodySimulator.hpp>
+#include <RealWorld/vegetation/VegSimulator.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
 
 namespace rw {
@@ -133,7 +133,7 @@ private:
     const re::Buffer* m_activeChunksBuf = nullptr;
 
     BodySimulator m_bodySimulator{m_simulationPL};
-    TreeSimulator m_treeSimulator{};
+    VegSimulator  m_vegSimulator{};
 
     bool m_permuteOrder = true;
 };
