@@ -4,7 +4,8 @@
 #version 460
 layout (location = 0) out vec2  o_posTi;
 layout (location = 1) out vec2  o_sizeTi;
-layout (location = 2) out float o_angleNorm;
+layout (location = 2) out float o_startAngleNorm;
+layout (location = 3) out float o_endAngleNorm;
 
 const int BranchesSBWrite_BINDING = 0;
 const int BranchesSBRead_BINDING = 1;
@@ -20,5 +21,6 @@ void main(){
     Branch b = b_branchesRead[gl_VertexIndex];
     o_posTi = b.absPosTi;
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
-    o_angleNorm = b.absAngleNorm;
+    o_endAngleNorm = b.absAngleNorm;
+    o_startAngleNorm = b_branchesRead[b.parentIndex].absAngleNorm;
 }

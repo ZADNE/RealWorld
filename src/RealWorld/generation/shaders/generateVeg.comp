@@ -71,11 +71,11 @@ void generateGrass(){
 
     bool stemBranch = bool(gl_LocalInvocationID.x & 1);
     
-    float angleNorm = stemBranch ? 0.25 : 0.0;
+    float angleNorm = stemBranch ? 0.0 : 0.25;
     float randAngleScaler = stemBranch ? s_tmplt.rndAngle : 0.0;
     angleNorm = fract(angleNorm + (randomFloat() - 0.5) * randAngleScaler);
-    vec2 sizeTi = stemBranch ? vec2(0.5, 20.0) : vec2(0.0, 0.0);
-    sizeTi.y *= 1.0 + (randomFloat() - 0.5);
+    vec2 sizeTi = stemBranch ? vec2(0.5, 22.0) : vec2(0.0, 0.0);
+    sizeTi.y *= 1.0 + (randomFloat() - 0.5) * 0.375;
 
     // Write the branch
     b_branchesWrite[s_instance.writeIndex + gl_LocalInvocationID.x] = Branch(
@@ -86,8 +86,8 @@ void generateGrass(){
         0.0,
         sizeTi.x,
         sizeTi.y,
-        2.0,
-        0.0625,
+        8.0,
+        0.015625,
         vec2(0.0, 0.0)
     );
 }

@@ -2,20 +2,28 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-layout (quads, equal_spacing) in;
-layout (location = 0) patch in vec2  i_posTi;
-layout (location = 1) patch in vec2  i_sizeTi;
-layout (location = 2) patch in float i_angleNorm;
+layout (quads, fractional_even_spacing) in;
+layout (location = 0) patch in vec2     i_p0Ti; // Start
+layout (location = 1) patch in vec2     i_p1Ti; // Control
+layout (location = 2) patch in vec2     i_p2Ti; // End
+layout (location = 3) patch in float    i_diameterTi;
 
-#include <RealWorld/vegetation/shaders/normAngles.glsl>
 #include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
 
-vec2 imPos(vec2 posTi){
-    return fract(posTi / p_worldTexSizeTi) * p_worldTexSizeTi;
-}
-
 void main(){
-    vec2 uvs = vec2(gl_TessCoord.x - 0.5, gl_TessCoord.y);
-    vec2 posTi = imPos(i_posTi) + toCartesian(i_sizeTi * uvs, i_angleNorm);
-    gl_Position = p_mvpMat * vec4(posTi, 0.0, 1.0);
+    // Helper vars
+    float t = gl_TessCoord.y;
+    float ti = 1.0 - t;
+    vec2 p2_1 = i_p2Ti - i_p1Ti;
+
+    // Position in axis of the branch
+    vec2 pTi = i_p1Ti + ti * ti * (i_p0Ti - i_p1Ti) + t * t * p2_1;
+
+    // Diameter offset
+    vec2 tTi = ti * (i_p1Ti - i_p0Ti) + t * p2_1;
+    vec2 normal = normalize(vec2(tTi.y, -tTi.x));
+    vec2 diaOffsetTi = normal * i_diameterTi * (gl_TessCoord.x - 0.5);
+
+    // Final position
+    gl_Position = p_mvpMat * vec4(pTi + diaOffsetTi, 0.0, 1.0);
 }

@@ -13,7 +13,7 @@
 
 float age(vec2 posPx, float seed){
     float age = snoise(posPx * (1.0 / 8192.0), seed);
-    return clamp(age * 2.0, -0.5, +0.5) + 0.5;//Oversaturate the age
+    return clamp(age * 2.0, -0.5, +0.5) + 0.5; // Oversaturate the age
 }
 
 /**
@@ -35,7 +35,7 @@ vec2 biomeClimate(float xPx, float seed){
 }
 
 vec2 horizon(float xPx, Biome biome, float seed){
-    //Elevation
+    // Elevation
     float der = 0.0;
     float totalElev = biome.elevation.x;
     vec2 period_amplitude = vec2(2048.0, 1.0);
@@ -47,7 +47,7 @@ vec2 horizon(float xPx, Biome biome, float seed){
     }
     der = abs(der) * (1.0 / 1.875);
     
-    //Roughness
+    // Roughness
     period_amplitude = vec2(256.0, 1.0);
     float totalRough = 0.0;
     for (float level = 0.0; level < 6.0; level++){
@@ -102,8 +102,8 @@ float horizonProximityFactor(float horizon, float y, float width, float low, flo
 void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
     float age = age(pPx, p_seed);
     float solidity = solidity(pPx, age, p_seed);
-    uvec2 stoneTile = stoneTile(pPx, age, solidity, p_seed);//Decides which underground tile to use 
-    uvec2 surfaceTile = surfaceTile(pPx, p_seed);//Decide which surface tile to use
+    uvec2 stoneTile = stoneTile(pPx, age, solidity, p_seed); // Decides which underground tile to use 
+    uvec2 surfaceTile = surfaceTile(pPx, p_seed); // Decide which surface tile to use
   
     vec2 biomeClimate = biomeClimate(pPx.x, p_seed);
     Biome biome = biomeStructure(biomeClimate);

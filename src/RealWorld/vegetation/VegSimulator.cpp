@@ -31,7 +31,9 @@ VegSimulator::VegSimulator()
                     {1, D::eStorageBuffer, 1, eVertex},
                     {2, D::eStorageImage, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
-                  eVertex | eTessellationEvaluation, 0u, sizeof(VegDynamicsPC)}}}
+                  eVertex | eTessellationControl | eTessellationEvaluation,
+                  0u,
+                  sizeof(VegDynamicsPC)}}}
       )
     , m_rasterizationRenderPass([]() {
         static std::array subpassDescriptions = std::to_array<vk::SubpassDescription2>(
@@ -90,7 +92,10 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
             vk::Extent2D{m_worldTexSizeTi.x * 2, m_worldTexSizeTi.y * 2}}
     );
     commandBuffer.pushConstants<VegDynamicsPC>(
-        *m_pipelineLayout, eVertex | eTessellationEvaluation, 0u, m_vegDynamicsPC
+        *m_pipelineLayout,
+        eVertex | eTessellationControl | eTessellationEvaluation,
+        0u,
+        m_vegDynamicsPC
     );
     // Unrasterize branches from previous step
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);

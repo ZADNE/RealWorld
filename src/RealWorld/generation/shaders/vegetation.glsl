@@ -14,7 +14,7 @@ struct VegTemplate{
 const VegTemplate k_vegTemplates[] = {
     VegTemplate(0,  51, 0.325,  0.03125),   // Oak
     VegTemplate(51, 64, 0.75,   0.0625),    // Acacia
-    VegTemplate(115, 64, 0.75,   0.0625)    // Tall grass
+    VegTemplate(115, 64, 0.75,  0.03125)    // Tall grass
 };
 
 const uint k_vegTemplatesBranchCount =
@@ -53,7 +53,6 @@ const Vegetation k_biomeVegetations[3][3] = {
  */
 Vegetation biomeVegetation(vec2 biomeClimate){
     // Calculate coords
-    biomeClimate = fract(biomeClimate);
     biomeClimate *= vec2(k_biomeVegetations.length() - 1, k_biomeVegetations[0].length() - 1);
     ivec2 ll = ivec2(biomeClimate);
     vec2 frac = fract(biomeClimate);
