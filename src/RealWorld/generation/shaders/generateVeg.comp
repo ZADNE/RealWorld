@@ -2,8 +2,8 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/body.glsl>
 #include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegetation.glsl>
 const int VegTemplatesUB_BINDING = 2;
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
@@ -23,39 +23,87 @@ layout (local_size_x = 64,
 ) in;
 
 shared VegInstance  s_instance;
-shared uvec2        s_tmpltSize;
+shared VegTemplate  s_tmplt;
 
 float scaleAngle(float a, float s){
     return fract(a < 0.5 ? a * s : 1.0 - (1.0 - a) * s);
 }
 
-void main(){
-    // Load vegetation instance description
-    if (gl_LocalInvocationID.x == 0){
-        s_instance = b_vegInstances[gl_WorkGroupID.x];
-        s_tmpltSize = k_vegTemplates[s_instance.templateIndex];
-    }
-    barrier();
-
-    if (gl_LocalInvocationID.x < s_tmpltSize.y){
+void generateTree(){
+    if (gl_LocalInvocationID.x < s_tmplt.branchCount){
         // Load and randomize branch template
-        Branch tmplt = u_vegTemplateBranches[s_tmpltSize.x + gl_LocalInvocationID.x];
-        tmplt.relRestAngleNorm = fract(bool(s_instance.randomSeed & 1) ? tmplt.relRestAngleNorm : -tmplt.relRestAngleNorm);
-        tmplt.relRestAngleNorm = scaleAngle(tmplt.relRestAngleNorm, s_instance.angleFactor);
-        g_randomState = s_instance.randomSeed ^ gl_LocalInvocationID.x * 2017;
+        Branch b = u_vegTemplateBranches[s_tmplt.branchFirstIndex + gl_LocalInvocationID.x];
+        b.relRestAngleNorm = fract(bool(s_instance.randomSeed & 1) ? b.relRestAngleNorm : -b.relRestAngleNorm);
+        b.relRestAngleNorm = scaleAngle(b.relRestAngleNorm, s_instance.angleFactor);
+        b.lengthTi *= 1.0 + (randomFloat() - 0.5) * s_tmplt.rndLength;
+        float randAngleScaler = (gl_LocalInvocationID.x == 0) ? 0.0 : s_tmplt.rndAngle;
+        b.relRestAngleNorm = fract(b.relRestAngleNorm + (randomFloat() - 0.5) * randAngleScaler);
 
         // Write the branch
         b_branchesWrite[s_instance.writeIndex + gl_LocalInvocationID.x] = Branch(
-            tmplt.absPosTi          + s_instance.rootPosTi,
-            tmplt.parentIndex       + s_instance.writeIndex,
-            tmplt.absAngleNorm,
-            tmplt.relRestAngleNorm,
-            tmplt.angleVelNorm,
-            tmplt.radiusTi          * s_instance.sizeFactor,
-            tmplt.lengthTi          * s_instance.sizeFactor,
-            tmplt.density,
-            tmplt.stiffness,
+            b.absPosTi          + s_instance.rootPosTi,
+            b.parentIndex       + s_instance.writeIndex,
+            b.absAngleNorm,
+            b.relRestAngleNorm,
+            b.angleVelNorm,
+            b.radiusTi          * s_instance.sizeFactor,
+            b.lengthTi          * s_instance.sizeFactor,
+            b.density,
+            b.stiffness,
             vec2(0.0, 0.0)
         );
+    }
+}
+
+const int k_randomOffsetTi = iChunkTi.x - 1;
+
+int invocXPosTi(){
+    return p_chunkOffsetTi.x + (int(random()) & k_randomOffsetTi);
+}
+
+void generateGrass(){
+    ivec2 pTi = ivec2(invocXPosTi(), 0);
+    float xPx = tiToPx(pTi.x);
+    vec2 biomeClimate = biomeClimate(xPx, p_seed);
+    Biome biome = biomeStructure(biomeClimate);
+    float horizonPx = horizon(xPx, biome, p_seed).r;
+    pTi.y = int(pxToTi(horizonPx));
+
+    bool stemBranch = bool(gl_LocalInvocationID.x & 1);
+    
+    float angleNorm = stemBranch ? 0.25 : 0.0;
+    float randAngleScaler = stemBranch ? s_tmplt.rndAngle : 0.0;
+    angleNorm = fract(angleNorm + (randomFloat() - 0.5) * randAngleScaler);
+    vec2 sizeTi = stemBranch ? vec2(0.5, 20.0) : vec2(0.0, 0.0);
+    sizeTi.y *= 1.0 + (randomFloat() - 0.5);
+
+    // Write the branch
+    b_branchesWrite[s_instance.writeIndex + gl_LocalInvocationID.x] = Branch(
+        pTi,
+        (gl_LocalInvocationID.x & ~1) + s_instance.writeIndex,
+        angleNorm,
+        angleNorm,
+        0.0,
+        sizeTi.x,
+        sizeTi.y,
+        2.0,
+        0.0625,
+        vec2(0.0, 0.0)
+    );
+}
+
+void main(){
+    // Load vegetation instance & template description
+    if (gl_LocalInvocationID.x == 0){
+        s_instance = b_vegInstances[gl_WorkGroupID.x];
+        s_tmplt = k_vegTemplates[s_instance.templateIndex];
+    }
+    barrier();
+    
+    g_randomState = s_instance.randomSeed ^ gl_LocalInvocationID.x * 2713;
+    if (s_instance.templateIndex != 2){
+        generateTree();
+    } else {
+        generateGrass();
     }
 }

@@ -4,24 +4,41 @@
 #ifndef VEGETATION_GLSL
 #define VEGETATION_GLSL
 
-// Describes vegetation distribution
-struct Vegetation {
-    // x, y, z = relative distribution of grass, shrubs and trees (sums to 1.0)
-    // w       = chance to spawn one of the above (0.0 to 1.0)
-    vec4 distr;
+struct VegTemplate{
+    uint branchFirstIndex;
+    uint branchCount;
+    float rndLength;
+    float rndAngle;
 };
 
-const Vegetation k_mountainVeg =    {{0.8, 0.2, 0.0, 0.0050}};
-const Vegetation k_tundraVeg =      {{0.6, 0.4, 0.0, 0.0200}};
-const Vegetation k_taigaVeg =       {{0.2, 0.2, 0.6, 0.0500}};
+const VegTemplate k_vegTemplates[] = {
+    VegTemplate(0,  51, 0.325,  0.03125),   // Oak
+    VegTemplate(51, 64, 0.75,   0.0625),    // Acacia
+    VegTemplate(115, 64, 0.75,   0.0625)    // Tall grass
+};
 
-const Vegetation k_grasslandVeg =   {{0.8, 0.2, 0.0, 0.0250}};
-const Vegetation k_forestVeg =      {{0.6, 0.4, 0.0, 0.0750}};
-const Vegetation k_swampVeg =       {{0.2, 0.2, 0.6, 0.0500}};
+const uint k_vegTemplatesBranchCount =
+    k_vegTemplates[k_vegTemplates.length() - 1].branchFirstIndex + 
+    k_vegTemplates[k_vegTemplates.length() - 1].branchCount;
 
-const Vegetation k_desertVeg =      {{0.8, 0.2, 0.0, 0.0005}};
-const Vegetation k_savannaVeg =     {{0.6, 0.4, 0.0, 0.0025}};
-const Vegetation k_rainforestVeg =  {{0.2, 0.2, 0.6, 0.1000}};
+// Describes vegetation distribution
+struct Vegetation {
+    // Represents probabilities to generate each template
+    // Probabilities are per chunk
+    float genProbability[k_vegTemplates.length()];
+};
+
+const Vegetation k_mountainVeg =    {{  0.01,   0.0,    0.0}};
+const Vegetation k_tundraVeg =      {{  0.01,   0.0,    0.0}};
+const Vegetation k_taigaVeg =       {{  0.01,   0.0,    0.0}};
+
+const Vegetation k_grasslandVeg =   {{  0.1,    0.0,    1.0}};
+const Vegetation k_forestVeg =      {{  2.0,    0.0,    1.0}};
+const Vegetation k_swampVeg =       {{  0.0,    0.0,    0.0}};
+
+const Vegetation k_desertVeg =      {{  0.0,    0.1,    0.0}};
+const Vegetation k_savannaVeg =     {{  0.0,    1.0,    1.0}};
+const Vegetation k_rainforestVeg =  {{  0.0,    1.0,    1.0}};
 
 const Vegetation k_biomeVegetations[3][3] = {
 //humidity> |low                |normal             |high           temperature \/
@@ -43,25 +60,20 @@ Vegetation biomeVegetation(vec2 biomeClimate){
 
     // Gather
     Vegetation b00 = k_biomeVegetations[ll.x][ll.y];
-    Vegetation b01 = k_biomeVegetations[ll.x][ll.y + 1];
-    Vegetation b10 = k_biomeVegetations[ll.x + 1][ll.y];
-    Vegetation b11 = k_biomeVegetations[ll.x + 1][ll.y + 1];
+    const Vegetation b01 = k_biomeVegetations[ll.x][ll.y + 1];
+    const Vegetation b10 = k_biomeVegetations[ll.x + 1][ll.y];
+    const Vegetation b11 = k_biomeVegetations[ll.x + 1][ll.y + 1];
 
-    // Interpolate over X axis
-    b00.distr = mix(b00.distr, b10.distr, frac.x);
-    b01.distr = mix(b01.distr, b11.distr, frac.x);
+    for (int i = 0; i < k_vegTemplates.length(); ++i){
+        // Interpolate over X axis
+        float bx0 = mix(b00.genProbability[i], b10.genProbability[i], frac.x);
+        float bx1 = mix(b01.genProbability[i], b11.genProbability[i], frac.x);
 
-    // Interpolate over Y axis
-    b00.distr = mix(b00.distr, b01.distr, frac.y);
+        // Interpolate over Y axis
+        b00.genProbability[i] = mix(bx0, bx1, frac.y);
+    }
+
     return b00;
 }
-
-
-
-
-// x = index of first branch, y = branch count
-const uvec2 k_vegTemplates[] = {{0, 51}};
-
-const uint k_vegTemplatesBranchCount = 51;
 
 #endif // !VEGETATION_GLSL

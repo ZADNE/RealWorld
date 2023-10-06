@@ -23,9 +23,9 @@ layout (local_size_x = 64,
 const int k_invocOffsetTi = iChunkTi.x / int(gl_WorkGroupSize.x);
 const int k_randomOffsetTi = k_invocOffsetTi - 1;
 
-int horizonPosTi(){
+int invocXPosTi(){
     int basePosTi = p_chunkOffsetTi.x + int(gl_LocalInvocationID.x) * k_invocOffsetTi;
-    int randomOffsetTi = int(gl_LocalInvocationID.x) & k_randomOffsetTi;
+    int randomOffsetTi = int(random()) & k_randomOffsetTi;
     return basePosTi + randomOffsetTi;
 }
 
@@ -42,34 +42,42 @@ void main(){
         uint(p_chunkOffsetTi.y << 16 | p_chunkOffsetTi.x) ^
         uint(gl_LocalInvocationID.x * 2713) ^
         uint(p_seed);
-    int pTi = horizonPosTi();
-    float pPx = tiToPx(pTi);
-    vec2 biomeClimate = biomeClimate(pPx, p_seed);
+    ivec2 pTi = ivec2(invocXPosTi(), 0);
+    float xPx = tiToPx(pTi.x);
+    vec2 biomeClimate = biomeClimate(xPx, p_seed);
     Biome biome = biomeStructure(biomeClimate);
-    float horizonPx = horizon(pPx, biome, p_seed).r;
-    int horizonTi = int(pxToTi(horizonPx));
+    float horizonPx = horizon(xPx, biome, p_seed).r;
+    pTi.y = int(pxToTi(horizonPx));
 
     // If on the horizon
-    if (horizonTi >= p_chunkOffsetTi.y && horizonTi < (p_chunkOffsetTi.y + iChunkTi.y)) {
-        // Select vegetation to generate
+    if (pTi.y >= p_chunkOffsetTi.y && pTi.y < (p_chunkOffsetTi.y + iChunkTi.y)) {
+        // Select the vegetation to generate
         Vegetation veg = biomeVegetation(biomeClimate);
-        uint templateIndex = 0;
-        const uint vegBranchCount = k_vegTemplates[templateIndex].y;
-        // If probability test succeeds
-        if (randomFloat() < veg.distr.w){
+        float rndTemplate = randomFloat() * float(gl_WorkGroupSize.x);
+        uint templateIndex = ~0;
+        float probMin = 0.0;
+        for (int i = 0; i < k_vegTemplates.length(); ++i){
+            float probMax = probMin + veg.genProbability[i];
+            templateIndex = (rndTemplate > probMin && rndTemplate <= probMax) ? i : templateIndex;
+            probMin = probMax;
+        }
+
+        // If some vegetation succeeded the test
+        if (templateIndex != ~0){
+            const uint vegBranchCount = k_vegTemplates[templateIndex].branchCount;
             // If there is space for new branches in the branch buffer
             uint writeIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, vegBranchCount);
             if ((writeIndex + vegBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
                 // Create instance to be generated
                 float greenMass = biomeClimate.x + biomeClimate.y;
                 b_vegInstances[atomicAdd(s_vegInstanceCount, 1)] = VegInstance(
-                    templateIndex,
-                    writeIndex,
-                    random(),
-                    0,
-                    vec2(pTi, horizonTi),
-                    greenMass * 0.25 + 0.5,
-                    randomFloat() + 0.5
+                    templateIndex,          // templateIndex
+                    writeIndex,             // writeIndex
+                    random(),               // randomSeed
+                    0,                      // padding
+                    pTi,                    // rootPosTi
+                    greenMass * 0.25 + 0.75, // sizeFactor
+                    0.5 * randomFloat() + 0.75     // angleFactor
                 );
             } else {
                 // No space for new branches

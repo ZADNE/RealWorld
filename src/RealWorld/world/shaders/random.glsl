@@ -23,8 +23,8 @@ bool randomBool(){
 }
 
 float randomFloat(){
-    const float k_scaler = 1.0 / 0xffff;
-    return float(random() & 0xffff) * k_scaler;
+    const float k_scaler = 1.0 / 0xffffff;
+    return float(random() & 0xffffff) * k_scaler;
 }
 
 #endif // !RANDOM_GLSL

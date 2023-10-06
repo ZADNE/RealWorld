@@ -17,7 +17,7 @@ namespace rw {
 
 namespace {
 
-constexpr size_t k_vegTemplatesBranchCount = 51;
+constexpr size_t k_vegTemplatesBranchCount = 115;
 
 glm::vec2 toCartesian(float len, float angleNorm) {
     float angle = angleNorm * glm::two_pi<float>();
@@ -56,20 +56,21 @@ std::string derive(
     return sentence;
 }
 
-struct InterpretationInitState {
-    float lengthTi;
-    float radiusTi;
-    float density;
-    float stiffness;
-    float angleChange;
+struct InterpretationParameters {
+    glm::vec2 initSizeTi; // x = radius, y = length
+    glm::vec2 sizeChange;
+    float     density;
+    float     stiffness;
+    float     angleChange;
 };
 
 void interpret(
-    std::vector<Branch>&           branches,
-    std::string_view               sentence,
-    const InterpretationInitState& initState
+    std::vector<Branch>&            branches,
+    std::string_view                sentence,
+    const InterpretationParameters& params
 ) {
-    auto addBranch = [&](float        lengthTi,
+    const auto offset    = branches.size();
+    auto       addBranch = [&](float        lengthTi,
                          float        radiusTi,
                          float        density,
                          float        stiffness,
@@ -80,8 +81,8 @@ void interpret(
         float     relRestAngleNorm;
         if (parentIndex != ~0u) { // If it is child branch
             const Branch& parent = branches[parentIndex];
-            absAngleNorm         = glm::fract(parent.absAngleNorm + angleNorm);
-            relRestAngleNorm     = glm::fract(angleNorm);
+            absAngleNorm = glm::fract(parent.absAngleNorm + angleNorm);
+            relRestAngleNorm = glm::fract(angleNorm);
             absPosTi = parent.absPosTi + toCartesian(lengthTi, absAngleNorm);
         } else { // If it is root branch
             absAngleNorm     = glm::fract(angleNorm);
@@ -90,7 +91,9 @@ void interpret(
 
         branches.emplace_back(
             absPosTi,
-            parentIndex != ~0 ? parentIndex : (unsigned)branches.size(),
+            parentIndex != ~0
+                      ? parentIndex
+                      : static_cast<unsigned int>(branches.size() - offset),
             absAngleNorm,
             relRestAngleNorm,
             0.0f,
@@ -104,8 +107,7 @@ void interpret(
 
     addBranch(0.0, 0.0, 0.0, 0.1, 0.25, ~0u);
     struct TurtleState {
-        float        lengthTi;
-        float        radiusTi;
+        glm::vec2    sizeTi;
         float        density;
         float        stiffness;
         float        angleChange;
@@ -114,13 +116,7 @@ void interpret(
     };
     std::stack<TurtleState> stack;
     stack.emplace(
-        initState.lengthTi,
-        initState.radiusTi,
-        initState.density,
-        initState.stiffness,
-        initState.angleChange,
-        0.0f,
-        0u
+        params.initSizeTi, params.density, params.stiffness, params.angleChange, 0.0f, 0u
     );
     for (char c : sentence) {
         TurtleState& state = stack.top();
@@ -128,16 +124,17 @@ void interpret(
         case 'B':
         case 'S':
             addBranch(
-                state.lengthTi,
-                state.radiusTi,
+                state.sizeTi.y,
+                state.sizeTi.x,
                 state.density,
                 state.stiffness,
                 state.angleNorm,
                 state.parentIndex
             );
             state.angleNorm   = 0.0;
-            state.parentIndex = branches.size() - 1;
-            state.radiusTi *= 0.875f;
+            state.parentIndex = branches.size() - offset - 1;
+            state.sizeTi *= params.sizeChange;
+            state.sizeTi.x = glm::max(state.sizeTi.x, 0.5f);
             state.stiffness *= 0.75;
             break;
         case '+': state.angleNorm += state.angleChange; break;
@@ -201,13 +198,27 @@ re::Buffer ChunkGenerator::createVegTemplatesBuffer() {
     interpret(
         branches,
         derive("B", std::to_array<RewriteRule>({{'B', "SS-[-B+B+B]+[+B-B-B]"}}), 2),
-        InterpretationInitState{
-            .lengthTi    = 10.0,
-            .radiusTi    = 2.0,
+        InterpretationParameters{
+            .initSizeTi  = glm::vec2(2.0, 10.0),
+            .sizeChange  = glm::vec2(0.875, 1.0),
             .density     = 4.0,
             .stiffness   = 1.0,
             .angleChange = 0.05}
     );
+    auto oakEnd = branches.size();
+
+    // Acacia
+    interpret(
+        branches,
+        derive("B", std::to_array<RewriteRule>({{'B', "S[+B][-B]"}}), 5),
+        InterpretationParameters{
+            .initSizeTi  = glm::vec2(1.75, 30.0),
+            .sizeChange  = glm::vec2(0.75, 0.75),
+            .density     = 4.0,
+            .stiffness   = 0.5,
+            .angleChange = 0.08}
+    );
+    auto acaciaSize = branches.size() - oakEnd;
 
     assert(branches.size() == k_vegTemplatesBranchCount);
 

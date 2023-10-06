@@ -21,7 +21,7 @@ vec2 toCartesian(vec2 size, float angleNorm) {
 
 float angularDifference(float target, float current) {
     float diff = target - current;
-    diff += (diff > 0.5f) ? -1.0f : (diff < -0.5f) ? 1.0f : 0.0f;
+    diff += (diff > 0.5f) ? -1.0f : ((diff < -0.5f) ? 1.0f : 0.0f);
     return diff;
 }
 
