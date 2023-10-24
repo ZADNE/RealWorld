@@ -42,11 +42,12 @@ ChunkManager::ChunkManager(const re::PipelineLayout& pipelineLayout)
 const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
     m_folderPath = targetInfo.folderPath;
     m_chunkGen.setTarget(ChunkGenerator::TargetInfo{
-        .worldTex       = targetInfo.worldTex,
-        .worldTexSizeCh = targetInfo.worldTexSizeCh,
-        .bodiesBuf      = targetInfo.bodiesBuf,
-        .branchesBuf    = targetInfo.branchesBuf,
-        .seed           = targetInfo.seed});
+        .seed            = targetInfo.seed,
+        .worldTex        = targetInfo.worldTex,
+        .worldTexSizeCh  = targetInfo.worldTexSizeCh,
+        .bodiesBuf       = targetInfo.bodiesBuf,
+        .branchVectorBuf = targetInfo.branchVectorBuf,
+        .branchRasterBuf = targetInfo.branchRasterBuf});
     m_worldTex = &targetInfo.worldTex;
 
     // Recalculate active chunks mask and analyzer dispatch size
@@ -251,16 +252,12 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
                  offsetof(ActiveChunksSB, dynamicsGroupSize),
                  sizeof((*m_activeChunksStageBuf)->dynamicsGroupSize.x)},
              vk::BufferCopy2{
-                 offsetof(
-                     ActiveChunksSB,
-                     offsets[0]
-                 ) + sizeof(ActiveChunksSB::offsets[0])
-                   * m_worldTexSizeMask.x * m_worldTexSizeMask.y,
-                 offsetof(
-                     ActiveChunksSB,
-                     offsets[0]
-                 ) + sizeof(ActiveChunksSB::offsets[0])
-                   * m_worldTexSizeMask.x * m_worldTexSizeMask.y,
+                 offsetof(ActiveChunksSB, offsets[0]) +
+                     sizeof(ActiveChunksSB::offsets[0]) * m_worldTexSizeMask.x *
+                         m_worldTexSizeMask.y,
+                 offsetof(ActiveChunksSB, offsets[0]) +
+                     sizeof(ActiveChunksSB::offsets[0]) * m_worldTexSizeMask.x *
+                         m_worldTexSizeMask.y,
                  sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)}}
         );
         commandBuffer.copyBuffer2(vk::CopyBufferInfo2{

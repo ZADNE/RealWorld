@@ -52,7 +52,8 @@ public:
         glm::ivec2         worldTexSizeCh; /**< Must be a multiple of 8 */
         re::DescriptorSet& descriptorSet;
         const re::Buffer&  bodiesBuf;
-        const re::StepDoubleBuffered<re::Buffer>& branchesBuf;
+        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
+        const re::Buffer&                         branchRasterBuf;
     };
 
     /**

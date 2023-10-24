@@ -85,17 +85,18 @@ const re::Texture& World::adoptSave(
     m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, vk::WholeSize);
 
     // Vegetation simulator
-    auto vegBuffers = m_vegSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
+    auto vegStorage = m_vegSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
-        .seed           = m_seed,
-        .folderPath     = save.path,
-        .worldTex       = *m_worldTex,
-        .worldTexSizeCh = worldTexSizeCh,
-        .descriptorSet  = m_simulationDS,
-        .bodiesBuf      = bodiesBuf,
-        .branchesBuf    = vegBuffers.branchesBuf});
+        .seed            = m_seed,
+        .folderPath      = save.path,
+        .worldTex        = *m_worldTex,
+        .worldTexSizeCh  = worldTexSizeCh,
+        .descriptorSet   = m_simulationDS,
+        .bodiesBuf       = bodiesBuf,
+        .branchVectorBuf = vegStorage.vectorBuf,
+        .branchRasterBuf = vegStorage.rasterBuf});
 
     return *m_worldTex;
 }

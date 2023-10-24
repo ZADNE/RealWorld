@@ -6,15 +6,11 @@ layout (location = 0) out vec2  o_posTi;
 layout (location = 1) out vec2  o_sizeTi;
 layout (location = 2) out float o_startAngleNorm;
 layout (location = 3) out float o_endAngleNorm;
+layout (location = 4) out uint  o_branchIndex;
 
-const int BranchesSBWrite_BINDING = 0;
-const int BranchesSBRead_BINDING = 1;
-#include <RealWorld/vegetation/shaders/BranchesSB.glsl>
-#include <RealWorld/vegetation/shaders/normAngles.glsl>
-#include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
-
-#include <RealWorld/generation/external_shaders/float_hash.glsl>
-const float k_third = 0.33333333333;
+const int BranchVectorSBWrite_BINDING = 0;
+const int BranchVectorSBRead_BINDING = 1;
+#include <RealWorld/vegetation/shaders/BranchVectorSB.glsl>
 
 void main(){
     // Outputs for next stage
@@ -23,4 +19,5 @@ void main(){
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
     o_endAngleNorm = b.absAngleNorm;
     o_startAngleNorm = b_branchesRead[b.parentIndex].absAngleNorm;
+    o_branchIndex = gl_VertexIndex;
 }

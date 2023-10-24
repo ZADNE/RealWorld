@@ -172,7 +172,7 @@ void ChunkGenerator::generateVegetation(const vk::CommandBuffer& commandBuffer) 
             A::eTransferRead,                               // Dst access mask
             vk::QueueFamilyIgnored,
             vk::QueueFamilyIgnored, // Ownership transition
-            **m_branchesBuf.write(),
+            **m_branchVectorBuf.write(),
             offsetof(BranchesSB, header),
             sizeof(BranchesSB::header)}};
     commandBuffer.pipelineBarrier2({{}, {}, vegBarriers, {}});
@@ -187,7 +187,7 @@ void ChunkGenerator::generateVegetation(const vk::CommandBuffer& commandBuffer) 
         offsetof(BranchesSB, header),
         sizeof(BranchesSB::header)};
     commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
-        **m_branchesBuf.write(), **m_branchesBuf.read(), bufferCopy});
+        **m_branchVectorBuf.write(), **m_branchVectorBuf.read(), bufferCopy});
 }
 
 re::Buffer ChunkGenerator::createVegTemplatesBuffer() {

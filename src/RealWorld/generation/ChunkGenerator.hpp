@@ -29,12 +29,12 @@ public:
     ChunkGenerator();
 
     struct TargetInfo {
+        int                seed;     /**< Controls how generated chunks look */
         const re::Texture& worldTex; /**< Receives the generated tiles */
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
-        const re::StepDoubleBuffered<re::Buffer>& branchesBuf; /**< Receives the
-                                                                  generated branches */
-        int seed; /**< Controls how generated chunks look */
+        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
+        const re::Buffer&                         branchRasterBuf;
     };
 
     /**
@@ -70,10 +70,10 @@ protected:
 
     static re::Buffer createVegTemplatesBuffer();
 
-    const re::Texture*                        m_worldTex = nullptr;
-    glm::ivec2                                m_worldTexSizeCh;
-    const re::Buffer*                         m_bodiesBuf = nullptr;
-    re::StepDoubleBuffered<const re::Buffer*> m_branchesBuf{nullptr, nullptr};
+    const re::Texture* m_worldTex = nullptr;
+    glm::ivec2         m_worldTexSizeCh;
+    const re::Buffer*  m_bodiesBuf = nullptr;
+    re::StepDoubleBuffered<const re::Buffer*> m_branchVectorBuf{nullptr, nullptr};
 
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;

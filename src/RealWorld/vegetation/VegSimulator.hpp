@@ -49,11 +49,12 @@ public:
 
     void step(const vk::CommandBuffer& commandBuffer);
 
-    struct Buffers {
-        const re::StepDoubleBuffered<re::Buffer>& branchesBuf;
+    struct VegStorage {
+        const re::StepDoubleBuffered<re::Buffer>& vectorBuf;
+        const re::Buffer&                         rasterBuf;
     };
 
-    Buffers adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
+    VegStorage adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
 
 private:
     /**
@@ -96,7 +97,8 @@ private:
     re::StepDoubleBuffered<re::DescriptorSet> m_descriptorSets{
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};
-    std::optional<re::StepDoubleBuffered<re::Buffer>> m_branchesBuf;
+    std::optional<re::StepDoubleBuffered<re::Buffer>> m_vectorBuf;
+    std::optional<re::Buffer>                         m_rasterBuf;
     std::optional<re::Framebuffer>                    m_framebuffer;
     glm::uvec2                                        m_worldTexSizeTi{};
 };

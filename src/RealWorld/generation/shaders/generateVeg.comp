@@ -7,9 +7,9 @@
 #include <RealWorld/generation/shaders/vegetation.glsl>
 const int VegTemplatesUB_BINDING = 2;
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
-const int BranchesSBWrite_BINDING = 4;
-const int BranchesSBRead_BINDING = 5;
-#include <RealWorld/vegetation/shaders/BranchesSB.glsl>
+const int BranchVectorSBWrite_BINDING = 4;
+const int BranchVectorSBRead_BINDING = 5;
+#include <RealWorld/vegetation/shaders/BranchVectorSB.glsl>
 const int VegPreparationSB_BINDING = 6;
 #include <RealWorld/generation/shaders/VegPreparationSB.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>

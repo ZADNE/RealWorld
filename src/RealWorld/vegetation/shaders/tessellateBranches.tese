@@ -2,11 +2,15 @@
  *  @author     Dubsky Tomas
  */
 #version 460
+layout (location = 0) out vec2 o_uv;
+layout (location = 1) out uint o_branchIndex;
+
 layout (quads, fractional_even_spacing) in;
-layout (location = 0) patch in vec2     i_p0Ti; // Start
-layout (location = 1) patch in vec2     i_p1Ti; // Control
-layout (location = 2) patch in vec2     i_p2Ti; // End
-layout (location = 3) patch in float    i_diameterTi;
+layout (location = 0) patch in vec2  i_p0Ti; // Start
+layout (location = 1) patch in vec2  i_p1Ti; // Control
+layout (location = 2) patch in vec2  i_p2Ti; // End
+layout (location = 3) patch in float i_diameterTi;
+layout (location = 4) patch in uint  i_branchIndex;
 
 #include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
 
@@ -26,4 +30,8 @@ void main(){
 
     // Final position
     gl_Position = p_mvpMat * vec4(pTi + diaOffsetTi, 0.0, 1.0);
+
+    // Other attributes
+    o_uv = gl_TessCoord.xy;
+    o_branchIndex = i_branchIndex;
 }
