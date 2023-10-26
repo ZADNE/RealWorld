@@ -30,11 +30,13 @@ int invocXPosTi(){
 }
 
 shared uint s_vegInstanceCount;
+shared uint s_branchInstanceCount;
 
 void main(){
     // Init shared vars
     if (gl_LocalInvocationID.x == 0){
         s_vegInstanceCount = 0;
+        s_branchInstanceCount = 0;
     }
     barrier();
 
@@ -69,12 +71,13 @@ void main(){
             uint writeIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, vegBranchCount);
             if ((writeIndex + vegBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
                 // Create instance to be generated
+                uint branchBaseIndex = atomicAdd(s_branchInstanceCount, vegBranchCount);
                 float greenMass = biomeClimate.x + biomeClimate.y;
                 b_vegInstances[atomicAdd(s_vegInstanceCount, 1)] = VegInstance(
                     templateIndex,          // templateIndex
                     writeIndex,             // writeIndex
                     random(),               // randomSeed
-                    0,                      // padding
+                    branchBaseIndex,        // branchBaseIndex
                     pTi,                    // rootPosTi
                     greenMass * 0.25 + 0.75, // sizeFactor
                     0.5 * randomFloat() + 0.75     // angleFactor
@@ -88,6 +91,7 @@ void main(){
 
     barrier();
     if (gl_LocalInvocationIndex == 0){
-        b_dispatchSize = uvec4(s_vegInstanceCount, 1, 1, 0);
+        b_vegetationDispatchSize = uvec4(s_vegInstanceCount, 1, 1, 0);
+        b_branchDispatchSize = uvec4(s_branchInstanceCount, 1, 1, 0);
     }
 }

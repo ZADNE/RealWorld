@@ -153,17 +153,11 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         m_vectorBuf.emplace(createBranchBuffer(), createBranchBuffer());
     }
 
-    { // Prepare branch-raster texture
-        std::vector<std::byte> initData(maxBranchCount * k_branchRasterSpace); // TODO
-        for (size_t i = 0; i < maxBranchCount; ++i) {
-            std::memset(&initData[i * k_branchRasterSpace], 1, k_branchRasterSpace / 2);
-        }
-        m_rasterBuf.emplace(re::BufferCreateInfo{
-            .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-            .sizeInBytes = maxBranchCount * k_branchRasterSpace,
-            .usage       = eStorageBuffer,
-            .initData    = initData});
-    }
+    // Prepare branch-raster texture
+    m_rasterBuf.emplace(re::BufferCreateInfo{
+        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+        .sizeInBytes = maxBranchCount * k_branchRasterSpace,
+        .usage       = eStorageBuffer});
 
     { // Prepare descriptors
         auto writeDescriptor = [&](re::DescriptorSet& set,

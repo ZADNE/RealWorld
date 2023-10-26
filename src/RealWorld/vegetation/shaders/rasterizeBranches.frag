@@ -15,7 +15,7 @@ void main(){
     ivec2 posIm = imPos(ivec2(gl_FragCoord.xy) - (imageSize(u_worldImage) >> 1));
     uvec4 prevTile = tileLoadIm(posIm);
     if (prevTile.WL_T == AIR.WL_T){
-        uint variant = branchTexel(i_branchIndex, uvec2(i_uv * vec2(1.0, 31.0)));
+        uint variant = branchTexel(i_branchIndex, uvec2(round(i_uv * vec2(1.0, 31.0))));
         tileStoreIm(posIm, uvec4(prevTile.BL, WOOD.WL_T, variant));
     }
 }

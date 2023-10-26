@@ -2,6 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/generation/ChunkGenerator.hpp>
+#include <RealWorld/generation/VegPreparationSB.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -14,16 +15,6 @@ using B = vk::BufferUsageFlagBits;
 
 namespace rw {
 
-struct VegInstance {
-    glm::uint templateRootIndex; // Index to the template buffer
-    glm::uint writeIndex;        // Index to the branch buffer
-    glm::uint randomSeed;
-    glm::uint padding;
-    glm::vec2 rootPosTi;
-    float     sizeFactor;
-    float     angleFactor;
-};
-
 ChunkGenerator::ChunkGenerator()
     : m_pipelineLayout(
           {},
@@ -33,15 +24,16 @@ ChunkGenerator::ChunkGenerator()
                   {1, eStorageImage, 1, eCompute},  // materialImage
                   {2, eUniformBuffer, 1, eCompute}, // VegTemplatesUB
                   {3, eStorageBuffer, 1, eCompute}, // bodiesSB
-                  {4, eStorageBuffer, 1, eCompute}, // branchesSBWrite
-                  {5, eStorageBuffer, 1, eCompute}, // branchesSBWrite
-                  {6, eStorageBuffer, 1, eCompute}  // VegPreparationSB
+                  {4, eStorageBuffer, 1, eCompute}, // Branch-vector buffer write
+                  {5, eStorageBuffer, 1, eCompute}, // Branch-vector buffer read
+                  {6, eStorageBuffer, 1, eCompute}, // VegPreparationSB
+                  {7, eStorageBuffer, 1, eCompute}  // Branch-raster buffer
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       )
     , m_vegPreparationBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(glm::uvec4) + sizeof(VegInstance) * 32,
+          .sizeInBytes = sizeof(VegPreparationSB),
           .usage       = B::eStorageBuffer | B::eIndirectBuffer}) {
     m_descSet.forEach([&](auto& ds) {
         ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
@@ -52,10 +44,11 @@ ChunkGenerator::ChunkGenerator()
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
-    m_genPC.seed     = targetInfo.seed;
-    m_worldTex       = &targetInfo.worldTex;
-    m_worldTexSizeCh = targetInfo.worldTexSizeCh;
-    m_bodiesBuf      = &targetInfo.bodiesBuf;
+    m_genPC.seed      = targetInfo.seed;
+    m_worldTex        = &targetInfo.worldTex;
+    m_worldTexSizeCh  = targetInfo.worldTexSizeCh;
+    m_bodiesBuf       = &targetInfo.bodiesBuf;
+    m_branchRasterBuf = &targetInfo.branchRasterBuf;
     m_branchVectorBuf.forEach(
         [&](auto& buf, const auto& branchBuf) { buf = &branchBuf; },
         targetInfo.branchVectorBuf
@@ -63,6 +56,7 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_descSet.forEach(
         [&](auto& ds, const auto& branchBuf) {
             ds.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, vk::WholeSize);
+            ds.write(eStorageBuffer, 7, 0, *m_branchRasterBuf, 0, vk::WholeSize);
         },
         m_branchVectorBuf
     );

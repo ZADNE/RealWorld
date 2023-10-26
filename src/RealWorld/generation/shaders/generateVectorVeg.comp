@@ -38,19 +38,29 @@ void generateTree(){
         b.lengthTi *= 1.0 + (randomFloat() - 0.5) * s_tmplt.rndLength;
         float randAngleScaler = (gl_LocalInvocationID.x == 0) ? 0.0 : s_tmplt.rndAngle;
         b.relRestAngleNorm = fract(b.relRestAngleNorm + (randomFloat() - 0.5) * randAngleScaler);
+        vec2 sizeTi = vec2(b.radiusTi, b.lengthTi) * s_instance.sizeFactor;
 
         // Write the branch
-        b_branchesWrite[s_instance.writeIndex + gl_LocalInvocationID.x] = Branch(
+        uint writeIndex = s_instance.writeIndex + gl_LocalInvocationID.x;
+        b_branchesWrite[writeIndex] = Branch(
             b.absPosTi          + s_instance.rootPosTi,
             b.parentIndex       + s_instance.writeIndex,
             b.absAngleNorm,
             b.relRestAngleNorm,
             b.angleVelNorm,
-            b.radiusTi          * s_instance.sizeFactor,
-            b.lengthTi          * s_instance.sizeFactor,
+            sizeTi.x,
+            sizeTi.y,
             b.density,
             b.stiffness,
             vec2(0.0, 0.0)
+        );
+
+        // Write raster generation info
+        b_branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
+            uvec2(sizeTi),
+            s_instance.templateIndex,
+            writeIndex,
+            g_randomState
         );
     }
 }
@@ -78,7 +88,8 @@ void generateGrass(){
     sizeTi.y *= 1.0 + (randomFloat() - 0.5) * 0.375;
 
     // Write the branch
-    b_branchesWrite[s_instance.writeIndex + gl_LocalInvocationID.x] = Branch(
+    uint writeIndex = s_instance.writeIndex + gl_LocalInvocationID.x;
+    b_branchesWrite[writeIndex] = Branch(
         pTi,
         (gl_LocalInvocationID.x & ~1) + s_instance.writeIndex,
         angleNorm,
@@ -90,6 +101,14 @@ void generateGrass(){
         0.015625,
         vec2(0.0, 0.0)
     );
+
+    // Write raster generation info
+    b_branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
+        uvec2(sizeTi),
+        s_instance.templateIndex,
+        writeIndex,
+        g_randomState
+    );
 }
 
 void main(){
@@ -99,7 +118,7 @@ void main(){
         s_tmplt = k_vegTemplates[s_instance.templateIndex];
     }
     barrier();
-    
+
     g_randomState = s_instance.randomSeed ^ gl_LocalInvocationID.x * 2713;
     if (s_instance.templateIndex != 2){
         generateTree();

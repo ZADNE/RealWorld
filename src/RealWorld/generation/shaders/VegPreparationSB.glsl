@@ -5,23 +5,32 @@
 #define VEG_PREPARATION_SB_GLSL
 
 #ifndef VegPreparationSB_ACCESS
-#define VegPreparationSB_ACCESS readonly
+#define VegPreparationSB_ACCESS
 #endif
 
 struct VegInstance{
-    uint  templateIndex;    // Index of the template
-    uint  writeIndex;       // Index to the branch buffer
+    uint  templateIndex;// Index of the template
+    uint  writeIndex;   // Index to the branch buffers (vector and raster)
     uint  randomSeed;
-    uint  padding;
+    uint  branchBaseIndex;// Index into b_branchInstances
     vec2  rootPosTi;
     float sizeFactor;
     float angleFactor;
 };
 
+struct BranchInstance{
+    uvec2 sizeTi;
+    uint  templateIndex;// Index of the template
+    uint  writeIndex;   // Index to the branch buffers (vector and raster)
+    uint  randomSeed;
+};
+
 layout (binding = VegPreparationSB_BINDING, std430)
 VegPreparationSB_ACCESS restrict buffer VegPreparationSB {
-    uvec4           b_dispatchSize;
-    VegInstance     b_vegInstances[];
+    uvec4           b_vegetationDispatchSize;
+    uvec4           b_branchDispatchSize;
+    VegInstance     b_vegInstances[32];
+    BranchInstance  b_branchInstances[32*64];
 };
 
 #endif // !VEG_PREPARATION_SB_GLSL

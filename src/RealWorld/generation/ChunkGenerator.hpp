@@ -74,6 +74,7 @@ protected:
     glm::ivec2         m_worldTexSizeCh;
     const re::Buffer*  m_bodiesBuf = nullptr;
     re::StepDoubleBuffered<const re::Buffer*> m_branchVectorBuf{nullptr, nullptr};
+    const re::Buffer* m_branchRasterBuf = nullptr;
 
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;
@@ -98,8 +99,10 @@ protected:
         {.pipelineLayout = *m_pipelineLayout}, {.comp = selectVariant_comp}};
     re::Pipeline m_prepareVegPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = prepareVeg_comp}};
-    re::Pipeline m_generateVegPl{
-        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateVeg_comp}};
+    re::Pipeline m_generateVectorVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateVectorVeg_comp}};
+    re::Pipeline m_generateRasterVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateRasterVeg_comp}};
 
     re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,

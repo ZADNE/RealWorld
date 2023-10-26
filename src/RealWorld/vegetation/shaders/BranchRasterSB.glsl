@@ -14,4 +14,8 @@ uint branchTexel(uint branchIndex, uvec2 uv){
     return b_branchRaster[branchIndex][2 * uv.y + uv.x];
 }
 
+void setBranchTexel(uint branchIndex, uvec2 uv, uint val){
+    b_branchRaster[branchIndex][2 * uv.y + uv.x] = uint8_t(val);
+}
+
 #endif // !BRANCH_RASTER_SB_GLSL
