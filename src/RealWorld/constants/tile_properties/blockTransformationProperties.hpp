@@ -12,7 +12,7 @@ constexpr glm::uint DIRTb =      1 << 1;
 constexpr glm::uint GRASSb =     1 << 2;
 constexpr glm::uint BURNINGb =   1 << 3;
 constexpr glm::uint HALLOWb =    1 << 4;
-//To be edited with propertiesHelper.txt
+//To be edited with blockPropertiesHelper.txt
 constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
 //              Properties                                  The first applicable rule   The last applicable rule    Padding
     glm::uvec4{ STONEb,                                     6,                          6,                          0},

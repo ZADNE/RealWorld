@@ -12,9 +12,6 @@ const int VegPreparationSB_BINDING = 6;
 #define VegPreparationSB_ACCESS writeonly
 #include <RealWorld/generation/shaders/VegPreparationSB.glsl>
 
-const float k_piHalf = 1.57079632679;
-const float k_piQuarter = 0.785398163;
-
 layout (local_size_x = 64,
         local_size_y = 1,
         local_size_z = 1

@@ -51,7 +51,7 @@ int randomStateToDirection1D(){
     return bool(g_randomState & 1) ? +1 : -1;
 }
 
-uint fluidIndex(uint fluid){ return fluid & ~FIRST_FLUID_BL; }
+uint fluidIndex(uint fluid){ return fluid & ~FIRST_NONSOLID_BL; }
 
 void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
     uvec4 surroundings[3];

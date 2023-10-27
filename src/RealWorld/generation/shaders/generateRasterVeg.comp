@@ -18,7 +18,6 @@ layout (local_size_x = 2,
 
 void main(){
     BranchInstance instance = b_branchInstances[gl_WorkGroupID.x];
-
-    uint val = (gl_LocalInvocationID.x & 1) + uint(gl_LocalInvocationID.y >= 16);
+    uint val = (gl_LocalInvocationID.x & 1) + uint(gl_LocalInvocationID.y >= 16) * 2;
     setBranchTexel(instance.writeIndex, gl_LocalInvocationID.xy, val);
 }

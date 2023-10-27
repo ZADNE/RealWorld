@@ -12,7 +12,7 @@ namespace rw {
 
 
 
-//To be edited with propertiesHelper.txt
+//To be edited with wallPropertiesHelper.txt
 constexpr std::array<glm::uvec4, 256> k_wallTransformationProperties = {
 //              Properties                                  The first applicable rule   The last applicable rule    Padding
     glm::uvec4{ STONEb,                                     6,                          6,                          0},

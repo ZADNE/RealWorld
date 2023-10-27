@@ -41,7 +41,7 @@ const ivec2 iChunkTi =        {128, 128};
 #define WL_T WALL_TYPE
 #define WL_V WALL_VAR
 
-//Blocks
+// Blocks
 const uint STONE_BL =           0;
 const uint DIRT_BL =            1;
 const uint GRASS_BL =           2;
@@ -55,10 +55,9 @@ const uint DRY_GRASS_BL =       9;
 const uint HALLOW_STONE_BL =    10;
 const uint HALLOW_DIRT_BL =     11;
 const uint HALLOW_GRASS_BL =    12;
-const uint WOOD_BL =            13;
 const uint HIGHLIGHTER_BL =     223;
-//Fluids
-const uint FIRST_FLUID_BL =     224;//0b1110'0000
+// Fluids
+const uint FIRST_NONSOLID_BL =  224;//0b1110'0000
 const uint WATER_BL =           224;
 const uint LAVA_BL =            225;
 const uint STEAM_BL =           226;
@@ -69,7 +68,7 @@ const uint AIR_BL =             255;
 const uint NEVER_BL =           256;
 
 
-//Walls
+// Walls
 const uint STONE_WL =           0;
 const uint DIRT_WL =            1;
 const uint GRASS_WL =           2;
@@ -83,13 +82,18 @@ const uint DRY_GRASS_WL =       9;
 const uint HALLOW_STONE_WL =    10;
 const uint HALLOW_DIRT_WL =     11;
 const uint HALLOW_GRASS_WL =    12;
-const uint WOOD_WL =            13;
 const uint HIGHLIGHTER_WL =     223;
+// Vegetation
+const uint FIRST_NONSOLID_WL =  224;//0b1110'0000
+const uint OAK_WOOD_WL =        224;
+const uint ACACIA_WOOD_WL =     225;
+const uint TALL_GRASS_WL =      226;
+const uint WHEAT_WL =           227;
 const uint AIR_WL =             255;
 const uint NEVER_WL =           256;
 
 
-
+// Dual tiles (both block and wall)
 const uvec4 STONE =             {STONE_BL,          0,    STONE_WL,         0};
 const uvec4 DIRT =              {DIRT_BL,           0,    DIRT_WL,          0};
 const uvec4 GRASS =             {GRASS_BL,          0,    GRASS_WL,         0};
@@ -103,9 +107,9 @@ const uvec4 DRY_GRASS =         {DRY_GRASS_BL,      0,    DRY_GRASS_WL,     0};
 const uvec4 HALLOW_STONE =      {HALLOW_STONE_BL,   0,    HALLOW_STONE_WL,  0};
 const uvec4 HALLOW_DIRT =       {HALLOW_DIRT_BL,    0,    HALLOW_DIRT_WL,   0};
 const uvec4 HALLOW_GRASS =      {HALLOW_GRASS_BL,   0,    HALLOW_GRASS_WL,  0};
-const uvec4 WOOD =              {WOOD_BL,           0,    WOOD_WL,          0};
 const uvec4 HIGHLIGHTER =       {HIGHLIGHTER_BL,    0,    HIGHLIGHTER_WL,   0};
 
+// Fluid tiles (only blocks)
 const uvec2 WATER =             {WATER_BL,          0};
 const uvec2 LAVA =              {LAVA_BL,           0};
 const uvec2 ACID =              {ACID_BL,           0};
@@ -113,21 +117,28 @@ const uvec2 STEAM =             {STEAM_BL,          0};
 const uvec2 FIRE =              {FIRE_BL,           0};
 const uvec2 SMOKE =             {SMOKE_BL,          0};
 
+// Vegetation tiles (only walls)
+const uvec2 OAK_WOOD =          {OAK_WOOD_WL,       0};
+const uvec2 ACACIA_WOOD =       {ACACIA_WOOD_WL,    0};
+const uvec2 TALL_GRASS =        {TALL_GRASS_WL,     0};
+const uvec2 WHEAT =             {WHEAT_WL,          0};
+
 const uvec4 AIR =               {AIR_BL,            0,    AIR_WL,           0};
 const uvec4 NEVER =             {NEVER_BL,          0,    NEVER_WL,         0};
 
-const uvec4 FIRST_FLUID =       {FIRST_FLUID_BL,    0,    AIR_WL,           0};
+const uvec4 FIRST_NONSOLID =    {FIRST_NONSOLID_BL, 0,    FIRST_NONSOLID_WL,0};
 
 
-bool isSolidBlock(uint block_type){ return block_type < FIRST_FLUID_BL; }
-bool isFluidBlock(uint block_type){ return block_type >= FIRST_FLUID_BL; }
+bool isSolidBlock(uint block_type){ return block_type < FIRST_NONSOLID_BL; }
+bool isFluidBlock(uint block_type){ return block_type >= FIRST_NONSOLID_BL; }
 bool isAirBlock(uint block_type){ return block_type == AIR_BL; }
 
-bool isSolidWall(uint wall_type){ return wall_type < AIR_WL; }
+bool isSolidWall(uint wall_type){ return wall_type < FIRST_NONSOLID_WL; }
+bool isVegWall(uint wall_type){ return wall_type >= FIRST_NONSOLID_WL; }
 bool isAirWall(uint wall_type){ return wall_type == AIR_WL; }
 
-bvec2 isSolidTile(uvec2 tile_type){ return lessThan(tile_type, FIRST_FLUID.TL_T); }
-bvec2 isFluidTile(uvec2 tile_type){ return greaterThanEqual(tile_type, FIRST_FLUID.TL_T); }
+bvec2 isSolidTile(uvec2 tile_type){ return lessThan(tile_type, FIRST_NONSOLID.TL_T); }
+bvec2 isNonsolidTile(uvec2 tile_type){ return greaterThanEqual(tile_type, FIRST_NONSOLID.TL_T); }
 bvec2 isAirTile(uvec2 tile_type){ return equal(tile_type, AIR.TL_T); }
 
 #endif // !TILE_GLSL

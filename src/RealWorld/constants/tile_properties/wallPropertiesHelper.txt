@@ -1,6 +1,6 @@
-Names are aligned with tile_propertiestxt
-
-
+/*!
+ *  @author    Dubsky Tomas
+ */
 
 
 
@@ -239,11 +239,10 @@ HALLOW_GRASS
 
 
 
-WATER
-LAVA
-STEAM
-FIRE
-SMOKE
+OAK_WOOD
+ACACIA_WOOD
+TALL_GRASS
+WHEAT
 
 
 
@@ -269,5 +268,6 @@ SMOKE
 
 
 
-ACID
+
+
 AIR
