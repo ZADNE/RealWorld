@@ -19,8 +19,9 @@ struct VegInstance{
 };
 
 struct BranchInstance{
+    vec2  offsetTi;
     uvec2 sizeTi;
-    uint  templateIndex;// Index of the template
+    uint  wallType;
     uint  writeIndex;   // Index to the branch buffers (vector and raster)
     uint  randomSeed;
 };

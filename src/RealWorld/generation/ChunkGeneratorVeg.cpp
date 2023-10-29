@@ -63,6 +63,7 @@ struct InterpretationParameters {
     float     density;
     float     stiffness;
     float     angleChange;
+    Wall      wallType;
 };
 
 void interpret(
@@ -95,6 +96,7 @@ void interpret(
             parentIndex != ~0
                       ? parentIndex
                       : static_cast<unsigned int>(branches.size() - offset),
+            static_cast<glm::uint>(params.wallType),
             absAngleNorm,
             relRestAngleNorm,
             0.0f,
@@ -102,7 +104,7 @@ void interpret(
             lengthTi,
             density,
             stiffness,
-            glm::vec2{}
+            0u
         );
     };
 
@@ -227,7 +229,8 @@ re::Buffer ChunkGenerator::createVegTemplatesBuffer() {
             .sizeChange  = glm::vec2(0.875, 1.0),
             .density     = 4.0,
             .stiffness   = 1.0,
-            .angleChange = 0.05}
+            .angleChange = 0.05,
+            .wallType    = Wall::OakWood}
     );
     auto oakEnd = branches.size();
 
@@ -240,7 +243,8 @@ re::Buffer ChunkGenerator::createVegTemplatesBuffer() {
             .sizeChange  = glm::vec2(0.75, 0.75),
             .density     = 4.0,
             .stiffness   = 0.5,
-            .angleChange = 0.08}
+            .angleChange = 0.08,
+            .wallType    = Wall::AcaciaWood}
     );
     auto acaciaSize = branches.size() - oakEnd;
 

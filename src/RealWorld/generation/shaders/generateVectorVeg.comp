@@ -43,8 +43,9 @@ void generateTree(){
         // Write the branch
         uint writeIndex = s_instance.writeIndex + gl_LocalInvocationID.x;
         b_branchesWrite[writeIndex] = Branch(
-            b.absPosTi          + s_instance.rootPosTi,
-            b.parentIndex       + s_instance.writeIndex,
+            b.absPosTi              + s_instance.rootPosTi,
+            b.parentIndex           + s_instance.writeIndex,
+            b.wallType,
             b.absAngleNorm,
             b.relRestAngleNorm,
             b.angleVelNorm,
@@ -52,15 +53,16 @@ void generateTree(){
             sizeTi.y,
             b.density,
             b.stiffness,
-            vec2(0.0, 0.0)
+            0
         );
 
         // Write raster generation info
         b_branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
-            uvec2(sizeTi),
-            s_instance.templateIndex,
-            writeIndex,
-            g_randomState
+            b.absPosTi,         // offsetTi
+            uvec2(sizeTi),      // sizeTi
+            b.wallType,         // wallType
+            writeIndex,         // writeIndex
+            g_randomState       // randomSeed
         );
     }
 }
@@ -92,6 +94,7 @@ void generateGrass(){
     b_branchesWrite[writeIndex] = Branch(
         pTi,
         (gl_LocalInvocationID.x & ~1) + s_instance.writeIndex,
+        WHEAT_WL,
         angleNorm,
         angleNorm,
         0.0,
@@ -99,15 +102,16 @@ void generateGrass(){
         sizeTi.y,
         8.0,
         0.015625,
-        vec2(0.0, 0.0)
+        0
     );
 
     // Write raster generation info
     b_branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
-        uvec2(sizeTi),
-        s_instance.templateIndex,
-        writeIndex,
-        g_randomState
+        vec2(0),        // offsetTi
+        uvec2(sizeTi),  // sizeTi
+        WHEAT_WL,       // wallType
+        writeIndex,     // writeIndex
+        g_randomState   // randomSeed
     );
 }
 

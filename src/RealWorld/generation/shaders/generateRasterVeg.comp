@@ -18,6 +18,17 @@ layout (local_size_x = 2,
 
 void main(){
     BranchInstance instance = b_branchInstances[gl_WorkGroupID.x];
-    uint val = (gl_LocalInvocationID.x & 1) + uint(gl_LocalInvocationID.y >= 16) * 2;
-    setBranchTexel(instance.writeIndex, gl_LocalInvocationID.xy, val);
+    g_randomState = instance.randomSeed ^ gl_LocalInvocationIndex * 2713;
+    uint val;
+    switch (instance.wallType){
+    case WHEAT_WL:
+        val = random() & 127 + uint(gl_LocalInvocationID.y >= 24) * 128;
+        break;
+    default:
+        float dist = length(instance.offsetTi + vec2(gl_LocalInvocationID.xy));
+        float distFactor = clamp(dist * (1.0 / 128.0) + randomFloat() * 0.125, 0.0, 1.0);
+        val = uint(distFactor * 255.0);
+        break;
+    }
+    setBranchTexel(instance.writeIndex, ivec2(gl_LocalInvocationID.xy), val);
 }

@@ -9,13 +9,16 @@ const uint BranchRasterSB_BINDING = 3;
 #include <RealWorld/vegetation/shaders/BranchRasterSB.glsl>
 
 layout (location = 0) in vec2      i_uv;
-layout (location = 1) in flat uint i_branchIndex;
+layout (location = 1) in flat uint i_branchIndex0parentDiscr16wallType24;
 
 void main(){
     ivec2 posIm = imPos(ivec2(gl_FragCoord.xy) - (imageSize(u_worldImage) >> 1));
     uvec4 prevTile = tileLoadIm(posIm);
-    if (prevTile.WL_T == AIR.WL_T){
-        uint variant = branchTexel(i_branchIndex, uvec2(round(i_uv * vec2(1.0, 31.0))));
-        tileStoreIm(posIm, uvec4(prevTile.BL, WOOD.WL_T, variant));
+    if (isAirWall(prevTile.WL_T)){
+        uint branchIndex = i_branchIndex0parentDiscr16wallType24 & 0xffff;
+        uint variant = branchTexel(branchIndex, ivec2(round(i_uv)));
+        uint parentDiscr = (i_branchIndex0parentDiscr16wallType24 >> 16) & 0xff;
+        uint wallType = (i_branchIndex0parentDiscr16wallType24 >> 24) & 0xff;
+        tileStoreIm(posIm, uvec4(prevTile.BL_T, parentDiscr, wallType, variant));
     }
 }

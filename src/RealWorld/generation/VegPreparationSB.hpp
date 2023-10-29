@@ -18,15 +18,16 @@ struct VegInstance {
 };
 
 struct BranchInstance {
+    glm::vec2  offsetTi;
     glm::uvec2 sizeTi;
-    glm::uint  templateIndex; // Index of the template
-    glm::uint  writeIndex;    // Index to the branch buffers (vector and raster)
+    glm::uint  wallType;
+    glm::uint  writeIndex;  // Index to the branch buffers (vector and raster)
     glm::uint  randomSeed;
     glm::uint  padding;
 };
 
 /**
- * @brief Is C++ representation with same layout as the GLSL storage buffer
+ * @brief Is C++ representation with the same layout as the GLSL storage buffer
  */
 struct VegPreparationSB {
     glm::uvec4     b_vegetationDispatchSize;

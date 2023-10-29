@@ -10,12 +10,14 @@ restrict buffer BranchRasterSB {
     uint8_t b_branchRaster[][64];
 };
 
-uint branchTexel(uint branchIndex, uvec2 uv){
-    return b_branchRaster[branchIndex][2 * uv.y + uv.x];
+uint branchTexel(uint branchIndex, ivec2 uv){
+    uint i = ((uv.y & 31) * 2) + (uv.x & 1);
+    return b_branchRaster[branchIndex][i];
 }
 
-void setBranchTexel(uint branchIndex, uvec2 uv, uint val){
-    b_branchRaster[branchIndex][2 * uv.y + uv.x] = uint8_t(val);
+void setBranchTexel(uint branchIndex, ivec2 uv, uint val){
+    uint i = ((uv.y & 31) * 2) + (uv.x & 1);
+    b_branchRaster[branchIndex][i] = uint8_t(val);
 }
 
 #endif // !BRANCH_RASTER_SB_GLSL

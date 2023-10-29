@@ -6,14 +6,14 @@ layout (vertices = 1) out;
 layout (location = 0) patch out vec2  o_p0Ti; // Start
 layout (location = 1) patch out vec2  o_p1Ti; // Control
 layout (location = 2) patch out vec2  o_p2Ti; // End
-layout (location = 3) patch out float o_diameterTi;
-layout (location = 4) patch out uint  o_branchIndex;
+layout (location = 3) patch out vec2  o_sizeTi;
+layout (location = 4) patch out uint  o_branchIndex0parentDiscr16wallType24;
 
 layout (location = 0) in vec2  i_posTi[];
 layout (location = 1) in vec2  i_sizeTi[];
 layout (location = 2) in float i_startAngleNorm[];
 layout (location = 3) in float i_endAngleNorm[];
-layout (location = 4) in uint  i_branchIndex[];
+layout (location = 4) in uint  i_branchIndex0parentDiscr16wallType24[];
 
 #include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
 #include <RealWorld/vegetation/shaders/normAngles.glsl>
@@ -36,6 +36,6 @@ void main() {
     o_p0Ti = imPos(i_posTi[gl_InvocationID]);
     o_p1Ti = o_p0Ti + toCartesian(lengthTi * 0.5, i_startAngleNorm[gl_InvocationID]);
     o_p2Ti = o_p0Ti + toCartesian(lengthTi, i_endAngleNorm[gl_InvocationID]);
-    o_diameterTi = i_sizeTi[gl_InvocationID].x;
-    o_branchIndex = i_branchIndex[gl_InvocationID];
+    o_sizeTi = i_sizeTi[gl_InvocationID];
+    o_branchIndex0parentDiscr16wallType24 = i_branchIndex0parentDiscr16wallType24[gl_InvocationID];
 }

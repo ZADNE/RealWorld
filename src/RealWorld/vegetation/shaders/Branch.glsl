@@ -10,6 +10,7 @@
 struct Branch {
     vec2    absPosTi;
     uint    parentIndex;
+    uint    wallType;
     float   absAngleNorm;
     float   relRestAngleNorm;
     float   angleVelNorm;
@@ -17,7 +18,7 @@ struct Branch {
     float   lengthTi;
     float   density;
     float   stiffness;
-    vec2    padding;
+    uint    padding;
 };
 
 #endif // !BRANCH_GLSL

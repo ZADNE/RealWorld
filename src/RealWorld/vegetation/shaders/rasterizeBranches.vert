@@ -6,7 +6,7 @@ layout (location = 0) out vec2  o_posTi;
 layout (location = 1) out vec2  o_sizeTi;
 layout (location = 2) out float o_startAngleNorm;
 layout (location = 3) out float o_endAngleNorm;
-layout (location = 4) out uint  o_branchIndex;
+layout (location = 4) out uint  o_branchIndex0parentDiscr16wallType24;
 
 const int BranchVectorSBWrite_BINDING = 0;
 const int BranchVectorSBRead_BINDING = 1;
@@ -27,7 +27,8 @@ void main(){
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
     o_endAngleNorm = b.absAngleNorm;
     o_startAngleNorm = parent.absAngleNorm;
-    o_branchIndex = gl_VertexIndex;
+    o_branchIndex0parentDiscr16wallType24 =
+        gl_VertexIndex | ((b.parentIndex & 0xff) << 16) | (b.wallType << 24);
 
     // Simulation
     float wind = snoise(vec2(b.absPosTi.x * 0.001, p_timeSec * 0.1), 0.0);
