@@ -73,16 +73,18 @@ private:
 
     re::PipelineLayout m_pipelineLayout;
     re::RenderPass     m_rasterizationRenderPass;
-    re::Pipeline       m_unrasterizeBranchesPl{
-              {.pipelineLayout     = *m_pipelineLayout,
-               .topology           = vk::PrimitiveTopology::ePatchList,
-               .patchControlPoints = 1,
-               .enableBlend        = false,
-               .renderPass         = *m_rasterizationRenderPass},
-              {.vert = unrasterizeBranches_vert,
-               .tesc = tessellateBranches_tesc,
-               .tese = tessellateBranches_tese,
-               .frag = unrasterizeBranches_frag}};
+
+    re::Pipeline m_unrasterizeBranchesPl{
+        {.pipelineLayout     = *m_pipelineLayout,
+         .topology           = vk::PrimitiveTopology::ePatchList,
+         .patchControlPoints = 1,
+         .enableBlend        = false,
+         .renderPass         = *m_rasterizationRenderPass},
+        {.vert = unrasterizeBranches_vert,
+         .tesc = tessellateBranches_tesc,
+         .tese = tessellateBranches_tese,
+         .geom = replicateBranches_geom,
+         .frag = unrasterizeBranches_frag}};
     re::Pipeline m_rasterizeBranchesPl{
         {.pipelineLayout     = *m_pipelineLayout,
          .topology           = vk::PrimitiveTopology::ePatchList,
@@ -93,6 +95,7 @@ private:
         {.vert = rasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
+         .geom = replicateBranches_geom,
          .frag = rasterizeBranches_frag}};
     re::StepDoubleBuffered<re::DescriptorSet> m_descriptorSets{
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
