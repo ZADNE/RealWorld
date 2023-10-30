@@ -3,14 +3,14 @@
  */
 #version 460
 layout (location = 0) out vec2 o_uv;
-layout (location = 1) out uint o_branchIndex0parentDiscr16wallType24;
+layout (location = 1) out uint o_branchIndex0wallType16;
 
 layout (quads, fractional_even_spacing) in;
 layout (location = 0) patch in vec2  i_p0Ti; // Start
 layout (location = 1) patch in vec2  i_p1Ti; // Control
 layout (location = 2) patch in vec2  i_p2Ti; // End
 layout (location = 3) patch in vec2  i_sizeTi;
-layout (location = 4) patch in uint  i_branchIndex0parentDiscr16wallType24;
+layout (location = 4) patch in uint  i_branchIndex0wallType16;
 
 #include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
 
@@ -33,5 +33,5 @@ void main(){
 
     // Other attributes
     o_uv = gl_TessCoord.xy * (i_sizeTi - 1.0);
-    o_branchIndex0parentDiscr16wallType24 = i_branchIndex0parentDiscr16wallType24;
+    o_branchIndex0wallType16 = i_branchIndex0wallType16;
 }

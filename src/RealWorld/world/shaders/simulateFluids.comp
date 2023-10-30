@@ -28,7 +28,7 @@ uint invocHash(){
 bool probTest1023(uint probability){ return (random() & 1023) < probability; }
 bool probTest65535(uint probability){ return (random() & 65535) < probability; }
 uvec2 blockRandomVariant(uint blockType){
-    return uvec2(blockType, isFluidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
+    return uvec2(blockType, isNonsolidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
 }
 
 ivec2 extractVelocity(uint var){
@@ -76,7 +76,7 @@ void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
         if (n.BL_T == TRIGGER_CONV[fi].z && probTest1023(TRIGGER_CONV[fi].x)){
             tileStoreIm(posIm, uvec4(blockRandomVariant(TRIGGER_CONV[fi].y), fluid.WL));
             return;
-        } else if (isFluidBlock(n.BL_T) && n.BL_T != fluid.BL_T){//If can swap
+        } else if (isNonsolidBlock(n.BL_T) && n.BL_T != fluid.BL_T){//If can swap
             tileStoreIm(surrPosIm[i], uvec4(fluid.BL, n.WL));
             tileStoreIm(posIm, uvec4(n.BL, fluid.WL));
             return;

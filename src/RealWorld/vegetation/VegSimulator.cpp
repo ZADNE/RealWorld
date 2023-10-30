@@ -30,7 +30,7 @@ VegSimulator::VegSimulator()
               .bindings =
                   {{{0, D::eStorageBuffer, 1, eVertex}, // Branch-vector buffer write
                     {1, D::eStorageBuffer, 1, eVertex}, // Branch-vector buffer read
-                    {2, D::eStorageImage, 1, eFragment},    // World texture
+                    {2, D::eInputAttachment, 1, eFragment}, // World texture
                     {3, D::eStorageBuffer, 1, eFragment}}}, // Branch-raster buffer
               .ranges = {vk::PushConstantRange{
                   eVertex | eTessellationControl | eTessellationEvaluation,
@@ -38,33 +38,50 @@ VegSimulator::VegSimulator()
                   sizeof(VegDynamicsPC)}}}
       )
     , m_rasterizationRenderPass([]() {
+        constexpr static auto attachmentDesc = vk::AttachmentDescription2{
+            // The world texture attachment
+            {},
+            vk::Format::eR8G8B8A8Uint,
+            vk::SampleCountFlagBits::e1,
+            vk::AttachmentLoadOp::eLoad,      // Color
+            vk::AttachmentStoreOp::eStore,    // Color
+            vk::AttachmentLoadOp::eDontCare,  // Stencil
+            vk::AttachmentStoreOp::eDontCare, // Stencil
+            vk::ImageLayout::eGeneral,        // Initial
+            vk::ImageLayout::eGeneral         // Final
+        };
+        constexpr static auto worldTexAttachmentRef = vk::AttachmentReference2{
+            0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor};
         static std::array subpassDescriptions = std::to_array<vk::SubpassDescription2>(
             {vk::SubpassDescription2{
                  {},
                  vk::PipelineBindPoint::eGraphics,
                  0,
-                 {}, // Input attachments
-                 {}  // Color attachments
+                 worldTexAttachmentRef, // Input attachments
+                 worldTexAttachmentRef  // Color attachments
              },
              vk::SubpassDescription2{
                  {},
                  vk::PipelineBindPoint::eGraphics,
                  0,
-                 {}, // Input attachments
-                 {}  // Color attachments
+                 worldTexAttachmentRef, // Input attachments
+                 worldTexAttachmentRef  // Color attachments
              }}
         );
         constexpr static auto subpassDependency = vk::SubpassDependency2{
             0,
             1,
-            S::eFragmentShader, // Src stage
-            S::eFragmentShader, // Dst stage
-            A::eShaderWrite,    // Src access
-            A::eShaderRead,     // Dst access
+            S::eColorAttachmentOutput, // Src stage
+            S::eFragmentShader,        // Dst stage
+            A::eColorAttachmentWrite,  // Src access
+            A::eInputAttachmentRead,   // Dst access
             vk::DependencyFlagBits::eByRegion};
 
         return vk::RenderPassCreateInfo2{
-            vk::RenderPassCreateFlags{}, {}, subpassDescriptions, subpassDependency};
+            vk::RenderPassCreateFlags{},
+            attachmentDesc,
+            subpassDescriptions,
+            subpassDependency};
     }()) {
 }
 
@@ -75,7 +92,7 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
         vk::RenderPassBeginInfo{
             *m_rasterizationRenderPass,
             **m_framebuffer,
-            vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x * 2, m_worldTexSizeTi.y * 2}},
+            vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}},
             {}},
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}
     );
@@ -86,13 +103,16 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
         *m_descriptorSets.write(),
         {}
     );
-    glm::vec2 sz{glm::vec2{m_worldTexSizeTi} * 2.0f};
-    commandBuffer.setViewport(0u, vk::Viewport{0.0f, 0.0f, sz.x, sz.y, 0.0f, 1.0f});
+    glm::vec2 viewport{m_worldTexSizeTi};
+    commandBuffer.setViewport(
+        0u, vk::Viewport{0.0f, 0.0, viewport.x, viewport.y, 0.0f, 1.0f}
+    );
     commandBuffer.setScissor(
         0u,
         vk::Rect2D{
-            vk::Offset2D{0, 0},
-            vk::Extent2D{m_worldTexSizeTi.x * 2, m_worldTexSizeTi.y * 2}}
+            {0, 0},                                  // x, y
+            {m_worldTexSizeTi.x, m_worldTexSizeTi.y} // width, height
+        }
     );
     commandBuffer.pushConstants<VegDynamicsPC>(
         *m_pipelineLayout,
@@ -131,12 +151,8 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     // Prepare push constants
     m_worldTexSizeTi               = chToTi(worldTexSizeCh);
     m_vegDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
-    m_vegDynamicsPC.mvpMat         = glm::ortho<float>(
-        m_worldTexSizeTi.x * -0.5f,
-        m_worldTexSizeTi.x * 1.5f,
-        m_worldTexSizeTi.y * -0.5f,
-        m_worldTexSizeTi.y * 1.5f
-    );
+    m_vegDynamicsPC.mvpMat =
+        glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
     int maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                          k_branchHeaderSize;
 
@@ -165,7 +181,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
                                    re::Buffer&        second) {
             set.write(D::eStorageBuffer, 0u, 0u, first, 0ull, vk::WholeSize);
             set.write(D::eStorageBuffer, 1u, 0u, second, 0ull, vk::WholeSize);
-            set.write(D::eStorageImage, 2u, 0u, worldTex, vk::ImageLayout::eGeneral);
+            set.write(D::eInputAttachment, 2u, 0u, worldTex, vk::ImageLayout::eGeneral);
             set.write(D::eStorageBuffer, 3u, 0u, *m_rasterBuf, 0ull, vk::WholeSize);
         };
         writeDescriptor(m_descriptorSets[0], (*m_vectorBuf)[0], (*m_vectorBuf)[1]);
@@ -176,9 +192,9 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     m_framebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
         {},
         *m_rasterizationRenderPass,
-        {}, // No attachments
-        m_worldTexSizeTi.x * 2,
-        m_worldTexSizeTi.y * 2,
+        worldTex.imageView(),
+        m_worldTexSizeTi.x,
+        m_worldTexSizeTi.y,
         1u}};
 
     return {*m_vectorBuf, *m_rasterBuf};

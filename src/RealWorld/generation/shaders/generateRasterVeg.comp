@@ -30,5 +30,5 @@ void main(){
         val = uint(distFactor * 255.0);
         break;
     }
-    setBranchTexel(instance.writeIndex, ivec2(gl_LocalInvocationID.xy), val);
+    storeBranchTexel(instance.writeIndex, ivec2(gl_LocalInvocationID.xy), val);
 }

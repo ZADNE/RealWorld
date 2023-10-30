@@ -45,7 +45,7 @@ void main(){
         }
         tile.BL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
     } else {
-        if ((p_modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == isFluidBlock(tile.BL_T)){
+        if ((p_modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == isNonsolidBlock(tile.BL_T)){
             return;
         }
         tile.WL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);

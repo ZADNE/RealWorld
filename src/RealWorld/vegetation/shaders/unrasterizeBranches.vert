@@ -6,7 +6,7 @@ layout (location = 0) out vec2  o_posTi;
 layout (location = 1) out vec2  o_sizeTi;
 layout (location = 2) out float o_startAngleNorm;
 layout (location = 3) out float o_endAngleNorm;
-layout (location = 4) out uint  o_branchIndex0parentDiscr16wallType24;
+layout (location = 4) out uint  o_branchIndex0wallType16;
 
 const int BranchVectorSBWrite_BINDING = 0;
 const int BranchVectorSBRead_BINDING = 1;
@@ -19,6 +19,5 @@ void main(){
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
     o_endAngleNorm = b.absAngleNorm;
     o_startAngleNorm = b_branchesRead[b.parentIndex].absAngleNorm;
-    o_branchIndex0parentDiscr16wallType24 =
-        gl_VertexIndex | ((b.parentIndex & 0xff) << 16) | (b.wallType << 24);
+    o_branchIndex0wallType16 = gl_VertexIndex | (b.wallType << 16);
 }

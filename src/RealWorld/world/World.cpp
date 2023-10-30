@@ -77,7 +77,8 @@ const re::Texture& World::adoptSave(
         .allocFlags = vma::AllocationCreateFlagBits::eDedicatedMemory,
         .format     = vk::Format::eR8G8B8A8Uint,
         .extent     = {texSize, 1},
-        .usage      = eStorage | eTransferSrc | eTransferDst | eSampled}};
+        .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
+                 eColorAttachment | eInputAttachment}};
     m_simulationDS.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
 
     // Body simulator

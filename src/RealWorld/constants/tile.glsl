@@ -130,11 +130,11 @@ const uvec4 FIRST_NONSOLID =    {FIRST_NONSOLID_BL, 0,    FIRST_NONSOLID_WL,0};
 
 
 bool isSolidBlock(uint block_type){ return block_type < FIRST_NONSOLID_BL; }
-bool isFluidBlock(uint block_type){ return block_type >= FIRST_NONSOLID_BL; }
+bool isNonsolidBlock(uint block_type){ return block_type >= FIRST_NONSOLID_BL; }
 bool isAirBlock(uint block_type){ return block_type == AIR_BL; }
 
 bool isSolidWall(uint wall_type){ return wall_type < FIRST_NONSOLID_WL; }
-bool isVegWall(uint wall_type){ return wall_type >= FIRST_NONSOLID_WL; }
+bool isNonsolidWall(uint wall_type){ return wall_type >= FIRST_NONSOLID_WL; }
 bool isAirWall(uint wall_type){ return wall_type == AIR_WL; }
 
 bvec2 isSolidTile(uvec2 tile_type){ return lessThan(tile_type, FIRST_NONSOLID.TL_T); }
