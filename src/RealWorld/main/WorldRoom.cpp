@@ -14,17 +14,17 @@ constexpr unsigned int k_frameRateLimit = 300u;
 constexpr unsigned int k_frameRateLimit = re::Synchronizer::k_doNotLimitFramesPerSecond;
 #endif // _DEBUG
 
-constexpr glm::vec4 k_skyBlue =
-    glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
-
-constexpr re::RoomDisplaySettings k_initialSettings{
-    .clearColor           = k_skyBlue,
-    .stepsPerSecond       = k_physicsStepsPerSecond,
-    .framesPerSecondLimit = k_frameRateLimit,
-    .usingImGui           = true};
-
+constexpr vk::ClearValue k_skyBlue =
+    vk::ClearColorValue{0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f};
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
-    : Room(1, k_initialSettings)
+    : Room(
+          1,
+          re::RoomDisplaySettings{
+              .clearValues          = {&k_skyBlue, 1},
+              .stepsPerSecond       = k_physicsStepsPerSecond,
+              .framesPerSecondLimit = k_frameRateLimit,
+              .usingImGui           = true}
+      )
     , m_gameSettings(gameSettings)
     , m_worldDrawer(engine().windowDims(), 32u)
     , m_player()

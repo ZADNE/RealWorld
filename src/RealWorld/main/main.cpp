@@ -8,7 +8,22 @@
 #include <RealWorld/main/settings/GameSettings.hpp>
 
 int main(int argc, char* argv[]) {
-    re::MainProgram::initialize();
+    vk::StructureChain chain{
+        vk::PhysicalDeviceFeatures2{vk::PhysicalDeviceFeatures{}
+                                        .setTessellationShader(true)
+                                        .setVertexPipelineStoresAndAtomics(true)
+                                        .setFragmentStoresAndAtomics(true)
+                                        .setGeometryShader(true)},
+        vk::PhysicalDeviceVulkan12Features{}
+            .setStorageBuffer8BitAccess(true)
+            .setUniformBufferStandardLayout(true)
+            .setShaderSampledImageArrayNonUniformIndexing(true)
+            .setDescriptorBindingUpdateUnusedWhilePending(true)
+            .setDescriptorBindingPartiallyBound(true)
+            .setTimelineSemaphore(true),
+        vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)};
+    re::VulkanInitInfo initInfo{.deviceCreateInfoChain = &chain.get<>()};
+    re::MainProgram::initialize(initInfo);
 
     rw::GameSettings gameSettings{};
 
