@@ -70,6 +70,8 @@ void MainMenuRoom::step() {
 void MainMenuRoom::render(
     const vk::CommandBuffer& commandBuffer, double interpolationFactor
 ) {
+    engine().mainRenderPassBegin();
+
     SetNextWindowSize(engine().windowDims());
     SetNextWindowPos({0.0f, 0.0f});
     PushFont(m_arial16);
@@ -94,6 +96,9 @@ void MainMenuRoom::render(
     }
     End();
     PopFont();
+
+    engine().mainRenderPassDrawImGui();
+    engine().mainRenderPassEnd();
 }
 
 void MainMenuRoom::keybindCallback(re::Key newKey) {

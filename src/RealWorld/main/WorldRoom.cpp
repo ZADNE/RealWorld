@@ -99,6 +99,8 @@ void WorldRoom::step() {
 void WorldRoom::render(
     const vk::CommandBuffer& commandBuffer, double interpolationFactor
 ) {
+    engine().mainRenderPassBegin();
+
     m_worldDrawer.drawTiles(commandBuffer);
 
     m_spriteBatch.clearAndBeginFirstBatch();
@@ -115,6 +117,8 @@ void WorldRoom::render(
     m_geometryBatch.draw(commandBuffer, m_worldView.viewMatrix());
 
     drawGUI(commandBuffer);
+
+    engine().mainRenderPassEnd();
 }
 
 void WorldRoom::windowResizedCallback(
@@ -274,6 +278,7 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     }
     ImGui::End();
     ImGui::PopFont();
+    engine().mainRenderPassDrawImGui();
 }
 
 bool WorldRoom::loadWorld(const std::string& worldName) {
