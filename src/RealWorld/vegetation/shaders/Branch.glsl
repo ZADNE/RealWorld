@@ -9,7 +9,7 @@
 */
 struct Branch {
     vec2    absPosTi;
-    uint    parentIndex;
+    int     parentIndexOffset;
     uint    wallType;
     float   absAngleNorm;
     float   relRestAngleNorm;

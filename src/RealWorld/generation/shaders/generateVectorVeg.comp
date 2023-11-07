@@ -44,7 +44,7 @@ void generateTree(){
         uint writeIndex = s_instance.writeIndex + gl_LocalInvocationID.x;
         b_branchesWrite[writeIndex] = Branch(
             b.absPosTi              + s_instance.rootPosTi,
-            b.parentIndex           + s_instance.writeIndex,
+            b.parentIndexOffset,
             b.wallType,
             b.absAngleNorm,
             b.relRestAngleNorm,
@@ -93,7 +93,7 @@ void generateGrass(){
     uint writeIndex = s_instance.writeIndex + gl_LocalInvocationID.x;
     b_branchesWrite[writeIndex] = Branch(
         pTi,
-        (gl_LocalInvocationID.x & ~1) + s_instance.writeIndex,
+        -int(gl_LocalInvocationID.x & 1),
         WHEAT_WL,
         angleNorm,
         angleNorm,

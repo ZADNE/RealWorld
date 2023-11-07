@@ -20,7 +20,7 @@ const float k_third = 0.33333333333;
 void main(){
     // Load this branch and parent branch
     Branch b = b_branchesRead[gl_VertexIndex];
-    const Branch parent = b_branchesRead[b.parentIndex];
+    const Branch parent = b_branchesRead[gl_VertexIndex + b.parentIndexOffset];
 
     // Outputs for next stage
     o_posTi = b.absPosTi;
@@ -56,8 +56,8 @@ void main(){
 
     angularAcc += b.stiffness * angleDiffToRestNorm - b.angleVelNorm * 0.875;
 
-    // If not root - TO BE FIXED
-    if (b.parentIndex != gl_VertexIndex){
+    // If not root
+    if (b.parentIndexOffset != 0){
         b.angleVelNorm += angularAcc;
         b.absAngleNorm += b.angleVelNorm;
         b.absAngleNorm = fract(b.absAngleNorm);

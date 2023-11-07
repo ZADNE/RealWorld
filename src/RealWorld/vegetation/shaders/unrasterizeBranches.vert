@@ -18,6 +18,6 @@ void main(){
     o_posTi = b.absPosTi;
     o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
     o_endAngleNorm = b.absAngleNorm;
-    o_startAngleNorm = b_branchesRead[b.parentIndex].absAngleNorm;
+    o_startAngleNorm = b_branchesRead[gl_VertexIndex + b.parentIndexOffset].absAngleNorm;
     o_branchIndex0wallType16 = gl_VertexIndex | (b.wallType << 16);
 }

@@ -72,16 +72,17 @@ void interpret(
     const InterpretationParameters& params
 ) {
     const auto offset    = branches.size();
-    auto       addBranch = [&](float        lengthTi,
-                         float        radiusTi,
-                         float        density,
-                         float        stiffness,
-                         float        angleNorm,
-                         unsigned int parentIndex) {
+    auto       addBranch = [&](float lengthTi,
+                         float radiusTi,
+                         float density,
+                         float stiffness,
+                         float angleNorm,
+                         int   myIndex,
+                         int   parentIndex) {
         glm::vec2 absPosTi{0.0};
         float     absAngleNorm;
         float     relRestAngleNorm;
-        if (parentIndex != ~0u) { // If it is child branch
+        if (myIndex != parentIndex) { // If it is child branch
             const Branch& parent = branches[parentIndex];
             absAngleNorm = glm::fract(parent.absAngleNorm + angleNorm);
             relRestAngleNorm = glm::fract(angleNorm);
@@ -93,9 +94,7 @@ void interpret(
 
         branches.emplace_back(
             absPosTi,
-            parentIndex != ~0
-                      ? parentIndex
-                      : static_cast<unsigned int>(branches.size() - offset),
+            parentIndex - myIndex,
             static_cast<glm::uint>(params.wallType),
             absAngleNorm,
             relRestAngleNorm,
@@ -108,18 +107,18 @@ void interpret(
         );
     };
 
-    addBranch(0.0, 0.0, 0.0, 0.1, 0.25, ~0u);
+    addBranch(0.0, 0.0, 0.0, 0.1, 0.25, 0, 0);
     struct TurtleState {
-        glm::vec2    sizeTi;
-        float        density;
-        float        stiffness;
-        float        angleChange;
-        float        angleNorm;
-        unsigned int parentIndex;
+        glm::vec2 sizeTi;
+        float     density;
+        float     stiffness;
+        float     angleChange;
+        float     angleNorm;
+        int       parentIndex;
     };
     std::stack<TurtleState> stack;
     stack.emplace(
-        params.initSizeTi, params.density, params.stiffness, params.angleChange, 0.0f, 0u
+        params.initSizeTi, params.density, params.stiffness, params.angleChange, 0.0f, 0
     );
     for (char c : sentence) {
         TurtleState& state = stack.top();
@@ -132,6 +131,7 @@ void interpret(
                 state.density,
                 state.stiffness,
                 state.angleNorm,
+                static_cast<int>(branches.size() - offset),
                 state.parentIndex
             );
             state.angleNorm   = 0.0;
