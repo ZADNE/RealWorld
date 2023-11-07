@@ -1,0 +1,34 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/generateStructure.glsl>
+#include <RealWorld/generation/shaders/vegetation.glsl>
+const int VegPreparationSB_BINDING = 6;
+#define VegPreparationSB_ACCESS readonly
+#include <RealWorld/generation/shaders/VegPreparationSB.glsl>
+const uint BranchRasterSB_BINDING = 7;
+#include <RealWorld/vegetation/shaders/BranchRasterSB.glsl>
+
+layout (local_size_x = 2,
+        local_size_y = 32,
+        local_size_z = 1
+) in;
+
+void main(){
+    BranchInstance instance = b_branchInstances[gl_WorkGroupID.x];
+    g_randomState = instance.randomSeed ^ gl_LocalInvocationIndex * 2713;
+    uint val;
+    switch (instance.wallType){
+    case WHEAT_WL:
+        val = random() & 127 + uint(gl_LocalInvocationID.y >= 24) * 128;
+        break;
+    default:
+        float dist = length(instance.offsetTi + vec2(gl_LocalInvocationID.xy));
+        float distFactor = clamp(dist * (1.0 / 128.0) + randomFloat() * 0.125, 0.0, 1.0);
+        val = uint(distFactor * 255.0);
+        break;
+    }
+    storeBranchTexel(instance.writeIndex, ivec2(gl_LocalInvocationID.xy), val);
+}

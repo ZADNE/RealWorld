@@ -11,7 +11,7 @@
 
 namespace rw {
 
-std::optional<std::vector<unsigned char>> ChunkLoader::loadChunk(
+std::vector<unsigned char> ChunkLoader::loadChunk(
     const std::string& folderPath, const glm::ivec2& chunkPos, const glm::uvec2& chunkDims
 ) {
     std::vector<unsigned char> bytes;
@@ -24,7 +24,8 @@ std::optional<std::vector<unsigned char>> ChunkLoader::loadChunk(
         bytes, realDims.x, realDims.y, fullPath, LodePNGColorType::LCT_RGBA, 8u
     );
     if (error || chunkDims != realDims) {
-        return {}; // Error loading the chunk
+        bytes.resize(0);
+        return bytes; // Error loading the chunk
     }
 
     return bytes;

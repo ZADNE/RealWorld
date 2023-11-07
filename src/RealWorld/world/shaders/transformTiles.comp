@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/world/shaders/random.glsl>
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 const uint ActiveChunksSB_BINDING = 1;
@@ -15,7 +16,7 @@ const int k_transformGroupSize = 4;
 
 const ivec2 k_invocDisplacement = iChunkTi / k_transformGroupSize;
 
-layout( local_size_x = k_transformGroupSize,
+layout (local_size_x = k_transformGroupSize,
         local_size_y = k_transformGroupSize,
         local_size_z = 1
 ) in;
@@ -23,19 +24,6 @@ layout( local_size_x = k_transformGroupSize,
 uint invocHash(){
     uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
     return globalIndex ^ p_timeHash;
-}
-uint g_randomState = invocHash();
-
-//Xorshift algorithm by George Marsaglia
-uint random(){
-    g_randomState ^= g_randomState << 13;
-    g_randomState ^= g_randomState >> 17;
-    g_randomState ^= g_randomState << 5;
-    return g_randomState;
-}
-
-uvec2 random2(){
-    return uvec2(random(), random());
 }
 
 const ivec2 k_nearbyOffsets[] = {
@@ -57,6 +45,7 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
 }
 
 void main(){
+    g_randomState = invocHash();
     random();
     ivec2 centerTi = b_offsets[gl_WorkGroupID.x] + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
                     + (ivec2(random(), random()) & (k_invocDisplacement - 1));
@@ -64,21 +53,21 @@ void main(){
     uvec4 tile = tileLoad(centerTi);
     uvec2 edgeTile = uvec2(0);
     uvec2 nearbyProperties = uvec2(0);
-    for(int i = 0; i < k_nearbyOffsets.length(); ++i){//Check all neighbors
+    for(int i = 0; i < k_nearbyOffsets.length(); ++i){// Check all neighbors
         uvec4 neighbor = tileLoad(centerTi + k_nearbyOffsets[i]);
-        //Analyze the neighbor
+        // Analyze the neighbor
         nearbyProperties |= uvec2(u_blockProperties[neighbor.BL_T].x, u_wallProperties[neighbor.WL_T].x);
-        edgeTile |= uvec2(isFluidTile(neighbor.TL_T));
+        edgeTile |= uvec2(isNonsolidTile(neighbor.TL_T));
     }
 
-    //Transform block of the tile
+    // Transform block of the tile
     uvec2 blockRuleIndices = u_blockProperties[tile.BL_T].yz;
     for (uint i = blockRuleIndices.x; i <= blockRuleIndices.y;++i) {
         if (layerTransition(tile, 0, 1, u_blockTransformationRules[i], nearbyProperties, edgeTile)){
             break;
         }
     }
-    //Transform wall of the tile
+    // Transform wall of the tile
     uvec2 wallRuleIndices = u_wallProperties[tile.WL_T].yz;
     for (uint i = wallRuleIndices.x; i <= wallRuleIndices.y;++i) {
         if (layerTransition(tile, 1, 0, u_wallTransformationRules[i], nearbyProperties, edgeTile)){
@@ -86,7 +75,7 @@ void main(){
         }
     }
     
-    //Select variant
+    // Select variant
     uvec2 currentlyInner = uvec2(lessThan(tile.TILE_VAR, uvec2(12)));
     uvec2 isSolid = uvec2(isSolidTile(tile.TILE_TYPE));
     uvec2 switchToInner = (~edgeTile & ~currentlyInner) & isSolid;
@@ -96,6 +85,6 @@ void main(){
         + mix(uvec2(0), random2() % 12, bvec2(switchToInner))
         + mix(uvec2(0), random2() % 4 + 12, bvec2(switchToOuter));
     
-    //Store the transformed tile
+    // Store the transformed tile
     tileStore(centerTi, tile);
 }

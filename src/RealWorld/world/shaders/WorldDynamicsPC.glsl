@@ -1,7 +1,11 @@
 /*!
  *  @author     Dubsky Tomas
  */
-layout(push_constant, std430) restrict uniform WorldDynamicsPC {
+#ifndef WORLD_DYNAMICS_PC_GLSL
+#define WORLD_DYNAMICS_PC_GLSL
+
+layout (push_constant, std430)
+restrict uniform WorldDynamicsPC {
     ivec2   p_globalPosTi;
     uint    p_modifyTarget;
     uint    p_modifyShape;
@@ -10,3 +14,5 @@ layout(push_constant, std430) restrict uniform WorldDynamicsPC {
     uint    p_timeHash;
     uint    p_updateOrder;
 };
+
+#endif // !WORLD_DYNAMICS_PC_GLSL

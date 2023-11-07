@@ -11,6 +11,7 @@
 
 #include <RealWorld/constants/generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
+#include <RealWorld/vegetation/Branch.hpp>
 
 namespace rw {
 
@@ -18,7 +19,7 @@ namespace rw {
  * @brief Generates new chunks
  * @details The class is implemented in multiple files:
  *          ChunkGeneratorMain.cpp, ChunkGeneratorTerrain.cpp and
- *          ChunkGeneratorTree.cpp.
+ *          ChunkGeneratorVeg.cpp.
  */
 class ChunkGenerator {
 public:
@@ -28,12 +29,12 @@ public:
     ChunkGenerator();
 
     struct TargetInfo {
+        int                seed;     /**< Controls how generated chunks look */
         const re::Texture& worldTex; /**< Receives the generated tiles */
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
-        const re::StepDoubleBuffered<re::Buffer>& branchesBuf; /**< Receives the
-                                                                  generated branches */
-        int seed; /**< Controls how generated chunks look */
+        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
+        const re::Buffer&                         branchRasterBuf;
     };
 
     /**
@@ -59,18 +60,21 @@ protected:
     void consolidateEdges(const vk::CommandBuffer& commandBuffer);
     void selectVariant(const vk::CommandBuffer& commandBuffer);
 
-    void generateTrees(const vk::CommandBuffer& commandBuffer);
+    void generateVegetation(const vk::CommandBuffer& commandBuffer);
 
     void finishGeneration(
         const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh
     );
 
-    vk::ImageMemoryBarrier2 stepBarrier() const; /**< Helper func */
+    vk::ImageMemoryBarrier2 worldTexBarrier() const; /**< Helper func */
 
-    const re::Texture*                        m_worldTex = nullptr;
-    glm::ivec2                                m_worldTexSizeCh;
-    const re::Buffer*                         m_bodiesBuf = nullptr;
-    re::StepDoubleBuffered<const re::Buffer*> m_branchesBuf{nullptr, nullptr};
+    static re::Buffer createVegTemplatesBuffer();
+
+    const re::Texture* m_worldTex = nullptr;
+    glm::ivec2         m_worldTexSizeCh;
+    const re::Buffer*  m_bodiesBuf = nullptr;
+    re::StepDoubleBuffered<const re::Buffer*> m_branchVectorBuf{nullptr, nullptr};
+    const re::Buffer* m_branchRasterBuf = nullptr;
 
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;
@@ -93,8 +97,12 @@ protected:
         {.pipelineLayout = *m_pipelineLayout}, {.comp = consolidateEdges_comp}};
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = selectVariant_comp}};
-    re::Pipeline m_generateTreesPl{
-        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateTrees_comp}};
+    re::Pipeline m_prepareVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = prepareVeg_comp}};
+    re::Pipeline m_generateVectorVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateVectorVeg_comp}};
+    re::Pipeline m_generateRasterVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateRasterVeg_comp}};
 
     re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
@@ -109,10 +117,8 @@ protected:
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral}};
 
-    re::Buffer m_lSystemBuf{re::BufferCreateInfo{
-        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(glm::uint) * 1024 + sizeof(float) * 1024,
-        .usage       = vk::BufferUsageFlagBits::eStorageBuffer}};
+    re::Buffer m_vegTemplatesBuf = createVegTemplatesBuffer();
+    re::Buffer m_vegPreparationBuf;
 };
 
 } // namespace rw

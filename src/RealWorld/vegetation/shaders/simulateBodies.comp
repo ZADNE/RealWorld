@@ -1,0 +1,23 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/body.glsl>
+
+const uint worldImage_BINDING = 0;
+#include <RealWorld/world/shaders/tileLoadStore.glsl>
+const int BodiesSB_BINDING = 3;
+#include <RealWorld/vegetation/shaders/BodiesSB.glsl>
+
+layout (local_size_x = k_simulateBodiesGroupSizeX,
+        local_size_y = k_simulateBodiesGroupSizeY,
+        local_size_z = k_simulateBodiesGroupSizeZ
+) in;
+
+void main(){
+    if (gl_GlobalInvocationID.x < b_currentBodyCount) {
+    ivec2 posTi = ivec2(b_bodies[gl_GlobalInvocationID.x].bottomCenterPx / TilePx);
+        tileStore(posTi, HIGHLIGHTER);
+    }
+}

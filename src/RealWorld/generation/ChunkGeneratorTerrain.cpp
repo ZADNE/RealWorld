@@ -34,7 +34,7 @@ void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
         for (size_t i = 0; i < passes; i++) {
             m_genPC.storeLayer = ~m_genPC.storeLayer & 1;
             // Wait for the previous pass to finish
-            auto imageBarrier = stepBarrier();
+            auto imageBarrier = worldTexBarrier();
             commandBuffer.pipelineBarrier2({{}, {}, {}, imageBarrier});
             // Consolidate
             commandBuffer.pushConstants<GenerationPC>(
@@ -60,7 +60,7 @@ void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
 
 void ChunkGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
     // Wait for the edge consolidation to finish
-    auto imageBarrier = stepBarrier();
+    auto imageBarrier = worldTexBarrier();
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     // Select variants
     m_genPC.storeLayer = ~m_genPC.storeLayer & 1;

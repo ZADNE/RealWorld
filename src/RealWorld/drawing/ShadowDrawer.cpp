@@ -245,8 +245,8 @@ vk::ImageMemoryBarrier2 ShadowDrawer::imageMemoryBarrier(
         dstAccessMask,
         oldLayout,
         newLayout,
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED, // No ownership transition
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored, // No ownership transition
         image,
         vk::ImageSubresourceRange{eColor, 0u, 1u, 0u, 1u} // Whole image
     };
@@ -305,6 +305,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     , calculationDS(calculationPll.descriptorSetLayout(0))
     , shadowDrawingDS(shadowDrawingPll.descriptorSetLayout(0)) {
     using enum vk::DescriptorType;
+
     // Analysis descriptor set
     analysisDS.write(
         eStorageImage,
@@ -315,11 +316,13 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     analysisDS.write(eStorageImage, 1u, 0u, transluTex, eGeneral);
     analysisDS.write(eCombinedImageSampler, 3u, 0u, blockLightAtlasTex, eReadOnlyOptimal);
     analysisDS.write(eCombinedImageSampler, 4u, 0u, wallLightAtlasTex, eReadOnlyOptimal);
-    analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf, 0ull, VK_WHOLE_SIZE);
+    analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf, 0ull, vk::WholeSize);
+
     // Calculation descriptor set
     calculationDS.write(eCombinedImageSampler, 0u, 0u, lightTex, eReadOnlyOptimal);
     calculationDS.write(eCombinedImageSampler, 1u, 0u, transluTex, eReadOnlyOptimal);
     calculationDS.write(eStorageImage, 2u, 0u, shadowsTex, eGeneral);
+
     // Shadow drawing descriptor set
     shadowDrawingDS.write(eCombinedImageSampler, 0u, 0u, shadowsTex, eReadOnlyOptimal);
 }

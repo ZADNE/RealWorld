@@ -7,12 +7,12 @@
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 
-layout( local_size_x = k_genGroupSize,
+layout (local_size_x = k_genGroupSize,
         local_size_y = k_genGroupSize,
         local_size_z = 1
 ) in;
 
-layout(set = 0, binding = 0, rgba8ui) uniform restrict uimage2DArray u_tilesImage;
+layout (set = 0, binding = 0, rgba8ui) uniform restrict uimage2DArray u_tilesImage;
 
 const ivec2 OFFSETS[] = {
                 {-1, +2},   {+0, +2},   {+1, +2},
@@ -31,7 +31,7 @@ void main() {
     //Examine neighbors
     uvec2 inner = {0u, 0u};
     for (int i = 0; i < OFFSETS.length(); i++){
-        inner |= uvec2(isFluidTile(imageLoad(u_tilesImage, ivec3(pTi + OFFSETS[i], loadLayer)).TILE_TYPE));
+        inner |= uvec2(isNonsolidTile(imageLoad(u_tilesImage, ivec3(pTi + OFFSETS[i], loadLayer)).TILE_TYPE));
     }
 
     //Determine the variation

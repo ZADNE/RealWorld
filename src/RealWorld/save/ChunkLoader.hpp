@@ -2,7 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -23,9 +22,9 @@ public:
      * @param chunkPos Position of the chunk, measured in chunks
      * @param chunkDims Expected dimension of the chunk
      * @return  Tiles of the chunk if successful
-     *          Empty optional if the file was not found or was corrupted
+     *          Empty vector if the file was not found or was corrupted
      */
-    static std::optional<std::vector<unsigned char>> loadChunk(
+    static std::vector<unsigned char> loadChunk(
         const std::string& folderPath,
         const glm::ivec2&  chunkPos,
         const glm::uvec2&  chunkDims

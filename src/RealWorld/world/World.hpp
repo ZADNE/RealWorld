@@ -2,7 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <optional>
 #include <string>
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
@@ -13,8 +12,8 @@
 #include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
 #include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/trees/BodySimulator.hpp>
-#include <RealWorld/trees/TreeSimulator.hpp>
+#include <RealWorld/vegetation/BodySimulator.hpp>
+#include <RealWorld/vegetation/VegSimulator.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
 
 namespace rw {
@@ -98,8 +97,8 @@ private:
         const glm::ivec2&        topRightTi
     );
 
-    std::optional<re::Texture> m_worldTex;
-    int                        m_seed = 0;
+    re::Texture m_worldTex;
+    int         m_seed = 0;
 
     std::string m_worldName;
 
@@ -133,7 +132,7 @@ private:
     const re::Buffer* m_activeChunksBuf = nullptr;
 
     BodySimulator m_bodySimulator{m_simulationPL};
-    TreeSimulator m_treeSimulator{};
+    VegSimulator  m_vegSimulator{};
 
     bool m_permuteOrder = true;
 };

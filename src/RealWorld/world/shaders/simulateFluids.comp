@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/world/shaders/random.glsl>
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
@@ -10,7 +11,7 @@ const uint worldImage_BINDING = 0;
 
 const int DYN_GROUP_SIZE = 16;
 
-layout( local_size_x = DYN_GROUP_SIZE,
+layout (local_size_x = DYN_GROUP_SIZE,
         local_size_y = DYN_GROUP_SIZE,
         local_size_z = 1
 ) in;
@@ -23,20 +24,11 @@ uint invocHash(){
     uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
     return globalIndex ^ p_timeHash;
 }
-uint randomState = invocHash();
-
-//Xorshift algorithm by George Marsaglia
-uint random(){
-    randomState ^= randomState << 13;
-    randomState ^= randomState >> 17;
-    randomState ^= randomState << 5;
-    return randomState;
-}
 
 bool probTest1023(uint probability){ return (random() & 1023) < probability; }
 bool probTest65535(uint probability){ return (random() & 65535) < probability; }
 uvec2 blockRandomVariant(uint blockType){
-    return uvec2(blockType, isFluidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
+    return uvec2(blockType, isNonsolidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
 }
 
 ivec2 extractVelocity(uint var){
@@ -51,15 +43,15 @@ uint constructVelocity(ivec2 velocity){
 
 ivec2 randomStateDirection2D(){
     return ivec2(
-        bool(randomState & 1) ? +1 : -1,
-        bool(randomState & 2) ? +1 : -1
+        bool(g_randomState & 1) ? +1 : -1,
+        bool(g_randomState & 2) ? +1 : -1
     );
 }
 int randomStateToDirection1D(){
-    return bool(randomState & 1) ? +1 : -1;
+    return bool(g_randomState & 1) ? +1 : -1;
 }
 
-uint fluidIndex(uint fluid){ return fluid & ~FIRST_FLUID_BL; }
+uint fluidIndex(uint fluid){ return fluid & ~FIRST_NONSOLID_BL; }
 
 void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
     uvec4 surroundings[3];
@@ -84,7 +76,7 @@ void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
         if (n.BL_T == TRIGGER_CONV[fi].z && probTest1023(TRIGGER_CONV[fi].x)){
             tileStoreIm(posIm, uvec4(blockRandomVariant(TRIGGER_CONV[fi].y), fluid.WL));
             return;
-        } else if (isFluidBlock(n.BL_T) && n.BL_T != fluid.BL_T){//If can swap
+        } else if (isNonsolidBlock(n.BL_T) && n.BL_T != fluid.BL_T){//If can swap
             tileStoreIm(surrPosIm[i], uvec4(fluid.BL, n.WL));
             tileStoreIm(posIm, uvec4(n.BL, fluid.WL));
             return;
@@ -131,6 +123,7 @@ void velocityFluidDynamics(uvec4 water, ivec2 posIm){
 }
 
 void main(){
+    g_randomState = invocHash();
     const ivec2 invocOffset = p_globalPosTi
                     + ivec2(gl_WorkGroupID.xy) * iChunkTi
                     + ivec2(gl_LocalInvocationID.xy) * 4;

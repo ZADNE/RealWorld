@@ -84,8 +84,8 @@ void Player::step(
         A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
         S::eTransfer,                                   // Dst stage mask
         A::eTransferRead,                               // Dst access mask
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
         *m_hitboxBuf,
         copyRegion.srcOffset,
         copyRegion.size};

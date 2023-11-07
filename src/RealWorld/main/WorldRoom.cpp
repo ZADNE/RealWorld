@@ -14,17 +14,17 @@ constexpr unsigned int k_frameRateLimit = 300u;
 constexpr unsigned int k_frameRateLimit = re::Synchronizer::k_doNotLimitFramesPerSecond;
 #endif // _DEBUG
 
-constexpr glm::vec4 k_skyBlue =
-    glm::vec4(0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f);
-
-constexpr re::RoomDisplaySettings k_initialSettings{
-    .clearColor           = k_skyBlue,
-    .stepsPerSecond       = k_physicsStepsPerSecond,
-    .framesPerSecondLimit = k_frameRateLimit,
-    .usingImGui           = true};
-
+constexpr vk::ClearValue k_skyBlue =
+    vk::ClearColorValue{0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f};
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
-    : Room(1, k_initialSettings)
+    : Room(
+          1,
+          re::RoomDisplaySettings{
+              .clearValues          = {&k_skyBlue, 1},
+              .stepsPerSecond       = k_physicsStepsPerSecond,
+              .framesPerSecondLimit = k_frameRateLimit,
+              .usingImGui           = true}
+      )
     , m_gameSettings(gameSettings)
     , m_worldDrawer(engine().windowDims(), 32u)
     , m_player()
@@ -94,13 +94,13 @@ void WorldRoom::step() {
 
     // Manipulate the inventory based on user's input
     updateInventoryAndUI();
-
-    // m_treesPoC.step();
 }
 
 void WorldRoom::render(
     const vk::CommandBuffer& commandBuffer, double interpolationFactor
 ) {
+    engine().mainRenderPassBegin();
+
     m_worldDrawer.drawTiles(commandBuffer);
 
     m_spriteBatch.clearAndBeginFirstBatch();
@@ -117,6 +117,8 @@ void WorldRoom::render(
     m_geometryBatch.draw(commandBuffer, m_worldView.viewMatrix());
 
     drawGUI(commandBuffer);
+
+    engine().mainRenderPassEnd();
 }
 
 void WorldRoom::windowResizedCallback(
@@ -248,7 +250,6 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     m_spriteBatch.nextBatch();
     m_invUI.draw(m_spriteBatch, engine().cursorAbs());
     m_spriteBatch.drawBatch(commandBuffer, m_windowViewMat);
-    // m_treesPoC.draw(commandBuffer, m_windowViewMat);
     //  Minimap
     if (m_minimap) {
         m_worldDrawer.drawMinimap(commandBuffer);
@@ -277,6 +278,7 @@ void WorldRoom::drawGUI(const vk::CommandBuffer& commandBuffer) {
     }
     ImGui::End();
     ImGui::PopFont();
+    engine().mainRenderPassDrawImGui();
 }
 
 bool WorldRoom::loadWorld(const std::string& worldName) {

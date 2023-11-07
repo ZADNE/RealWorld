@@ -2,12 +2,13 @@
  *  @author     Dubsky Tomas
  */
 #version 460
+#include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/light.glsl>
 #include <RealWorld/drawing/shaders/ShadowDrawingPC.glsl>
 
-layout(location = 0) out vec4 o_shadowColor;
+layout (location = 0) out vec4 o_shadowColor;
 
-layout(set = 0, binding = 0) uniform sampler2D u_shadowsSampler;
+layout (set = 0, binding = 0) uniform sampler2D u_shadowsSampler;
 
 const vec2 k_pos[4] = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}, {1.0, 1.0}};
 

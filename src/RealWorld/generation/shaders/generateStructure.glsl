@@ -1,68 +1,57 @@
 /*!
  *  @author     Dubsky Tomas
  */
+#ifndef GENERATE_STRUCTURE_GLSL
+#define GENERATE_STRUCTURE_GLSL
+
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
+#include <RealWorld/generation/shaders/biome.glsl>
 #include <RealWorld/constants/generation.glsl>
-#include <RealWorld/constants/biome.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 
 float age(vec2 posPx, float seed){
     float age = snoise(posPx * (1.0 / 8192.0), seed);
-    return clamp(age * 2.0, -0.5, +0.5) + 0.5;//Oversaturate the age
+    return clamp(age * 2.0, -0.5, +0.5) + 0.5; // Oversaturate the age
 }
 
-//x = temperature, y = humidity
-vec2 biomeClimate(float x, float seed){
-    return vec2(
-        smootherColumnValue_x(x, 4096.0, seed),
-        smootherColumnValue_x(x, 4096.0, seed + 11.0)
-    );
-}
+/**
+ * @return x = temperature, y = humidity
+ */
+vec2 biomeClimate(float xPx, float seed){
+    vec2 res = vec2(0.0);
+    float x = xPx * (1.0 / 8192.0);
+    float amp = 0.5;
 
-Biome biomeStructure(vec2 biomeClimate){
-    biomeClimate = fract(biomeClimate);
-    biomeClimate *= vec2(BIOMES.length() - 1, BIOMES[0].length() - 1);
-    ivec2 ll = ivec2(biomeClimate);
-    vec2 frac = fract(biomeClimate);
-    //Gather
-    Biome b00 = BIOMES[ll.x][ll.y];
-    Biome b01 = BIOMES[ll.x][ll.y + 1];
-    Biome b10 = BIOMES[ll.x + 1][ll.y];
-    Biome b11 = BIOMES[ll.x + 1][ll.y + 1];
-    //Interpolate over X axis
-    b00.elevation = mix(b00.elevation, b10.elevation, frac.x);
-    b01.elevation = mix(b01.elevation, b11.elevation, frac.x);
-    b00.roughness = mix(b00.roughness, b10.roughness, frac.x);
-    b01.roughness = mix(b01.roughness, b11.roughness, frac.x);
-    b00.surfaceWidth = mix(b00.surfaceWidth, b10.surfaceWidth, frac.x);
-    b01.surfaceWidth = mix(b01.surfaceWidth, b11.surfaceWidth, frac.x);
-    //Interpolate over Y axis
-    b00.elevation = mix(b00.elevation, b01.elevation, frac.y);
-    b00.roughness = mix(b00.roughness, b01.roughness, frac.y);
-    b00.surfaceWidth = mix(b00.surfaceWidth, b01.surfaceWidth, frac.y);
-    return b00;
+    for (int i = 0; i < 3; ++i){
+        res +=
+            vec2(linColumnValue_x(x, seed), linColumnValue_x(x, seed + 11.0)) * amp;
+        x *= 2.0;
+        amp *= 0.5;
+    }
+
+    return res;
 }
 
 vec2 horizon(float xPx, Biome biome, float seed){
-    //Elevation
+    // Elevation
     float der = 0.0;
     float totalElev = biome.elevation.x;
     vec2 period_amplitude = vec2(2048.0, 1.0);
     for (float level = 0.0; level < 4.0; level++){
-        vec2 elevation = smootherColumnValue_x_dx(xPx, period_amplitude.x, seed + level);
+        vec2 elevation = smootherColumnValue_x_dx(xPx / period_amplitude.x, seed + level);
         der += elevation.y * period_amplitude.y;
         totalElev += elevation.x * period_amplitude.y * biome.elevation.y;
         period_amplitude *= 0.5;
     }
     der = abs(der) * (1.0 / 1.875);
     
-    //Roughness
+    // Roughness
     period_amplitude = vec2(256.0, 1.0);
     float totalRough = 0.0;
     for (float level = 0.0; level < 6.0; level++){
-        totalRough += linColumnValue_x(xPx, period_amplitude.x, seed + level + 2161.0) * period_amplitude.y;
+        totalRough += linColumnValue_x(xPx / period_amplitude.x, seed + level + 2161.0) * period_amplitude.y;
         period_amplitude *= 0.5;
     }
     
@@ -99,11 +88,11 @@ uvec2 stoneTile(vec2 posPx, float age, float baseSolidity, float seed){
     return (lavaFactor <= 0.0 && baseSolidity > 0.45) ? uvec2(LAVA.BLOCK_TYPE, stoneTile.y) : stoneTile;
 }
 
-uvec2 surfaceTile(vec2 posPx, vec2 biomeClimate, float seed){
-    vec2 climateDither = hash23(vec3(posPx, seed)) * 0.1 - vec2(0.05);
-    vec2 climate = clamp(biomeClimate + climateDither, vec2(0.0), vec2(0.99999));
-    ivec2 indices = ivec2(vec2(BIOMES.length(), BIOMES[0].length()) * climate);
-    return BIOMES[indices.x][indices.y].tiles.TILE_TYPE;
+uvec2 surfaceTile(vec2 posPx, float seed){
+    float posDither = (hash13(vec3(posPx, seed)) - 0.5) * 2048.0;
+    vec2 climate = biomeClimate(posPx.x + posDither, seed);
+    ivec2 indices = ivec2(vec2(k_biomes.length(), k_biomes[0].length()) * climate);
+    return k_biomes[indices.x][indices.y].tiles.TILE_TYPE;
 }
 
 float horizonProximityFactor(float horizon, float y, float width, float low, float high){
@@ -113,11 +102,11 @@ float horizonProximityFactor(float horizon, float y, float width, float low, flo
 void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
     float age = age(pPx, p_seed);
     float solidity = solidity(pPx, age, p_seed);
+    uvec2 stoneTile = stoneTile(pPx, age, solidity, p_seed); // Decides which underground tile to use 
+    uvec2 surfaceTile = surfaceTile(pPx, p_seed); // Decide which surface tile to use
+  
     vec2 biomeClimate = biomeClimate(pPx.x, p_seed);
     Biome biome = biomeStructure(biomeClimate);
-    uvec2 stoneTile = stoneTile(pPx, age, solidity, p_seed);//Decides which underground tile to use 
-    uvec2 surfaceTile = surfaceTile(pPx, biomeClimate, p_seed);//Decide which surface tile to use
-  
     vec2 horizon = horizon(pPx.x, biome, p_seed);
     
     bool belowHorizon = (pPx.y < horizon.x);
@@ -131,3 +120,5 @@ void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
     
     tile = occupied ? material : uvec4(AIR.BL_T, material.BL_V, material.WL);
 }
+
+#endif // !GENERATE_STRUCTURE_GLSL

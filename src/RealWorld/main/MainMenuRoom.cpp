@@ -70,6 +70,8 @@ void MainMenuRoom::step() {
 void MainMenuRoom::render(
     const vk::CommandBuffer& commandBuffer, double interpolationFactor
 ) {
+    engine().mainRenderPassBegin();
+
     SetNextWindowSize(engine().windowDims());
     SetNextWindowPos({0.0f, 0.0f});
     PushFont(m_arial16);
@@ -94,6 +96,9 @@ void MainMenuRoom::render(
     }
     End();
     PopFont();
+
+    engine().mainRenderPassDrawImGui();
+    engine().mainRenderPassEnd();
 }
 
 void MainMenuRoom::keybindCallback(re::Key newKey) {
@@ -222,7 +227,7 @@ void MainMenuRoom::controlsMenu() {
         TableNextColumn();
 
         RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
-        if (Button(re::keyToString(keybinder(binding)).data())) {
+        if (Button(re::toString(keybinder(binding)).data())) {
             keybinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(
                 binding, *this
             );

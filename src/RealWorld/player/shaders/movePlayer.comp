@@ -9,7 +9,7 @@ const uint PlayerHitboxSB_BINDING = 1u;
 #include <RealWorld/player/shaders/PlayerHitboxSB.glsl>
 #include <RealWorld/player/shaders/PlayerMovementPC.glsl>
 
-layout( local_size_x = 1,
+layout (local_size_x = 1,
         local_size_y = 1,
         local_size_z = 1
 ) in;

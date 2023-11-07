@@ -4,14 +4,14 @@
 #version 460
 #include <RealWorld/constants/light.glsl>
 
-layout( local_size_x = k_calcGroupSize,
+layout (local_size_x = k_calcGroupSize,
         local_size_y = k_calcGroupSize,
         local_size_z = 1
 ) in;
 
-layout(set = 0, binding = 0)        uniform sampler2D                   u_lightTexture;
-layout(set = 0, binding = 1)        uniform sampler2D                   u_transluTexture;
-layout(set = 0, binding = 2, rgba8) uniform restrict writeonly image2D  u_shadowsImage;
+layout (set = 0, binding = 0)        uniform sampler2D                   u_lightTexture;
+layout (set = 0, binding = 1)        uniform sampler2D                   u_transluTexture;
+layout (set = 0, binding = 2, rgba8) uniform restrict writeonly image2D  u_shadowsImage;
 
 vec2 g_analysisUvScale = 1.0 / textureSize(u_lightTexture, 0);
 const float k_uvOffset = k_lightMaxRangeUn - 0.5;
@@ -24,10 +24,10 @@ const float k_piOver128 =   0.0245436926;
 const float k_piOver256 =   0.0122718463;
 const float k_piOver512 =   0.00613592315;
 
-const vec2 k_ray1Bounds = vec2(21.0, 32.0);
+const vec2 k_ray1Bounds = vec2(21.0, 40.0);
 const vec2 k_ray2Bounds = vec2(11.0, k_ray1Bounds.x - 1.0);
 const vec2 k_ray4Bounds = vec2(6.0, k_ray2Bounds.x - 1.0);
-const vec2 k_ray8Bounds = vec2(4.0, k_ray4Bounds.x - 1.0);
+const vec2 k_ray8Bounds = vec2(3.0, k_ray4Bounds.x - 1.0);
 const vec2 k_ray16Bounds = vec2(2.0, k_ray8Bounds.x - 1.0);
 const vec2 k_ray32Bounds = vec2(1.0, k_ray16Bounds.x - 1.0);
 
@@ -88,17 +88,17 @@ vec4 ray32(vec2 centerUv, float a){
 }
 
 void main(){
-    //Calculate position and init variables
+    // Calculate position and init variables
     const ivec2 ID = ivec2(gl_GlobalInvocationID);
     vec4 total = vec4(0.0);
     const vec2 centerUv = (vec2(ID) + k_uvOffset) * g_analysisUvScale;
     
-    //Eight tree rays, each sums 45 degrees
+    // Eight tree-like rays, each sums 45 degrees
     for (float a = k_piOver512; a < 6.2; a += k_piOver4){
         total += ray32(centerUv, a);
     }
     
-    //The center unit
+    // The center unit
     total += texture(u_lightTexture, centerUv);
     
     vec4 final = vec4(total.rgb, 1.0 - sqrt(total.a));

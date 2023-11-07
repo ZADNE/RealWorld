@@ -61,7 +61,7 @@ World::World()
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties)})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
-    m_simulationDS.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, VK_WHOLE_SIZE);
+    m_simulationDS.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, vk::WholeSize);
 }
 
 const re::Texture& World::adoptSave(
@@ -77,27 +77,29 @@ const re::Texture& World::adoptSave(
         .allocFlags = vma::AllocationCreateFlagBits::eDedicatedMemory,
         .format     = vk::Format::eR8G8B8A8Uint,
         .extent     = {texSize, 1},
-        .usage      = eStorage | eTransferSrc | eTransferDst | eSampled}};
-    m_simulationDS.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
+        .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
+                 eColorAttachment | eInputAttachment}};
+    m_simulationDS.write(eStorageImage, 0, 0, m_worldTex, eGeneral);
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
-    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, VK_WHOLE_SIZE);
+    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, vk::WholeSize);
 
-    // Tree simulator
-    auto treeBuffers = m_treeSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
+    // Vegetation simulator
+    auto vegStorage = m_vegSimulator.adoptSave(m_worldTex, worldTexSizeCh);
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
-        .seed           = m_seed,
-        .folderPath     = save.path,
-        .worldTex       = *m_worldTex,
-        .worldTexSizeCh = worldTexSizeCh,
-        .descriptorSet  = m_simulationDS,
-        .bodiesBuf      = bodiesBuf,
-        .branchesBuf    = treeBuffers.branchesBuf});
+        .seed            = m_seed,
+        .folderPath      = save.path,
+        .worldTex        = m_worldTex,
+        .worldTexSizeCh  = worldTexSizeCh,
+        .descriptorSet   = m_simulationDS,
+        .bodiesBuf       = bodiesBuf,
+        .branchVectorBuf = vegStorage.vectorBuf,
+        .branchRasterBuf = vegStorage.rasterBuf});
 
-    return *m_worldTex;
+    return m_worldTex;
 }
 
 void World::gatherSave(MetadataSave& save) const {
@@ -124,9 +126,9 @@ void World::beginStep(const vk::CommandBuffer& commandBuffer) {
         A::eShaderStorageRead,             // Dst access mask
         vk::ImageLayout::eReadOnlyOptimal, // Old image layout
         vk::ImageLayout::eGeneral,         // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        m_worldTex->image(),
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
+        m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
@@ -147,8 +149,8 @@ int World::step(
     // Bodies
     m_bodySimulator.step(commandBuffer);
 
-    // Trees
-    m_treeSimulator.step(commandBuffer);
+    // Vegetation
+    m_vegSimulator.step(commandBuffer);
 
     // Set up commandBuffer state for simulation
     xorshift32(m_worldDynamicsPC.timeHash);
@@ -198,9 +200,9 @@ void World::endStep(const vk::CommandBuffer& commandBuffer) {
         A::eShaderSampledRead,                          // Dst access mask
         eGeneral,                                       // Old image layout
         eReadOnlyOptimal,                               // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        m_worldTex->image(),
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
+        m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
@@ -223,9 +225,9 @@ void World::fluidDynamicsStep(
         A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        m_worldTex->image(),
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
+        m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
