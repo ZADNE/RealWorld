@@ -48,8 +48,10 @@ public:
     void step(const vk::CommandBuffer& commandBuffer);
 
     struct VegStorage {
-        const re::StepDoubleBuffered<re::Buffer>& vectorBuf;
-        const re::Buffer&                         rasterBuf;
+        const re::Buffer&                         vegBuf;
+        uint32_t                                  maxVegCount;
+        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
+        const re::Buffer&                         branchRasterBuf;
     };
 
     VegStorage adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
@@ -73,10 +75,10 @@ private:
     re::RenderPass     m_rasterizationRenderPass;
 
     re::Pipeline m_unrasterizeBranchesPl{
-        {.pipelineLayout     = *m_pipelineLayout,
-         .topology           = vk::PrimitiveTopology::ePatchList,
+        {.topology           = vk::PrimitiveTopology::ePatchList,
          .patchControlPoints = 1,
          .enableBlend        = false,
+         .pipelineLayout     = *m_pipelineLayout,
          .renderPass         = *m_rasterizationRenderPass},
         {.vert = unrasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
@@ -84,10 +86,10 @@ private:
          .geom = duplicateBranches_geom,
          .frag = unrasterizeBranches_frag}};
     re::Pipeline m_rasterizeBranchesPl{
-        {.pipelineLayout     = *m_pipelineLayout,
-         .topology           = vk::PrimitiveTopology::ePatchList,
+        {.topology           = vk::PrimitiveTopology::ePatchList,
          .patchControlPoints = 1,
          .enableBlend        = false,
+         .pipelineLayout     = *m_pipelineLayout,
          .renderPass         = *m_rasterizationRenderPass,
          .subpassIndex       = 1},
         {.vert = rasterizeBranches_vert,
@@ -98,8 +100,9 @@ private:
     re::StepDoubleBuffered<re::DescriptorSet> m_descriptorSets{
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};
-    re::StepDoubleBuffered<re::Buffer> m_vectorBuf;
-    re::Buffer                         m_rasterBuf;
+    re::Buffer                         m_vegBuf;
+    re::StepDoubleBuffered<re::Buffer> m_branchVectorBuf;
+    re::Buffer                         m_branchRasterBuf;
     re::Framebuffer                    m_framebuffer;
     glm::uvec2                         m_worldTexSizeTi{};
 };

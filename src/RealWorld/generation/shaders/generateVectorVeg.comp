@@ -7,15 +7,14 @@
 #include <RealWorld/generation/shaders/vegetation.glsl>
 const int VegTemplatesUB_BINDING = 2;
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
-const int BranchVectorSBWrite_BINDING = 4;
-const int BranchVectorSBRead_BINDING = 5;
+const int VegSB_BINDING = 4;
+#include <RealWorld/vegetation/shaders/VegSB.glsl>
+const int BranchVectorSBWrite_BINDING = 5;
+const int BranchVectorSBRead_BINDING = 6;
 #include <RealWorld/vegetation/shaders/BranchVectorSB.glsl>
-const int VegPreparationSB_BINDING = 6;
+const int VegPreparationSB_BINDING = 7;
 #include <RealWorld/generation/shaders/VegPreparationSB.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
-
-const float k_piHalf = 1.57079632679;
-const float k_piQuarter = 0.785398163;
 
 layout (local_size_x = 64,
         local_size_y = 1,

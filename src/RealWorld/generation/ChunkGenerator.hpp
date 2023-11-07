@@ -33,6 +33,8 @@ public:
         const re::Texture& worldTex; /**< Receives the generated tiles */
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
+        const re::Buffer&  vegBuf;
+        uint32_t           maxVegCount;
         const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
         const re::Buffer&                         branchRasterBuf;
     };
@@ -47,7 +49,7 @@ public:
     };
 
     /**
-     * @brief Generates a chunk - tiles, bodies and particles
+     * @brief Generates a chunk - tiles and vegetation
      */
     void generateChunk(
         const vk::CommandBuffer& commandBuffer, const OutputInfo& outputInfo
@@ -73,6 +75,7 @@ protected:
     const re::Texture* m_worldTex = nullptr;
     glm::ivec2         m_worldTexSizeCh;
     const re::Buffer*  m_bodiesBuf = nullptr;
+    const re::Buffer*  m_vegBuf    = nullptr;
     re::StepDoubleBuffered<const re::Buffer*> m_branchVectorBuf{nullptr, nullptr};
     const re::Buffer* m_branchRasterBuf = nullptr;
 
@@ -97,8 +100,7 @@ protected:
         {.pipelineLayout = *m_pipelineLayout}, {.comp = consolidateEdges_comp}};
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = selectVariant_comp}};
-    re::Pipeline m_prepareVegPl{
-        {.pipelineLayout = *m_pipelineLayout}, {.comp = prepareVeg_comp}};
+    re::Pipeline m_prepareVegPl;
     re::Pipeline m_generateVectorVegPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = generateVectorVeg_comp}};
     re::Pipeline m_generateRasterVegPl{

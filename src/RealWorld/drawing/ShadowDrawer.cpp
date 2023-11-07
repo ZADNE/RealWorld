@@ -74,8 +74,8 @@ ShadowDrawer::ShadowDrawer(
     , m_shadowDrawingPll({}, {.vert = drawShadows_vert, .frag = drawColor_frag})
     , m_drawShadowsPl(
           re::PipelineGraphicsCreateInfo{
-              .pipelineLayout = *m_shadowDrawingPll,
-              .topology       = vk::PrimitiveTopology::eTriangleStrip},
+              .topology       = vk::PrimitiveTopology::eTriangleStrip,
+              .pipelineLayout = *m_shadowDrawingPll},
           {.vert = drawShadows_vert, .frag = drawColor_frag}
       )
     , m_lightsBuf(re::BufferCreateInfo{

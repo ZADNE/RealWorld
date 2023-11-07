@@ -5,10 +5,10 @@
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegetation.glsl>
-const int VegPreparationSB_BINDING = 6;
+const int VegPreparationSB_BINDING = 7;
 #define VegPreparationSB_ACCESS readonly
 #include <RealWorld/generation/shaders/VegPreparationSB.glsl>
-const uint BranchRasterSB_BINDING = 7;
+const uint BranchRasterSB_BINDING = 8;
 #include <RealWorld/vegetation/shaders/BranchRasterSB.glsl>
 
 layout (local_size_x = 2,

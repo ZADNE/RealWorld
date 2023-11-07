@@ -5,10 +5,10 @@
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegetation.glsl>
-const int BranchVectorSBWrite_BINDING = 4;
-const int BranchVectorSBRead_BINDING = 5;
+const int BranchVectorSBWrite_BINDING = 5;
+const int BranchVectorSBRead_BINDING = 6;
 #include <RealWorld/vegetation/shaders/BranchVectorSB.glsl>
-const int VegPreparationSB_BINDING = 6;
+const int VegPreparationSB_BINDING = 7;
 #define VegPreparationSB_ACCESS writeonly
 #include <RealWorld/generation/shaders/VegPreparationSB.glsl>
 

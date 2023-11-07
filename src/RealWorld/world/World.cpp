@@ -96,8 +96,10 @@ const re::Texture& World::adoptSave(
         .worldTexSizeCh  = worldTexSizeCh,
         .descriptorSet   = m_simulationDS,
         .bodiesBuf       = bodiesBuf,
-        .branchVectorBuf = vegStorage.vectorBuf,
-        .branchRasterBuf = vegStorage.rasterBuf});
+        .vegBuf          = vegStorage.vegBuf,
+        .maxVegCount     = vegStorage.maxVegCount,
+        .branchVectorBuf = vegStorage.branchVectorBuf,
+        .branchRasterBuf = vegStorage.branchRasterBuf});
 
     return m_worldTex;
 }
