@@ -15,7 +15,6 @@ public:
     void adoptSave(const MetadataSave& save, const glm::ivec2& worldTexSizeCh);
 
 private:
-    // std::optional
 };
 
 } // namespace rw

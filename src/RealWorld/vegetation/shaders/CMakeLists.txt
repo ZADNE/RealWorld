@@ -3,11 +3,12 @@
     Branch.glsl                 
     BranchRasterSB.glsl         
     BranchVectorSB.glsl         
+    duplicateBranches.geom      
     normAngles.glsl             
-    simulateBodies.comp         
     rasterizeBranches.vert      rasterizeBranches.frag
-    replicateBranches.geom      
+    simulateBodies.comp         
     tessellateBranches.tesc     tessellateBranches.tese
     unrasterizeBranches.vert    unrasterizeBranches.frag
     VegDynamicsPC.glsl          
+    VegSB.glsl                  
 )

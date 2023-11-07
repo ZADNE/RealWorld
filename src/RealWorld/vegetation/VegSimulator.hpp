@@ -2,8 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <optional>
-
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
@@ -83,7 +81,7 @@ private:
         {.vert = unrasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
-         .geom = replicateBranches_geom,
+         .geom = duplicateBranches_geom,
          .frag = unrasterizeBranches_frag}};
     re::Pipeline m_rasterizeBranchesPl{
         {.pipelineLayout     = *m_pipelineLayout,
@@ -95,15 +93,15 @@ private:
         {.vert = rasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
-         .geom = replicateBranches_geom,
+         .geom = duplicateBranches_geom,
          .frag = rasterizeBranches_frag}};
     re::StepDoubleBuffered<re::DescriptorSet> m_descriptorSets{
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
         re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};
-    std::optional<re::StepDoubleBuffered<re::Buffer>> m_vectorBuf;
-    std::optional<re::Buffer>                         m_rasterBuf;
-    std::optional<re::Framebuffer>                    m_framebuffer;
-    glm::uvec2                                        m_worldTexSizeTi{};
+    re::StepDoubleBuffered<re::Buffer> m_vectorBuf;
+    re::Buffer                         m_rasterBuf;
+    re::Framebuffer                    m_framebuffer;
+    glm::uvec2                         m_worldTexSizeTi{};
 };
 
 } // namespace rw

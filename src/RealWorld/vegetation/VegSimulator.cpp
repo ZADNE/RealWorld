@@ -91,7 +91,7 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.beginRenderPass2(
         vk::RenderPassBeginInfo{
             *m_rasterizationRenderPass,
-            **m_framebuffer,
+            *m_framebuffer,
             vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}},
             {}},
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}
@@ -124,7 +124,7 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
     // Unrasterize branches from previous step
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
     commandBuffer.drawIndirect(
-        *m_vectorBuf->read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
+        *m_vectorBuf.read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
     commandBuffer.nextSubpass2(
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}, vk::SubpassEndInfo{}
@@ -140,7 +140,7 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
     );
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
     commandBuffer.drawIndirect(
-        *m_vectorBuf->read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
+        *m_vectorBuf.read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
     );
     commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
 }
@@ -166,14 +166,14 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
                 .usage = eStorageBuffer | eIndirectBuffer | eTransferSrc | eTransferDst,
                 .initData = re::objectToByteSpan(initHeader)}};
         };
-        m_vectorBuf.emplace(createBranchBuffer(), createBranchBuffer());
+        m_vectorBuf = {createBranchBuffer(), createBranchBuffer()};
     }
 
     // Prepare branch-raster texture
-    m_rasterBuf.emplace(re::BufferCreateInfo{
+    m_rasterBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = maxBranchCount * k_branchRasterSpace,
-        .usage       = eStorageBuffer});
+        .usage       = eStorageBuffer}};
 
     { // Prepare descriptors
         auto writeDescriptor = [&](re::DescriptorSet& set,
@@ -182,10 +182,10 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
             set.write(D::eStorageBuffer, 0u, 0u, first, 0ull, vk::WholeSize);
             set.write(D::eStorageBuffer, 1u, 0u, second, 0ull, vk::WholeSize);
             set.write(D::eInputAttachment, 2u, 0u, worldTex, vk::ImageLayout::eGeneral);
-            set.write(D::eStorageBuffer, 3u, 0u, *m_rasterBuf, 0ull, vk::WholeSize);
+            set.write(D::eStorageBuffer, 3u, 0u, m_rasterBuf, 0ull, vk::WholeSize);
         };
-        writeDescriptor(m_descriptorSets[0], (*m_vectorBuf)[0], (*m_vectorBuf)[1]);
-        writeDescriptor(m_descriptorSets[1], (*m_vectorBuf)[1], (*m_vectorBuf)[0]);
+        writeDescriptor(m_descriptorSets[0], m_vectorBuf[0], m_vectorBuf[1]);
+        writeDescriptor(m_descriptorSets[1], m_vectorBuf[1], m_vectorBuf[0]);
     }
 
     // Prepare framebuffer
@@ -197,7 +197,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         m_worldTexSizeTi.y,
         1u}};
 
-    return {*m_vectorBuf, *m_rasterBuf};
+    return {m_vectorBuf, m_rasterBuf};
 }
 
 } // namespace rw

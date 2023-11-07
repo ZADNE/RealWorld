@@ -2,8 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <optional>
-
 #include <glm/vec2.hpp>
 
 #include <RealEngine/graphics/buffers/Buffer.hpp>
@@ -53,8 +51,8 @@ private:
     static constexpr int k_bodyHeaderSize = sizeof(BodiesSBHeader) / sizeof(Body);
     static_assert(k_bodyHeaderSize * sizeof(Body) == sizeof(BodiesSBHeader));
 
-    std::optional<re::Buffer> m_bodiesBuf;
-    re::Pipeline              m_simulateBodiesPl;
+    re::Buffer   m_bodiesBuf;
+    re::Pipeline m_simulateBodiesPl;
 };
 
 } // namespace rw

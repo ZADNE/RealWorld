@@ -2,7 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <optional>
 #include <string>
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
@@ -98,8 +97,8 @@ private:
         const glm::ivec2&        topRightTi
     );
 
-    std::optional<re::Texture> m_worldTex;
-    int                        m_seed = 0;
+    re::Texture m_worldTex;
+    int         m_seed = 0;
 
     std::string m_worldName;
 

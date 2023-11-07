@@ -17,7 +17,7 @@ BodySimulator::BodySimulator(const re::PipelineLayout& simulationPL)
 
 void BodySimulator::step(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateBodiesPl);
-    commandBuffer.dispatchIndirect(**m_bodiesBuf, offsetof(BodiesSBHeader, dispatchX));
+    commandBuffer.dispatchIndirect(*m_bodiesBuf, offsetof(BodiesSBHeader, dispatchX));
 }
 
 const re::Buffer& BodySimulator::adoptSave(const glm::ivec2& worldTexSizeCh) {
@@ -37,7 +37,7 @@ const re::Buffer& BodySimulator::adoptSave(const glm::ivec2& worldTexSizeCh) {
         .usage       = eStorageBuffer | eIndirectBuffer,
         .initData    = re::objectToByteSpan(initHeader)}};
 
-    return *m_bodiesBuf;
+    return m_bodiesBuf;
 }
 
 } // namespace rw

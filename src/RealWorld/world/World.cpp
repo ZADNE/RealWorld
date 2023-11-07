@@ -79,27 +79,27 @@ const re::Texture& World::adoptSave(
         .extent     = {texSize, 1},
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
                  eColorAttachment | eInputAttachment}};
-    m_simulationDS.write(eStorageImage, 0, 0, *m_worldTex, eGeneral);
+    m_simulationDS.write(eStorageImage, 0, 0, m_worldTex, eGeneral);
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
     m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, vk::WholeSize);
 
     // Vegetation simulator
-    auto vegStorage = m_vegSimulator.adoptSave(*m_worldTex, worldTexSizeCh);
+    auto vegStorage = m_vegSimulator.adoptSave(m_worldTex, worldTexSizeCh);
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
         .seed            = m_seed,
         .folderPath      = save.path,
-        .worldTex        = *m_worldTex,
+        .worldTex        = m_worldTex,
         .worldTexSizeCh  = worldTexSizeCh,
         .descriptorSet   = m_simulationDS,
         .bodiesBuf       = bodiesBuf,
         .branchVectorBuf = vegStorage.vectorBuf,
         .branchRasterBuf = vegStorage.rasterBuf});
 
-    return *m_worldTex;
+    return m_worldTex;
 }
 
 void World::gatherSave(MetadataSave& save) const {
@@ -128,7 +128,7 @@ void World::beginStep(const vk::CommandBuffer& commandBuffer) {
         vk::ImageLayout::eGeneral,         // New image layout
         vk::QueueFamilyIgnored,
         vk::QueueFamilyIgnored,
-        m_worldTex->image(),
+        m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
@@ -202,7 +202,7 @@ void World::endStep(const vk::CommandBuffer& commandBuffer) {
         eReadOnlyOptimal,                               // New image layout
         vk::QueueFamilyIgnored,
         vk::QueueFamilyIgnored,
-        m_worldTex->image(),
+        m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
@@ -227,7 +227,7 @@ void World::fluidDynamicsStep(
         eGeneral,                                       // New image layout
         vk::QueueFamilyIgnored,
         vk::QueueFamilyIgnored,
-        m_worldTex->image(),
+        m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
     commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 

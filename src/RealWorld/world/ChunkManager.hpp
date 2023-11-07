@@ -2,7 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <optional>
 #include <unordered_map>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -136,8 +135,8 @@ private:
     static constexpr auto k_chunkBeingDownloaded = k_chunkNotActive - 1;
     static constexpr auto k_chunkBeingUploaded   = k_chunkNotActive - 2;
 
-    std::optional<re::Buffer>                       m_activeChunksBuf;
-    std::optional<re::BufferMapped<ActiveChunksSB>> m_activeChunksStageBuf;
+    re::Buffer                       m_activeChunksBuf;
+    re::BufferMapped<ActiveChunksSB> m_activeChunksStageBuf;
     int m_transparentChunkChanges = 0; /**< Number of changes in this step */
     glm::ivec2& activeChunkAtIndex(int acIndex);
 
