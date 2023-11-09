@@ -49,7 +49,6 @@ public:
 
     struct VegStorage {
         const re::Buffer&                         vegBuf;
-        uint32_t                                  maxVegCount;
         const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
         const re::Buffer&                         branchRasterBuf;
     };

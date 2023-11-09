@@ -34,7 +34,6 @@ public:
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
         const re::Buffer&  vegBuf;
-        uint32_t           maxVegCount;
         const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
         const re::Buffer&                         branchRasterBuf;
     };
@@ -100,7 +99,8 @@ protected:
         {.pipelineLayout = *m_pipelineLayout}, {.comp = consolidateEdges_comp}};
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = selectVariant_comp}};
-    re::Pipeline m_prepareVegPl;
+    re::Pipeline m_generateVegPl{
+        {.pipelineLayout = *m_pipelineLayout}, {.comp = generateVeg_comp}};
     re::Pipeline m_generateVectorVegPl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = generateVectorVeg_comp}};
     re::Pipeline m_generateRasterVegPl{

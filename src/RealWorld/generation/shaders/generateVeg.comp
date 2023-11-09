@@ -2,9 +2,11 @@
  *  @author     Dubsky Tomas
  */
 #version 460
+#include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
-#include <RealWorld/generation/shaders/vegetation.glsl>
+const int VegSB_BINDING = 4;
+#include <RealWorld/vegetation/shaders/VegSB.glsl>
 const int BranchVectorSBWrite_BINDING = 5;
 const int BranchVectorSBRead_BINDING = 6;
 #include <RealWorld/vegetation/shaders/BranchVectorSB.glsl>
@@ -64,24 +66,32 @@ void main(){
         // If some vegetation succeeded the test
         if (templateIndex != ~0){
             const uint vegBranchCount = k_vegTemplates[templateIndex].branchCount;
-            // If there is space for new branches in the branch buffer
-            uint writeIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, vegBranchCount);
-            if ((writeIndex + vegBranchCount) <= b_branchesHeaderRead.maxBranchCount) {
+            // If there is space for new branches and vegetation in correspending buffers
+            uint branchWriteIndex = atomicAdd(b_branchesHeaderWrite.vertexCount, vegBranchCount);
+            uint vegWriteIndex = atomicAdd(b_veg.vegCount, 1);
+            bool hasSpaceForBranches = (branchWriteIndex + vegBranchCount) <= b_branchesHeaderRead.maxBranchCount;
+            bool hasSpaceForVeg = vegWriteIndex < k_maxVegCount;
+            if (hasSpaceForBranches && hasSpaceForVeg) {
                 // Create instance to be generated
                 uint branchBaseIndex = atomicAdd(s_branchInstanceCount, vegBranchCount);
                 float greenMass = biomeClimate.x + biomeClimate.y;
                 b_vegInstances[atomicAdd(s_vegInstanceCount, 1)] = VegInstance(
-                    templateIndex,          // templateIndex
-                    writeIndex,             // writeIndex
-                    random(),               // randomSeed
-                    branchBaseIndex,        // branchBaseIndex
-                    pTi,                    // rootPosTi
-                    greenMass * 0.25 + 0.75, // sizeFactor
-                    0.5 * randomFloat() + 0.75     // angleFactor
+                    templateIndex,              // templateIndex
+                    branchWriteIndex,           // writeIndex
+                    random(),                   // randomSeed
+                    branchBaseIndex,            // branchBaseIndex
+                    pTi,                        // rootPosTi
+                    greenMass * 0.25 + 0.75,    // sizeFactor
+                    0.5 * randomFloat() + 0.75  // angleFactor
                 );
+
+                // Save vegetation
+                b_veg.rootPosCh[vegWriteIndex]          = tiToCh(pTi);
+                b_veg.firstIndexAndCount[vegWriteIndex] = ivec2(branchWriteIndex, branchWriteIndex);
             } else {
-                // No space for new branches
+                // No space for new branches or vegetation
                 atomicAdd(b_branchesHeaderWrite.vertexCount, uint(-vegBranchCount));
+                atomicAdd(b_veg.vegCount, uint(-1));
             }
         }
     }

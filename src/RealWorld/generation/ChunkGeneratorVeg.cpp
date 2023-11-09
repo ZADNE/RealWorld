@@ -153,7 +153,7 @@ void interpret(
 
 void ChunkGenerator::generateVegetation(const vk::CommandBuffer& commandBuffer) {
     // Dispatch preparation
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_prepareVegPl);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
     commandBuffer.dispatch(1u, 1u, 1u);
 
     { // Add barriers between preparation and vector generation

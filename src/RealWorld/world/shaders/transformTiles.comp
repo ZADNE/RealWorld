@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>

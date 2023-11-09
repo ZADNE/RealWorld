@@ -71,13 +71,6 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     };
     writeDescriptor(m_descSet[0], *m_branchVectorBuf[0], *m_branchVectorBuf[1]);
     writeDescriptor(m_descSet[1], *m_branchVectorBuf[1], *m_branchVectorBuf[0]);
-
-    vk::SpecializationMapEntry specmapEntry{0, 0, 0};
-    vk::SpecializationInfo     specInfo{
-        1u, &specmapEntry, sizeof(targetInfo.maxVegCount), &targetInfo.maxVegCount};
-    m_prepareVegPl = re::Pipeline{
-        {.specializationInfo = &specInfo, .pipelineLayout = *m_pipelineLayout},
-        {.comp = prepareVeg_comp}};
 }
 
 void ChunkGenerator::generateChunk(

@@ -2,13 +2,12 @@
  *  @author     Dubsky Tomas
  */
 #version 460
+#include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
-#include <RealWorld/generation/shaders/vegetation.glsl>
+#include <RealWorld/generation/shaders/vegDistribution.glsl>
 const int VegTemplatesUB_BINDING = 2;
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
-const int VegSB_BINDING = 4;
-#include <RealWorld/vegetation/shaders/VegSB.glsl>
 const int BranchVectorSBWrite_BINDING = 5;
 const int BranchVectorSBRead_BINDING = 6;
 #include <RealWorld/vegetation/shaders/BranchVectorSB.glsl>

@@ -6,6 +6,7 @@
 
 #include <RealWorld/constants/chunk.hpp>
 #include <RealWorld/constants/tile.hpp>
+#include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/vegetation/VegSimulator.hpp>
 
 using enum vk::BufferUsageFlagBits;
@@ -19,10 +20,7 @@ using A2 = vk::AccessFlagBits2;
 
 namespace rw {
 
-constexpr float          k_stepDurationSec    = 1.0f / k_physicsStepsPerSecond;
-constexpr int            k_branchesPerChunk   = 16;
-constexpr vk::DeviceSize k_branchRasterSpace  = 64;
-constexpr uint32_t       k_vegetationPerChunk = 2;
+constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
 VegSimulator::VegSimulator()
     : m_pipelineLayout(
@@ -154,16 +152,15 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     m_vegDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
     m_vegDynamicsPC.mvpMat =
         glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
-    int maxBranchCount = k_branchesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
+    int maxBranchCount = 16 * worldTexSizeCh.x * worldTexSizeCh.y -
                          k_branchHeaderSize;
 
     // Prepare vegetation buffer
     uint32_t initVegCount = 0;
-    uint32_t maxVegCount  = k_vegetationPerChunk * worldTexSizeCh.x *
-                           worldTexSizeCh.y;
+
     m_vegBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(glm::uvec2) + maxVegCount * sizeof(glm::uvec4),
+        .sizeInBytes = sizeof(glm::uvec2) + k_maxVegCount * sizeof(glm::ivec4),
         .usage       = eStorageBuffer,
         .initData    = re::objectToByteSpan(initVegCount)}};
 
@@ -212,7 +209,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         m_worldTexSizeTi.y,
         1u}};
 
-    return {m_vegBuf, maxVegCount, m_branchVectorBuf, m_branchRasterBuf};
+    return {m_vegBuf, m_branchVectorBuf, m_branchRasterBuf};
 }
 
 } // namespace rw

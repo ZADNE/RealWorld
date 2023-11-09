@@ -4,7 +4,7 @@
 #version 460
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
-#include <RealWorld/generation/shaders/vegetation.glsl>
+#include <RealWorld/generation/shaders/vegDistribution.glsl>
 const int VegPreparationSB_BINDING = 7;
 #define VegPreparationSB_ACCESS readonly
 #include <RealWorld/generation/shaders/VegPreparationSB.glsl>

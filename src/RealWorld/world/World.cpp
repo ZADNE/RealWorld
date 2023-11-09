@@ -97,7 +97,6 @@ const re::Texture& World::adoptSave(
         .descriptorSet   = m_simulationDS,
         .bodiesBuf       = bodiesBuf,
         .vegBuf          = vegStorage.vegBuf,
-        .maxVegCount     = vegStorage.maxVegCount,
         .branchVectorBuf = vegStorage.branchVectorBuf,
         .branchRasterBuf = vegStorage.branchRasterBuf});
 
