@@ -42,13 +42,12 @@ ChunkManager::ChunkManager(const re::PipelineLayout& pipelineLayout)
 const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
     m_folderPath = targetInfo.folderPath;
     m_chunkGen.setTarget(ChunkGenerator::TargetInfo{
-        .seed            = targetInfo.seed,
-        .worldTex        = targetInfo.worldTex,
-        .worldTexSizeCh  = targetInfo.worldTexSizeCh,
-        .bodiesBuf       = targetInfo.bodiesBuf,
-        .vegBuf          = targetInfo.vegBuf,
-        .branchVectorBuf = targetInfo.branchVectorBuf,
-        .branchRasterBuf = targetInfo.branchRasterBuf});
+        .seed           = targetInfo.seed,
+        .worldTex       = targetInfo.worldTex,
+        .worldTexSizeCh = targetInfo.worldTexSizeCh,
+        .bodiesBuf      = targetInfo.bodiesBuf,
+        .vegBuf         = targetInfo.vegBuf,
+        .branchBuf      = targetInfo.branchBuf});
     m_worldTex = &targetInfo.worldTex;
 
     // Recalculate active chunks mask and analyzer dispatch size
@@ -203,7 +202,7 @@ void ChunkManager::beginStep() {
         auto&       activeChunk =
             activeChunkAtIndex(acToIndex(posAc, m_worldTexSizeMask + 1));
         switch (stageState.transfer) {
-        case TileStageTransferState::Downloading: {
+        case TileStageTransferState::Downloading:
             // Copy the tiles aside from the stage
             m_inactiveChunks.emplace(
                 stageState.posCh,
@@ -212,13 +211,11 @@ void ChunkManager::beginStep() {
             // Signal that there is no active chunk at the spot
             activeChunk = k_chunkNotActive;
             break;
-        }
-        case TileStageTransferState::Uploading: {
+        case TileStageTransferState::Uploading:
             // Signal the new active chunk
             activeChunk = stageState.posCh;
             m_transparentChunkChanges++;
             break;
-        }
         }
     }
     m_nextFreeTileStage = 0;
@@ -227,7 +224,8 @@ void ChunkManager::beginStep() {
 void ChunkManager::planActivationOfChunks(
     const vk::CommandBuffer& commandBuffer,
     const glm::ivec2&        botLeftTi,
-    const glm::ivec2&        topRightTi
+    const glm::ivec2&        topRightTi,
+    glm::uint                branchReadBuf
 ) {
     glm::ivec2 botLeftCh  = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
@@ -235,7 +233,7 @@ void ChunkManager::planActivationOfChunks(
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
-            planTransition(commandBuffer, glm::ivec2(x, y));
+            planTransition(commandBuffer, glm::ivec2(x, y), branchReadBuf);
         }
     }
 }
@@ -278,8 +276,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
             offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
             vk::WholeSize                                // Size
         };
-        commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}}
-        );
+        commandBuffer.pipelineBarrier2({{}, {}, bufferBarrier, {}});
         // And analyze the world texture
         commandBuffer.bindPipeline(
             vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl
@@ -292,7 +289,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
 }
 
 void ChunkManager::planTransition(
-    const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh
+    const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, glm::uint branchReadBuf
 ) {
     auto posAc = chToAc(posCh, m_worldTexSizeMask);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexSizeMask + 1));
@@ -301,7 +298,7 @@ void ChunkManager::planTransition(
         return; // No transition is needed
     } else if (activeChunk == k_chunkNotActive) {
         // No chunk is active at the spot
-        planActivation(commandBuffer, activeChunk, posCh, chToTi(posAc));
+        planActivation(commandBuffer, activeChunk, posCh, chToTi(posAc), branchReadBuf);
     } else if (activeChunk != k_chunkBeingDownloaded && activeChunk != k_chunkBeingUploaded) {
         // A different chunk is active at the spot
         planDeactivation(commandBuffer, activeChunk, chToTi(posAc));
@@ -312,7 +309,8 @@ void ChunkManager::planActivation(
     const vk::CommandBuffer& commandBuffer,
     glm::ivec2&              activeChunk,
     const glm::ivec2&        posCh,
-    const glm::ivec2&        posAt
+    const glm::ivec2&        posAt,
+    glm::uint                branchReadBuf
 ) {
     // Try to find the chunk among inactive chunks
     auto it = m_inactiveChunks.find(posCh);

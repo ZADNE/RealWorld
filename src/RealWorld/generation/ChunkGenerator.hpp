@@ -34,8 +34,7 @@ public:
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
         const re::Buffer&  vegBuf;
-        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
-        const re::Buffer&                         branchRasterBuf;
+        const re::Buffer&  branchBuf;
     };
 
     /**
@@ -44,7 +43,9 @@ public:
     void setTarget(const TargetInfo& targetInfo);
 
     struct OutputInfo {
-        glm::ivec2 posCh; /**< Position of the chunk */
+        glm::ivec2 posCh;          /**< Position of the chunk */
+        glm::uint  branchWriteBuf; /**< Index of the double buffered part of
+                                     branch buffer that is for writing */
     };
 
     /**
@@ -72,11 +73,10 @@ protected:
     static re::Buffer createVegTemplatesBuffer();
 
     const re::Texture* m_worldTex = nullptr;
-    glm::ivec2         m_worldTexSizeCh;
+    glm::ivec2         m_worldTexSizeCh{};
     const re::Buffer*  m_bodiesBuf = nullptr;
     const re::Buffer*  m_vegBuf    = nullptr;
-    re::StepDoubleBuffered<const re::Buffer*> m_branchVectorBuf{nullptr, nullptr};
-    const re::Buffer* m_branchRasterBuf = nullptr;
+    const re::Buffer*  m_branchBuf = nullptr;
 
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;
@@ -84,14 +84,11 @@ protected:
         glm::uint  storeLayer;
         glm::uint  edgeConsolidationPromote;
         glm::uint  edgeConsolidationReduce;
-    };
+        glm::uint  branchWriteBuf;
+    } m_genPC;
 
-    GenerationPC m_genPC;
-
-    re::PipelineLayout                        m_pipelineLayout;
-    re::StepDoubleBuffered<re::DescriptorSet> m_descSet{
-        re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
-        re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};
+    re::PipelineLayout m_pipelineLayout;
+    re::DescriptorSet  m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
 
     re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout}, {.comp = generateStructure_comp}};

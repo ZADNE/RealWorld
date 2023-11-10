@@ -20,15 +20,13 @@ ChunkGenerator::ChunkGenerator()
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
-                  {0, eStorageImage, 1, eCompute},  // tilesImage
-                  {1, eStorageImage, 1, eCompute},  // materialImage
+                  {0, eStorageImage, 1, eCompute},  // Tiles image
+                  {1, eStorageImage, 1, eCompute},  // Material image
                   {2, eUniformBuffer, 1, eCompute}, // VegTemplatesUB
-                  {3, eStorageBuffer, 1, eCompute}, // bodiesSB
+                  {3, eStorageBuffer, 1, eCompute}, // Bodies
                   {4, eStorageBuffer, 1, eCompute}, // Vegetation buffer
-                  {5, eStorageBuffer, 1, eCompute}, // Branch-vector buffer write
-                  {6, eStorageBuffer, 1, eCompute}, // Branch-vector buffer read
-                  {7, eStorageBuffer, 1, eCompute}, // VegPreparationSB
-                  {8, eStorageBuffer, 1, eCompute}  // Branch-raster buffer
+                  {5, eStorageBuffer, 1, eCompute}, // Branch buffer
+                  {6, eStorageBuffer, 1, eCompute}  // Veg Preparation
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       )
@@ -36,47 +34,29 @@ ChunkGenerator::ChunkGenerator()
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(VegPreparationSB),
           .usage       = B::eStorageBuffer | B::eIndirectBuffer}) {
-    m_descSet.forEach([&](auto& ds) {
-        ds.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
-        ds.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
-        ds.write(eUniformBuffer, 2, 0, m_vegTemplatesBuf, 0, vk::WholeSize);
-        ds.write(eStorageBuffer, 7, 0, m_vegPreparationBuf, 0, vk::WholeSize);
-    });
+    m_descriptorSet.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
+    m_descriptorSet.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
+    m_descriptorSet.write(eUniformBuffer, 2, 0, m_vegTemplatesBuf, 0, vk::WholeSize);
+    m_descriptorSet.write(eStorageBuffer, 6, 0, m_vegPreparationBuf, 0, vk::WholeSize);
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
-    m_genPC.seed      = targetInfo.seed;
-    m_worldTex        = &targetInfo.worldTex;
-    m_worldTexSizeCh  = targetInfo.worldTexSizeCh;
-    m_bodiesBuf       = &targetInfo.bodiesBuf;
-    m_vegBuf          = &targetInfo.vegBuf;
-    m_branchRasterBuf = &targetInfo.branchRasterBuf;
-    m_branchVectorBuf.forEach(
-        [&](auto& buf, const auto& branchBuf) { buf = &branchBuf; },
-        targetInfo.branchVectorBuf
-    );
-    m_descSet.forEach(
-        [&](auto& ds, const auto& branchBuf) {
-            ds.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, vk::WholeSize);
-            ds.write(eStorageBuffer, 4, 0, *m_vegBuf, 0, vk::WholeSize);
-            ds.write(eStorageBuffer, 8, 0, *m_branchRasterBuf, 0, vk::WholeSize);
-        },
-        m_branchVectorBuf
-    );
-    auto writeDescriptor = [&](re::DescriptorSet& set,
-                               const re::Buffer&  first,
-                               const re::Buffer&  second) {
-        set.write(eStorageBuffer, 5, 0, first, 0, vk::WholeSize);
-        set.write(eStorageBuffer, 6, 0, second, 0, vk::WholeSize);
-    };
-    writeDescriptor(m_descSet[0], *m_branchVectorBuf[0], *m_branchVectorBuf[1]);
-    writeDescriptor(m_descSet[1], *m_branchVectorBuf[1], *m_branchVectorBuf[0]);
+    m_genPC.seed     = targetInfo.seed;
+    m_worldTex       = &targetInfo.worldTex;
+    m_worldTexSizeCh = targetInfo.worldTexSizeCh;
+    m_bodiesBuf      = &targetInfo.bodiesBuf;
+    m_vegBuf         = &targetInfo.vegBuf;
+    m_branchBuf      = &targetInfo.branchBuf;
+    m_descriptorSet.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, vk::WholeSize);
+    m_descriptorSet.write(eStorageBuffer, 4, 0, *m_vegBuf, 0, vk::WholeSize);
+    m_descriptorSet.write(eStorageBuffer, 5, 0, *m_branchBuf, 0, vk::WholeSize);
 }
 
 void ChunkGenerator::generateChunk(
     const vk::CommandBuffer& commandBuffer, const OutputInfo& outputInfo
 ) {
-    m_genPC.chunkOffsetTi = chToTi(outputInfo.posCh);
+    m_genPC.chunkOffsetTi  = chToTi(outputInfo.posCh);
+    m_genPC.branchWriteBuf = outputInfo.branchWriteBuf;
 
     prepareToGenerate(commandBuffer);
 

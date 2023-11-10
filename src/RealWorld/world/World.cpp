@@ -90,15 +90,14 @@ const re::Texture& World::adoptSave(
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
-        .seed            = m_seed,
-        .folderPath      = save.path,
-        .worldTex        = m_worldTex,
-        .worldTexSizeCh  = worldTexSizeCh,
-        .descriptorSet   = m_simulationDS,
-        .bodiesBuf       = bodiesBuf,
-        .vegBuf          = vegStorage.vegBuf,
-        .branchVectorBuf = vegStorage.branchVectorBuf,
-        .branchRasterBuf = vegStorage.branchRasterBuf});
+        .seed           = m_seed,
+        .folderPath     = save.path,
+        .worldTex       = m_worldTex,
+        .worldTexSizeCh = worldTexSizeCh,
+        .descriptorSet  = m_simulationDS,
+        .bodiesBuf      = bodiesBuf,
+        .vegBuf         = vegStorage.vegBuf,
+        .branchBuf      = vegStorage.branchBuf});
 
     return m_worldTex;
 }
@@ -141,7 +140,9 @@ int World::step(
 ) {
     // Chunk manager
     m_chunkManager.beginStep();
-    m_chunkManager.planActivationOfChunks(commandBuffer, botLeftTi, topRightTi);
+    m_chunkManager.planActivationOfChunks(
+        commandBuffer, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
+    );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );

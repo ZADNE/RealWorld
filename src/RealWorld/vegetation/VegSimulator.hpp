@@ -14,26 +14,34 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
+#include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/vegetation/Branch.hpp>
 #include <RealWorld/vegetation/shaders/AllShaders.hpp>
 
 namespace rw {
 
-struct BranchesSBHeader {
-    uint32_t vertexCount    = 0;
-    uint32_t instanceCount  = 1;
-    uint32_t firstVertex    = 0;
-    uint32_t firstInstance  = 0;
-    int      maxBranchCount = 0;
-    int      padding[7];
-};
-
 #pragma warning(push)
 #pragma warning(disable : 4200)
-struct BranchesSB {
-    BranchesSBHeader header;
-    Branch           branches[];
+struct BranchSB {
+    // Double-buffered params
+    glm::vec2 absPosTi[2][k_maxBranchCount];
+    float     absAngNorm[2][k_maxBranchCount];
+
+    // Single-buffered params
+    glm::uint parentOffset15wallType31[k_maxBranchCount];
+    float     relRestAngNorm[k_maxBranchCount];
+    float     angVel[k_maxBranchCount];
+    float     radiusTi[k_maxBranchCount];
+    float     lengthTi[k_maxBranchCount];
+    glm::vec2 densityStiffness[k_maxBranchCount];
+    uint8_t   raster[k_maxBranchCount][k_branchRasterSpace];
+
+    // Footer
+    glm::uint vertexCount;
+    glm::uint instanceCount;
+    glm::uint firstVertex;
+    glm::uint firstInstance;
 };
 #pragma warning(pop)
 
@@ -48,27 +56,25 @@ public:
     void step(const vk::CommandBuffer& commandBuffer);
 
     struct VegStorage {
-        const re::Buffer&                         vegBuf;
-        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
-        const re::Buffer&                         branchRasterBuf;
+        const re::Buffer& vegBuf;
+        const re::Buffer& branchBuf;
     };
 
     VegStorage adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
 
-private:
     /**
-     * @brief Size of header is same as 2 branches
+     * @brief   Returns index to the double buffered part of the branch buffer
+     * is currently for writing (swaps each step)
      */
-    static constexpr int k_branchHeaderSize = sizeof(BranchesSBHeader) /
-                                              sizeof(Branch);
-    static_assert(k_branchHeaderSize * sizeof(Branch) == sizeof(BranchesSBHeader));
+    glm::uint writeBuf() const { return 1 - m_vegDynamicsPC.readBuf; }
 
+private:
     struct VegDynamicsPC {
         glm::mat4 mvpMat;
         glm::vec2 worldTexSizeTi;
         float     timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
-    };
-    VegDynamicsPC m_vegDynamicsPC;
+        glm::uint readBuf = 0;
+    } m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
     re::RenderPass     m_rasterizationRenderPass;
@@ -96,14 +102,12 @@ private:
          .tese = tessellateBranches_tese,
          .geom = duplicateBranches_geom,
          .frag = rasterizeBranches_frag}};
-    re::StepDoubleBuffered<re::DescriptorSet> m_descriptorSets{
-        re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)},
-        re::DescriptorSet{m_pipelineLayout.descriptorSetLayout(0)}};
-    re::Buffer                         m_vegBuf;
-    re::StepDoubleBuffered<re::Buffer> m_branchVectorBuf;
-    re::Buffer                         m_branchRasterBuf;
-    re::Framebuffer                    m_framebuffer;
-    glm::uvec2                         m_worldTexSizeTi{};
+    re::DescriptorSet  m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
+    re::Buffer         m_vegBuf;
+    re::Buffer         m_branchBuf;
+    re::Framebuffer    m_framebuffer;
+    const re::Texture* m_worldTex{};
+    glm::uvec2         m_worldTexSizeTi{};
 };
 
 } // namespace rw

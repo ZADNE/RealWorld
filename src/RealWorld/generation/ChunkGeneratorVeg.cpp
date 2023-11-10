@@ -157,28 +157,17 @@ void ChunkGenerator::generateVegetation(const vk::CommandBuffer& commandBuffer) 
     commandBuffer.dispatch(1u, 1u, 1u);
 
     { // Add barriers between preparation and vector generation
-        std::array<vk::BufferMemoryBarrier2, 2> preparationBarriers = {
-            vk::BufferMemoryBarrier2{
-                S::eComputeShader,                    // Src stage mask
-                A::eShaderStorageWrite,               // Src access mask
-                S::eDrawIndirect | S::eComputeShader, // Dst stage mask
-                A::eIndirectCommandRead | A::eShaderStorageRead, // Dst access mask
-                vk::QueueFamilyIgnored,
-                vk::QueueFamilyIgnored, // Ownership transition
-                *m_vegPreparationBuf,
-                0,
-                offsetof(VegPreparationSB, b_branchInstances)},
-            vk::BufferMemoryBarrier2{
-                S::eComputeShader, // Src stage mask
-                A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
-                S::eTransfer,     // Dst stage mask
-                A::eTransferRead, // Dst access mask
-                vk::QueueFamilyIgnored,
-                vk::QueueFamilyIgnored, // No ownership transition
-                **m_branchVectorBuf.write(),
-                offsetof(BranchesSB, header),
-                sizeof(BranchesSB::header)}};
-        commandBuffer.pipelineBarrier2({{}, {}, preparationBarriers, {}});
+        vk::BufferMemoryBarrier2 preparationBarrier{
+            S::eComputeShader,                               // Src stage mask
+            A::eShaderStorageWrite,                          // Src access mask
+            S::eDrawIndirect | S::eComputeShader,            // Dst stage mask
+            A::eIndirectCommandRead | A::eShaderStorageRead, // Dst access mask
+            vk::QueueFamilyIgnored,
+            vk::QueueFamilyIgnored, // Ownership transition
+            *m_vegPreparationBuf,
+            0,
+            offsetof(VegPreparationSB, b_branchInstances)};
+        commandBuffer.pipelineBarrier2({{}, {}, preparationBarrier, {}});
     }
 
     // Dispatch branch vector generation
@@ -206,14 +195,6 @@ void ChunkGenerator::generateVegetation(const vk::CommandBuffer& commandBuffer) 
     commandBuffer.dispatchIndirect(
         *m_vegPreparationBuf, offsetof(VegPreparationSB, b_branchDispatchSize)
     );
-
-    // Copy branch header
-    constexpr static vk::BufferCopy2 bufferCopy{
-        offsetof(BranchesSB, header),
-        offsetof(BranchesSB, header),
-        sizeof(BranchesSB::header)};
-    commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
-        **m_branchVectorBuf.write(), **m_branchVectorBuf.read(), bufferCopy});
 }
 
 re::Buffer ChunkGenerator::createVegTemplatesBuffer() {

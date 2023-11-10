@@ -52,9 +52,8 @@ public:
         re::DescriptorSet& descriptorSet;
         const re::Buffer&  bodiesBuf;
         const re::Buffer&  vegBuf;
-        uint32_t           maxVegCount;
-        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
-        const re::Buffer&                         branchRasterBuf;
+
+        const re::Buffer& branchBuf;
     };
 
     /**
@@ -86,24 +85,32 @@ public:
      * @param commandBuffer Command buffer that will record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
+     * @param branchWriteBuf Index of the double buffered part of branch buffer
+     *                      that is for writing
      * @warning Must be called between beginStep() and endStep().
      */
     void planActivationOfChunks(
         const vk::CommandBuffer& commandBuffer,
         const glm::ivec2&        botLeftTi,
-        const glm::ivec2&        topRightTi
+        const glm::ivec2&        topRightTi,
+        glm::uint                branchWriteBuf
     );
 
     int endStep(const vk::CommandBuffer& commandBuffer);
 
 private:
-    void planTransition(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh);
+    void planTransition(
+        const vk::CommandBuffer& commandBuffer,
+        const glm::ivec2&        posCh,
+        glm::uint                branchWriteBuf
+    );
 
     void planActivation(
         const vk::CommandBuffer& commandBuffer,
         glm::ivec2&              activeChunk,
         const glm::ivec2&        posCh,
-        const glm::ivec2&        posAt
+        const glm::ivec2&        posAt,
+        glm::uint                branchWriteBuf
     );
 
     void planDeactivation(

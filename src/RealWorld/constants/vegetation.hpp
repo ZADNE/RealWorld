@@ -13,6 +13,8 @@ constexpr uint32_t k_maxVegCount = 64 * 64 * 2;
 
 /**
  * @brief Is the maximum number of branches that can be simulated
+ * @warning Going above 65536 needs refactoring (it is packed to 16 bits in some
+ * places)
  */
 constexpr uint32_t k_maxBranchCount = 64 * 64 * 16;
 

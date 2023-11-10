@@ -27,10 +27,8 @@ VegSimulator::VegSimulator()
           {},
           re::PipelineLayoutDescription{
               .bindings =
-                  {{{0, D::eStorageBuffer, 1, eVertex}, // Branch-vector buffer write
-                    {1, D::eStorageBuffer, 1, eVertex}, // Branch-vector buffer read
-                    {2, D::eInputAttachment, 1, eFragment}, // World texture
-                    {3, D::eStorageBuffer, 1, eFragment}}}, // Branch-raster buffer
+                  {{{0, D::eStorageBuffer, 1, eVertex | eFragment}, // Branch buffer
+                    {1, D::eInputAttachment, 1, eFragment}}}, // World texture
               .ranges = {vk::PushConstantRange{
                   eVertex | eTessellationControl | eTessellationEvaluation,
                   0u,
@@ -86,7 +84,6 @@ VegSimulator::VegSimulator()
 
 void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
     // Prepare rendering-to-world-texture state
-    m_vegDynamicsPC.timeSec += k_stepDurationSec;
     commandBuffer.beginRenderPass2(
         vk::RenderPassBeginInfo{
             *m_rasterizationRenderPass,
@@ -96,11 +93,7 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}
     );
     commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics,
-        *m_pipelineLayout,
-        0u,
-        *m_descriptorSets.write(),
-        {}
+        vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
     glm::vec2 viewport{m_worldTexSizeTi};
     commandBuffer.setViewport(
@@ -122,25 +115,23 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
 
     // Unrasterize branches from previous step
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
-    commandBuffer.drawIndirect(
-        *m_branchVectorBuf.read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
-    );
+    commandBuffer.drawIndirect(*m_branchBuf, offsetof(BranchSB, vertexCount), 1, 0);
     commandBuffer.nextSubpass2(
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}, vk::SubpassEndInfo{}
     );
 
-    // Simulate and rasterize branches
-    commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics,
+    m_vegDynamicsPC.timeSec += k_stepDurationSec;
+    m_vegDynamicsPC.readBuf = 1 - m_vegDynamicsPC.readBuf;
+    commandBuffer.pushConstants<VegDynamicsPC>(
         *m_pipelineLayout,
+        eVertex | eTessellationControl | eTessellationEvaluation,
         0u,
-        *m_descriptorSets.read(),
-        {}
+        m_vegDynamicsPC
     );
+
+    // Simulate and rasterize branches
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
-    commandBuffer.drawIndirect(
-        *m_branchVectorBuf.read(), offsetof(BranchesSBHeader, vertexCount), 1, 0
-    );
+    commandBuffer.drawIndirect(*m_branchBuf, offsetof(BranchSB, vertexCount), 1, 0);
     commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
 }
 
@@ -152,53 +143,29 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     m_vegDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
     m_vegDynamicsPC.mvpMat =
         glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
-    int maxBranchCount = 16 * worldTexSizeCh.x * worldTexSizeCh.y -
-                         k_branchHeaderSize;
 
     // Prepare vegetation buffer
-    uint32_t initVegCount = 0;
-
+    uint32_t initVegCount{0};
     m_vegBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = sizeof(glm::uvec2) + k_maxVegCount * sizeof(glm::ivec4),
         .usage       = eStorageBuffer,
         .initData    = re::objectToByteSpan(initVegCount)}};
 
-    { // Prepare branch-vector buffer
-        auto createBranchBuffer = [&] {
-            BranchesSBHeader initHeader{.maxBranchCount = maxBranchCount};
-            return re::Buffer{re::BufferCreateInfo{
-                .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-                .sizeInBytes = sizeof(BranchesSBHeader) +
-                               sizeof(Branch) * maxBranchCount,
-                .usage = eStorageBuffer | eIndirectBuffer | eTransferSrc | eTransferDst,
-                .initData = re::objectToByteSpan(initHeader)}};
-        };
-        m_branchVectorBuf = {createBranchBuffer(), createBranchBuffer()};
-    }
+    // Prepare branch buffer
+    vk::DrawIndirectCommand initHeader{0, 1, 0, 0};
+    m_branchBuf = re::Buffer{re::BufferCreateInfo{
+        .memoryUsage       = vma::MemoryUsage::eAutoPreferDevice,
+        .sizeInBytes       = sizeof(BranchSB),
+        .usage             = eStorageBuffer | eIndirectBuffer,
+        .initData          = re::objectToByteSpan(initHeader),
+        .initDataDstOffset = offsetof(BranchSB, vertexCount)}};
 
-    // Prepare branch-raster texture
-    m_branchRasterBuf = re::Buffer{re::BufferCreateInfo{
-        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = maxBranchCount * k_branchRasterSpace,
-        .usage       = eStorageBuffer}};
-
-    { // Prepare descriptors
-        auto writeDescriptor = [&](re::DescriptorSet& set,
-                                   re::Buffer&        first,
-                                   re::Buffer&        second) {
-            set.write(D::eStorageBuffer, 0u, 0u, first, 0ull, vk::WholeSize);
-            set.write(D::eStorageBuffer, 1u, 0u, second, 0ull, vk::WholeSize);
-            set.write(D::eInputAttachment, 2u, 0u, worldTex, vk::ImageLayout::eGeneral);
-            set.write(D::eStorageBuffer, 3u, 0u, m_branchRasterBuf, 0ull, vk::WholeSize);
-        };
-        writeDescriptor(
-            m_descriptorSets[0], m_branchVectorBuf[0], m_branchVectorBuf[1]
-        );
-        writeDescriptor(
-            m_descriptorSets[1], m_branchVectorBuf[1], m_branchVectorBuf[0]
-        );
-    }
+    // Prepare descriptor
+    m_descriptorSet.write(D::eStorageBuffer, 0u, 0u, m_branchBuf, 0ull, vk::WholeSize);
+    m_descriptorSet.write(
+        D::eInputAttachment, 1u, 0u, worldTex, vk::ImageLayout::eGeneral
+    );
 
     // Prepare framebuffer
     m_framebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
@@ -209,7 +176,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         m_worldTexSizeTi.y,
         1u}};
 
-    return {m_vegBuf, m_branchVectorBuf, m_branchRasterBuf};
+    return VegStorage{.vegBuf = m_vegBuf, .branchBuf = m_branchBuf};
 }
 
 } // namespace rw
