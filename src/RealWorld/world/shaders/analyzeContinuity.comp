@@ -12,12 +12,6 @@ layout (local_size_x = 8,
         local_size_z = 1
 ) in;
 
-int maxNumberOfUpdateChunks = b_worldTexSizeMask.x * b_worldTexSizeMask.y;
-
-ivec2 activeChunkAtPos(ivec2 pos){
-    return b_offsets[maxNumberOfUpdateChunks + pos.y * b_worldTexSizeCh.x + pos.x];
-}
-
 const ivec2 k_chunkCenterOffsetTi = iChunkTi / 2;
 
 void main(){

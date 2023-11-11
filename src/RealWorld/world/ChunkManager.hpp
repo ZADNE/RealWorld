@@ -52,8 +52,7 @@ public:
         re::DescriptorSet& descriptorSet;
         const re::Buffer&  bodiesBuf;
         const re::Buffer&  vegBuf;
-
-        const re::Buffer& branchBuf;
+        const re::Buffer&  branchBuf;
     };
 
     /**
@@ -146,13 +145,15 @@ private:
     re::Pipeline m_analyzeContinuityPl;
     glm::uvec2   m_analyzeContinuityGroupCount{};
 
+    re::Pipeline m_cullVegetationPl;
+
     std::string        m_folderPath;
     ChunkGenerator     m_chunkGen;
     const re::Texture* m_worldTex = nullptr;
     glm::ivec2         m_worldTexSizeMask{};
 
     // Tile stage
-    static constexpr auto k_tileStageSize = 8;
+    static constexpr auto k_tileStageSize = 16;
     enum class TileStageTransferState { Downloading, Uploading };
     struct TileStageState {
         TileStageTransferState transfer;

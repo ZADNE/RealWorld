@@ -112,13 +112,11 @@ private:
         float      modifyRadius;
         glm::uint  timeHash;
         glm::uint  updateOrder = 0b00011011'00011011'00011011'00011011;
-    };
-    WorldDynamicsPC m_worldDynamicsPC;
+    } m_worldDynamicsPC;
 
-    re::PipelineLayout m_simulationPL{
-        {}, re::PipelineComputeSources{.comp = simulationPL_comp}};
-    re::DescriptorSet m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
-    re::Pipeline      m_simulateFluidsPl{
+    re::PipelineLayout m_simulationPL;
+    re::DescriptorSet  m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
+    re::Pipeline       m_simulateFluidsPl{
         re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
         re::PipelineComputeSources{.comp = simulateFluids_comp}};
     re::Pipeline m_transformTilesPl{

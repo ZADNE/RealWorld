@@ -8,6 +8,7 @@
 
 #include <RealEngine/graphics/synchronization/Fence.hpp>
 
+#include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/save/ChunkLoader.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
 
@@ -36,6 +37,9 @@ ChunkManager::ChunkManager(const re::PipelineLayout& pipelineLayout)
           .usage       = eTransferSrc | eTransferDst})
     , m_analyzeContinuityPl(
           {.pipelineLayout = *pipelineLayout}, {.comp = analyzeContinuity_comp}
+      )
+    , m_cullVegetationPl(
+          {.pipelineLayout = *pipelineLayout}, {.comp = cullVegetation_comp}
       ) {
 }
 
@@ -243,7 +247,8 @@ int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
     if (m_transparentChunkChanges > 0) {
         // Reset the number of update chunks to zero
         m_activeChunksStageBuf->dynamicsGroupSize.x = 0;
-        // Copy the update active chunks storage buffer
+
+        // Copy the update to active chunks buffer
         auto texSizeCh   = m_worldTexSizeMask + 1;
         auto copyRegions = std::to_array<vk::BufferCopy2>(
             {vk::BufferCopy2{
@@ -264,6 +269,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
             m_activeChunksBuf.buffer(),      // Dst buffer
             copyRegions                      // Regions
         });
+
         // Wait for the copy to finish
         auto bufferBarrier = vk::BufferMemoryBarrier2{
             S::eTransfer,                                   // Src stage mask
@@ -277,11 +283,16 @@ int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
             vk::WholeSize                                // Size
         };
         cmdBuf.pipelineBarrier2({{}, {}, bufferBarrier, {}});
-        // And analyze the world texture
+
+        // Analyze the world texture
         cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
         cmdBuf.dispatch(
             m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1
         );
+
+        // Cull the vegetation
+        cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
+        cmdBuf.dispatch(k_maxVegCount / 256, 1, 1);
     }
     return m_transparentChunkChanges;
 }

@@ -13,6 +13,12 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
+constexpr uint32_t k_worldTexBinding          = 0;
+constexpr uint32_t k_activeChunksBufBinding   = 1;
+constexpr uint32_t k_tilePropertiesBufBinding = 2;
+constexpr uint32_t k_vegBufBinding            = 3;
+constexpr uint32_t k_branchBufBinding         = 4;
+
 // Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
     state ^= state << 13;
@@ -34,34 +40,43 @@ uint32_t permuteOrder(uint32_t& state) {
     return order;
 }
 
-struct TilePropertiesUIB {
+constexpr static struct TilePropertiesUIB {
     // x = properties
     // yz = indices of first and last transformation rule
-    std::array<glm::uvec4, 256> blockTransformationProperties;
-    std::array<glm::uvec4, 256> wallTransformationProperties;
+    std::array<glm::uvec4, 256> blockTransformationProperties =
+        k_blockTransformationProperties;
+    std::array<glm::uvec4, 256> wallTransformationProperties =
+        k_wallTransformationProperties;
 
     // x = The properties that neighbors MUST have to transform
     // y = The properties that neighbors MUST NOT have to transform
     // z = Properties of the transformation
     // w = The wall that it will be transformed into
-    std::array<glm::uvec4, 16> blockTransformationRules;
-    std::array<glm::uvec4, 16> wallTransformationRules;
-};
-
-static constexpr TilePropertiesUIB k_tileProperties = TilePropertiesUIB{
-    .blockTransformationProperties = k_blockTransformationProperties,
-    .wallTransformationProperties  = k_wallTransformationProperties,
-    .blockTransformationRules      = k_blockTransformationRules,
-    .wallTransformationRules       = k_wallTransformationRules};
+    std::array<glm::uvec4, 16> blockTransformationRules = k_blockTransformationRules;
+    std::array<glm::uvec4, 16> wallTransformationRules = k_wallTransformationRules;
+} k_tileProperties;
 
 World::World()
-    : m_tilePropertiesBuf(re::BufferCreateInfo{
+    : m_simulationPL(
+          {},
+          re::PipelineLayoutDescription{
+              .bindings =
+                  {{{k_worldTexBinding, eStorageImage, 1, eCompute},
+                    {k_activeChunksBufBinding, eStorageBuffer, 1, eCompute},
+                    {k_tilePropertiesBufBinding, eUniformBuffer, 1, eCompute},
+                    {k_vegBufBinding, eStorageBuffer, 1, eCompute},
+                    {k_branchBufBinding, eStorageBuffer, 1, eCompute}}},
+              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}}
+      )
+    , m_tilePropertiesBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(TilePropertiesUIB),
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties)})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
-    m_simulationDS.write(eUniformBuffer, 2, 0, m_tilePropertiesBuf, 0, vk::WholeSize);
+    m_simulationDS.write(
+        eUniformBuffer, k_tilePropertiesBufBinding, 0, m_tilePropertiesBuf, 0, vk::WholeSize
+    );
 }
 
 const re::Texture& World::adoptSave(
@@ -79,14 +94,19 @@ const re::Texture& World::adoptSave(
         .extent     = {texSize, 1},
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
                  eColorAttachment | eInputAttachment}};
-    m_simulationDS.write(eStorageImage, 0, 0, m_worldTex, eGeneral);
+    m_simulationDS.write(eStorageImage, k_worldTexBinding, 0, m_worldTex, eGeneral);
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
-    m_simulationDS.write(eStorageBuffer, 3, 0, bodiesBuf, 0, vk::WholeSize);
 
     // Vegetation simulator
     auto vegStorage = m_vegSimulator.adoptSave(m_worldTex, worldTexSizeCh);
+    m_simulationDS.write(
+        eStorageBuffer, k_vegBufBinding, 0, vegStorage.vegBuf, 0, vk::WholeSize
+    );
+    m_simulationDS.write(
+        eStorageBuffer, k_branchBufBinding, 0, vegStorage.branchBuf, 0, vk::WholeSize
+    );
 
     // Update chunk manager
     m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
@@ -171,7 +191,7 @@ int World::step(
     int activatedChunks = m_chunkManager.endStep(cmdBuf);
 
     // Bodies
-    m_bodySimulator.step(cmdBuf);
+    // m_bodySimulator.step(cmdBuf);
 
     // Rasterize branches
     m_vegSimulator.rasterizeVegetation(cmdBuf);
