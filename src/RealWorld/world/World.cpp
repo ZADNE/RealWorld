@@ -110,6 +110,19 @@ void World::gatherSave(MetadataSave& save) const {
 bool World::saveChunks() {
     // Unrasterize branches so that the saved chunks do not contain them
     re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& cmdBuf) {
+        vk::ImageMemoryBarrier2 imageBarrier{
+            S::eAllCommands,                   // Src stage mask
+            {},                                // Src access mask
+            S::eFragmentShader,                // Dst stage mask
+            A::eInputAttachmentRead,           // Dst access mask
+            vk::ImageLayout::eReadOnlyOptimal, // Old image layout
+            vk::ImageLayout::eGeneral,         // New image layout
+            vk::QueueFamilyIgnored,
+            vk::QueueFamilyIgnored,
+            m_worldTex.image(),
+            vk::ImageSubresourceRange{
+                vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
+        cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
         m_vegSimulator.unrasterizeVegetation(cmdBuf);
     });
 

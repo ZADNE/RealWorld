@@ -112,12 +112,12 @@ bool ChunkManager::saveChunks() {
     cmdBuf->begin({eOneTimeSubmit});
 
     auto imageBarrier = vk::ImageMemoryBarrier2{
-        S::eAllCommands,                   // Src stage mask
-        {},                                // Src access mask
-        S::eTransfer,                      // Dst stage mask
-        A::eTransferRead,                  // Dst access mask
-        vk::ImageLayout::eReadOnlyOptimal, // Old image layout
-        vk::ImageLayout::eGeneral,         // New image layout
+        S::eAllCommands,           // Src stage mask
+        {},                        // Src access mask
+        S::eTransfer,              // Dst stage mask
+        A::eTransferRead,          // Dst access mask
+        vk::ImageLayout::eGeneral, // Old image layout
+        vk::ImageLayout::eGeneral, // New image layout
         vk::QueueFamilyIgnored,
         vk::QueueFamilyIgnored,
         m_worldTex->image(),
