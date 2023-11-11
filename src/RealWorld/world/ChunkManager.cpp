@@ -74,10 +74,10 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
     for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         m_activeChunksStageBuf->offsets[i] = k_chunkNotActive;
     }
-    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& commandBuffer) {
+    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& cmdBuf) {
         // Copy whole buffer
         vk::BufferCopy2 bufferCopy{0ull, 0ull, bufSize};
-        commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
+        cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
             m_activeChunksStageBuf.buffer(), // Src buffer
             m_activeChunksBuf.buffer(),      // Dst buffer
             bufferCopy                       // Region
@@ -107,9 +107,9 @@ bool ChunkManager::saveChunks() {
 
     // Save all active chunks (they have to be downloaded)
     assert(m_nextFreeTileStage == 0);
-    re::CommandBuffer commandBuffer{vk::CommandBufferLevel::ePrimary};
+    re::CommandBuffer cmdBuf{vk::CommandBufferLevel::ePrimary};
     re::Fence         downloadFinishedFence{{}};
-    commandBuffer->begin({eOneTimeSubmit});
+    cmdBuf->begin({eOneTimeSubmit});
 
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eAllCommands,                   // Src stage mask
@@ -122,7 +122,7 @@ bool ChunkManager::saveChunks() {
         vk::QueueFamilyIgnored,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
-    commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     auto saveAllChunksInTileStage = [&]() {
         std::array<std::future<void>, k_tileStageSize> futures{};
@@ -142,13 +142,13 @@ bool ChunkManager::saveChunks() {
             auto posAc = glm::ivec2(x, y);
             auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, worldTexSize));
             if (activeChunk != k_chunkNotActive) {
-                if (!planDownload(*commandBuffer, activeChunk, chToTi(posAc))) { // If stage is full
-                    commandBuffer->end();
-                    commandBuffer.submitToComputeQueue(*downloadFinishedFence);
+                if (!planDownload(*cmdBuf, activeChunk, chToTi(posAc))) { // If stage is full
+                    cmdBuf->end();
+                    cmdBuf.submitToComputeQueue(*downloadFinishedFence);
                     downloadFinishedFence.wait();
                     downloadFinishedFence.reset();
                     saveAllChunksInTileStage();
-                    commandBuffer->begin({eOneTimeSubmit});
+                    cmdBuf->begin({eOneTimeSubmit});
                 }
             }
         }
@@ -165,10 +165,10 @@ bool ChunkManager::saveChunks() {
         vk::QueueFamilyIgnored,
         m_worldTex->image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
-    commandBuffer->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
-    commandBuffer->end();
-    commandBuffer.submitToComputeQueue(*downloadFinishedFence);
+    cmdBuf->end();
+    cmdBuf.submitToComputeQueue(*downloadFinishedFence);
     downloadFinishedFence.wait();
     downloadFinishedFence.reset();
     saveAllChunksInTileStage();
@@ -222,7 +222,7 @@ void ChunkManager::beginStep() {
 }
 
 void ChunkManager::planActivationOfChunks(
-    const vk::CommandBuffer& commandBuffer,
+    const vk::CommandBuffer& cmdBuf,
     const glm::ivec2&        botLeftTi,
     const glm::ivec2&        topRightTi,
     glm::uint                branchReadBuf
@@ -233,12 +233,12 @@ void ChunkManager::planActivationOfChunks(
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
-            planTransition(commandBuffer, glm::ivec2(x, y), branchReadBuf);
+            planTransition(cmdBuf, glm::ivec2(x, y), branchReadBuf);
         }
     }
 }
 
-int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
+int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
     // If there have been transparent changes
     if (m_transparentChunkChanges > 0) {
         // Reset the number of update chunks to zero
@@ -259,7 +259,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
                          m_worldTexSizeMask.y,
                  sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)}}
         );
-        commandBuffer.copyBuffer2(vk::CopyBufferInfo2{
+        cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
             m_activeChunksStageBuf.buffer(), // Src buffer
             m_activeChunksBuf.buffer(),      // Dst buffer
             copyRegions                      // Regions
@@ -276,12 +276,10 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
             offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
             vk::WholeSize                                // Size
         };
-        commandBuffer.pipelineBarrier2({{}, {}, bufferBarrier, {}});
+        cmdBuf.pipelineBarrier2({{}, {}, bufferBarrier, {}});
         // And analyze the world texture
-        commandBuffer.bindPipeline(
-            vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl
-        );
-        commandBuffer.dispatch(
+        cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
+        cmdBuf.dispatch(
             m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1
         );
     }
@@ -289,7 +287,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& commandBuffer) {
 }
 
 void ChunkManager::planTransition(
-    const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh, glm::uint branchReadBuf
+    const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh, glm::uint branchReadBuf
 ) {
     auto posAc = chToAc(posCh, m_worldTexSizeMask);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexSizeMask + 1));
@@ -298,15 +296,15 @@ void ChunkManager::planTransition(
         return; // No transition is needed
     } else if (activeChunk == k_chunkNotActive) {
         // No chunk is active at the spot
-        planActivation(commandBuffer, activeChunk, posCh, chToTi(posAc), branchReadBuf);
+        planActivation(cmdBuf, activeChunk, posCh, chToTi(posAc), branchReadBuf);
     } else if (activeChunk != k_chunkBeingDownloaded && activeChunk != k_chunkBeingUploaded) {
         // A different chunk is active at the spot
-        planDeactivation(commandBuffer, activeChunk, chToTi(posAc));
+        planDeactivation(cmdBuf, activeChunk, chToTi(posAc));
     }
 }
 
 void ChunkManager::planActivation(
-    const vk::CommandBuffer& commandBuffer,
+    const vk::CommandBuffer& cmdBuf,
     glm::ivec2&              activeChunk,
     const glm::ivec2&        posCh,
     const glm::ivec2&        posAt,
@@ -316,7 +314,7 @@ void ChunkManager::planActivation(
     auto it = m_inactiveChunks.find(posCh);
     if (it != m_inactiveChunks.end()) {
         // Query upload of the chunk
-        if (planUpload(commandBuffer, it->second.tiles(), posCh, posAt)) {
+        if (planUpload(cmdBuf, it->second.tiles(), posCh, posAt)) {
             // Remove the chunk from inactive chunks
             m_inactiveChunks.erase(it);
             // And signal that it is being uploaded
@@ -325,7 +323,7 @@ void ChunkManager::planActivation(
     } else {
         auto tiles = ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
         if (tiles.size() > 0) { // If chunk has been loaded
-            if (planUpload(commandBuffer, tiles, posCh, posAt)) {
+            if (planUpload(cmdBuf, tiles, posCh, posAt)) {
                 // Signal that it is being uploaded
                 activeChunk = k_chunkBeingUploaded;
             } else {
@@ -335,9 +333,7 @@ void ChunkManager::planActivation(
             }
         } else {
             // Chunk is not on the disk, it has to be generated
-            m_chunkGen.generateChunk(
-                commandBuffer, ChunkGenerator::OutputInfo{.posCh = posCh}
-            );
+            m_chunkGen.generateChunk(cmdBuf, ChunkGenerator::OutputInfo{.posCh = posCh});
             activeChunk = posCh;
             m_transparentChunkChanges++;
         }
@@ -345,19 +341,17 @@ void ChunkManager::planActivation(
 }
 
 void ChunkManager::planDeactivation(
-    const vk::CommandBuffer& commandBuffer,
-    glm::ivec2&              activeChunk,
-    const glm::ivec2&        posAt
+    const vk::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, const glm::ivec2& posAt
 ) {
     // Query download of the chunk
-    if (planDownload(commandBuffer, activeChunk, posAt)) {
+    if (planDownload(cmdBuf, activeChunk, posAt)) {
         activeChunk = k_chunkBeingDownloaded; // Deactivate the spot
         m_transparentChunkChanges++;
     }
 }
 
 bool ChunkManager::planUpload(
-    const vk::CommandBuffer&          commandBuffer,
+    const vk::CommandBuffer&          cmdBuf,
     const std::vector<unsigned char>& tiles,
     const glm::ivec2&                 posCh,
     const glm::ivec2&                 posAt
@@ -376,7 +370,7 @@ bool ChunkManager::planUpload(
             {posAt.x, posAt.y, 0u},      // Offset
             {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
-        commandBuffer.copyBufferToImage2(vk::CopyBufferToImageInfo2{
+        cmdBuf.copyBufferToImage2(vk::CopyBufferToImageInfo2{
             m_tilesStageBuf.buffer(),
             m_worldTex->image(),
             vk::ImageLayout::eGeneral,
@@ -388,9 +382,7 @@ bool ChunkManager::planUpload(
 }
 
 bool ChunkManager::planDownload(
-    const vk::CommandBuffer& commandBuffer,
-    const glm::ivec2&        posCh,
-    const glm::ivec2&        posAt
+    const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh, const glm::ivec2& posAt
 ) {
     if (m_nextFreeTileStage < k_tileStageSize) { // If there is a free stage
         m_tileStageStates[m_nextFreeTileStage] = {
@@ -405,7 +397,7 @@ bool ChunkManager::planDownload(
             {posAt.x, posAt.y, 0u},      // Offset
             {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
-        commandBuffer.copyImageToBuffer2(vk::CopyImageToBufferInfo2{
+        cmdBuf.copyImageToBuffer2(vk::CopyImageToBufferInfo2{
             m_worldTex->image(),
             vk::ImageLayout::eGeneral,
             m_tilesStageBuf.buffer(),

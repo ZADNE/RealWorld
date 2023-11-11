@@ -33,7 +33,7 @@ public:
      * @param autojump Tells whether the player should automatically jump
      * over obstacles
      */
-    void step(const vk::CommandBuffer& commandBuffer, float dir, bool jump, bool autojump);
+    void step(const vk::CommandBuffer& cmdBuf, float dir, bool jump, bool autojump);
 
     void draw(re::SpriteBatch& spriteBatch);
 

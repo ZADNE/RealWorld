@@ -82,9 +82,9 @@ VegSimulator::VegSimulator()
     }()) {
 }
 
-void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
+void VegSimulator::step(const vk::CommandBuffer& cmdBuf) {
     // Prepare rendering-to-world-texture state
-    commandBuffer.beginRenderPass2(
+    cmdBuf.beginRenderPass2(
         vk::RenderPassBeginInfo{
             *m_rasterizationRenderPass,
             *m_framebuffer,
@@ -92,21 +92,19 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
             {}},
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}
     );
-    commandBuffer.bindDescriptorSets(
+    cmdBuf.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
     glm::vec2 viewport{m_worldTexSizeTi};
-    commandBuffer.setViewport(
-        0u, vk::Viewport{0.0f, 0.0, viewport.x, viewport.y, 0.0f, 1.0f}
-    );
-    commandBuffer.setScissor(
+    cmdBuf.setViewport(0u, vk::Viewport{0.0f, 0.0, viewport.x, viewport.y, 0.0f, 1.0f});
+    cmdBuf.setScissor(
         0u,
         vk::Rect2D{
             {0, 0},                                  // x, y
             {m_worldTexSizeTi.x, m_worldTexSizeTi.y} // width, height
         }
     );
-    commandBuffer.pushConstants<VegDynamicsPC>(
+    cmdBuf.pushConstants<VegDynamicsPC>(
         *m_pipelineLayout,
         eVertex | eTessellationControl | eTessellationEvaluation,
         0u,
@@ -114,15 +112,15 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
     );
 
     // Unrasterize branches from previous step
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
-    commandBuffer.drawIndirect(*m_branchBuf, offsetof(BranchSB, vertexCount), 1, 0);
-    commandBuffer.nextSubpass2(
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
+    cmdBuf.drawIndirect(*m_branchBuf, offsetof(BranchSB, vertexCount), 1, 0);
+    cmdBuf.nextSubpass2(
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}, vk::SubpassEndInfo{}
     );
 
     m_vegDynamicsPC.timeSec += k_stepDurationSec;
     m_vegDynamicsPC.readBuf = 1 - m_vegDynamicsPC.readBuf;
-    commandBuffer.pushConstants<VegDynamicsPC>(
+    cmdBuf.pushConstants<VegDynamicsPC>(
         *m_pipelineLayout,
         eVertex | eTessellationControl | eTessellationEvaluation,
         0u,
@@ -130,9 +128,9 @@ void VegSimulator::step(const vk::CommandBuffer& commandBuffer) {
     );
 
     // Simulate and rasterize branches
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
-    commandBuffer.drawIndirect(*m_branchBuf, offsetof(BranchSB, vertexCount), 1, 0);
-    commandBuffer.endRenderPass2(vk::SubpassEndInfo{});
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
+    cmdBuf.drawIndirect(*m_branchBuf, offsetof(BranchSB, vertexCount), 1, 0);
+    cmdBuf.endRenderPass2(vk::SubpassEndInfo{});
 }
 
 VegSimulator::VegStorage VegSimulator::adoptSave(

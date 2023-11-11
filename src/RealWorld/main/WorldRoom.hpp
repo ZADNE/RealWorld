@@ -29,7 +29,7 @@ public:
     void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
-    void render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) override;
+    void render(const vk::CommandBuffer& cmdBuf, double interpolationFactor) override;
 
     void windowResizedCallback(
         const glm::ivec2& oldSize, const glm::ivec2& newSize
@@ -39,15 +39,14 @@ private:
     using enum RealWorldKeyBindings;
 
     void performWorldSimulationStep(
-        const vk::CommandBuffer&         commandBuffer,
-        const WorldDrawer::ViewEnvelope& viewEnvelope
+        const vk::CommandBuffer& cmdBuf, const WorldDrawer::ViewEnvelope& viewEnvelope
     );
 
-    void analyzeWorldForDrawing(const vk::CommandBuffer& commandBuffer);
+    void analyzeWorldForDrawing(const vk::CommandBuffer& cmdBuf);
 
     void updateInventoryAndUI();
 
-    void drawGUI(const vk::CommandBuffer& commandBuffer);
+    void drawGUI(const vk::CommandBuffer& cmdBuf);
 
     /**
      * @brief Loads a world. Previously loaded world is flushed without saving.

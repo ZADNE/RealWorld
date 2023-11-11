@@ -82,7 +82,7 @@ public:
 
     /**
      * @brief Plans activation of chunks that overlap given rectangular area
-     * @param commandBuffer Command buffer that will record the commands
+     * @param cmdBuf Command buffer that will record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
      * @param branchWriteBuf Index of the double buffered part of branch buffer
@@ -90,23 +90,21 @@ public:
      * @warning Must be called between beginStep() and endStep().
      */
     void planActivationOfChunks(
-        const vk::CommandBuffer& commandBuffer,
+        const vk::CommandBuffer& cmdBuf,
         const glm::ivec2&        botLeftTi,
         const glm::ivec2&        topRightTi,
         glm::uint                branchWriteBuf
     );
 
-    int endStep(const vk::CommandBuffer& commandBuffer);
+    int endStep(const vk::CommandBuffer& cmdBuf);
 
 private:
     void planTransition(
-        const vk::CommandBuffer& commandBuffer,
-        const glm::ivec2&        posCh,
-        glm::uint                branchWriteBuf
+        const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh, glm::uint branchWriteBuf
     );
 
     void planActivation(
-        const vk::CommandBuffer& commandBuffer,
+        const vk::CommandBuffer& cmdBuf,
         glm::ivec2&              activeChunk,
         const glm::ivec2&        posCh,
         const glm::ivec2&        posAt,
@@ -114,22 +112,18 @@ private:
     );
 
     void planDeactivation(
-        const vk::CommandBuffer& commandBuffer,
-        glm::ivec2&              activeChunk,
-        const glm::ivec2&        posAt
+        const vk::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, const glm::ivec2& posAt
     );
 
     bool planUpload(
-        const vk::CommandBuffer&          commandBuffer,
+        const vk::CommandBuffer&          cmdBuf,
         const std::vector<unsigned char>& tiles,
         const glm::ivec2&                 posCh,
         const glm::ivec2&                 posAt
     );
 
     bool planDownload(
-        const vk::CommandBuffer& commandBuffer,
-        const glm::ivec2&        posCh,
-        const glm::ivec2&        posAt
+        const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh, const glm::ivec2& posAt
     );
 
     void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;

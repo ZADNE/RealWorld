@@ -40,11 +40,11 @@ public:
     /**
      * @brief Performs layout transitions necessary to simulate the world
      */
-    void beginStep(const vk::CommandBuffer& commandBuffer);
+    void beginStep(const vk::CommandBuffer& cmdBuf);
 
     /**
      * @brief                   Performs a simulation step of the world.
-     * @param commandBuffer     Command buffer that will be used to record
+     * @param cmdBuf     Command buffer that will be used to record
      * computation commands
      * @param botLeftTi         The most bottom-left tile that has to be active
      * @param topRightTi        The most top-right tile that has to be active
@@ -52,7 +52,7 @@ public:
      * this step
      */
     int step(
-        const vk::CommandBuffer& commandBuffer,
+        const vk::CommandBuffer& cmdBuf,
         const glm::ivec2&        botLeftTi,
         const glm::ivec2&        topRightTi
     );
@@ -61,7 +61,7 @@ public:
      * @brief Modifies tiles in the world
      */
     void modify(
-        const vk::CommandBuffer& commandBuffer,
+        const vk::CommandBuffer& cmdBuf,
         TileLayer                layer,
         ModificationShape        shape,
         float                    radius,
@@ -72,7 +72,7 @@ public:
     /**
      * @brief Performs layout transitions necessary to draw the world
      */
-    void endStep(const vk::CommandBuffer& commandBuffer);
+    void endStep(const vk::CommandBuffer& cmdBuf);
 
     /**
      * @brief   Sets this world class to simulate the world inside the given save
@@ -92,7 +92,7 @@ public:
 
 private:
     void fluidDynamicsStep(
-        const vk::CommandBuffer& commandBuffer,
+        const vk::CommandBuffer& cmdBuf,
         const glm::ivec2&        botLeftTi,
         const glm::ivec2&        topRightTi
     );

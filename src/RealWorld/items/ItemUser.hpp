@@ -29,7 +29,7 @@ public:
     void selectSlot(int slot);
 
     void step(
-        const vk::CommandBuffer& commandBuffer,
+        const vk::CommandBuffer& cmdBuf,
         bool                     usePrimary,
         bool                     useSecondary,
         const glm::ivec2&        relCursorPosPx

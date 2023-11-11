@@ -33,7 +33,7 @@ public:
     /**
      * @brief Analyzes the world texture
      */
-    void analyze(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftTi);
+    void analyze(const vk::CommandBuffer& cmdBuf, const glm::ivec2& botLeftTi);
 
     /**
      * @brief Adds external light
@@ -44,13 +44,13 @@ public:
     /**
      * @brief Calculates the shadows
      */
-    void calculate(const vk::CommandBuffer& commandBuffer, const glm::ivec2& botLeftPx);
+    void calculate(const vk::CommandBuffer& cmdBuf, const glm::ivec2& botLeftPx);
 
     /**
      * @brief Renders calculated shadow to the framebuffer
      */
     void draw(
-        const vk::CommandBuffer& commandBuffer,
+        const vk::CommandBuffer& cmdBuf,
         const glm::vec2&         botLeftPx,
         const glm::uvec2&        viewSizeTi
     );

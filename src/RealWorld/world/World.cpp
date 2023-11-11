@@ -115,7 +115,7 @@ size_t World::numberOfInactiveChunks() {
     return m_chunkManager.numberOfInactiveChunks();
 }
 
-void World::beginStep(const vk::CommandBuffer& commandBuffer) {
+void World::beginStep(const vk::CommandBuffer& cmdBuf) {
     // Transit world texture to general layout so that compute shaders can
     // manipulate it
     auto imageBarrier = vk::ImageMemoryBarrier2{
@@ -130,51 +130,49 @@ void World::beginStep(const vk::CommandBuffer& commandBuffer) {
         vk::QueueFamilyIgnored,
         m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
 int World::step(
-    const vk::CommandBuffer& commandBuffer,
+    const vk::CommandBuffer& cmdBuf,
     const glm::ivec2&        botLeftTi,
     const glm::ivec2&        topRightTi
 ) {
     // Chunk manager
     m_chunkManager.beginStep();
     m_chunkManager.planActivationOfChunks(
-        commandBuffer, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
+        cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
     );
-    commandBuffer.bindDescriptorSets(
+    cmdBuf.bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );
-    int activatedChunks = m_chunkManager.endStep(commandBuffer);
+    int activatedChunks = m_chunkManager.endStep(cmdBuf);
 
     // Bodies
-    m_bodySimulator.step(commandBuffer);
+    m_bodySimulator.step(cmdBuf);
 
     // Vegetation
-    m_vegSimulator.step(commandBuffer);
+    m_vegSimulator.step(cmdBuf);
 
-    // Set up commandBuffer state for simulation
+    // Set up cmdBuf state for simulation
     xorshift32(m_worldDynamicsPC.timeHash);
-    commandBuffer.pushConstants(
-        *m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash)
-    );
+    cmdBuf.pushConstants(*m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash));
 
     // Tile transformations
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
-    commandBuffer.dispatchIndirect(
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
+    cmdBuf.dispatchIndirect(
         **m_activeChunksBuf,
         offsetof(ChunkManager::ActiveChunksSB, dynamicsGroupSize)
     );
 
     // Fluid dynamics
-    fluidDynamicsStep(commandBuffer, botLeftTi, topRightTi);
+    fluidDynamicsStep(cmdBuf, botLeftTi, topRightTi);
 
     return activatedChunks;
 }
 
 void World::modify(
-    const vk::CommandBuffer& commandBuffer,
+    const vk::CommandBuffer& cmdBuf,
     TileLayer                layer,
     ModificationShape        shape,
     float                    radius,
@@ -186,14 +184,12 @@ void World::modify(
     m_worldDynamicsPC.modifyShape    = static_cast<glm::uint>(shape);
     m_worldDynamicsPC.modifyRadius   = radius;
     m_worldDynamicsPC.modifySetValue = tile;
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
-    commandBuffer.pushConstants<WorldDynamicsPC>(
-        *m_simulationPL, eCompute, 0, m_worldDynamicsPC
-    );
-    commandBuffer.dispatch(1, 1, 1);
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
+    cmdBuf.pushConstants<WorldDynamicsPC>(*m_simulationPL, eCompute, 0, m_worldDynamicsPC);
+    cmdBuf.dispatch(1, 1, 1);
 }
 
-void World::endStep(const vk::CommandBuffer& commandBuffer) {
+void World::endStep(const vk::CommandBuffer& cmdBuf) {
     // Transit world texture back to readonly-optimal layout so that it can rendered
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eComputeShader,                              // Src stage mask
@@ -206,11 +202,11 @@ void World::endStep(const vk::CommandBuffer& commandBuffer) {
         vk::QueueFamilyIgnored,
         m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
 void World::fluidDynamicsStep(
-    const vk::CommandBuffer& commandBuffer,
+    const vk::CommandBuffer& cmdBuf,
     const glm::ivec2&        botLeftTi,
     const glm::ivec2&        topRightTi
 ) {
@@ -231,7 +227,7 @@ void World::fluidDynamicsStep(
         vk::QueueFamilyIgnored,
         m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     // Permute the orders
     uint32_t order;
@@ -243,7 +239,7 @@ void World::fluidDynamicsStep(
             m_worldDynamicsPC.updateOrder |=
                 permuteOrder(m_worldDynamicsPC.timeHash) << (i * 8);
         }
-        commandBuffer.pushConstants(
+        cmdBuf.pushConstants(
             *m_simulationPL, eCompute, member(m_worldDynamicsPC, updateOrder)
         );
         // Randomize order of dispatches
@@ -253,18 +249,18 @@ void World::fluidDynamicsStep(
     }
 
     // 4 rounds, each updates one quarter of the chunks
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);
     glm::ivec2 dynBotLeftTi = botLeftCh * iChunkTi + iChunkTi / 2;
     for (unsigned int i = 0; i < 4; i++) {
         // Update offset of the groups
         glm::ivec2 offset{(order >> (i * 2 + 1)) & 1, (order >> (i * 2)) & 1};
         m_worldDynamicsPC.globalPosTi = dynBotLeftTi + offset * iChunkTi / 2;
-        commandBuffer.pushConstants(
+        cmdBuf.pushConstants(
             *m_simulationPL, eCompute, member(m_worldDynamicsPC, globalPosTi)
         );
         // Dispatch
-        commandBuffer.dispatch(dispatchSize.x, dispatchSize.y, 1);
-        commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+        cmdBuf.dispatch(dispatchSize.x, dispatchSize.y, 1);
+        cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
 }
 

@@ -16,7 +16,7 @@ class BodySimulator {
 public:
     explicit BodySimulator(const re::PipelineLayout& simulationPL);
 
-    void step(const vk::CommandBuffer& commandBuffer);
+    void step(const vk::CommandBuffer& cmdBuf);
 
     const re::Buffer& adoptSave(const glm::ivec2& worldTexSizeCh);
 

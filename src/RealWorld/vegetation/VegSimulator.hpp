@@ -53,7 +53,7 @@ class VegSimulator {
 public:
     VegSimulator();
 
-    void step(const vk::CommandBuffer& commandBuffer);
+    void step(const vk::CommandBuffer& cmdBuf);
 
     struct VegStorage {
         const re::Buffer& vegBuf;

@@ -22,9 +22,9 @@ public:
 
     void resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
 
-    void drawTiles(const vk::CommandBuffer& commandBuffer, const glm::vec2& botLeftPx);
+    void drawTiles(const vk::CommandBuffer& cmdBuf, const glm::vec2& botLeftPx);
 
-    void drawMinimap(const vk::CommandBuffer& commandBuffer);
+    void drawMinimap(const vk::CommandBuffer& cmdBuf);
 
 private:
     re::TextureShaped m_blockAtlasTex{re::TextureSeed{"blockAtlas"}};

@@ -14,20 +14,20 @@ namespace rw {
 constexpr int        k_groupSize    = 16;
 constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
-void ChunkGenerator::prepareToGenerate(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindDescriptorSets(
+void ChunkGenerator::prepareToGenerate(const vk::CommandBuffer& cmdBuf) {
+    cmdBuf.bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
 }
 
-void ChunkGenerator::generateBasicTerrain(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
+void ChunkGenerator::generateBasicTerrain(const vk::CommandBuffer& cmdBuf) {
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
     m_genPC.storeLayer = 0;
-    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
-    commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
+    cmdBuf.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+    cmdBuf.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
-void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
+void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& cmdBuf) {
     auto pass = [&](const glm::ivec2& thresholds, size_t passes) {
         m_genPC.edgeConsolidationPromote = thresholds.x;
         m_genPC.edgeConsolidationReduce  = thresholds.y;
@@ -35,12 +35,10 @@ void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
             m_genPC.storeLayer = ~m_genPC.storeLayer & 1;
             // Wait for the previous pass to finish
             auto imageBarrier = worldTexBarrier();
-            commandBuffer.pipelineBarrier2({{}, {}, {}, imageBarrier});
+            cmdBuf.pipelineBarrier2({{}, {}, {}, imageBarrier});
             // Consolidate
-            commandBuffer.pushConstants<GenerationPC>(
-                *m_pipelineLayout, eCompute, 0u, m_genPC
-            );
-            commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
+            cmdBuf.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+            cmdBuf.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
         }
     };
     auto doublePass = [pass](
@@ -54,19 +52,19 @@ void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& commandBuffer) {
         }
     };
 
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
     doublePass({3, 4}, {4, 5}, 4);
 }
 
-void ChunkGenerator::selectVariant(const vk::CommandBuffer& commandBuffer) {
+void ChunkGenerator::selectVariant(const vk::CommandBuffer& cmdBuf) {
     // Wait for the edge consolidation to finish
     auto imageBarrier = worldTexBarrier();
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     // Select variants
     m_genPC.storeLayer = ~m_genPC.storeLayer & 1;
-    commandBuffer.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
-    commandBuffer.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
+    cmdBuf.pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
+    cmdBuf.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
 }
 
 } // namespace rw

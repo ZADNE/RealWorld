@@ -53,22 +53,22 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
 }
 
 void ChunkGenerator::generateChunk(
-    const vk::CommandBuffer& commandBuffer, const OutputInfo& outputInfo
+    const vk::CommandBuffer& cmdBuf, const OutputInfo& outputInfo
 ) {
     m_genPC.chunkOffsetTi  = chToTi(outputInfo.posCh);
     m_genPC.branchWriteBuf = outputInfo.branchWriteBuf;
 
-    prepareToGenerate(commandBuffer);
+    prepareToGenerate(cmdBuf);
 
     // Terrain generation
-    generateBasicTerrain(commandBuffer);
-    consolidateEdges(commandBuffer);
-    selectVariant(commandBuffer);
+    generateBasicTerrain(cmdBuf);
+    consolidateEdges(cmdBuf);
+    selectVariant(cmdBuf);
 
     // Vegetation generation
-    generateVegetation(commandBuffer);
+    generateVegetation(cmdBuf);
 
-    finishGeneration(commandBuffer, outputInfo.posCh);
+    finishGeneration(cmdBuf, outputInfo.posCh);
 }
 
 vk::ImageMemoryBarrier2 ChunkGenerator::worldTexBarrier() const {
@@ -86,7 +86,7 @@ vk::ImageMemoryBarrier2 ChunkGenerator::worldTexBarrier() const {
 }
 
 void ChunkGenerator::finishGeneration(
-    const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh
+    const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh
 ) {
     // Wait for the generation to finish
     auto imageBarrier = vk::ImageMemoryBarrier2{
@@ -100,10 +100,10 @@ void ChunkGenerator::finishGeneration(
         vk::QueueFamilyIgnored, // Ownership transition
         m_tilesTex.image(),
         vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
-    commandBuffer.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     // Copy the generated chunk to the world texture
     auto dstOffsetTi = chToAt(posCh, m_worldTexSizeCh - 1);
-    commandBuffer.copyImage(
+    cmdBuf.copyImage(
         m_tilesTex.image(),
         eGeneral, // Src image
         m_worldTex->image(),

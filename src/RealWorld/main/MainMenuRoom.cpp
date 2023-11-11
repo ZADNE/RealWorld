@@ -67,9 +67,7 @@ void MainMenuRoom::step() {
     // GUI only room...
 }
 
-void MainMenuRoom::render(
-    const vk::CommandBuffer& commandBuffer, double interpolationFactor
-) {
+void MainMenuRoom::render(const vk::CommandBuffer& cmdBuf, double interpolationFactor) {
     engine().mainRenderPassBegin();
 
     SetNextWindowSize(engine().windowDims());
