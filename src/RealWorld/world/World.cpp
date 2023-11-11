@@ -108,6 +108,12 @@ void World::gatherSave(MetadataSave& save) const {
 }
 
 bool World::saveChunks() {
+    // Unrasterize branches so that the saved chunks do not contain them
+    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& cmdBuf) {
+        m_vegSimulator.unrasterizeVegetation(cmdBuf);
+    });
+
+    // Save the chunks
     return m_chunkManager.saveChunks();
 }
 
@@ -138,6 +144,9 @@ int World::step(
     const glm::ivec2&        botLeftTi,
     const glm::ivec2&        topRightTi
 ) {
+    // Unrasterize branches
+    m_vegSimulator.unrasterizeVegetation(cmdBuf);
+
     // Chunk manager
     m_chunkManager.beginStep();
     m_chunkManager.planActivationOfChunks(
@@ -151,8 +160,8 @@ int World::step(
     // Bodies
     m_bodySimulator.step(cmdBuf);
 
-    // Vegetation
-    m_vegSimulator.step(cmdBuf);
+    // Rasterize branches
+    m_vegSimulator.rasterizeVegetation(cmdBuf);
 
     // Set up cmdBuf state for simulation
     xorshift32(m_worldDynamicsPC.timeHash);

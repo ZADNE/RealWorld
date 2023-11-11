@@ -53,7 +53,15 @@ class VegSimulator {
 public:
     VegSimulator();
 
-    void step(const vk::CommandBuffer& cmdBuf);
+    /**
+     * @brief   Removes branches from the world texture
+     */
+    void unrasterizeVegetation(const vk::CommandBuffer& cmdBuf);
+
+    /**
+     * @brief   Adds simulated branches to the world texture
+     */
+    void rasterizeVegetation(const vk::CommandBuffer& cmdBuf);
 
     struct VegStorage {
         const re::Buffer& vegBuf;
@@ -95,19 +103,19 @@ private:
          .patchControlPoints = 1,
          .enableBlend        = false,
          .pipelineLayout     = *m_pipelineLayout,
-         .renderPass         = *m_rasterizationRenderPass,
-         .subpassIndex       = 1},
+         .renderPass         = *m_rasterizationRenderPass},
         {.vert = rasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
          .geom = duplicateBranches_geom,
          .frag = rasterizeBranches_frag}};
-    re::DescriptorSet  m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
-    re::Buffer         m_vegBuf;
-    re::Buffer         m_branchBuf;
-    re::Framebuffer    m_framebuffer;
-    const re::Texture* m_worldTex{};
-    glm::uvec2         m_worldTexSizeTi{};
+    re::DescriptorSet m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
+    re::Buffer        m_vegBuf;
+    re::Buffer        m_branchBuf;
+    re::Framebuffer   m_framebuffer;
+    glm::uvec2        m_worldTexSizeTi{};
+
+    void beginWorldTextureRenderPass(const vk::CommandBuffer& cmdBuf) const;
 };
 
 } // namespace rw
