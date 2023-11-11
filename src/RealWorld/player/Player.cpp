@@ -35,6 +35,7 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
 }
 
 void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) {
+    m_oldBotLeftPx    = save.pos;
     *m_hitboxStageBuf = PlayerHitboxSB{
         .botLeftPx  = {save.pos, save.pos},
         .dimsPx     = m_playerTex.subimageDims(),
@@ -58,6 +59,17 @@ glm::vec2 Player::center() const {
 }
 
 void Player::step(const vk::CommandBuffer& cmdBuf, float dir, bool jump, bool autojump) {
+    // Store position from previous step
+    const auto newReadIndex = m_pushConstants.writeIndex;
+    m_oldBotLeftPx          = m_hitboxStageBuf->botLeftPx[newReadIndex];
+
+    // Copy back results of previous step
+    size_t writeOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
+                         sizeof(PlayerHitboxSB::botLeftPx[0]) * newReadIndex;
+    auto copyRegion = vk::BufferCopy2{writeOffset, writeOffset, sizeof(glm::vec2)};
+    cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
+        *m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion});
+
     // Simulate the movement
     m_pushConstants.writeIndex    = 1 - m_pushConstants.writeIndex;
     m_pushConstants.walkDirection = glm::sign(dir);
@@ -71,25 +83,6 @@ void Player::step(const vk::CommandBuffer& cmdBuf, float dir, bool jump, bool au
         *m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants
     );
     cmdBuf.dispatch(1u, 1u, 1u);
-
-    // Copy back the results
-    size_t writeOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
-                         sizeof(PlayerHitboxSB::botLeftPx[0]) *
-                             m_pushConstants.writeIndex;
-    auto copyRegion = vk::BufferCopy2{writeOffset, writeOffset, sizeof(glm::vec2)};
-    auto bufferBarrier = vk::BufferMemoryBarrier2{
-        S::eComputeShader,                              // Src stage mask
-        A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
-        S::eTransfer,                                   // Dst stage mask
-        A::eTransferRead,                               // Dst access mask
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored,
-        *m_hitboxBuf,
-        copyRegion.srcOffset,
-        copyRegion.size};
-    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
-    cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
-        *m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion});
 }
 
 void Player::draw(re::SpriteBatch& spriteBatch) {
@@ -101,7 +94,7 @@ void Player::draw(re::SpriteBatch& spriteBatch) {
 }
 
 const glm::vec2& Player::botLeftPx() const {
-    return m_hitboxStageBuf->botLeftPx[1 - m_pushConstants.writeIndex];
+    return m_oldBotLeftPx;
 }
 
 } // namespace rw

@@ -57,22 +57,18 @@ private:
     re::TextureShaped m_playerTex;
 
     struct PlayerMovementPC {
-        float acceleration;
-        float maxWalkVelocity;
-        float jumpVelocity;
+        float acceleration    = 0.5f;
+        float maxWalkVelocity = 6.0f;
+        float jumpVelocity    = 7.0f;
         float walkDirection;
         float jump;
         float autojump;
-        int writeIndex; // Selects PlayerHitboxSB::botLeftPx, swings every step
-    };
-    PlayerMovementPC m_pushConstants{
-        .acceleration    = 0.5f,
-        .maxWalkVelocity = 6.0f,
-        .jumpVelocity    = 7.0f,
-        .writeIndex      = 1};
+        int writeIndex = 1; // Selects PlayerHitboxSB::botLeftPx, swings every step
+    } m_pushConstants;
 
     re::Buffer                       m_hitboxBuf;
     re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
+    glm::vec2                        m_oldBotLeftPx{};
 
     re::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
     re::Pipeline       m_movePlayerPl{
