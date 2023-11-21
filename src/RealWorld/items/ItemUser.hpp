@@ -32,10 +32,10 @@ public:
         const vk::CommandBuffer& cmdBuf,
         bool                     usePrimary,
         bool                     useSecondary,
-        const glm::ivec2&        relCursorPosPx
+        glm::ivec2               relCursorPosPx
     );
 
-    void render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb);
+    void render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb);
 
 private:
     World&     m_world;

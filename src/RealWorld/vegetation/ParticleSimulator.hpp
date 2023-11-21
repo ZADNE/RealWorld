@@ -12,7 +12,7 @@ namespace rw {
 
 class ParticleSimulator {
 public:
-    void adoptSave(const MetadataSave& save, const glm::ivec2& worldTexSizeCh);
+    void adoptSave(const MetadataSave& save, glm::ivec2 worldTexSizeCh);
 
 private:
 };

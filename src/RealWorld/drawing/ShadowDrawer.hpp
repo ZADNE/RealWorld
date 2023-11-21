@@ -21,39 +21,33 @@ namespace rw {
 class ShadowDrawer {
 public:
     ShadowDrawer(
-        const glm::vec2&  viewSizePx,
-        const glm::ivec2& viewSizeTi,
-        glm::uint         maxNumberOfExternalLights
+        glm::vec2 viewSizePx, glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights
     );
 
-    void setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize);
+    void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
 
-    void resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
+    void resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
 
     /**
      * @brief Analyzes the world texture
      */
-    void analyze(const vk::CommandBuffer& cmdBuf, const glm::ivec2& botLeftTi);
+    void analyze(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi);
 
     /**
      * @brief Adds external light
      * @note External lights have to be added between analyze() and calculate()
      */
-    void addExternalLight(const glm::ivec2& posPx, re::Color col);
+    void addExternalLight(glm::ivec2 posPx, re::Color col);
 
     /**
      * @brief Calculates the shadows
      */
-    void calculate(const vk::CommandBuffer& cmdBuf, const glm::ivec2& botLeftPx);
+    void calculate(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftPx);
 
     /**
      * @brief Renders calculated shadow to the framebuffer
      */
-    void draw(
-        const vk::CommandBuffer& cmdBuf,
-        const glm::vec2&         botLeftPx,
-        const glm::uvec2&        viewSizeTi
-    );
+    void draw(const vk::CommandBuffer& cmdBuf, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi);
 
 private:
     re::TextureShaped m_blockLightAtlasTex{re::TextureSeed{"blockLightAtlas"}};
@@ -87,8 +81,8 @@ private:
 
     struct ViewSizeDependent {
         ViewSizeDependent(
-            const glm::vec2&          viewSizePx,
-            const glm::ivec2&         viewSizeTi,
+            glm::vec2                 viewSizePx,
+            glm::ivec2                viewSizeTi,
             const re::PipelineLayout& analysisPll,
             const re::PipelineLayout& calculationPll,
             const re::PipelineLayout& shadowDrawingPll,

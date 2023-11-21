@@ -85,9 +85,7 @@ vk::ImageMemoryBarrier2 ChunkGenerator::worldTexBarrier() const {
         vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
 }
 
-void ChunkGenerator::finishGeneration(
-    const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh
-) {
+void ChunkGenerator::finishGeneration(const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh) {
     // Wait for the generation to finish
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eComputeShader,                              // Src stage mask

@@ -28,7 +28,7 @@ void ChunkGenerator::generateBasicTerrain(const vk::CommandBuffer& cmdBuf) {
 }
 
 void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& cmdBuf) {
-    auto pass = [&](const glm::ivec2& thresholds, size_t passes) {
+    auto pass = [&](glm::ivec2 thresholds, size_t passes) {
         m_genPC.edgeConsolidationPromote = thresholds.x;
         m_genPC.edgeConsolidationReduce  = thresholds.y;
         for (size_t i = 0; i < passes; i++) {
@@ -41,16 +41,13 @@ void ChunkGenerator::consolidateEdges(const vk::CommandBuffer& cmdBuf) {
             cmdBuf.dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
         }
     };
-    auto doublePass = [pass](
-                          const glm::ivec2& firstThresholds,
-                          const glm::ivec2& secondThresholds,
-                          size_t            passes
-                      ) {
-        for (size_t i = 0; i < passes; i++) {
-            pass(firstThresholds, 1);
-            pass(secondThresholds, 1);
-        }
-    };
+    auto doublePass =
+        [pass](glm::ivec2 firstThresholds, glm::ivec2 secondThresholds, size_t passes) {
+            for (size_t i = 0; i < passes; i++) {
+                pass(firstThresholds, 1);
+                pass(secondThresholds, 1);
+            }
+        };
 
     cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
     doublePass({3, 4}, {4, 5}, 4);

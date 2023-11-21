@@ -98,7 +98,7 @@ void VegSimulator::rasterizeVegetation(const vk::CommandBuffer& cmdBuf) {
 }
 
 VegSimulator::VegStorage VegSimulator::adoptSave(
-    const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh
+    const re::Texture& worldTex, glm::ivec2 worldTexSizeCh
 ) {
     // Prepare push constants
     m_worldTexSizeTi               = chToTi(worldTexSizeCh);

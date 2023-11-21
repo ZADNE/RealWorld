@@ -119,9 +119,7 @@ void WorldRoom::render(const vk::CommandBuffer& cmdBuf, double interpolationFact
     engine().mainRenderPassEnd();
 }
 
-void WorldRoom::windowResizedCallback(
-    const glm::ivec2& oldSize, const glm::ivec2& newSize
-) {
+void WorldRoom::windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) {
     m_worldView.resizeView(newSize);
     m_worldDrawer.resizeView(newSize);
     m_invUI.windowResized(newSize);
@@ -304,7 +302,7 @@ bool WorldRoom::saveWorld() {
     return m_world.saveChunks();
 }
 
-glm::mat4 WorldRoom::calculateWindowViewMat(const glm::vec2& windowDims) const {
+glm::mat4 WorldRoom::calculateWindowViewMat(glm::vec2 windowDims) const {
     return glm::ortho(0.0f, windowDims.x, 0.0f, windowDims.y);
 }
 

@@ -93,7 +93,7 @@ void Player::draw(re::SpriteBatch& spriteBatch) {
     );
 }
 
-const glm::vec2& Player::botLeftPx() const {
+glm::vec2 Player::botLeftPx() const {
     return m_oldBotLeftPx;
 }
 

@@ -68,7 +68,7 @@ public:
         const re::Buffer& branchBuf;
     };
 
-    VegStorage adoptSave(const re::Texture& worldTex, const glm::ivec2& worldTexSizeCh);
+    VegStorage adoptSave(const re::Texture& worldTex, glm::ivec2 worldTexSizeCh);
 
     /**
      * @brief   Returns index to the double buffered part of the branch buffer

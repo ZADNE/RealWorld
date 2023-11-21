@@ -51,11 +51,7 @@ public:
      * @return                  The number of chunks that had to be activated
      * this step
      */
-    int step(
-        const vk::CommandBuffer& cmdBuf,
-        const glm::ivec2&        botLeftTi,
-        const glm::ivec2&        topRightTi
-    );
+    int step(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
 
     /**
      * @brief Modifies tiles in the world
@@ -65,8 +61,8 @@ public:
         TileLayer                layer,
         ModificationShape        shape,
         float                    radius,
-        const glm::ivec2&        posTi,
-        const glm::uvec2&        tile
+        glm::ivec2               posTi,
+        glm::uvec2               tile
     );
 
     /**
@@ -80,9 +76,7 @@ public:
      * @param worldTexSize  Must be multiples of 8
      * @returns             The new world texture
      */
-    const re::Texture& adoptSave(
-        const MetadataSave& save, const glm::ivec2& worldTexSizeCh
-    );
+    const re::Texture& adoptSave(const MetadataSave& save, glm::ivec2 worldTexSizeCh);
 
     void gatherSave(MetadataSave& save) const;
 
@@ -92,9 +86,7 @@ public:
 
 private:
     void fluidDynamicsStep(
-        const vk::CommandBuffer& cmdBuf,
-        const glm::ivec2&        botLeftTi,
-        const glm::ivec2&        topRightTi
+        const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
 
     re::Texture m_worldTex;

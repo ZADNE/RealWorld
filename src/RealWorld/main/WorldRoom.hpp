@@ -31,9 +31,7 @@ public:
     void step() override;
     void render(const vk::CommandBuffer& cmdBuf, double interpolationFactor) override;
 
-    void windowResizedCallback(
-        const glm::ivec2& oldSize, const glm::ivec2& newSize
-    ) override;
+    void windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) override;
 
 private:
     using enum RealWorldKeyBindings;
@@ -64,7 +62,7 @@ private:
      */
     bool saveWorld();
 
-    glm::mat4 calculateWindowViewMat(const glm::vec2& windowDims) const;
+    glm::mat4 calculateWindowViewMat(glm::vec2 windowDims) const;
 
     const GameSettings& m_gameSettings;
     ImFont*             m_arial =

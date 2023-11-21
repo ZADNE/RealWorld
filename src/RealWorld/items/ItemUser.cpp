@@ -26,10 +26,7 @@ void ItemUser::selectSlot(int slot) {
 }
 
 void ItemUser::step(
-    const vk::CommandBuffer& cmdBuf,
-    bool                     usePrimary,
-    bool                     useSecondary,
-    const glm::ivec2&        relCursorPosPx
+    const vk::CommandBuffer& cmdBuf, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
 ) {
     bool use[2] = {usePrimary, useSecondary};
 
@@ -98,7 +95,7 @@ void ItemUser::step(
     }
 }
 
-void ItemUser::render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb) {
+void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
     const ItemMetadata& md = ItemDatabase::md(m_item->id);
 
     if (md.type != ItemType::Empty) {

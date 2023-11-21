@@ -14,16 +14,16 @@ namespace rw {
  */
 class WorldDrawer {
 public:
-    WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights);
+    WorldDrawer(glm::uvec2 viewSizePx, glm::uint maxNumberOfExternalLights);
 
-    void setTarget(const re::Texture& worldTex, const glm::ivec2& worldTexSizeTi);
-    void resizeView(const glm::uvec2& viewSizePx);
+    void setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi);
+    void resizeView(glm::uvec2 viewSizePx);
 
     struct ViewEnvelope {
         glm::vec2 botLeftTi;
         glm::vec2 topRightTi;
     };
-    ViewEnvelope setPosition(const glm::vec2& botLeftPx);
+    ViewEnvelope setPosition(glm::vec2 botLeftPx);
 
     /**
      * @brief External lights have to be added between beginStep() and endStep()
@@ -34,7 +34,7 @@ public:
      * @brief Adds an external light into the world. Must be used between
      * beginStep() and endStep()
      */
-    void addExternalLight(const glm::ivec2& posPx, re::Color col);
+    void addExternalLight(glm::ivec2 posPx, re::Color col);
 
     /**
      * @brief External lights have to be added between beginStep() and endStep()
@@ -52,7 +52,7 @@ private:
     glm::ivec2 m_botLeftTi; // Bottom-left corner of the view in tiles
 
     glm::uvec2 m_viewSizeTi;
-    glm::uvec2 viewSizeTi(const glm::vec2& viewSizePx) const;
+    glm::uvec2 viewSizeTi(glm::vec2 viewSizePx) const;
 
     TileDrawer   m_tileDrawer;
     ShadowDrawer m_shadowDrawer;

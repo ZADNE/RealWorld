@@ -75,7 +75,7 @@ private:
               {.pipelineLayout = *m_pipelineLayout}, {.comp = movePlayer_comp}};
     re::DescriptorSet m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
 
-    const glm::vec2& botLeftPx() const;
+    glm::vec2 botLeftPx() const;
 };
 
 } // namespace rw

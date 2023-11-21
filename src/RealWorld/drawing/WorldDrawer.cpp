@@ -12,26 +12,24 @@ using enum vk::ShaderStageFlagBits;
 
 namespace rw {
 
-WorldDrawer::WorldDrawer(const glm::uvec2& viewSizePx, glm::uint maxNumberOfExternalLights)
+WorldDrawer::WorldDrawer(glm::uvec2 viewSizePx, glm::uint maxNumberOfExternalLights)
     : m_viewSizeTi(viewSizeTi(viewSizePx))
     , m_tileDrawer(viewSizePx, m_viewSizeTi)
     , m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights) {
 }
 
-void WorldDrawer::setTarget(
-    const re::Texture& worldTex, const glm::ivec2& worldTexSizeTi
-) {
+void WorldDrawer::setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi) {
     m_tileDrawer.setTarget(worldTex, worldTexSizeTi);
     m_shadowDrawer.setTarget(worldTex, worldTexSizeTi);
 }
 
-void WorldDrawer::resizeView(const glm::uvec2& viewSizePx) {
+void WorldDrawer::resizeView(glm::uvec2 viewSizePx) {
     m_viewSizeTi = viewSizeTi(viewSizePx);
     m_tileDrawer.resizeView(viewSizePx, m_viewSizeTi);
     m_shadowDrawer.resizeView(viewSizePx, m_viewSizeTi);
 }
 
-WorldDrawer::ViewEnvelope WorldDrawer::setPosition(const glm::vec2& botLeftPx) {
+WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
     m_botLeftPx = botLeftPx;
     m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
     return ViewEnvelope{
@@ -44,7 +42,7 @@ void WorldDrawer::beginStep(const vk::CommandBuffer& cmdBuf) {
     m_shadowDrawer.analyze(cmdBuf, m_botLeftTi);
 }
 
-void WorldDrawer::addExternalLight(const glm::ivec2& posPx, re::Color col) {
+void WorldDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
     m_shadowDrawer.addExternalLight(posPx, col);
 }
 
@@ -64,7 +62,7 @@ void WorldDrawer::drawMinimap(const vk::CommandBuffer& cmdBuf) {
     m_tileDrawer.drawMinimap(cmdBuf);
 }
 
-glm::uvec2 WorldDrawer::viewSizeTi(const glm::vec2& viewSizePx) const {
+glm::uvec2 WorldDrawer::viewSizeTi(glm::vec2 viewSizePx) const {
     return glm::uvec2(glm::ceil(viewSizePx / TilePx)) + 1u;
 }
 

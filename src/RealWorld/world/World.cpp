@@ -79,9 +79,7 @@ World::World()
     );
 }
 
-const re::Texture& World::adoptSave(
-    const MetadataSave& save, const glm::ivec2& worldTexSizeCh
-) {
+const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTexSizeCh) {
     m_seed      = save.seed;
     m_worldName = save.worldName;
 
@@ -173,9 +171,7 @@ void World::beginStep(const vk::CommandBuffer& cmdBuf) {
 }
 
 int World::step(
-    const vk::CommandBuffer& cmdBuf,
-    const glm::ivec2&        botLeftTi,
-    const glm::ivec2&        topRightTi
+    const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
     // Unrasterize branches
     m_vegSimulator.unrasterizeVegetation(cmdBuf);
@@ -218,8 +214,8 @@ void World::modify(
     TileLayer                layer,
     ModificationShape        shape,
     float                    radius,
-    const glm::ivec2&        posTi,
-    const glm::uvec2&        tile
+    glm::ivec2               posTi,
+    glm::uvec2               tile
 ) {
     m_worldDynamicsPC.globalPosTi    = posTi;
     m_worldDynamicsPC.modifyTarget   = static_cast<glm::uint>(layer);
@@ -248,9 +244,7 @@ void World::endStep(const vk::CommandBuffer& cmdBuf) {
 }
 
 void World::fluidDynamicsStep(
-    const vk::CommandBuffer& cmdBuf,
-    const glm::ivec2&        botLeftTi,
-    const glm::ivec2&        topRightTi
+    const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
     // Convert positions to chunks
     glm::ivec2 botLeftCh    = tiToCh(botLeftTi);

@@ -15,7 +15,7 @@
 
 namespace rw {
 
-InventoryUI::InventoryUI(const glm::vec2& windowSize) {
+InventoryUI::InventoryUI(glm::vec2 windowSize) {
     windowResized(windowSize);
 }
 
@@ -26,7 +26,7 @@ InventoryUI::~InventoryUI() {
     });
 }
 
-void InventoryUI::windowResized(const glm::vec2& newWindowSize) {
+void InventoryUI::windowResized(glm::vec2 newWindowSize) {
     m_windowSize = newWindowSize;
     reload();
 }
@@ -71,7 +71,7 @@ void InventoryUI::reload() {
     });
 }
 
-void InventoryUI::swapUnderCursor(const glm::vec2& cursorPx) {
+void InventoryUI::swapUnderCursor(glm::vec2 cursorPx) {
     auto slot = cursorToSlot(cursorPx);
     if (slot) {
         int   x          = slot->x;
@@ -90,7 +90,7 @@ void InventoryUI::swapUnderCursor(const glm::vec2& cursorPx) {
     }
 }
 
-void InventoryUI::movePortion(const glm::vec2& cursorPx, float portion) {
+void InventoryUI::movePortion(glm::vec2 cursorPx, float portion) {
     auto slot = cursorToSlot(cursorPx);
     if (slot) {
         int i = m_inv[Primary]->toIndex(slot->x, slot->y);
@@ -150,7 +150,7 @@ void InventoryUI::step() {
     m_heldSprite.sprite().step();
 }
 
-void InventoryUI::draw(re::SpriteBatch& spriteBatch, const glm::vec2& cursorPx) {
+void InventoryUI::draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx) {
     if (!m_inv[Primary]) {
         return;
     }
@@ -206,8 +206,7 @@ inline int InventoryUI::invSlotCount(Connection con) const {
     return m_inv[con]->slotCount();
 }
 
-std::optional<glm::ivec2> InventoryUI::cursorToSlot(const glm::vec2& cursorPx
-) const {
+std::optional<glm::ivec2> InventoryUI::cursorToSlot(glm::vec2 cursorPx) const {
     if (m_open && m_inv[Primary]) {
         glm::vec2  posWithinInv = cursorPx - m_invBotLeftPx;
         glm::vec2  slotPos      = posWithinInv / (slotDims() + k_slotPadding);

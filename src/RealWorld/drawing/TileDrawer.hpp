@@ -16,13 +16,13 @@ namespace rw {
  */
 class TileDrawer {
 public:
-    TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
+    TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
 
-    void setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize);
+    void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
 
-    void resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
+    void resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
 
-    void drawTiles(const vk::CommandBuffer& cmdBuf, const glm::vec2& botLeftPx);
+    void drawTiles(const vk::CommandBuffer& cmdBuf, glm::vec2 botLeftPx);
 
     void drawMinimap(const vk::CommandBuffer& cmdBuf);
 

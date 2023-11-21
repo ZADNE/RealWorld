@@ -22,7 +22,7 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
-vk::DeviceSize calcActiveChunksBufSize(const glm::ivec2& worldTexSizeCh) {
+vk::DeviceSize calcActiveChunksBufSize(glm::ivec2 worldTexSizeCh) {
     glm::ivec2 maxContinuous = worldTexSizeCh - 1;
     return sizeof(ChunkManager::ActiveChunksSB) +
            sizeof(glm::ivec2) * (maxContinuous.x * maxContinuous.y +
@@ -39,7 +39,7 @@ ChunkManager::ChunkManager(const re::PipelineLayout& pipelineLayout)
           {.pipelineLayout = *pipelineLayout}, {.comp = analyzeContinuity_comp}
       )
     , m_cullVegetationPl(
-          {.pipelineLayout = *pipelineLayout}, {.comp = cullVegetation_comp}
+          {.pipelineLayout = *pipelineLayout}, {.comp = saveVegetation_comp}
       ) {
 }
 
@@ -227,8 +227,8 @@ void ChunkManager::beginStep() {
 
 void ChunkManager::planActivationOfChunks(
     const vk::CommandBuffer& cmdBuf,
-    const glm::ivec2&        botLeftTi,
-    const glm::ivec2&        topRightTi,
+    glm::ivec2               botLeftTi,
+    glm::ivec2               topRightTi,
     glm::uint                branchReadBuf
 ) {
     glm::ivec2 botLeftCh  = tiToCh(botLeftTi);
@@ -298,7 +298,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
 }
 
 void ChunkManager::planTransition(
-    const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh, glm::uint branchReadBuf
+    const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchReadBuf
 ) {
     auto posAc = chToAc(posCh, m_worldTexSizeMask);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexSizeMask + 1));
@@ -317,8 +317,8 @@ void ChunkManager::planTransition(
 void ChunkManager::planActivation(
     const vk::CommandBuffer& cmdBuf,
     glm::ivec2&              activeChunk,
-    const glm::ivec2&        posCh,
-    const glm::ivec2&        posAt,
+    glm::ivec2               posCh,
+    glm::ivec2               posAt,
     glm::uint                branchReadBuf
 ) {
     // Try to find the chunk among inactive chunks
@@ -352,7 +352,7 @@ void ChunkManager::planActivation(
 }
 
 void ChunkManager::planDeactivation(
-    const vk::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, const glm::ivec2& posAt
+    const vk::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
 ) {
     // Query download of the chunk
     if (planDownload(cmdBuf, activeChunk, posAt)) {
@@ -364,8 +364,8 @@ void ChunkManager::planDeactivation(
 bool ChunkManager::planUpload(
     const vk::CommandBuffer&          cmdBuf,
     const std::vector<unsigned char>& tiles,
-    const glm::ivec2&                 posCh,
-    const glm::ivec2&                 posAt
+    glm::ivec2                        posCh,
+    glm::ivec2                        posAt
 ) {
     if (m_nextFreeTileStage < k_tileStageSize) { // If there is a free stage
         m_tileStageStates[m_nextFreeTileStage] = {
@@ -393,7 +393,7 @@ bool ChunkManager::planUpload(
 }
 
 bool ChunkManager::planDownload(
-    const vk::CommandBuffer& cmdBuf, const glm::ivec2& posCh, const glm::ivec2& posAt
+    const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
 ) {
     if (m_nextFreeTileStage < k_tileStageSize) { // If there is a free stage
         m_tileStageStates[m_nextFreeTileStage] = {

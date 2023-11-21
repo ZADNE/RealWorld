@@ -23,7 +23,7 @@ constexpr int       k_unitMask          = ~(k_iLightScale * iTilePx.x - 1);
 constexpr int       k_halfUnitOffset    = iTilePx.x * k_iLightScale / 2;
 constexpr glm::vec2 k_analysisGroupSize = glm::vec2{8.0f};
 
-glm::uvec3 getAnalysisGroupCount(const glm::vec2& viewSizeTi) {
+glm::uvec3 getAnalysisGroupCount(glm::vec2 viewSizeTi) {
     return {
         glm::ceil(
             (viewSizeTi + glm::vec2(k_lightMaxRangeTi) * 2.0f) /
@@ -33,16 +33,14 @@ glm::uvec3 getAnalysisGroupCount(const glm::vec2& viewSizeTi) {
 }
 
 constexpr glm::vec2 k_calcGroupSize = glm::vec2{8.0f};
-glm::uvec3 getShadowsCalculationGroupCount(const glm::vec2& viewSizeTi) {
+glm::uvec3          getShadowsCalculationGroupCount(glm::vec2 viewSizeTi) {
     return {
         glm::ceil((viewSizeTi + k_lightScale * 2.0f) / k_calcGroupSize / k_lightScale),
         1u};
 }
 
 ShadowDrawer::ShadowDrawer(
-    const glm::vec2&  viewSizePx,
-    const glm::ivec2& viewSizeTi,
-    glm::uint         maxNumberOfExternalLights
+    glm::vec2 viewSizePx, glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights
 )
     : m_analysisPll(
           {},
@@ -92,14 +90,12 @@ ShadowDrawer::ShadowDrawer(
          m_lightsBuf) {
 }
 
-void ShadowDrawer::setTarget(
-    const re::Texture& worldTexture, const glm::ivec2& worldTexSize
-) {
+void ShadowDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
     m_.analysisPC.worldTexMask = worldTexSize - 1;
     m_.analysisDS.write(eCombinedImageSampler, 2u, 0u, worldTexture, eReadOnlyOptimal);
 }
 
-void ShadowDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi) {
+void ShadowDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
     m_ = ViewSizeDependent{
         viewSizePx,
         viewSizeTi,
@@ -111,7 +107,7 @@ void ShadowDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& vie
         m_lightsBuf};
 }
 
-void ShadowDrawer::analyze(const vk::CommandBuffer& cmdBuf, const glm::ivec2& botLeftTi) {
+void ShadowDrawer::analyze(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi) {
     m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) &
                                      ~k_lightScaleBits;
     cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
@@ -125,15 +121,13 @@ void ShadowDrawer::analyze(const vk::CommandBuffer& cmdBuf, const glm::ivec2& bo
     m_.analysisPC.lightCount = 0;
 }
 
-void ShadowDrawer::addExternalLight(const glm::ivec2& posPx, re::Color col) {
+void ShadowDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
     ExternalLight light{posPx, col};
     std::memcpy(&m_lightsBuf[m_.analysisPC.lightCount], &light, sizeof(ExternalLight));
     m_.analysisPC.lightCount++;
 }
 
-void ShadowDrawer::calculate(
-    const vk::CommandBuffer& cmdBuf, const glm::ivec2& botLeftPx
-) {
+void ShadowDrawer::calculate(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftPx) {
     if (m_.analysisPC.lightCount > 0) { // If there are any dynamic lights
         // Wait for the analysis to be finished
         auto imageBarrier = imageMemoryBarrier(
@@ -208,7 +202,7 @@ void ShadowDrawer::calculate(
 }
 
 void ShadowDrawer::draw(
-    const vk::CommandBuffer& cmdBuf, const glm::vec2& botLeftPx, const glm::uvec2& viewSizeTi
+    const vk::CommandBuffer& cmdBuf, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi
 ) {
     m_.shadowDrawingPC.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
     m_.shadowDrawingPC.readOffsetTi       = glm::ivec2(pxToTi(botLeftPx)) &
@@ -247,8 +241,8 @@ vk::ImageMemoryBarrier2 ShadowDrawer::imageMemoryBarrier(
 }
 
 ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
-    const glm::vec2&          viewSizePx,
-    const glm::ivec2&         viewSizeTi,
+    glm::vec2                 viewSizePx,
+    glm::ivec2                viewSizeTi,
     const re::PipelineLayout& analysisPll,
     const re::PipelineLayout& calculationPll,
     const re::PipelineLayout& shadowDrawingPll,

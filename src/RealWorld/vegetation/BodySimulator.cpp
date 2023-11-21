@@ -20,7 +20,7 @@ void BodySimulator::step(const vk::CommandBuffer& cmdBuf) {
     cmdBuf.dispatchIndirect(*m_bodiesBuf, offsetof(BodiesSBHeader, dispatchX));
 }
 
-const re::Buffer& BodySimulator::adoptSave(const glm::ivec2& worldTexSizeCh) {
+const re::Buffer& BodySimulator::adoptSave(glm::ivec2 worldTexSizeCh) {
     auto maxBodyCount = k_bodiesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                         k_bodyHeaderSize;
 

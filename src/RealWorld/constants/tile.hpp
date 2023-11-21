@@ -90,21 +90,21 @@ enum class TileLayer : uint32_t {
 /**
  * @brief Converts a position in pixels to position in tiles
  */
-constexpr inline glm::vec2 pxToTi(const glm::vec2& posPx) {
+constexpr inline glm::vec2 pxToTi(glm::vec2 posPx) {
     glm::vec2 posTiFrac = posPx / TilePx;
     return {std::floor(posTiFrac.x), std::floor(posTiFrac.y)};
 }
-constexpr inline glm::ivec2 pxToTi(const glm::ivec2& posPx) {
+constexpr inline glm::ivec2 pxToTi(glm::ivec2 posPx) {
     return posPx >> k_tileLowZeroBits;
 }
 
 /**
  * @brief Converts a position in tiles to position in pixels
  */
-constexpr inline glm::vec2 tiToPx(const glm::vec2& posTi) {
+constexpr inline glm::vec2 tiToPx(glm::vec2 posTi) {
     return posTi * TilePx;
 }
-constexpr inline glm::ivec2 tiToPx(const glm::ivec2& posTi) {
+constexpr inline glm::ivec2 tiToPx(glm::ivec2 posTi) {
     return posTi << k_tileLowZeroBits;
 }
 

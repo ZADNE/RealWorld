@@ -13,7 +13,7 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
-TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi)
+TileDrawer::TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi)
     : m_pipelineLayout(
           {},
           re::PipelineLayoutDescription{
@@ -45,9 +45,7 @@ TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi
     resizeView(viewSizePx, viewSizeTi);
 }
 
-void TileDrawer::setTarget(
-    const re::Texture& worldTexture, const glm::ivec2& worldTexSize
-) {
+void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
     m_descriptorSet.write(eCombinedImageSampler, 0u, 0u, worldTexture, eReadOnlyOptimal);
     m_pushConstants.worldTexMask = worldTexSize - 1;
     glm::vec2 viewSizePx =
@@ -56,7 +54,7 @@ void TileDrawer::setTarget(
     resizeView(viewSizePx, m_pushConstants.viewSizeTi);
 }
 
-void TileDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi) {
+void TileDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
     m_pushConstants.viewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
     m_pushConstants.viewSizeTi  = viewSizeTi;
     glm::vec2 worldTexSize      = m_pushConstants.worldTexMask + 1;
@@ -78,7 +76,7 @@ void TileDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewS
                                     m_pushConstants.minimapSize * 0.5f;
 }
 
-void TileDrawer::drawTiles(const vk::CommandBuffer& cmdBuf, const glm::vec2& botLeftPx) {
+void TileDrawer::drawTiles(const vk::CommandBuffer& cmdBuf, glm::vec2 botLeftPx) {
     m_pushConstants.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
     m_pushConstants.botLeftTi          = glm::ivec2(pxToTi(botLeftPx));
     cmdBuf.bindDescriptorSets(

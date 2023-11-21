@@ -18,7 +18,7 @@ public:
 
     void step(const vk::CommandBuffer& cmdBuf);
 
-    const re::Buffer& adoptSave(const glm::ivec2& worldTexSizeCh);
+    const re::Buffer& adoptSave(glm::ivec2 worldTexSizeCh);
 
 private:
     struct Body {

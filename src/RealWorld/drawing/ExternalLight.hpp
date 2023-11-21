@@ -10,7 +10,7 @@ namespace rw {
  * @brief Represents a dynamic light that can be added into the world.
  */
 struct ExternalLight {
-    ExternalLight(const glm::ivec2& posPx, re::Color col)
+    ExternalLight(glm::ivec2 posPx, re::Color col)
         : posPx(posPx)
         , col(col) {}
 

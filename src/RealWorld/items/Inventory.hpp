@@ -17,7 +17,7 @@ class Inventory: public InventoryData {
     friend class ItemCombinator;
 
 public:
-    explicit Inventory(const glm::ivec2& size)
+    explicit Inventory(glm::ivec2 size)
         : InventoryData{size} {}
 
     Inventory(const Inventory&)            = delete; /**< Noncopyable */
@@ -30,33 +30,31 @@ public:
 
     // New slots are empty
     // Contents of removed slots are lost
-    void resize(const glm::ivec2& newSize);
+    void resize(glm::ivec2 newSize);
 
     // Inputs item, creating new stacks
     // Returns true if all the intended items have been inserted, false if not
     // (inventory is full)
     bool insert(
-        Item&             item,
-        float             portion   = 1.0f,
-        const glm::ivec2& startSlot = glm::ivec2(0, 0),
-        bool              reload    = true
+        Item&      item,
+        float      portion   = 1.0f,
+        glm::ivec2 startSlot = glm::ivec2(0, 0),
+        bool       reload    = true
     );
     // Inputs item, first trying to fill already existing stack of this item
     // Returns true if all the intended items have been inserted, false if not
     // (inventory is full)
     bool fill(
-        Item&             item,
-        float             portion   = 1.0f,
-        const glm::ivec2& startSlot = glm::ivec2(0, 0),
-        bool              reload    = true
+        Item&      item,
+        float      portion   = 1.0f,
+        glm::ivec2 startSlot = glm::ivec2(0, 0),
+        bool       reload    = true
     );
     // Item describes what item and how much of it should be removed
     // Return how much MORE was supposed to be yet removed => returning 0 means
     // all items were removed as it was supposed
     int remove(
-        const Item&       item,
-        const glm::ivec2& startSlot = glm::ivec2(0, 0),
-        bool              reload    = true
+        const Item& item, glm::ivec2 startSlot = glm::ivec2(0, 0), bool reload = true
     );
 
     void adoptInventoryData(const InventoryData& id);

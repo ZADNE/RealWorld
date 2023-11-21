@@ -12,7 +12,7 @@
 namespace rw {
 
 std::vector<unsigned char> ChunkLoader::loadChunk(
-    const std::string& folderPath, const glm::ivec2& chunkPos, const glm::uvec2& chunkDims
+    const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims
 ) {
     std::vector<unsigned char> bytes;
 
@@ -33,8 +33,8 @@ std::vector<unsigned char> ChunkLoader::loadChunk(
 
 void ChunkLoader::saveChunk(
     const std::string& folderPath,
-    const glm::ivec2&  chunkPos,
-    const glm::uvec2&  chunkDims,
+    glm::ivec2         chunkPos,
+    glm::uvec2         chunkDims,
     const uint8_t*     tiles
 ) {
     std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);

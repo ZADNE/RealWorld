@@ -12,21 +12,21 @@ namespace rw {
 class Hitbox {
 public:
     Hitbox(
-        const glm::ivec2& botLeftPx,
-        const glm::ivec2& dimsPx,
-        const glm::ivec2& centerOffsetPx = glm::ivec2(0, 0)
+        glm::ivec2 botLeftPx,
+        glm::ivec2 dimsPx,
+        glm::ivec2 centerOffsetPx = glm::ivec2(0, 0)
     );
 
-    glm::ivec2&       botLeft();
-    const glm::ivec2& botLeft() const;
+    glm::ivec2& botLeft();
+    glm::ivec2  botLeft() const;
 
-    void setDims(const glm::ivec2& dimensionPx);
+    void setDims(glm::ivec2 dimensionPx);
 
     glm::ivec2 center() const;
     bool       collidesWith(Hitbox& otherHitbox) const;
-    bool       overlaps(const glm::ivec2& pointPx) const;
+    bool       overlaps(glm::ivec2 pointPx) const;
 
-    bool overlapsBlockwise(const glm::ivec2& pointPx) const;
+    bool overlapsBlockwise(glm::ivec2 pointPx) const;
 
 protected:
     glm::ivec2 m_botLeftPx; // Bottom-left corner of the hitbox

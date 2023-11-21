@@ -22,13 +22,13 @@ public:
         : m_dims(dims)
         , m_items(slotCount()) {}
 
-    const glm::ivec2& dims() const { return m_dims; }
+    glm::ivec2 dims() const { return m_dims; }
 
     int toIndex(int x, int y) const { return y * m_dims.x + x; }
 
     int slotCount() const { return m_dims.x * m_dims.y; }
 
-    void resize(const glm::ivec2& dims) {
+    void resize(glm::ivec2 dims) {
         m_dims = dims;
         m_items.resize(slotCount());
     }
