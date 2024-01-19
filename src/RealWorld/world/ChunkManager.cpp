@@ -34,12 +34,17 @@ ChunkManager::ChunkManager(const re::PipelineLayout& pipelineLayout)
           .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                         vma::AllocationCreateFlagBits::eHostAccessRandom,
           .sizeInBytes = k_tileStageSize * k_chunkByteSize,
-          .usage       = eTransferSrc | eTransferDst})
+          .usage       = eTransferSrc | eTransferDst,
+          .debugName   = "rw::ChunkManager::tilesStage"})
     , m_analyzeContinuityPl(
-          {.pipelineLayout = *pipelineLayout}, {.comp = analyzeContinuity_comp}
+          {.pipelineLayout = *pipelineLayout,
+           .debugName      = "rw::ChunkManager::analyzeContinuity"},
+          {.comp = analyzeContinuity_comp}
       )
     , m_cullVegetationPl(
-          {.pipelineLayout = *pipelineLayout}, {.comp = saveVegetation_comp}
+          {.pipelineLayout = *pipelineLayout,
+           .debugName      = "rw::ChunkManager::cullVegetation"},
+          {.comp = saveVegetation_comp}
       ) {
 }
 
@@ -63,12 +68,14 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
     m_activeChunksBuf      = re::Buffer{re::BufferCreateInfo{
              .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
              .sizeInBytes = bufSize,
-             .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst}};
+             .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
+             .debugName   = "rw::ChunkManager::activeChunks"}};
     m_activeChunksStageBuf = re::BufferMapped<ActiveChunksSB>{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = bufSize,
-        .usage       = eTransferSrc}};
+        .usage       = eTransferSrc,
+        .debugName   = "rw::ChunkManager::activeChunksStage"}};
     m_activeChunksStageBuf->activeChunksMask  = m_worldTexSizeMask;
     m_activeChunksStageBuf->worldTexSizeCh    = targetInfo.worldTexSizeCh;
     m_activeChunksStageBuf->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};

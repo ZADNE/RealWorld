@@ -73,7 +73,7 @@ private:
         re::CommandBuffer{vk::CommandBufferLevel::ePrimary}};
     uint64_t        m_stepN = 1;
     re::Semaphore   m_simulationFinishedSem{m_stepN};
-    re::SpriteBatch m_spriteBatch{256, 64};
+    re::SpriteBatch m_spriteBatch{256, 32};
     re::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
 
     // View

@@ -33,7 +33,8 @@ ChunkGenerator::ChunkGenerator()
     , m_vegPreparationBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(VegPreparationSB),
-          .usage       = B::eStorageBuffer | B::eIndirectBuffer}) {
+          .usage       = B::eStorageBuffer | B::eIndirectBuffer,
+          .debugName   = "rw::ChunkGenerator::vegPreparation"}) {
     m_descriptorSet.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
     m_descriptorSet.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
     m_descriptorSet.write(eUniformBuffer, 2, 0, m_vegTemplatesBuf, 0, vk::WholeSize);

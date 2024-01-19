@@ -235,7 +235,8 @@ re::Buffer ChunkGenerator::createVegTemplatesBuffer() {
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = sizeof(Branch) * branches.size(),
         .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
-        .initData    = std::as_bytes(std::span{branches})}};
+        .initData    = std::as_bytes(std::span{branches}),
+        .debugName   = "rw::ChunkGeneratorVeg::vegTemplates"}};
 }
 
 } // namespace rw

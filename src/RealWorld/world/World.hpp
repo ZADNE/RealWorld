@@ -109,14 +109,16 @@ private:
     re::PipelineLayout m_simulationPL;
     re::DescriptorSet  m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
     re::Pipeline       m_simulateFluidsPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
-        re::PipelineComputeSources{.comp = simulateFluids_comp}};
+              {.pipelineLayout = *m_simulationPL,
+               .debugName      = "rw::World::simulateFluids"},
+              {.comp = simulateFluids_comp}};
     re::Pipeline m_transformTilesPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
-        re::PipelineComputeSources{.comp = transformTiles_comp}};
+        {.pipelineLayout = *m_simulationPL,
+         .debugName      = "rw::World::transformTiles"},
+        {.comp = transformTiles_comp}};
     re::Pipeline m_modifyTilesPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
-        re::PipelineComputeSources{.comp = modifyTiles_comp}};
+        {.pipelineLayout = *m_simulationPL, .debugName = "rw::World::modifyTiles"},
+        {.comp = modifyTiles_comp}};
 
     ChunkManager      m_chunkManager{m_simulationPL};
     const re::Buffer* m_activeChunksBuf = nullptr;

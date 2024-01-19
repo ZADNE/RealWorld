@@ -72,7 +72,8 @@ World::World()
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(TilePropertiesUIB),
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
-          .initData    = re::objectToByteSpan(k_tileProperties)})
+          .initData    = re::objectToByteSpan(k_tileProperties),
+          .debugName   = "rw::World::tileProperties"})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
     m_simulationDS.write(
         eUniformBuffer, k_tilePropertiesBufBinding, 0, m_tilePropertiesBuf, 0, vk::WholeSize
@@ -91,7 +92,8 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
         .format     = vk::Format::eR8G8B8A8Uint,
         .extent     = {texSize, 1},
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
-                 eColorAttachment | eInputAttachment}};
+                 eColorAttachment | eInputAttachment,
+        .debugName = "rw::World::world"}};
     m_simulationDS.write(eStorageImage, k_worldTexBinding, 0, m_worldTex, eGeneral);
 
     // Body simulator

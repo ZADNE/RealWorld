@@ -112,7 +112,8 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = sizeof(glm::uvec2) + k_maxVegCount * sizeof(glm::ivec4),
         .usage       = eStorageBuffer,
-        .initData    = re::objectToByteSpan(initVegCount)}};
+        .initData    = re::objectToByteSpan(initVegCount),
+        .debugName   = "rw::VegSimulator::veg"}};
 
     // Prepare branch buffer
     vk::DrawIndirectCommand initHeader{0, 1, 0, 0};
@@ -121,7 +122,8 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         .sizeInBytes       = sizeof(BranchSB),
         .usage             = eStorageBuffer | eIndirectBuffer,
         .initData          = re::objectToByteSpan(initHeader),
-        .initDataDstOffset = offsetof(BranchSB, vertexCount)}};
+        .initDataDstOffset = offsetof(BranchSB, vertexCount),
+        .debugName         = "rw::VegSimulator::branch"}};
 
     // Prepare descriptor
     m_descriptorSet.write(D::eStorageBuffer, 0u, 0u, m_branchBuf, 0ull, vk::WholeSize);

@@ -28,13 +28,15 @@ TileDrawer::TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi)
     , m_drawTilesPl(
           re::PipelineGraphicsCreateInfo{
               .topology       = vk::PrimitiveTopology::eTriangleStrip,
-              .pipelineLayout = *m_pipelineLayout},
+              .pipelineLayout = *m_pipelineLayout,
+              .debugName      = "rw::TileDrawer::drawTiles"},
           re::PipelineGraphicsSources{.vert = drawTiles_vert, .frag = drawColor_frag}
       )
     , m_drawMinimapPl(
           re::PipelineGraphicsCreateInfo{
               .topology       = vk::PrimitiveTopology::eTriangleStrip,
-              .pipelineLayout = *m_pipelineLayout},
+              .pipelineLayout = *m_pipelineLayout,
+              .debugName      = "rw::TileDrawer::drawMinimap"},
           re::PipelineGraphicsSources{.vert = drawMinimap_vert, .frag = drawMinimap_frag}
       ) {
     m_descriptorSet.write(

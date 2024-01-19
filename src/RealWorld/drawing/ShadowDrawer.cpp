@@ -55,8 +55,16 @@ ShadowDrawer::ShadowDrawer(
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(AnalysisPC)}}}
       )
-    , m_analyzeTilesPl({.pipelineLayout = *m_analysisPll}, {.comp = analyzeTiles_comp})
-    , m_addLightsPl({.pipelineLayout = *m_analysisPll}, {.comp = addDynamicLights_comp})
+    , m_analyzeTilesPl(
+          {.pipelineLayout = *m_analysisPll,
+           .debugName      = "rw::ShadowDrawer::analyzeTiles"},
+          {.comp = analyzeTiles_comp}
+      )
+    , m_addLightsPl(
+          {.pipelineLayout = *m_analysisPll,
+           .debugName      = "rw::ShadowDrawer::addLights"},
+          {.comp = addDynamicLights_comp}
+      )
     , m_calculationPll(
           {},
           re::PipelineLayoutDescription{
@@ -67,19 +75,23 @@ ShadowDrawer::ShadowDrawer(
               }}}
       )
     , m_calculateShadowsPl(
-          {.pipelineLayout = *m_calculationPll}, {.comp = calculateShadows_comp}
+          {.pipelineLayout = *m_calculationPll,
+           .debugName      = "rw::ShadowDrawer::calculateShadows"},
+          {.comp = calculateShadows_comp}
       )
     , m_shadowDrawingPll({}, {.vert = drawShadows_vert, .frag = drawColor_frag})
     , m_drawShadowsPl(
           re::PipelineGraphicsCreateInfo{
               .topology       = vk::PrimitiveTopology::eTriangleStrip,
-              .pipelineLayout = *m_shadowDrawingPll},
+              .pipelineLayout = *m_shadowDrawingPll,
+              .debugName      = "rw::ShadowDrawer::drawShadows"},
           {.vert = drawShadows_vert, .frag = drawColor_frag}
       )
     , m_lightsBuf(re::BufferCreateInfo{
           .allocFlags  = eMapped | eHostAccessSequentialWrite,
           .sizeInBytes = maxNumberOfExternalLights * sizeof(ExternalLight),
-          .usage       = vk::BufferUsageFlagBits::eStorageBuffer})
+          .usage       = vk::BufferUsageFlagBits::eStorageBuffer,
+          .debugName   = "rw::ShadowDrawer::lights"})
     , m_(viewSizePx,
          viewSizeTi,
          m_analysisPll,
@@ -267,7 +279,8 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
                       formats.size(), formats.data()};
                   return &formatList;
               }(),
-          .magFilter = vk::Filter::eLinear})
+          .magFilter = vk::Filter::eLinear,
+          .debugName = "rw::ShadowDrawer::light"})
     , lightTexR32ImageView(vk::ImageViewCreateInfo{
           {},
           lightTex.image(),
@@ -280,11 +293,13 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
           .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
           .initialLayout = eGeneral,
-          .magFilter     = vk::Filter::eLinear})
+          .magFilter     = vk::Filter::eLinear,
+          .debugName     = "rw::ShadowDrawer::translu"})
     , shadowsTex(re::TextureCreateInfo{
           .extent = {glm::vec2{calculationGroupCount} * k_calcGroupSize, 1u},
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
-          .magFilter = vk::Filter::eLinear})
+          .magFilter = vk::Filter::eLinear,
+          .debugName = "rw::ShadowDrawer::shadows"})
     , shadowDrawingPC(
           {.viewMat    = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y),
            .viewSizeTi = viewSizeTi}
