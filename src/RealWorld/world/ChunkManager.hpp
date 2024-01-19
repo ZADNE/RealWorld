@@ -89,21 +89,21 @@ public:
      * @warning Must be called between beginStep() and endStep().
      */
     void planActivationOfChunks(
-        const vk::CommandBuffer& cmdBuf,
+        const re::CommandBuffer& cmdBuf,
         glm::ivec2               botLeftTi,
         glm::ivec2               topRightTi,
         glm::uint                branchWriteBuf
     );
 
-    int endStep(const vk::CommandBuffer& cmdBuf);
+    int endStep(const re::CommandBuffer& cmdBuf);
 
 private:
     void planTransition(
-        const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchWriteBuf
+        const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchWriteBuf
     );
 
     void planActivation(
-        const vk::CommandBuffer& cmdBuf,
+        const re::CommandBuffer& cmdBuf,
         glm::ivec2&              activeChunk,
         glm::ivec2               posCh,
         glm::ivec2               posAt,
@@ -111,18 +111,18 @@ private:
     );
 
     void planDeactivation(
-        const vk::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
+        const re::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
     );
 
     bool planUpload(
-        const vk::CommandBuffer&          cmdBuf,
+        const re::CommandBuffer&          cmdBuf,
         const std::vector<unsigned char>& tiles,
         glm::ivec2                        posCh,
         glm::ivec2                        posAt
     );
 
     bool planDownload(
-        const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
+        const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
     );
 
     void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;

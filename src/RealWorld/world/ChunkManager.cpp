@@ -85,10 +85,10 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
     for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         m_activeChunksStageBuf->offsets[i] = k_chunkNotActive;
     }
-    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& cmdBuf) {
+    re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
         // Copy whole buffer
         vk::BufferCopy2 bufferCopy{0ull, 0ull, bufSize};
-        cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
+        cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
             m_activeChunksStageBuf.buffer(), // Src buffer
             m_activeChunksBuf.buffer(),      // Dst buffer
             bufferCopy                       // Region
@@ -153,7 +153,7 @@ bool ChunkManager::saveChunks() {
             auto posAc = glm::ivec2(x, y);
             auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, worldTexSize));
             if (activeChunk != k_chunkNotActive) {
-                if (!planDownload(*cmdBuf, activeChunk, chToTi(posAc))) { // If stage is full
+                if (!planDownload(cmdBuf, activeChunk, chToTi(posAc))) { // If stage is full
                     cmdBuf->end();
                     cmdBuf.submitToComputeQueue(*downloadFinishedFence);
                     downloadFinishedFence.wait();
@@ -233,7 +233,7 @@ void ChunkManager::beginStep() {
 }
 
 void ChunkManager::planActivationOfChunks(
-    const vk::CommandBuffer& cmdBuf,
+    const re::CommandBuffer& cmdBuf,
     glm::ivec2               botLeftTi,
     glm::ivec2               topRightTi,
     glm::uint                branchReadBuf
@@ -249,7 +249,7 @@ void ChunkManager::planActivationOfChunks(
     }
 }
 
-int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
+int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
     // If there have been transparent changes
     if (m_transparentChunkChanges > 0) {
         // Reset the number of update chunks to zero
@@ -271,7 +271,7 @@ int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
                          m_worldTexSizeMask.y,
                  sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)}}
         );
-        cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
+        cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
             m_activeChunksStageBuf.buffer(), // Src buffer
             m_activeChunksBuf.buffer(),      // Dst buffer
             copyRegions                      // Regions
@@ -289,23 +289,23 @@ int ChunkManager::endStep(const vk::CommandBuffer& cmdBuf) {
             offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
             vk::WholeSize                                // Size
         };
-        cmdBuf.pipelineBarrier2({{}, {}, bufferBarrier, {}});
+        cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
 
         // Analyze the world texture
-        cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
-        cmdBuf.dispatch(
+        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
+        cmdBuf->dispatch(
             m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1
         );
 
         // Cull the vegetation
-        cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
-        cmdBuf.dispatch(k_maxVegCount / 256, 1, 1);
+        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
+        cmdBuf->dispatch(k_maxVegCount / 256, 1, 1);
     }
     return m_transparentChunkChanges;
 }
 
 void ChunkManager::planTransition(
-    const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchReadBuf
+    const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchReadBuf
 ) {
     auto posAc = chToAc(posCh, m_worldTexSizeMask);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexSizeMask + 1));
@@ -322,7 +322,7 @@ void ChunkManager::planTransition(
 }
 
 void ChunkManager::planActivation(
-    const vk::CommandBuffer& cmdBuf,
+    const re::CommandBuffer& cmdBuf,
     glm::ivec2&              activeChunk,
     glm::ivec2               posCh,
     glm::ivec2               posAt,
@@ -359,7 +359,7 @@ void ChunkManager::planActivation(
 }
 
 void ChunkManager::planDeactivation(
-    const vk::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
+    const re::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
 ) {
     // Query download of the chunk
     if (planDownload(cmdBuf, activeChunk, posAt)) {
@@ -369,7 +369,7 @@ void ChunkManager::planDeactivation(
 }
 
 bool ChunkManager::planUpload(
-    const vk::CommandBuffer&          cmdBuf,
+    const re::CommandBuffer&          cmdBuf,
     const std::vector<unsigned char>& tiles,
     glm::ivec2                        posCh,
     glm::ivec2                        posAt
@@ -388,7 +388,7 @@ bool ChunkManager::planUpload(
             {posAt.x, posAt.y, 0u},      // Offset
             {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
-        cmdBuf.copyBufferToImage2(vk::CopyBufferToImageInfo2{
+        cmdBuf->copyBufferToImage2(vk::CopyBufferToImageInfo2{
             m_tilesStageBuf.buffer(),
             m_worldTex->image(),
             vk::ImageLayout::eGeneral,
@@ -400,7 +400,7 @@ bool ChunkManager::planUpload(
 }
 
 bool ChunkManager::planDownload(
-    const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
+    const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
 ) {
     if (m_nextFreeTileStage < k_tileStageSize) { // If there is a free stage
         m_tileStageStates[m_nextFreeTileStage] = {
@@ -415,7 +415,7 @@ bool ChunkManager::planDownload(
             {posAt.x, posAt.y, 0u},      // Offset
             {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
-        cmdBuf.copyImageToBuffer2(vk::CopyImageToBufferInfo2{
+        cmdBuf->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
             m_worldTex->image(),
             vk::ImageLayout::eGeneral,
             m_tilesStageBuf.buffer(),

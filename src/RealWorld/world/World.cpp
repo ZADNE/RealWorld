@@ -129,7 +129,7 @@ void World::gatherSave(MetadataSave& save) const {
 
 bool World::saveChunks() {
     // Unrasterize branches so that the saved chunks do not contain them
-    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& cmdBuf) {
+    re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
         vk::ImageMemoryBarrier2 imageBarrier{
             S::eAllCommands,                   // Src stage mask
             {},                                // Src access mask
@@ -142,7 +142,7 @@ bool World::saveChunks() {
             m_worldTex.image(),
             vk::ImageSubresourceRange{
                 vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
-        cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
         m_vegSimulator.unrasterizeVegetation(cmdBuf);
     });
 
@@ -154,7 +154,7 @@ size_t World::numberOfInactiveChunks() {
     return m_chunkManager.numberOfInactiveChunks();
 }
 
-void World::beginStep(const vk::CommandBuffer& cmdBuf) {
+void World::beginStep(const re::CommandBuffer& cmdBuf) {
     // Transit world texture to general layout so that compute shaders can
     // manipulate it
     auto imageBarrier = vk::ImageMemoryBarrier2{
@@ -169,11 +169,11 @@ void World::beginStep(const vk::CommandBuffer& cmdBuf) {
         vk::QueueFamilyIgnored,
         m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
 int World::step(
-    const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
+    const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
     // Unrasterize branches
     m_vegSimulator.unrasterizeVegetation(cmdBuf);
@@ -183,7 +183,7 @@ int World::step(
     m_chunkManager.planActivationOfChunks(
         cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
     );
-    cmdBuf.bindDescriptorSets(
+    cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );
     int activatedChunks = m_chunkManager.endStep(cmdBuf);
@@ -196,11 +196,13 @@ int World::step(
 
     // Set up cmdBuf state for simulation
     xorshift32(m_worldDynamicsPC.timeHash);
-    cmdBuf.pushConstants(*m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash));
+    cmdBuf->pushConstants(
+        *m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash)
+    );
 
     // Tile transformations
-    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
-    cmdBuf.dispatchIndirect(
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
+    cmdBuf->dispatchIndirect(
         **m_activeChunksBuf,
         offsetof(ChunkManager::ActiveChunksSB, dynamicsGroupSize)
     );
@@ -212,7 +214,7 @@ int World::step(
 }
 
 void World::modify(
-    const vk::CommandBuffer& cmdBuf,
+    const re::CommandBuffer& cmdBuf,
     TileLayer                layer,
     ModificationShape        shape,
     float                    radius,
@@ -224,12 +226,14 @@ void World::modify(
     m_worldDynamicsPC.modifyShape    = static_cast<glm::uint>(shape);
     m_worldDynamicsPC.modifyRadius   = radius;
     m_worldDynamicsPC.modifySetValue = tile;
-    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
-    cmdBuf.pushConstants<WorldDynamicsPC>(*m_simulationPL, eCompute, 0, m_worldDynamicsPC);
-    cmdBuf.dispatch(1, 1, 1);
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
+    cmdBuf->pushConstants<WorldDynamicsPC>(
+        *m_simulationPL, eCompute, 0, m_worldDynamicsPC
+    );
+    cmdBuf->dispatch(1, 1, 1);
 }
 
-void World::endStep(const vk::CommandBuffer& cmdBuf) {
+void World::endStep(const re::CommandBuffer& cmdBuf) {
     // Transit world texture back to readonly-optimal layout so that it can rendered
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eComputeShader,                              // Src stage mask
@@ -242,11 +246,11 @@ void World::endStep(const vk::CommandBuffer& cmdBuf) {
         vk::QueueFamilyIgnored,
         m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
 void World::fluidDynamicsStep(
-    const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
+    const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
     // Convert positions to chunks
     glm::ivec2 botLeftCh    = tiToCh(botLeftTi);
@@ -265,7 +269,7 @@ void World::fluidDynamicsStep(
         vk::QueueFamilyIgnored,
         m_worldTex.image(),
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     // Permute the orders
     uint32_t order;
@@ -277,7 +281,7 @@ void World::fluidDynamicsStep(
             m_worldDynamicsPC.updateOrder |=
                 permuteOrder(m_worldDynamicsPC.timeHash) << (i * 8);
         }
-        cmdBuf.pushConstants(
+        cmdBuf->pushConstants(
             *m_simulationPL, eCompute, member(m_worldDynamicsPC, updateOrder)
         );
         // Randomize order of dispatches
@@ -287,18 +291,18 @@ void World::fluidDynamicsStep(
     }
 
     // 4 rounds, each updates one quarter of the chunks
-    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);
     glm::ivec2 dynBotLeftTi = botLeftCh * iChunkTi + iChunkTi / 2;
     for (unsigned int i = 0; i < 4; i++) {
         // Update offset of the groups
         glm::ivec2 offset{(order >> (i * 2 + 1)) & 1, (order >> (i * 2)) & 1};
         m_worldDynamicsPC.globalPosTi = dynBotLeftTi + offset * iChunkTi / 2;
-        cmdBuf.pushConstants(
+        cmdBuf->pushConstants(
             *m_simulationPL, eCompute, member(m_worldDynamicsPC, globalPosTi)
         );
         // Dispatch
-        cmdBuf.dispatch(dispatchSize.x, dispatchSize.y, 1);
-        cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+        cmdBuf->dispatch(dispatchSize.x, dispatchSize.y, 1);
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
 }
 

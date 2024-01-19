@@ -56,12 +56,12 @@ public:
     /**
      * @brief   Removes branches from the world texture
      */
-    void unrasterizeVegetation(const vk::CommandBuffer& cmdBuf);
+    void unrasterizeVegetation(const re::CommandBuffer& cmdBuf);
 
     /**
      * @brief   Adds simulated branches to the world texture
      */
-    void rasterizeVegetation(const vk::CommandBuffer& cmdBuf);
+    void rasterizeVegetation(const re::CommandBuffer& cmdBuf);
 
     struct VegStorage {
         const re::Buffer& vegBuf;
@@ -117,7 +117,7 @@ private:
     re::Framebuffer   m_framebuffer;
     glm::uvec2        m_worldTexSizeTi{};
 
-    void beginWorldTextureRenderPass(const vk::CommandBuffer& cmdBuf) const;
+    void beginWorldTextureRenderPass(const re::CommandBuffer& cmdBuf) const;
 };
 
 } // namespace rw

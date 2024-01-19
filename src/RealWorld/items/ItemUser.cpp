@@ -26,7 +26,7 @@ void ItemUser::selectSlot(int slot) {
 }
 
 void ItemUser::step(
-    const vk::CommandBuffer& cmdBuf, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
+    const re::CommandBuffer& cmdBuf, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
 ) {
     bool use[2] = {usePrimary, useSecondary};
 

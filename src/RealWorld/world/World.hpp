@@ -40,7 +40,7 @@ public:
     /**
      * @brief Performs layout transitions necessary to simulate the world
      */
-    void beginStep(const vk::CommandBuffer& cmdBuf);
+    void beginStep(const re::CommandBuffer& cmdBuf);
 
     /**
      * @brief                   Performs a simulation step of the world.
@@ -51,13 +51,13 @@ public:
      * @return                  The number of chunks that had to be activated
      * this step
      */
-    int step(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
+    int step(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
 
     /**
      * @brief Modifies tiles in the world
      */
     void modify(
-        const vk::CommandBuffer& cmdBuf,
+        const re::CommandBuffer& cmdBuf,
         TileLayer                layer,
         ModificationShape        shape,
         float                    radius,
@@ -68,7 +68,7 @@ public:
     /**
      * @brief Performs layout transitions necessary to draw the world
      */
-    void endStep(const vk::CommandBuffer& cmdBuf);
+    void endStep(const re::CommandBuffer& cmdBuf);
 
     /**
      * @brief   Sets this world class to simulate the world inside the given save
@@ -86,7 +86,7 @@ public:
 
 private:
     void fluidDynamicsStep(
-        const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
+        const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
 
     re::Texture m_worldTex;

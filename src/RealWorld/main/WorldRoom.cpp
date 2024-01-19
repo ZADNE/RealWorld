@@ -72,11 +72,11 @@ void WorldRoom::step() {
 
     // Simulate one physics step
     performWorldSimulationStep(
-        *cmdBuf, m_worldDrawer.setPosition(m_worldView.botLeft())
+        cmdBuf, m_worldDrawer.setPosition(m_worldView.botLeft())
     );
 
     // Analyze the results of the simulation step for drawing
-    analyzeWorldForDrawing(*cmdBuf);
+    analyzeWorldForDrawing(cmdBuf);
 
     // Submit the compute work to GPU
     cmdBuf->end();
@@ -96,7 +96,7 @@ void WorldRoom::step() {
     updateInventoryAndUI();
 }
 
-void WorldRoom::render(const vk::CommandBuffer& cmdBuf, double interpolationFactor) {
+void WorldRoom::render(const re::CommandBuffer& cmdBuf, double interpolationFactor) {
     engine().mainRenderPassBegin();
 
     m_worldDrawer.drawTiles(cmdBuf);
@@ -127,7 +127,7 @@ void WorldRoom::windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) {
 }
 
 void WorldRoom::performWorldSimulationStep(
-    const vk::CommandBuffer& cmdBuf, const WorldDrawer::ViewEnvelope& viewEnvelope
+    const re::CommandBuffer& cmdBuf, const WorldDrawer::ViewEnvelope& viewEnvelope
 ) {
     // Prepare for the simulation step
     m_world.beginStep(cmdBuf);
@@ -156,7 +156,7 @@ void WorldRoom::performWorldSimulationStep(
     m_world.endStep(cmdBuf);
 }
 
-void WorldRoom::analyzeWorldForDrawing(const vk::CommandBuffer& cmdBuf) {
+void WorldRoom::analyzeWorldForDrawing(const re::CommandBuffer& cmdBuf) {
     // Move the view based on movements of the player
     glm::vec2 prevViewPos   = m_worldView.center();
     glm::vec2 targetViewPos = glm::vec2(m_player.center()) * 0.75f +
@@ -241,7 +241,7 @@ void WorldRoom::updateInventoryAndUI() {
     }
 }
 
-void WorldRoom::drawGUI(const vk::CommandBuffer& cmdBuf) {
+void WorldRoom::drawGUI(const re::CommandBuffer& cmdBuf) {
     // Inventory
     m_spriteBatch.nextBatch();
     m_invUI.draw(m_spriteBatch, engine().cursorAbs());

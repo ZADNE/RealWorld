@@ -119,15 +119,15 @@ void ShadowDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
         m_lightsBuf};
 }
 
-void ShadowDrawer::analyze(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi) {
+void ShadowDrawer::analyze(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi) {
     m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) &
                                      ~k_lightScaleBits;
-    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
-    cmdBuf.bindDescriptorSets(
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
+    cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_analysisPll, 0u, *m_.analysisDS, {}
     );
-    cmdBuf.pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
-    cmdBuf.dispatch(
+    cmdBuf->pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
+    cmdBuf->dispatch(
         m_.analysisGroupCount.x, m_.analysisGroupCount.y, m_.analysisGroupCount.z
     );
     m_.analysisPC.lightCount = 0;
@@ -139,7 +139,7 @@ void ShadowDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
     m_.analysisPC.lightCount++;
 }
 
-void ShadowDrawer::calculate(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeftPx) {
+void ShadowDrawer::calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftPx) {
     if (m_.analysisPC.lightCount > 0) { // If there are any dynamic lights
         // Wait for the analysis to be finished
         auto imageBarrier = imageMemoryBarrier(
@@ -151,15 +151,15 @@ void ShadowDrawer::calculate(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeft
             eGeneral,                                       // New image layout
             m_.lightTex.image()
         );
-        cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
         // Add dynamic lights
         m_.analysisPC.addLightOffsetPx =
             ((botLeftPx - k_lightMaxRangeTi * iTilePx) & k_unitMask) +
             k_halfUnitOffset;
-        cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
-        cmdBuf.pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
-        cmdBuf.dispatch(1u + (m_.analysisPC.lightCount - 1u) / 8u, 1u, 1u);
+        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
+        cmdBuf->pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
+        cmdBuf->dispatch(1u + (m_.analysisPC.lightCount - 1u) / 8u, 1u, 1u);
     }
 
     // Wait for the light and traslu texture to be written
@@ -193,12 +193,12 @@ void ShadowDrawer::calculate(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeft
         )};
 
     // Calculate shadows
-    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
-    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_calculateShadowsPl);
-    cmdBuf.bindDescriptorSets(
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_calculateShadowsPl);
+    cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_calculationPll, 0u, *m_.calculationDS, {}
     );
-    cmdBuf.dispatch(
+    cmdBuf->dispatch(
         m_.calculationGroupCount.x,
         m_.calculationGroupCount.y,
         m_.calculationGroupCount.z
@@ -210,23 +210,23 @@ void ShadowDrawer::calculate(const vk::CommandBuffer& cmdBuf, glm::ivec2 botLeft
     std::swap(imageBarriers[2].oldLayout, imageBarriers[2].newLayout);
     std::swap(imageBarriers[2].srcStageMask, imageBarriers[2].dstStageMask);
     std::swap(imageBarriers[2].srcStageMask, imageBarriers[2].dstStageMask);
-    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
 }
 
 void ShadowDrawer::draw(
-    const vk::CommandBuffer& cmdBuf, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi
+    const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi
 ) {
     m_.shadowDrawingPC.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
     m_.shadowDrawingPC.readOffsetTi       = glm::ivec2(pxToTi(botLeftPx)) &
                                       k_lightScaleBits;
-    cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawShadowsPl);
-    cmdBuf.bindDescriptorSets(
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawShadowsPl);
+    cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_shadowDrawingPll, 0u, *m_.shadowDrawingDS, {}
     );
-    cmdBuf.pushConstants<ShadowDrawingPC>(
+    cmdBuf->pushConstants<ShadowDrawingPC>(
         *m_shadowDrawingPll, eVertex, 0u, m_.shadowDrawingPC
     );
-    cmdBuf.draw(4u, viewSizeTi.x * viewSizeTi.y, 0u, 0u);
+    cmdBuf->draw(4u, viewSizeTi.x * viewSizeTi.y, 0u, 0u);
 }
 
 vk::ImageMemoryBarrier2 ShadowDrawer::imageMemoryBarrier(

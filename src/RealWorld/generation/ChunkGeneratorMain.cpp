@@ -54,7 +54,7 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
 }
 
 void ChunkGenerator::generateChunk(
-    const vk::CommandBuffer& cmdBuf, const OutputInfo& outputInfo
+    const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo
 ) {
     m_genPC.chunkOffsetTi  = chToTi(outputInfo.posCh);
     m_genPC.branchWriteBuf = outputInfo.branchWriteBuf;
@@ -86,7 +86,7 @@ vk::ImageMemoryBarrier2 ChunkGenerator::worldTexBarrier() const {
         vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
 }
 
-void ChunkGenerator::finishGeneration(const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh) {
+void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec2 posCh) {
     // Wait for the generation to finish
     auto imageBarrier = vk::ImageMemoryBarrier2{
         S::eComputeShader,                              // Src stage mask
@@ -99,10 +99,10 @@ void ChunkGenerator::finishGeneration(const vk::CommandBuffer& cmdBuf, glm::ivec
         vk::QueueFamilyIgnored, // Ownership transition
         m_tilesTex.image(),
         vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
-    cmdBuf.pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     // Copy the generated chunk to the world texture
     auto dstOffsetTi = chToAt(posCh, m_worldTexSizeCh - 1);
-    cmdBuf.copyImage(
+    cmdBuf->copyImage(
         m_tilesTex.image(),
         eGeneral, // Src image
         m_worldTex->image(),

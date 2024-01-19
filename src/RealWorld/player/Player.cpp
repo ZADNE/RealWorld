@@ -45,9 +45,9 @@ void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) 
     m_descriptorSet.write(
         vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral
     );
-    re::CommandBuffer::doOneTimeSubmit([&](const vk::CommandBuffer& cmdBuf) {
+    re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
         auto copyRegion = vk::BufferCopy2{0ull, 0ull, sizeof(PlayerHitboxSB)};
-        cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
+        cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
             m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion});
     });
 }
@@ -60,7 +60,7 @@ glm::vec2 Player::center() const {
     return botLeftPx() + m_hitboxStageBuf->dimsPx * 0.5f;
 }
 
-void Player::step(const vk::CommandBuffer& cmdBuf, float dir, bool jump, bool autojump) {
+void Player::step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool autojump) {
     // Store position from previous step
     const auto newReadIndex = m_pushConstants.writeIndex;
     m_oldBotLeftPx          = m_hitboxStageBuf->botLeftPx[newReadIndex];
@@ -69,7 +69,7 @@ void Player::step(const vk::CommandBuffer& cmdBuf, float dir, bool jump, bool au
     size_t writeOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
                          sizeof(PlayerHitboxSB::botLeftPx[0]) * newReadIndex;
     auto copyRegion = vk::BufferCopy2{writeOffset, writeOffset, sizeof(glm::vec2)};
-    cmdBuf.copyBuffer2(vk::CopyBufferInfo2{
+    cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
         *m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion});
 
     // Simulate the movement
@@ -77,14 +77,14 @@ void Player::step(const vk::CommandBuffer& cmdBuf, float dir, bool jump, bool au
     m_pushConstants.walkDirection = glm::sign(dir);
     m_pushConstants.jump          = jump;
     m_pushConstants.autojump      = autojump;
-    cmdBuf.bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
-    cmdBuf.bindDescriptorSets(
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
+    cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
-    cmdBuf.pushConstants<PlayerMovementPC>(
+    cmdBuf->pushConstants<PlayerMovementPC>(
         *m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants
     );
-    cmdBuf.dispatch(1u, 1u, 1u);
+    cmdBuf->dispatch(1u, 1u, 1u);
 }
 
 void Player::draw(re::SpriteBatch& spriteBatch) {

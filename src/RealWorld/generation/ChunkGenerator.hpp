@@ -51,18 +51,18 @@ public:
     /**
      * @brief Generates a chunk - tiles and vegetation
      */
-    void generateChunk(const vk::CommandBuffer& cmdBuf, const OutputInfo& outputInfo);
+    void generateChunk(const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo);
 
 protected:
-    void prepareToGenerate(const vk::CommandBuffer& cmdBuf);
+    void prepareToGenerate(const re::CommandBuffer& cmdBuf);
 
-    void generateBasicTerrain(const vk::CommandBuffer& cmdBuf);
-    void consolidateEdges(const vk::CommandBuffer& cmdBuf);
-    void selectVariant(const vk::CommandBuffer& cmdBuf);
+    void generateBasicTerrain(const re::CommandBuffer& cmdBuf);
+    void consolidateEdges(const re::CommandBuffer& cmdBuf);
+    void selectVariant(const re::CommandBuffer& cmdBuf);
 
-    void generateVegetation(const vk::CommandBuffer& cmdBuf);
+    void generateVegetation(const re::CommandBuffer& cmdBuf);
 
-    void finishGeneration(const vk::CommandBuffer& cmdBuf, glm::ivec2 posCh);
+    void finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec2 posCh);
 
     vk::ImageMemoryBarrier2 worldTexBarrier() const; /**< Helper func */
 
