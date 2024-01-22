@@ -69,17 +69,20 @@ void WorldRoom::step() {
 
     cmdBuf->reset();
     cmdBuf->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    {
+        auto dbg = cmdBuf.createDebugRegion("step", {1.0, 0.0, 0.0, 1.0});
 
-    // Simulate one physics step
-    performWorldSimulationStep(
-        cmdBuf, m_worldDrawer.setPosition(m_worldView.botLeft())
-    );
+        // Simulate one physics step
+        performWorldSimulationStep(
+            cmdBuf, m_worldDrawer.setPosition(m_worldView.botLeft())
+        );
 
-    // Analyze the results of the simulation step for drawing
-    analyzeWorldForDrawing(cmdBuf);
+        // Analyze the results of the simulation step for drawing
+        analyzeWorldForDrawing(cmdBuf);
+    }
+    cmdBuf->end();
 
     // Submit the compute work to GPU
-    cmdBuf->end();
     vk::SemaphoreSubmitInfo waitSems{
         *m_simulationFinishedSem,
         m_stepN - 1,
@@ -97,6 +100,7 @@ void WorldRoom::step() {
 }
 
 void WorldRoom::render(const re::CommandBuffer& cmdBuf, double interpolationFactor) {
+    auto dbg = cmdBuf.createDebugRegion("render", {0.0, 0.0, 1.0, 1.0});
     engine().mainRenderPassBegin();
 
     m_worldDrawer.drawTiles(cmdBuf);
@@ -129,6 +133,8 @@ void WorldRoom::windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) {
 void WorldRoom::performWorldSimulationStep(
     const re::CommandBuffer& cmdBuf, const WorldDrawer::ViewEnvelope& viewEnvelope
 ) {
+    auto dbg = cmdBuf.createDebugRegion("simulation");
+
     // Prepare for the simulation step
     m_world.beginStep(cmdBuf);
 
@@ -157,6 +163,7 @@ void WorldRoom::performWorldSimulationStep(
 }
 
 void WorldRoom::analyzeWorldForDrawing(const re::CommandBuffer& cmdBuf) {
+    auto dbg = cmdBuf.createDebugRegion("analysisForDrawing");
     // Move the view based on movements of the player
     glm::vec2 prevViewPos   = m_worldView.center();
     glm::vec2 targetViewPos = glm::vec2(m_player.center()) * 0.75f +

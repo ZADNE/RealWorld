@@ -3,8 +3,8 @@
  */
 #include <glm/common.hpp>
 
-#include <RealEngine/graphics/CommandBuffer.hpp>
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/commands/CommandBuffer.hpp>
 
 #include <RealWorld/player/Player.hpp>
 
@@ -61,6 +61,8 @@ glm::vec2 Player::center() const {
 }
 
 void Player::step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool autojump) {
+    auto dbg = cmdBuf.createDebugRegion("player");
+
     // Store position from previous step
     const auto newReadIndex = m_pushConstants.writeIndex;
     m_oldBotLeftPx          = m_hitboxStageBuf->botLeftPx[newReadIndex];

@@ -28,6 +28,7 @@ void ItemUser::selectSlot(int slot) {
 void ItemUser::step(
     const re::CommandBuffer& cmdBuf, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
 ) {
+    auto dbg    = cmdBuf.createDebugRegion("item user");
     bool use[2] = {usePrimary, useSecondary};
 
     // Update usage

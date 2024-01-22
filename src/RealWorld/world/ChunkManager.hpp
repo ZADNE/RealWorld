@@ -7,8 +7,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <RealEngine/graphics/CommandBuffer.hpp>
 #include <RealEngine/graphics/buffers/BufferMapped.hpp>
+#include <RealEngine/graphics/commands/CommandBuffer.hpp>
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
