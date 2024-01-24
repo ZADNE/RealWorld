@@ -38,11 +38,6 @@ public:
     size_t numberOfInactiveChunks();
 
     /**
-     * @brief Performs layout transitions necessary to simulate the world
-     */
-    void beginStep(const re::CommandBuffer& cmdBuf);
-
-    /**
      * @brief                   Performs a simulation step of the world.
      * @param cmdBuf     Command buffer that will be used to record
      * computation commands
@@ -68,7 +63,7 @@ public:
     /**
      * @brief Performs layout transitions necessary to draw the world
      */
-    void endStep(const re::CommandBuffer& cmdBuf);
+    void prepareWorldForDrawing(const re::CommandBuffer& cmdBuf);
 
     /**
      * @brief   Sets this world class to simulate the world inside the given save
@@ -88,6 +83,7 @@ private:
     void fluidDynamicsStep(
         const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
+    void tileTransformationsStep(const re::CommandBuffer& cmdBuf, int activatedChunkCount);
 
     re::Texture m_worldTex;
     int         m_seed = 0;

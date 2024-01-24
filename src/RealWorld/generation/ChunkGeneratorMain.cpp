@@ -53,6 +53,10 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_descriptorSet.write(eStorageBuffer, 5, 0, *m_branchBuf, 0, vk::WholeSize);
 }
 
+void ChunkGenerator::nextStep() {
+    m_nOfGenChunksThisStep = 0;
+}
+
 void ChunkGenerator::generateChunk(
     const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo
 ) {
@@ -72,34 +76,30 @@ void ChunkGenerator::generateChunk(
     finishGeneration(cmdBuf, outputInfo.posCh);
 }
 
-vk::ImageMemoryBarrier2 ChunkGenerator::worldTexBarrier() const {
-    return vk::ImageMemoryBarrier2{
-        S::eComputeShader,      // Src stage mask
-        A::eShaderStorageWrite, // Src access mask
-        S::eComputeShader,      // Dst stage mask
-        A::eShaderStorageRead,  // Dst access mask
-        eGeneral,               // Old image layout
-        eGeneral,               // New image layout
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored, // Ownership transition
-        m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
-}
-
 void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec2 posCh) {
     // Wait for the generation to finish
-    auto imageBarrier = vk::ImageMemoryBarrier2{
-        S::eComputeShader,                              // Src stage mask
-        A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
-        S::eTransfer,                                   // Dst stage mask
-        A::eTransferRead,                               // Dst access mask
-        eGeneral,                                       // Old image layout
-        eGeneral,                                       // New image layout
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored, // Ownership transition
-        m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}};
-    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    auto barriers = std::to_array(
+        {re::imageMemoryBarrier(
+             S::eComputeShader,                              // Src stage mask
+             A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
+             S::eTransfer,                                   // Dst stage mask
+             A::eTransferRead,                               // Dst access mask
+             eGeneral,                                       // Old image layout
+             eGeneral,                                       // New image layout
+             m_tilesTex.image(),
+             vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}
+         ),
+         re::imageMemoryBarrier(
+             S::eColorAttachmentOutput, // Src stage mask
+             A::eColorAttachmentWrite,  // Src access mask
+             S::eTransfer,              // Dst stage mask
+             A::eTransferWrite,         // Dst access mask
+             eGeneral,                  // Old image layout
+             eGeneral,                  // New image layout
+             m_worldTex->image()
+         )}
+    );
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, barriers});
     // Copy the generated chunk to the world texture
     auto dstOffsetTi = chToAt(posCh, m_worldTexSizeCh - 1);
     cmdBuf->copyImage(
@@ -115,6 +115,7 @@ void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec
             vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}        // Copy Extent
         }
     );
+    m_nOfGenChunksThisStep++;
 }
 
 } // namespace rw

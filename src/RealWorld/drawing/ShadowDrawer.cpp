@@ -142,7 +142,7 @@ void ShadowDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
 void ShadowDrawer::calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftPx) {
     if (m_.analysisPC.lightCount > 0) { // If there are any dynamic lights
         // Wait for the analysis to be finished
-        auto imageBarrier = imageMemoryBarrier(
+        auto imageBarrier = re::imageMemoryBarrier(
             S::eComputeShader,                              // Src stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
             S::eComputeShader,                              // Dst stage mask
@@ -159,41 +159,43 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeft
             k_halfUnitOffset;
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
         cmdBuf->pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
-        cmdBuf->dispatch(1u + (m_.analysisPC.lightCount - 1u) / 8u, 1u, 1u);
+        cmdBuf->dispatch((m_.analysisPC.lightCount + 8u - 1u) / 8u, 1u, 1u);
     }
 
-    // Wait for the light and traslu texture to be written
-    vk::ImageMemoryBarrier2 imageBarriers[] = {
-        imageMemoryBarrier(
-            S::eComputeShader,                              // Src stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-            S::eComputeShader,                              // Dst stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-            eGeneral,                                       // Old image layout
-            eShaderReadOnlyOptimal,                         // New image layout
-            m_.lightTex.image()
-        ),
-        imageMemoryBarrier(
-            S::eComputeShader,                              // Src stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-            S::eComputeShader,                              // Dst stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-            eGeneral,                                       // Old image layout
-            eShaderReadOnlyOptimal,                         // New image layout
-            m_.transluTex.image()
-        ),
-        imageMemoryBarrier(
-            S::eVertexShader,       // Src stage mask
-            A::eShaderSampledRead,  // Src access mask
-            S::eComputeShader,      // Dst stage mask
-            A::eShaderStorageWrite, // Dst access mask
-            eShaderReadOnlyOptimal, // Old image layout
-            eGeneral,               // New image layout
-            m_.shadowsTex.image()
-        )};
+    { // Wait for the light and traslu texture to be written
+        auto imageBarriers = std::to_array(
+            {re::imageMemoryBarrier(
+                 S::eComputeShader, // Src stage mask
+                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+                 S::eComputeShader,      // Dst stage mask
+                 A::eShaderSampledRead,  // Dst access mask
+                 eGeneral,               // Old image layout
+                 eShaderReadOnlyOptimal, // New image layout
+                 m_.lightTex.image()
+             ),
+             re::imageMemoryBarrier(
+                 S::eComputeShader, // Src stage mask
+                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+                 S::eComputeShader,      // Dst stage mask
+                 A::eShaderSampledRead,  // Dst access mask
+                 eGeneral,               // Old image layout
+                 eShaderReadOnlyOptimal, // New image layout
+                 m_.transluTex.image()
+             ),
+             re::imageMemoryBarrier(
+                 S::eVertexShader,       // Src stage mask
+                 A::eShaderSampledRead,  // Src access mask
+                 S::eComputeShader,      // Dst stage mask
+                 A::eShaderStorageWrite, // Dst access mask
+                 eShaderReadOnlyOptimal, // Old image layout
+                 eGeneral,               // New image layout
+                 m_.shadowsTex.image()
+             )}
+        );
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
+    }
 
     // Calculate shadows
-    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_calculateShadowsPl);
     cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_calculationPll, 0u, *m_.calculationDS, {}
@@ -204,13 +206,38 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeft
         m_.calculationGroupCount.z
     );
 
-    // Reverse layout transitions
-    std::swap(imageBarriers[0].oldLayout, imageBarriers[0].newLayout);
-    std::swap(imageBarriers[1].oldLayout, imageBarriers[1].newLayout);
-    std::swap(imageBarriers[2].oldLayout, imageBarriers[2].newLayout);
-    std::swap(imageBarriers[2].srcStageMask, imageBarriers[2].dstStageMask);
-    std::swap(imageBarriers[2].srcStageMask, imageBarriers[2].dstStageMask);
-    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
+    { // Reverse layout transitions
+        auto imageBarriers = std::to_array(
+            {re::imageMemoryBarrier(
+                 S::eComputeShader,      // Src stage mask
+                 A::eShaderSampledRead,  // Src access mask
+                 S::eNone,               // Dst stage mask
+                 A::eNone,               // Dst access mask
+                 eShaderReadOnlyOptimal, // Old image layout
+                 eGeneral,               // New image layout
+                 m_.lightTex.image()
+             ),
+             re::imageMemoryBarrier(
+                 S::eComputeShader,      // Src stage mask
+                 A::eShaderSampledRead,  // Src access mask
+                 S::eNone,               // Dst stage mask
+                 A::eNone,               // Dst access mask
+                 eShaderReadOnlyOptimal, // Old image layout
+                 eGeneral,               // New image layout
+                 m_.transluTex.image()
+             ),
+             re::imageMemoryBarrier(
+                 S::eComputeShader,      // Src stage mask
+                 A::eShaderStorageWrite, // Src access mask
+                 S::eVertexShader,       // Dst stage mask
+                 A::eShaderSampledRead,  // Dst access mask
+                 eGeneral,               // Old image layout
+                 eShaderReadOnlyOptimal, // New image layout
+                 m_.shadowsTex.image()
+             )}
+        );
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
+    }
 }
 
 void ShadowDrawer::draw(
@@ -227,29 +254,6 @@ void ShadowDrawer::draw(
         *m_shadowDrawingPll, eVertex, 0u, m_.shadowDrawingPC
     );
     cmdBuf->draw(4u, viewSizeTi.x * viewSizeTi.y, 0u, 0u);
-}
-
-vk::ImageMemoryBarrier2 ShadowDrawer::imageMemoryBarrier(
-    vk::PipelineStageFlags2 srcStageMask,
-    vk::AccessFlags2        srcAccessMask,
-    vk::PipelineStageFlags2 dstStageMask,
-    vk::AccessFlags2        dstAccessMask,
-    vk::ImageLayout         oldLayout,
-    vk::ImageLayout         newLayout,
-    vk::Image               image
-) {
-    return vk::ImageMemoryBarrier2{
-        srcStageMask,
-        srcAccessMask,
-        dstStageMask,
-        dstAccessMask,
-        oldLayout,
-        newLayout,
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored, // No ownership transition
-        image,
-        vk::ImageSubresourceRange{eColor, 0u, 1u, 0u, 1u} // Whole image
-    };
 }
 
 ShadowDrawer::ViewSizeDependent::ViewSizeDependent(

@@ -68,9 +68,9 @@ private:
     ImFont*             m_arial =
         ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
-    re::StepDoubleBuffered<re::CommandBuffer> m_stepCommandBuffer{
-        re::CommandBuffer{vk::CommandBufferLevel::ePrimary},
-        re::CommandBuffer{vk::CommandBufferLevel::ePrimary}};
+    re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
+        re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},
+        re::CommandBuffer{{.debugName = "rw::WorldRoom::step[1]"}}};
     uint64_t        m_stepN = 1;
     re::Semaphore   m_simulationFinishedSem{m_stepN};
     re::SpriteBatch m_spriteBatch{256, 32};

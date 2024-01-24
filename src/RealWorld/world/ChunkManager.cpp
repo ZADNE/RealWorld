@@ -118,21 +118,19 @@ bool ChunkManager::saveChunks() {
 
     // Save all active chunks (they have to be downloaded)
     assert(m_nextFreeTileStage == 0);
-    re::CommandBuffer cmdBuf{vk::CommandBufferLevel::ePrimary};
+    re::CommandBuffer cmdBuf{{.debugName = "rw::ChunkManager::saveChunks"}};
     re::Fence         downloadFinishedFence{{}};
     cmdBuf->begin({eOneTimeSubmit});
 
-    auto imageBarrier = vk::ImageMemoryBarrier2{
+    auto imageBarrier = re::imageMemoryBarrier(
         S::eAllCommands,           // Src stage mask
         {},                        // Src access mask
         S::eTransfer,              // Dst stage mask
         A::eTransferRead,          // Dst access mask
         vk::ImageLayout::eGeneral, // Old image layout
         vk::ImageLayout::eGeneral, // New image layout
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored,
-        m_worldTex->image(),
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
+        m_worldTex->image()
+    );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     auto saveAllChunksInTileStage = [&]() {
@@ -165,17 +163,15 @@ bool ChunkManager::saveChunks() {
         }
     }
 
-    imageBarrier = vk::ImageMemoryBarrier2{
+    imageBarrier = re::imageMemoryBarrier(
         S::eTransfer,                      // Src stage mask
         A::eTransferRead,                  // Src access mask
         S::eAllCommands,                   // Dst stage mask
         {},                                // Dst access mask
         vk::ImageLayout::eGeneral,         // Old image layout
         vk::ImageLayout::eReadOnlyOptimal, // New image layout
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored,
-        m_worldTex->image(),
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
+        m_worldTex->image()
+    );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     cmdBuf->end();
@@ -241,6 +237,8 @@ void ChunkManager::planActivationOfChunks(
     glm::ivec2 botLeftCh  = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
 
+    m_chunkGen.nextStep();
+
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
@@ -277,19 +275,18 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
             copyRegions                      // Regions
         });
 
-        // Wait for the copy to finish
-        auto bufferBarrier = vk::BufferMemoryBarrier2{
-            S::eTransfer,                                   // Src stage mask
-            A::eTransferWrite,                              // Src access mask
-            S::eComputeShader,                              // Dst stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-            vk::QueueFamilyIgnored,
-            vk::QueueFamilyIgnored,
-            m_activeChunksBuf.buffer(),
-            offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
-            vk::WholeSize                                // Size
-        };
-        cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
+        { // Wait for the copy to finish
+            auto bufferBarrier = re::bufferMemoryBarrier(
+                S::eTransfer,      // Src stage mask
+                A::eTransferWrite, // Src access mask
+                S::eComputeShader, // Dst stage mask
+                A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
+                m_activeChunksBuf.buffer(),
+                offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
+                vk::WholeSize                                // Size
+            );
+            cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
+        }
 
         // Analyze the world texture
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
@@ -300,6 +297,17 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
         // Cull the vegetation
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
         cmdBuf->dispatch(k_maxVegCount / 256, 1, 1);
+
+        { // Barrier analysis output from tile transformations
+            auto bufferBarrier = re::bufferMemoryBarrier(
+                S::eComputeShader,       // Src stage mask
+                A::eShaderStorageWrite,  // Src access mask
+                S::eDrawIndirect,        // Dst stage mask
+                A::eIndirectCommandRead, // Dst access mask
+                m_activeChunksBuf.buffer()
+            );
+            cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
+        }
     }
     return m_transparentChunkChanges;
 }

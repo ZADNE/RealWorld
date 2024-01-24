@@ -6,6 +6,7 @@
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 using enum vk::ImageLayout;
+using enum vk::ImageAspectFlagBits;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
@@ -130,18 +131,15 @@ void World::gatherSave(MetadataSave& save) const {
 bool World::saveChunks() {
     // Unrasterize branches so that the saved chunks do not contain them
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
-        vk::ImageMemoryBarrier2 imageBarrier{
+        auto imageBarrier = re::imageMemoryBarrier(
             S::eAllCommands,                   // Src stage mask
             {},                                // Src access mask
             S::eFragmentShader,                // Dst stage mask
             A::eInputAttachmentRead,           // Dst access mask
             vk::ImageLayout::eReadOnlyOptimal, // Old image layout
             vk::ImageLayout::eGeneral,         // New image layout
-            vk::QueueFamilyIgnored,
-            vk::QueueFamilyIgnored,
-            m_worldTex.image(),
-            vk::ImageSubresourceRange{
-                vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u}};
+            m_worldTex.image()
+        );
         cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
         m_vegSimulator.unrasterizeVegetation(cmdBuf);
     });
@@ -154,31 +152,11 @@ size_t World::numberOfInactiveChunks() {
     return m_chunkManager.numberOfInactiveChunks();
 }
 
-void World::beginStep(const re::CommandBuffer& cmdBuf) {
-    // Transit world texture to general layout so that compute shaders can
-    // manipulate it
-    auto imageBarrier = vk::ImageMemoryBarrier2{
-        S::eComputeShader | S::eVertexShader, // Src stage mask
-        A::eShaderSampledRead | A::eShaderStorageRead |
-            A::eShaderStorageWrite,        // Src access mask
-        S::eComputeShader,                 // Dst stage mask
-        A::eShaderStorageRead,             // Dst access mask
-        vk::ImageLayout::eReadOnlyOptimal, // Old image layout
-        vk::ImageLayout::eGeneral,         // New image layout
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored,
-        m_worldTex.image(),
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
-}
-
 int World::step(
     const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
-    { // Unrasterize branches
-        auto dbg = cmdBuf.createDebugRegion("unrasterization");
-        m_vegSimulator.unrasterizeVegetation(cmdBuf);
-    }
+    // Unrasterize branches
+    m_vegSimulator.unrasterizeVegetation(cmdBuf);
 
     int activatedChunkCount = 0;
     { // Chunk manager
@@ -196,30 +174,14 @@ int World::step(
     // Bodies
     // m_bodySimulator.step(cmdBuf);
 
-    { // Rasterize branches
-        auto dbg = cmdBuf.createDebugRegion("rasterization");
-        m_vegSimulator.rasterizeVegetation(cmdBuf);
-    }
+    // Rasterize branches
+    m_vegSimulator.rasterizeVegetation(cmdBuf);
 
-    { // Set up cmdBuf state for simulation
-        auto dbg = cmdBuf.createDebugRegion("tile transformations");
-        xorshift32(m_worldDynamicsPC.timeHash);
-        cmdBuf->pushConstants(
-            *m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash)
-        );
+    // Tile transformations
+    tileTransformationsStep(cmdBuf, activatedChunkCount);
 
-        // Tile transformations
-        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
-        cmdBuf->dispatchIndirect(
-            **m_activeChunksBuf,
-            offsetof(ChunkManager::ActiveChunksSB, dynamicsGroupSize)
-        );
-    }
-
-    { // Fluid dynamics
-        auto dbg = cmdBuf.createDebugRegion("fluid dynamics");
-        fluidDynamicsStep(cmdBuf, botLeftTi, topRightTi);
-    }
+    // Fluid dynamics
+    fluidDynamicsStep(cmdBuf, botLeftTi, topRightTi);
 
     return activatedChunkCount;
 }
@@ -244,42 +206,39 @@ void World::modify(
     cmdBuf->dispatch(1, 1, 1);
 }
 
-void World::endStep(const re::CommandBuffer& cmdBuf) {
+void World::prepareWorldForDrawing(const re::CommandBuffer& cmdBuf) {
     // Transit world texture back to readonly-optimal layout so that it can rendered
-    auto imageBarrier = vk::ImageMemoryBarrier2{
+    auto imageBarrier = re::imageMemoryBarrier(
         S::eComputeShader,                              // Src stage mask
         A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-        S::eVertexShader,                               // Dst stage mask
+        S::eComputeShader | S::eVertexShader,           // Dst stage mask
         A::eShaderSampledRead,                          // Dst access mask
         eGeneral,                                       // Old image layout
         eReadOnlyOptimal,                               // New image layout
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored,
-        m_worldTex.image(),
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
+        m_worldTex.image()
+    );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
 void World::fluidDynamicsStep(
     const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
+    auto dbg = cmdBuf.createDebugRegion("fluid dynamics");
     // Convert positions to chunks
     glm::ivec2 botLeftCh    = tiToCh(botLeftTi);
     glm::ivec2 topRightCh   = tiToCh(topRightTi);
     glm::ivec2 dispatchSize = topRightCh - botLeftCh;
 
     // Wait on tile transformations
-    auto imageBarrier = vk::ImageMemoryBarrier2{
+    auto imageBarrier = re::imageMemoryBarrier(
         S::eComputeShader,                              // Src stage mask
         A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
         S::eComputeShader,                              // Dst stage mask
         A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored,
-        m_worldTex.image(),
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
+        m_worldTex.image()
+    );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
     // Permute the orders
@@ -315,6 +274,36 @@ void World::fluidDynamicsStep(
         cmdBuf->dispatch(dispatchSize.x, dispatchSize.y, 1);
         cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
+}
+
+void World::tileTransformationsStep(
+    const re::CommandBuffer& cmdBuf, int activatedChunkCount
+) {
+    // Set up cmdBuf state for simulation
+    auto dbg = cmdBuf.createDebugRegion("tile transformations");
+    xorshift32(m_worldDynamicsPC.timeHash);
+    cmdBuf->pushConstants(
+        *m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash)
+    );
+
+    // Barrier from branch rasterization
+    auto imageBarrier = re::imageMemoryBarrier(
+        S::eColorAttachmentOutput,                          // Src stage mask
+        A::eColorAttachmentRead | A::eColorAttachmentWrite, // Src access mask
+        S::eComputeShader,                                  // Dst stage mask
+        A::eShaderStorageRead | A::eShaderStorageWrite,     // Dst access mask
+        eGeneral,                                           // Old image layout
+        eGeneral,                                           // New image layout
+        m_worldTex.image()
+    );
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+
+    // Tile transformations
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
+    cmdBuf->dispatchIndirect(
+        **m_activeChunksBuf,
+        offsetof(ChunkManager::ActiveChunksSB, dynamicsGroupSize)
+    );
 }
 
 } // namespace rw

@@ -61,7 +61,7 @@ void WorldRoom::sessionEnd() {
 
 void WorldRoom::step() {
     // Get the command buffer of the current step
-    auto& cmdBuf = m_stepCommandBuffer.write();
+    auto& cmdBuf = m_stepCmdBufs.write();
 
     // Wait for the command buffer to be consumed.
     // It should already be consumed thanks to RealEngine's step() timing
@@ -76,6 +76,9 @@ void WorldRoom::step() {
         performWorldSimulationStep(
             cmdBuf, m_worldDrawer.setPosition(m_worldView.botLeft())
         );
+
+        // Finish the simulation step (transit image layouts back)
+        m_world.prepareWorldForDrawing(cmdBuf);
 
         // Analyze the results of the simulation step for drawing
         analyzeWorldForDrawing(cmdBuf);
@@ -135,9 +138,6 @@ void WorldRoom::performWorldSimulationStep(
 ) {
     auto dbg = cmdBuf.createDebugRegion("simulation");
 
-    // Prepare for the simulation step
-    m_world.beginStep(cmdBuf);
-
     // Simulate one physics step (load new chunks if required)
     m_world.step(cmdBuf, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
 
@@ -157,9 +157,6 @@ void WorldRoom::performWorldSimulationStep(
         keybindDown(PlayerJump),
         keybindDown(PlayerAutojump)
     );
-
-    // Finish the simulation step (transit image layouts back)
-    m_world.endStep(cmdBuf);
 }
 
 void WorldRoom::analyzeWorldForDrawing(const re::CommandBuffer& cmdBuf) {

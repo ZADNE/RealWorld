@@ -33,6 +33,44 @@ VegSimulator::VegSimulator()
                   0u,
                   sizeof(VegDynamicsPC)}}}
       )
+    , m_unrasterizationRenderPass([]() {
+        constexpr static auto attachmentDesc = vk::AttachmentDescription2{
+            // The world texture attachment
+            {},
+            vk::Format::eR8G8B8A8Uint,
+            vk::SampleCountFlagBits::e1,
+            vk::AttachmentLoadOp::eLoad,       // Color
+            vk::AttachmentStoreOp::eStore,     // Color
+            vk::AttachmentLoadOp::eDontCare,   // Stencil
+            vk::AttachmentStoreOp::eDontCare,  // Stencil
+            vk::ImageLayout::eReadOnlyOptimal, // Initial
+            vk::ImageLayout::eGeneral          // Final
+        };
+        constexpr static auto worldTexAttachmentRef = vk::AttachmentReference2{
+            0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor};
+        static std::array subpassDescriptions =
+            std::to_array<vk::SubpassDescription2>({vk::SubpassDescription2{
+                {},
+                vk::PipelineBindPoint::eGraphics,
+                0,
+                worldTexAttachmentRef, // Input attachments
+                worldTexAttachmentRef  // Color attachments
+            }});
+        constexpr static auto subpassDependency = vk::SubpassDependency2{
+            vk::SubpassExternal,
+            0,
+            S::eVertexShader,                                   // Src stage
+            S::eFragmentShader | S::eColorAttachmentOutput,     // Dst stage
+            A::eShaderRead,                                     // Src access
+            A::eColorAttachmentRead | A::eColorAttachmentWrite, // Dst access
+            vk::DependencyFlagBits::eByRegion};
+
+        return re::RenderPassCreateInfo{
+            .attachments  = attachmentDesc,
+            .subpasses    = subpassDescriptions,
+            .dependencies = subpassDependency,
+            .debugName    = "rw::VegSimulator::unrasterization"};
+    }())
     , m_rasterizationRenderPass([]() {
         constexpr static auto attachmentDesc = vk::AttachmentDescription2{
             // The world texture attachment
@@ -59,23 +97,27 @@ VegSimulator::VegSimulator()
         constexpr static auto subpassDependency = vk::SubpassDependency2{
             vk::SubpassExternal,
             0,
-            S::eColorAttachmentOutput, // Src stage
-            S::eFragmentShader,        // Dst stage
-            A::eColorAttachmentWrite,  // Src access
-            A::eInputAttachmentRead,   // Dst access
+            S::eTransfer,                                       // Src stage
+            S::eFragmentShader | S::eColorAttachmentOutput,     // Dst stage
+            A::eTransferWrite,                                  // Src access
+            A::eColorAttachmentRead | A::eColorAttachmentWrite, // Dst access
             vk::DependencyFlagBits::eByRegion};
 
-        return vk::RenderPassCreateInfo2{
-            vk::RenderPassCreateFlags{},
-            attachmentDesc,
-            subpassDescriptions,
-            subpassDependency};
+        return re::RenderPassCreateInfo{
+            .attachments  = attachmentDesc,
+            .subpasses    = subpassDescriptions,
+            .dependencies = subpassDependency,
+            .debugName    = "rw::VegSimulator::rasterization"};
     }()) {
 }
 
 void VegSimulator::unrasterizeVegetation(const re::CommandBuffer& cmdBuf) {
+    auto dbg = cmdBuf.createDebugRegion("unrasterization");
+
     // Prepare rendering to world texture
-    beginWorldTextureRenderPass(cmdBuf);
+    beginWorldTextureRenderPass(
+        cmdBuf, *m_unrasterizationRenderPass, *m_unrasterizationFramebuffer
+    );
 
     // Unrasterize branches from previous step
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
@@ -84,12 +126,16 @@ void VegSimulator::unrasterizeVegetation(const re::CommandBuffer& cmdBuf) {
 }
 
 void VegSimulator::rasterizeVegetation(const re::CommandBuffer& cmdBuf) {
+    auto dbg = cmdBuf.createDebugRegion("rasterization");
+
     // Update push constants
     m_vegDynamicsPC.timeSec += k_stepDurationSec;
     m_vegDynamicsPC.readBuf = 1 - m_vegDynamicsPC.readBuf;
 
     // Prepare rendering to world texture
-    beginWorldTextureRenderPass(cmdBuf);
+    beginWorldTextureRenderPass(
+        cmdBuf, *m_rasterizationRenderPass, *m_rasterizationFramebuffer
+    );
 
     // Simulate and rasterize branches
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
@@ -131,24 +177,32 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         D::eInputAttachment, 1u, 0u, worldTex, vk::ImageLayout::eGeneral
     );
 
-    // Prepare framebuffer
-    m_framebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
-        {},
-        *m_rasterizationRenderPass,
-        worldTex.imageView(),
-        m_worldTexSizeTi.x,
-        m_worldTexSizeTi.y,
-        1u}};
+    { // Prepare framebuffers
+        vk::FramebufferCreateInfo createInfo{
+            {},
+            nullptr,
+            worldTex.imageView(),
+            m_worldTexSizeTi.x,
+            m_worldTexSizeTi.y,
+            1u};
+        createInfo.renderPass        = *m_unrasterizationRenderPass;
+        m_unrasterizationFramebuffer = re::Framebuffer{createInfo};
+        createInfo.renderPass        = *m_rasterizationRenderPass;
+        m_rasterizationFramebuffer   = re::Framebuffer{createInfo};
+    }
 
     return VegStorage{.vegBuf = m_vegBuf, .branchBuf = m_branchBuf};
 }
 
-void VegSimulator::beginWorldTextureRenderPass(const re::CommandBuffer& cmdBuf
+void VegSimulator::beginWorldTextureRenderPass(
+    const re::CommandBuffer& cmdBuf,
+    const vk::RenderPass&    renderPass,
+    const vk::Framebuffer&   framebuffer
 ) const {
     cmdBuf->beginRenderPass2(
         vk::RenderPassBeginInfo{
-            *m_rasterizationRenderPass,
-            *m_framebuffer,
+            renderPass,
+            framebuffer,
             vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}},
             {}},
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}

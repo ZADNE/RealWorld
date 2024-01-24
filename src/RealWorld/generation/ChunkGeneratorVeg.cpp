@@ -152,21 +152,30 @@ void interpret(
 } // namespace
 
 void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
+    if (m_nOfGenChunksThisStep != 0) { // Barrier from previous chunk
+        auto previousChunkBarrier = re::bufferMemoryBarrier(
+            S::eComputeShader,      // Src stage mask
+            A::eShaderStorageRead,  // Src access mask
+            S::eComputeShader,      // Dst stage mask
+            A::eShaderStorageWrite, // Dst access mask
+            *m_vegPreparationBuf
+        );
+        cmdBuf->pipelineBarrier2({{}, {}, previousChunkBarrier, {}});
+    }
+
     // Dispatch preparation
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
     cmdBuf->dispatch(1u, 1u, 1u);
 
     { // Add barriers between preparation and vector generation
-        vk::BufferMemoryBarrier2 preparationBarrier{
-            S::eComputeShader,                               // Src stage mask
-            A::eShaderStorageWrite,                          // Src access mask
-            S::eDrawIndirect | S::eComputeShader,            // Dst stage mask
-            A::eIndirectCommandRead | A::eShaderStorageRead, // Dst access mask
-            vk::QueueFamilyIgnored,
-            vk::QueueFamilyIgnored, // Ownership transition
-            *m_vegPreparationBuf,
-            0,
-            offsetof(VegPreparationSB, b_branchInstances)};
+        auto preparationBarrier = re::bufferMemoryBarrier(
+            S::eComputeShader,                    // Src stage mask
+            A::eShaderStorageWrite,               // Src access mask
+            S::eDrawIndirect | S::eComputeShader, // Dst stage mask
+            A::eIndirectCommandRead | A::eShaderStorageRead |
+                A::eShaderStorageWrite, // Dst access mask
+            *m_vegPreparationBuf
+        );
         cmdBuf->pipelineBarrier2({{}, {}, preparationBarrier, {}});
     }
 
@@ -177,16 +186,14 @@ void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
     );
 
     { // Add barriers between vector generation and raster generation
-        vk::BufferMemoryBarrier2 vectorBarrier{
+        auto vectorBarrier = re::bufferMemoryBarrier(
             S::eComputeShader,      // Src stage mask
             A::eShaderStorageWrite, // Src access mask
             S::eComputeShader,      // Dst stage mask
             A::eShaderStorageRead,  // Dst access mask
-            vk::QueueFamilyIgnored,
-            vk::QueueFamilyIgnored, // No ownership transition
             *m_vegPreparationBuf,
-            offsetof(VegPreparationSB, b_branchInstances),
-            vk::WholeSize};
+            offsetof(VegPreparationSB, b_branchInstances)
+        );
         cmdBuf->pipelineBarrier2({{}, {}, vectorBarrier, {}});
     }
 
