@@ -74,7 +74,9 @@ private:
     re::Pipeline       m_movePlayerPl{
               {.pipelineLayout = *m_pipelineLayout, .debugName = "rw::Player::movePlayer"},
               {.comp = movePlayer_comp}};
-    re::DescriptorSet m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
+    re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
+        .layout    = m_pipelineLayout.descriptorSetLayout(0),
+        .debugName = "rw::Player::descriptorSet"}};
 
     glm::vec2 botLeftPx() const;
 };

@@ -90,7 +90,9 @@ protected:
     } m_genPC;
 
     re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
+    re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
+         .layout    = m_pipelineLayout.descriptorSetLayout(0),
+         .debugName = "rw::ChunkGenerator::descriptorSet"}};
 
     re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout,

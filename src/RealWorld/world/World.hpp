@@ -103,7 +103,9 @@ private:
     } m_worldDynamicsPC;
 
     re::PipelineLayout m_simulationPL;
-    re::DescriptorSet  m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
+    re::DescriptorSet  m_simulationDS{re::DescriptorSetCreateInfo{
+         .layout    = m_simulationPL.descriptorSetLayout(0),
+         .debugName = "rw::World::simulation"}};
     re::Pipeline       m_simulateFluidsPl{
               {.pipelineLayout = *m_simulationPL,
                .debugName      = "rw::World::simulateFluids"},

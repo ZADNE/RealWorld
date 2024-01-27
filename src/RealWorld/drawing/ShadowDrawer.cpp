@@ -308,9 +308,15 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
           {.viewMat    = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y),
            .viewSizeTi = viewSizeTi}
       )
-    , analysisDS(analysisPll.descriptorSetLayout(0))
-    , calculationDS(calculationPll.descriptorSetLayout(0))
-    , shadowDrawingDS(shadowDrawingPll.descriptorSetLayout(0)) {
+    , analysisDS(re::DescriptorSetCreateInfo{
+          .layout    = analysisPll.descriptorSetLayout(0),
+          .debugName = "rw::ShadowDrawer::analysis"})
+    , calculationDS(re::DescriptorSetCreateInfo{
+          .layout    = calculationPll.descriptorSetLayout(0),
+          .debugName = "rw::ShadowDrawer::calculation"})
+    , shadowDrawingDS(re::DescriptorSetCreateInfo{
+          .layout    = shadowDrawingPll.descriptorSetLayout(0),
+          .debugName = "rw::ShadowDrawer::shadowDrawing"}) {
     using enum vk::DescriptorType;
 
     // Analysis descriptor set

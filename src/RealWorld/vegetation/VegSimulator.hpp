@@ -114,7 +114,9 @@ private:
          .tese = tessellateBranches_tese,
          .geom = duplicateBranches_geom,
          .frag = rasterizeBranches_frag}};
-    re::DescriptorSet m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
+    re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
+        .layout    = m_pipelineLayout.descriptorSetLayout(0),
+        .debugName = "rw::VegSimulator::descriptorSet"}};
     re::Buffer        m_vegBuf;
     re::Buffer        m_branchBuf;
     glm::uvec2        m_worldTexSizeTi{};
