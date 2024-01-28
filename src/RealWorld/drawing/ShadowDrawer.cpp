@@ -209,19 +209,19 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeft
     { // Reverse layout transitions
         auto imageBarriers = std::to_array(
             {re::imageMemoryBarrier(
-                 S::eComputeShader,      // Src stage mask
-                 A::eShaderSampledRead,  // Src access mask
-                 S::eNone,               // Dst stage mask
-                 A::eNone,               // Dst access mask
+                 S::eComputeShader,     // Src stage mask
+                 A::eShaderSampledRead, // Src access mask
+                 S::eComputeShader,     // Dst stage mask
+                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
                  eShaderReadOnlyOptimal, // Old image layout
                  eGeneral,               // New image layout
                  m_.lightTex.image()
              ),
              re::imageMemoryBarrier(
-                 S::eComputeShader,      // Src stage mask
-                 A::eShaderSampledRead,  // Src access mask
-                 S::eNone,               // Dst stage mask
-                 A::eNone,               // Dst access mask
+                 S::eComputeShader,     // Src stage mask
+                 A::eShaderSampledRead, // Src access mask
+                 S::eComputeShader,     // Dst stage mask
+                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
                  eShaderReadOnlyOptimal, // Old image layout
                  eGeneral,               // New image layout
                  m_.transluTex.image()

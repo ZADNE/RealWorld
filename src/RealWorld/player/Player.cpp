@@ -68,6 +68,14 @@ void Player::step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool au
     m_oldBotLeftPx          = m_hitboxStageBuf->botLeftPx[newReadIndex];
 
     // Copy back results of previous step
+    auto bufferBarrier = re::bufferMemoryBarrier(
+        S::eTransfer,      // Src stage mask
+        A::eTransferWrite, // Src access mask
+        S::eTransfer,      // Dst stage mask
+        A::eTransferWrite, // Dst access mask
+        m_hitboxStageBuf.buffer()
+    );
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
     size_t writeOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
                          sizeof(PlayerHitboxSB::botLeftPx[0]) * newReadIndex;
     auto copyRegion = vk::BufferCopy2{writeOffset, writeOffset, sizeof(glm::vec2)};

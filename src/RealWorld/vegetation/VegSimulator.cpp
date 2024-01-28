@@ -59,7 +59,7 @@ VegSimulator::VegSimulator()
         constexpr static auto subpassDependency = vk::SubpassDependency2{
             vk::SubpassExternal,
             0,
-            S::eVertexShader,                                   // Src stage
+            S::eVertexShader | S::eComputeShader,               // Src stage
             S::eFragmentShader | S::eColorAttachmentOutput,     // Dst stage
             A::eShaderRead,                                     // Src access
             A::eColorAttachmentRead | A::eColorAttachmentWrite, // Dst access
