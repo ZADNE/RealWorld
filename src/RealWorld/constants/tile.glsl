@@ -19,8 +19,6 @@ float tiToPx(float posTi) { return posTi * TilePx.x; }
 ivec2 tiToPx(ivec2 posTi) { return posTi << k_tileLowZeroBits; }
 int   tiToPx(int posTi)   { return posTi << k_tileLowZeroBits.x; }
 
-const ivec2 iChunkTi =        {128, 128};
-
 #define TILE xyzw
 #define TILE_TYPE xz
 #define TILE_VAR yw

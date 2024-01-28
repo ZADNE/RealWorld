@@ -32,9 +32,9 @@ public:
      */
     void reset();
 
-    const glm::ivec2& worldTexSize() const { return m_worldTexSize; }
+    glm::ivec2 worldTexSize() const { return m_worldTexSize; }
 
-    void setWorldTexSize(const glm::ivec2& worldTexSize) {
+    void setWorldTexSize(glm::ivec2 worldTexSize) {
         m_worldTexSize = worldTexSize;
     }
 

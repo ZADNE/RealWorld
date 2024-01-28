@@ -4,11 +4,11 @@
     generateColumnValues.glsl   
     generateRasterVeg.comp      
     generateStructure.comp      generateStructure.glsl
-    generateVectorVeg.comp            
+    generateVectorVeg.comp      
+    generateVeg.comp            
     GenerationPC.glsl           
-    prepareVeg.comp             
     selectVariant.comp          
-    vegetation.glsl             
+    vegDistribution.glsl        
     VegPreparationSB.glsl       
     VegTemplatesUB.glsl         
 )

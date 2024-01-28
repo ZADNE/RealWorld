@@ -15,12 +15,12 @@ BodySimulator::BodySimulator(const re::PipelineLayout& simulationPL)
           {.pipelineLayout = *simulationPL}, {.comp = simulateBodies_comp}} {
 }
 
-void BodySimulator::step(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateBodiesPl);
-    commandBuffer.dispatchIndirect(*m_bodiesBuf, offsetof(BodiesSBHeader, dispatchX));
+void BodySimulator::step(const re::CommandBuffer& cmdBuf) {
+    /*cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateBodiesPl);
+    cmdBuf->dispatchIndirect(*m_bodiesBuf, offsetof(BodiesSBHeader, dispatchX));*/
 }
 
-const re::Buffer& BodySimulator::adoptSave(const glm::ivec2& worldTexSizeCh) {
+const re::Buffer& BodySimulator::adoptSave(glm::ivec2 worldTexSizeCh) {
     auto maxBodyCount = k_bodiesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                         k_bodyHeaderSize;
 

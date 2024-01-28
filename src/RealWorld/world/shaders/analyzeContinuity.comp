@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/chunk.glsl>
 const int ActiveChunksSB_BINDING = 1;
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
 
@@ -11,11 +12,7 @@ layout (local_size_x = 8,
         local_size_z = 1
 ) in;
 
-int maxNumberOfUpdateChunks = b_worldTexSizeMask.x * b_worldTexSizeMask.y;
-
-ivec2 activeChunkAtPos(ivec2 pos){
-    return b_offsets[maxNumberOfUpdateChunks + pos.y * b_worldTexSizeCh.x + pos.x];
-}
+const ivec2 k_chunkCenterOffsetTi = iChunkTi / 2;
 
 void main(){
     //Gather chunks
@@ -31,6 +28,6 @@ void main(){
         (ch00 + ivec2(1, 0)) == ch10){
         //The update chunk is continous
         int i = atomicAdd(b_dynamicsGroupSize.x, 1);
-        b_offsets[i] = posCh * iChunkTi + iChunkTi / 2;
+        b_offsets[i] = chToTi(posCh) + k_chunkCenterOffsetTi;
     }
 }

@@ -26,11 +26,9 @@ void ItemUser::selectSlot(int slot) {
 }
 
 void ItemUser::step(
-    const vk::CommandBuffer& commandBuffer,
-    bool                     usePrimary,
-    bool                     useSecondary,
-    const glm::ivec2&        relCursorPosPx
+    const re::CommandBuffer& cmdBuf, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
 ) {
+    auto dbg    = cmdBuf.createDebugRegion("item user");
     bool use[2] = {usePrimary, useSecondary};
 
     // Update usage
@@ -50,7 +48,7 @@ void ItemUser::step(
         case ItemType::Empty: break;
         case ItemType::Pickaxe:
             m_world.modify(
-                commandBuffer,
+                cmdBuf,
                 TileLayer::BlockLayer,
                 m_shape,
                 m_radiusTi,
@@ -60,7 +58,7 @@ void ItemUser::step(
             break;
         case ItemType::Hammer:
             m_world.modify(
-                commandBuffer,
+                cmdBuf,
                 TileLayer::WallLayer,
                 m_shape,
                 m_radiusTi,
@@ -76,7 +74,7 @@ void ItemUser::step(
         case ItemType::Empty: break;
         case ItemType::Block:
             m_world.modify(
-                commandBuffer,
+                cmdBuf,
                 TileLayer::BlockLayer,
                 m_shape,
                 m_radiusTi,
@@ -86,7 +84,7 @@ void ItemUser::step(
             break;
         case ItemType::Wall:
             m_world.modify(
-                commandBuffer,
+                cmdBuf,
                 TileLayer::WallLayer,
                 m_shape,
                 m_radiusTi,
@@ -98,7 +96,7 @@ void ItemUser::step(
     }
 }
 
-void ItemUser::render(const glm::vec2& relCursorPosPx, re::GeometryBatch& gb) {
+void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
     const ItemMetadata& md = ItemDatabase::md(m_item->id);
 
     if (md.type != ItemType::Empty) {

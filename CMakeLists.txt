@@ -13,7 +13,10 @@ target_link_libraries(RealWorld PUBLIC RealEngine)
 #RealWorld Game
 add_executable(RealWorld_Game)
 target_include_directories(RealWorld_Game PRIVATE src)
-set_target_properties(RealWorld_Game PROPERTIES CXX_STANDARD 20)
+set_target_properties(RealWorld_Game PROPERTIES
+    CXX_STANDARD 20
+    INTERPROCEDURAL_OPTIMIZATION TRUE
+)
 target_link_libraries(RealWorld_Game PUBLIC RealWorld)
 add_custom_command(TARGET RealWorld_Game POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

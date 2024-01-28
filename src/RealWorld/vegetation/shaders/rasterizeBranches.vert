@@ -6,11 +6,10 @@ layout (location = 0) out vec2  o_posTi;
 layout (location = 1) out vec2  o_sizeTi;
 layout (location = 2) out float o_startAngleNorm;
 layout (location = 3) out float o_endAngleNorm;
-layout (location = 4) out uint  o_branchIndex0wallType16;
+layout (location = 4) out uint  o_branchIndex15wallType31;
 
-const int BranchVectorSBWrite_BINDING = 0;
-const int BranchVectorSBRead_BINDING = 1;
-#include <RealWorld/vegetation/shaders/BranchVectorSB.glsl>
+const int BranchSB_BINDING = 0;
+#include <RealWorld/vegetation/shaders/BranchSB.glsl>
 #include <RealWorld/vegetation/shaders/normAngles.glsl>
 #include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
 
@@ -18,54 +17,69 @@ const int BranchVectorSBRead_BINDING = 1;
 const float k_third = 0.33333333333;
 
 void main(){
-    // Load this branch and parent branch
-    Branch b = b_branchesRead[gl_VertexIndex];
-    const Branch parent = b_branchesRead[gl_VertexIndex + b.parentIndexOffset];
+    // Load this branch
+    const uint id = gl_VertexIndex;
+    const uvec2 parentOffsetWallType = loadBranchParentOffsetWallType(id);
+    const float radiusTi = b_branch.radiusTi[id];
+    const float lengthTi = b_branch.lengthTi[id];
+    float absAngNorm = b_branch.absAngNorm[p_readBuf][id];
+    vec2  posTi = b_branch.absPosTi[p_readBuf][id];
+    const vec2 densityStiffness = b_branch.densityStiffness[id];
+    float  angVel = b_branch.angVel[id];
+
+    // Load parent
+    const uint pId = id - int(parentOffsetWallType.x);
+    float pAbsAngNorm = b_branch.absAngNorm[p_readBuf][pId];
 
     // Outputs for next stage
-    o_posTi = b.absPosTi;
-    o_sizeTi = vec2(b.radiusTi * 2.0, b.lengthTi);
-    o_endAngleNorm = b.absAngleNorm;
-    o_startAngleNorm = parent.absAngleNorm;
-    o_branchIndex0wallType16 = gl_VertexIndex | (b.wallType << 16);
+    o_posTi = posTi;
+    o_sizeTi = vec2(radiusTi * 2.0, lengthTi);
+    o_endAngleNorm = absAngNorm;
+    o_startAngleNorm = pAbsAngNorm;
+    o_branchIndex15wallType31 = id | (parentOffsetWallType.y << 16);
 
     // Simulation
-    float wind = snoise(vec2(b.absPosTi.x * 0.001, p_timeSec * 0.1), 0.0);
-    wind += 0.5 * snoise(vec2(b.absPosTi.x * 0.001, p_timeSec * 0.1 * 2.0), 0.0);
+    float wind =  snoise(vec2(posTi.x * 0.001, p_timeSec * 0.1), 0.0);
+    wind += 0.5 * snoise(vec2(posTi.x * 0.002, p_timeSec * 0.2), 0.0);
 
-    float volume = k_pi * b.radiusTi * b.radiusTi * b.lengthTi;
-    float weight = volume * b.density;
+    float volume = k_pi * radiusTi * radiusTi * lengthTi;
+    float weight = volume * densityStiffness.x;
 
-    vec2 force = vec2(wind * b.radiusTi * b.lengthTi * 0.1, weight * -0.01);
+    vec2 force = vec2(wind * radiusTi * lengthTi * 0.1, weight * -0.01);
 
     float forceAngle = atan(force.y, force.x);
     float forceSize  = length(force);
 
-    float momentOfInertia = k_third * weight * b.lengthTi *
-                            b.lengthTi;
+    float momentOfInertia = k_third * weight * lengthTi *
+                            lengthTi;
     momentOfInertia = momentOfInertia == 0.0 ? 1.0 : momentOfInertia;
 
     float angularAcc =
-        b.lengthTi * forceSize *
-        sin(forceAngle - b.absAngleNorm * k_2pi) /
+        lengthTi * forceSize *
+        sin(forceAngle - absAngNorm * k_2pi) /
         momentOfInertia;
 
     float angleDiffToRestNorm = angularDifference(
-        fract(parent.absAngleNorm + b.relRestAngleNorm), b.absAngleNorm
+        fract(pAbsAngNorm + b_branch.relRestAngNorm[id]), absAngNorm
     );
 
-    angularAcc += b.stiffness * angleDiffToRestNorm - b.angleVelNorm * 0.875;
+    angularAcc += densityStiffness.y * angleDiffToRestNorm - angVel * 0.875;
 
-    // If not root
-    if (b.parentIndexOffset != 0){
-        b.angleVelNorm += angularAcc;
-        b.absAngleNorm += b.angleVelNorm;
-        b.absAngleNorm = fract(b.absAngleNorm);
+    // Rotate branch (if not root)
+    if (parentOffsetWallType.x != 0){
+        angVel += angularAcc;
+        absAngNorm += angVel;
+        absAngNorm = fract(absAngNorm);
     }
 
-    b.absPosTi = parent.absPosTi + toCartesian(parent.lengthTi, parent.absAngleNorm);
-
+    // Shift branch
+    const vec2  pPosTi = b_branch.absPosTi[p_readBuf][pId];
+    const float pLengthTi = b_branch.lengthTi[pId];
+    posTi = pPosTi + toCartesian(pLengthTi, pAbsAngNorm);
 
     // Store the modified branch
-    b_branchesWrite[gl_VertexIndex] = b;
+    const uint writeBuf = 1 - p_readBuf;
+    b_branch.absPosTi[writeBuf][id] = posTi;
+    b_branch.absAngNorm[writeBuf][id] = absAngNorm;
+    b_branch.angVel[id] = angVel;
 }

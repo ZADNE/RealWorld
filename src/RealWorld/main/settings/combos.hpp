@@ -34,7 +34,7 @@ constexpr std::array k_worldTexSizes = {
     glm::ivec2{64, 32},
     glm::ivec2{64, 64}};
 
-inline std::string ivec2ToString(const glm::ivec2& vec) {
+inline std::string ivec2ToString(glm::ivec2 vec) {
     return std::to_string(vec.x) + "x" + std::to_string(vec.y);
 }
 

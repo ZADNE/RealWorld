@@ -34,7 +34,7 @@ public:
     /**
      * @brief Contructs a UI that is not connected to any inventories
      */
-    explicit InventoryUI(const glm::vec2& windowSize);
+    explicit InventoryUI(glm::vec2 windowSize);
 
     InventoryUI(const InventoryUI&)            = delete; /**< Noncopyable */
     InventoryUI& operator=(const InventoryUI&) = delete; /**< Noncopyable */
@@ -47,7 +47,7 @@ public:
     /**
      * @brief Notifies the UI that the window has been resized
      */
-    void windowResized(const glm::vec2& newWindowSize);
+    void windowResized(glm::vec2 newWindowSize);
 
     /**
      * @brief Connects the UI with given inventory (connection is mutual)
@@ -76,8 +76,8 @@ public:
 
     void reload();
 
-    void swapUnderCursor(const glm::vec2& cursorPx);
-    void movePortion(const glm::vec2& cursorPx, float portion);
+    void swapUnderCursor(glm::vec2 cursorPx);
+    void movePortion(glm::vec2 cursorPx, float portion);
 
     /**
      * @brief Selects a slot from the first row of the inventory.
@@ -89,7 +89,7 @@ public:
     void selectSlot(SlotSelectionManner selectionManner, int number = 0);
 
     void step();
-    void draw(re::SpriteBatch& spriteBatch, const glm::vec2& cursorPx);
+    void draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx);
 
 private:
     static constexpr glm::vec2 k_slotPadding = glm::vec2(8.0f, 8.0f);
@@ -100,7 +100,7 @@ private:
     inline glm::ivec2 invSize(Connection con) const;
     inline int        invSlotCount(Connection con) const;
 
-    std::optional<glm::ivec2> cursorToSlot(const glm::vec2& cursorPx) const;
+    std::optional<glm::ivec2> cursorToSlot(glm::vec2 cursorPx) const;
 
     template<typename Func>
     void forEachConnectedInventory(Func f) {

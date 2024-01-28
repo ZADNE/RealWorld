@@ -13,7 +13,7 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
-TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi)
+TileDrawer::TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi)
     : m_pipelineLayout(
           {},
           re::PipelineLayoutDescription{
@@ -27,14 +27,16 @@ TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi
       )
     , m_drawTilesPl(
           re::PipelineGraphicsCreateInfo{
+              .topology       = vk::PrimitiveTopology::eTriangleStrip,
               .pipelineLayout = *m_pipelineLayout,
-              .topology       = vk::PrimitiveTopology::eTriangleStrip},
+              .debugName      = "rw::TileDrawer::drawTiles"},
           re::PipelineGraphicsSources{.vert = drawTiles_vert, .frag = drawColor_frag}
       )
     , m_drawMinimapPl(
           re::PipelineGraphicsCreateInfo{
+              .topology       = vk::PrimitiveTopology::eTriangleStrip,
               .pipelineLayout = *m_pipelineLayout,
-              .topology       = vk::PrimitiveTopology::eTriangleStrip},
+              .debugName      = "rw::TileDrawer::drawMinimap"},
           re::PipelineGraphicsSources{.vert = drawMinimap_vert, .frag = drawMinimap_frag}
       ) {
     m_descriptorSet.write(
@@ -45,9 +47,7 @@ TileDrawer::TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi
     resizeView(viewSizePx, viewSizeTi);
 }
 
-void TileDrawer::setTarget(
-    const re::Texture& worldTexture, const glm::ivec2& worldTexSize
-) {
+void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
     m_descriptorSet.write(eCombinedImageSampler, 0u, 0u, worldTexture, eReadOnlyOptimal);
     m_pushConstants.worldTexMask = worldTexSize - 1;
     glm::vec2 viewSizePx =
@@ -56,7 +56,7 @@ void TileDrawer::setTarget(
     resizeView(viewSizePx, m_pushConstants.viewSizeTi);
 }
 
-void TileDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi) {
+void TileDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
     m_pushConstants.viewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
     m_pushConstants.viewSizeTi  = viewSizeTi;
     glm::vec2 worldTexSize      = m_pushConstants.worldTexMask + 1;
@@ -78,32 +78,30 @@ void TileDrawer::resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewS
                                     m_pushConstants.minimapSize * 0.5f;
 }
 
-void TileDrawer::drawTiles(
-    const vk::CommandBuffer& commandBuffer, const glm::vec2& botLeftPx
-) {
+void TileDrawer::drawTiles(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx) {
     m_pushConstants.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
     m_pushConstants.botLeftTi          = glm::ivec2(pxToTi(botLeftPx));
-    commandBuffer.bindDescriptorSets(
+    cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
-    commandBuffer.pushConstants<PushConstants>(
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
+    cmdBuf->pushConstants<PushConstants>(
         *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
     );
-    commandBuffer.draw(
+    cmdBuf->draw(
         4u, m_pushConstants.viewSizeTi.x * m_pushConstants.viewSizeTi.y, 0u, 0u
     );
 }
 
-void TileDrawer::drawMinimap(const vk::CommandBuffer& commandBuffer) {
-    commandBuffer.bindDescriptorSets(
+void TileDrawer::drawMinimap(const re::CommandBuffer& cmdBuf) {
+    cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
-    commandBuffer.pushConstants<PushConstants>(
+    cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
+    cmdBuf->pushConstants<PushConstants>(
         *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
     );
-    commandBuffer.draw(4u, 1u, 0u, 0u);
+    cmdBuf->draw(4u, 1u, 0u, 0u);
 }
 
 } // namespace rw

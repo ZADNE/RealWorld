@@ -7,8 +7,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <RealEngine/graphics/CommandBuffer.hpp>
 #include <RealEngine/graphics/buffers/BufferMapped.hpp>
+#include <RealEngine/graphics/commands/CommandBuffer.hpp>
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
@@ -51,8 +51,8 @@ public:
         glm::ivec2         worldTexSizeCh; /**< Must be a multiple of 8 */
         re::DescriptorSet& descriptorSet;
         const re::Buffer&  bodiesBuf;
-        const re::StepDoubleBuffered<re::Buffer>& branchVectorBuf;
-        const re::Buffer&                         branchRasterBuf;
+        const re::Buffer&  vegBuf;
+        const re::Buffer&  branchBuf;
     };
 
     /**
@@ -81,46 +81,48 @@ public:
 
     /**
      * @brief Plans activation of chunks that overlap given rectangular area
-     * @param commandBuffer Command buffer that will record the commands
+     * @param cmdBuf Command buffer that will record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
+     * @param branchWriteBuf Index of the double buffered part of branch buffer
+     *                      that is for writing
      * @warning Must be called between beginStep() and endStep().
      */
     void planActivationOfChunks(
-        const vk::CommandBuffer& commandBuffer,
-        const glm::ivec2&        botLeftTi,
-        const glm::ivec2&        topRightTi
+        const re::CommandBuffer& cmdBuf,
+        glm::ivec2               botLeftTi,
+        glm::ivec2               topRightTi,
+        glm::uint                branchWriteBuf
     );
 
-    int endStep(const vk::CommandBuffer& commandBuffer);
+    int endStep(const re::CommandBuffer& cmdBuf);
 
 private:
-    void planTransition(const vk::CommandBuffer& commandBuffer, const glm::ivec2& posCh);
+    void planTransition(
+        const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchWriteBuf
+    );
 
     void planActivation(
-        const vk::CommandBuffer& commandBuffer,
+        const re::CommandBuffer& cmdBuf,
         glm::ivec2&              activeChunk,
-        const glm::ivec2&        posCh,
-        const glm::ivec2&        posAt
+        glm::ivec2               posCh,
+        glm::ivec2               posAt,
+        glm::uint                branchWriteBuf
     );
 
     void planDeactivation(
-        const vk::CommandBuffer& commandBuffer,
-        glm::ivec2&              activeChunk,
-        const glm::ivec2&        posAt
+        const re::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
     );
 
     bool planUpload(
-        const vk::CommandBuffer&          commandBuffer,
+        const re::CommandBuffer&          cmdBuf,
         const std::vector<unsigned char>& tiles,
-        const glm::ivec2&                 posCh,
-        const glm::ivec2&                 posAt
+        glm::ivec2                        posCh,
+        glm::ivec2                        posAt
     );
 
     bool planDownload(
-        const vk::CommandBuffer& commandBuffer,
-        const glm::ivec2&        posCh,
-        const glm::ivec2&        posAt
+        const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
     );
 
     void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;
@@ -143,13 +145,15 @@ private:
     re::Pipeline m_analyzeContinuityPl;
     glm::uvec2   m_analyzeContinuityGroupCount{};
 
+    re::Pipeline m_cullVegetationPl;
+
     std::string        m_folderPath;
     ChunkGenerator     m_chunkGen;
     const re::Texture* m_worldTex = nullptr;
     glm::ivec2         m_worldTexSizeMask{};
 
     // Tile stage
-    static constexpr auto k_tileStageSize = 8;
+    static constexpr auto k_tileStageSize = 16;
     enum class TileStageTransferState { Downloading, Uploading };
     struct TileStageState {
         TileStageTransferState transfer;

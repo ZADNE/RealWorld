@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 const uint worldImage_BINDING = 0;
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
@@ -125,7 +126,7 @@ void velocityFluidDynamics(uvec4 water, ivec2 posIm){
 void main(){
     g_randomState = invocHash();
     const ivec2 invocOffset = p_globalPosTi
-                    + ivec2(gl_WorkGroupID.xy) * iChunkTi
+                    + chToTi(ivec2(gl_WorkGroupID.xy))
                     + ivec2(gl_LocalInvocationID.xy) * 4;
 
     for (uint inGroup = 0; inGroup < 4; inGroup++){

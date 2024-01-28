@@ -1,8 +1,7 @@
 ﻿target_shaders(RealWorld PRIVATE
     BodiesSB.glsl               
     Branch.glsl                 
-    BranchRasterSB.glsl         
-    BranchVectorSB.glsl         
+    BranchSB.glsl               
     duplicateBranches.geom      
     normAngles.glsl             
     rasterizeBranches.vert      rasterizeBranches.frag

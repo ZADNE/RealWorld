@@ -1,0 +1,45 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/chunk.glsl>
+const int ActiveChunksSB_BINDING = 1;
+#include <RealWorld/world/shaders/ActiveChunksSB.glsl>
+const int VegSB_BINDING = 3;
+#include <RealWorld/vegetation/shaders/VegSB.glsl>
+const int BranchSB_BINDING = 4;
+#include <RealWorld/vegetation/shaders/BranchSB.glsl>
+
+layout (local_size_x = 256,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+const ivec2 k_chunkCenterOffsetTi = iChunkTi / 2;
+
+const ivec2 k_chunkNotActive = ivec2(2147483647, 2147483647);
+
+void main(){
+    const uint veg = gl_GlobalInvocationID.x;
+    // If within bounds
+    if (veg < b_veg.vegCount){
+        // Load the vegetation
+        ivec2 rootPosCh = b_veg.rootPosCh[veg];
+        ivec2 rootPosAc = rootPosCh & b_worldTexSizeMask;
+
+        // Test whether it should stay
+        if (rootPosCh != k_chunkNotActive && rootPosCh != activeChunkAtPos(rootPosAc)){
+            // Cull all branches of the vegetation
+            ivec2 firstIndexAndCount = b_veg.firstIndexAndCount[veg];
+            int lastIndex = firstIndexAndCount.x + firstIndexAndCount.y;
+            for (int branch = firstIndexAndCount.x; branch < lastIndex; ++branch){
+                b_branch.lengthTi[branch] = 0.0;
+            }
+
+            // Cull the vegetation itself
+            b_veg.rootPosCh[veg] = k_chunkNotActive;
+            b_veg.firstIndexAndCount[veg] = ivec2(0, 0);
+        }
+    }
+}

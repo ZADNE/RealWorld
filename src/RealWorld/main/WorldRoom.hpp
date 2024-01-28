@@ -29,25 +29,22 @@ public:
     void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
-    void render(const vk::CommandBuffer& commandBuffer, double interpolationFactor) override;
+    void render(const re::CommandBuffer& cmdBuf, double interpolationFactor) override;
 
-    void windowResizedCallback(
-        const glm::ivec2& oldSize, const glm::ivec2& newSize
-    ) override;
+    void windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) override;
 
 private:
     using enum RealWorldKeyBindings;
 
     void performWorldSimulationStep(
-        const vk::CommandBuffer&         commandBuffer,
-        const WorldDrawer::ViewEnvelope& viewEnvelope
+        const re::CommandBuffer& cmdBuf, const WorldDrawer::ViewEnvelope& viewEnvelope
     );
 
-    void analyzeWorldForDrawing(const vk::CommandBuffer& commandBuffer);
+    void analyzeWorldForDrawing(const re::CommandBuffer& cmdBuf);
 
     void updateInventoryAndUI();
 
-    void drawGUI(const vk::CommandBuffer& commandBuffer);
+    void drawGUI(const re::CommandBuffer& cmdBuf);
 
     /**
      * @brief Loads a world. Previously loaded world is flushed without saving.
@@ -65,18 +62,18 @@ private:
      */
     bool saveWorld();
 
-    glm::mat4 calculateWindowViewMat(const glm::vec2& windowDims) const;
+    glm::mat4 calculateWindowViewMat(glm::vec2 windowDims) const;
 
     const GameSettings& m_gameSettings;
     ImFont*             m_arial =
         ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
-    re::StepDoubleBuffered<re::CommandBuffer> m_stepCommandBuffer{
-        re::CommandBuffer{vk::CommandBufferLevel::ePrimary},
-        re::CommandBuffer{vk::CommandBufferLevel::ePrimary}};
+    re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
+        re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},
+        re::CommandBuffer{{.debugName = "rw::WorldRoom::step[1]"}}};
     uint64_t        m_stepN = 1;
     re::Semaphore   m_simulationFinishedSem{m_stepN};
-    re::SpriteBatch m_spriteBatch{256, 64};
+    re::SpriteBatch m_spriteBatch{256, 32};
     re::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
 
     // View

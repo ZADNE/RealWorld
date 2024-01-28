@@ -13,4 +13,10 @@ restrict buffer ActiveChunksSB {
                                 //Following indices: absolute positions of chunks, in chunks
 };
 
+int g_maxNumberOfUpdateChunks = b_worldTexSizeMask.x * b_worldTexSizeMask.y;
+
+ivec2 activeChunkAtPos(ivec2 posAc){
+    return b_offsets[g_maxNumberOfUpdateChunks + posAc.y * b_worldTexSizeCh.x + posAc.x];
+}
+
 #endif // !ACTIVE_CHUNKS_SB_GLSL

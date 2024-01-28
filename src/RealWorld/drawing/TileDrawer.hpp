@@ -16,15 +16,15 @@ namespace rw {
  */
 class TileDrawer {
 public:
-    TileDrawer(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
+    TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
 
-    void setTarget(const re::Texture& worldTexture, const glm::ivec2& worldTexSize);
+    void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
 
-    void resizeView(const glm::vec2& viewSizePx, const glm::ivec2& viewSizeTi);
+    void resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
 
-    void drawTiles(const vk::CommandBuffer& commandBuffer, const glm::vec2& botLeftPx);
+    void drawTiles(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx);
 
-    void drawMinimap(const vk::CommandBuffer& commandBuffer);
+    void drawMinimap(const re::CommandBuffer& cmdBuf);
 
 private:
     re::TextureShaped m_blockAtlasTex{re::TextureSeed{"blockAtlas"}};
@@ -42,7 +42,9 @@ private:
 
     PushConstants      m_pushConstants;
     re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descriptorSet{m_pipelineLayout.descriptorSetLayout(0)};
+    re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
+         .layout    = m_pipelineLayout.descriptorSetLayout(0),
+         .debugName = "rw::TileDrawer::descriptorSet"}};
     re::Pipeline       m_drawTilesPl;
     re::Pipeline       m_drawMinimapPl;
 };

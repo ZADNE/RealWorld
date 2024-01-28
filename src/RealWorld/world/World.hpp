@@ -38,41 +38,32 @@ public:
     size_t numberOfInactiveChunks();
 
     /**
-     * @brief Performs layout transitions necessary to simulate the world
-     */
-    void beginStep(const vk::CommandBuffer& commandBuffer);
-
-    /**
      * @brief                   Performs a simulation step of the world.
-     * @param commandBuffer     Command buffer that will be used to record
+     * @param cmdBuf     Command buffer that will be used to record
      * computation commands
      * @param botLeftTi         The most bottom-left tile that has to be active
      * @param topRightTi        The most top-right tile that has to be active
      * @return                  The number of chunks that had to be activated
      * this step
      */
-    int step(
-        const vk::CommandBuffer& commandBuffer,
-        const glm::ivec2&        botLeftTi,
-        const glm::ivec2&        topRightTi
-    );
+    int step(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
 
     /**
      * @brief Modifies tiles in the world
      */
     void modify(
-        const vk::CommandBuffer& commandBuffer,
+        const re::CommandBuffer& cmdBuf,
         TileLayer                layer,
         ModificationShape        shape,
         float                    radius,
-        const glm::ivec2&        posTi,
-        const glm::uvec2&        tile
+        glm::ivec2               posTi,
+        glm::uvec2               tile
     );
 
     /**
      * @brief Performs layout transitions necessary to draw the world
      */
-    void endStep(const vk::CommandBuffer& commandBuffer);
+    void prepareWorldForDrawing(const re::CommandBuffer& cmdBuf);
 
     /**
      * @brief   Sets this world class to simulate the world inside the given save
@@ -80,9 +71,7 @@ public:
      * @param worldTexSize  Must be multiples of 8
      * @returns             The new world texture
      */
-    const re::Texture& adoptSave(
-        const MetadataSave& save, const glm::ivec2& worldTexSizeCh
-    );
+    const re::Texture& adoptSave(const MetadataSave& save, glm::ivec2 worldTexSizeCh);
 
     void gatherSave(MetadataSave& save) const;
 
@@ -92,10 +81,9 @@ public:
 
 private:
     void fluidDynamicsStep(
-        const vk::CommandBuffer& commandBuffer,
-        const glm::ivec2&        botLeftTi,
-        const glm::ivec2&        topRightTi
+        const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
+    void tileTransformationsStep(const re::CommandBuffer& cmdBuf, int activatedChunkCount);
 
     re::Texture m_worldTex;
     int         m_seed = 0;
@@ -112,21 +100,23 @@ private:
         float      modifyRadius;
         glm::uint  timeHash;
         glm::uint  updateOrder = 0b00011011'00011011'00011011'00011011;
-    };
-    WorldDynamicsPC m_worldDynamicsPC;
+    } m_worldDynamicsPC;
 
-    re::PipelineLayout m_simulationPL{
-        {}, re::PipelineComputeSources{.comp = simulationPL_comp}};
-    re::DescriptorSet m_simulationDS{m_simulationPL.descriptorSetLayout(0)};
-    re::Pipeline      m_simulateFluidsPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
-        re::PipelineComputeSources{.comp = simulateFluids_comp}};
+    re::PipelineLayout m_simulationPL;
+    re::DescriptorSet  m_simulationDS{re::DescriptorSetCreateInfo{
+         .layout    = m_simulationPL.descriptorSetLayout(0),
+         .debugName = "rw::World::simulation"}};
+    re::Pipeline       m_simulateFluidsPl{
+              {.pipelineLayout = *m_simulationPL,
+               .debugName      = "rw::World::simulateFluids"},
+              {.comp = simulateFluids_comp}};
     re::Pipeline m_transformTilesPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
-        re::PipelineComputeSources{.comp = transformTiles_comp}};
+        {.pipelineLayout = *m_simulationPL,
+         .debugName      = "rw::World::transformTiles"},
+        {.comp = transformTiles_comp}};
     re::Pipeline m_modifyTilesPl{
-        re::PipelineComputeCreateInfo{.pipelineLayout = *m_simulationPL},
-        re::PipelineComputeSources{.comp = modifyTiles_comp}};
+        {.pipelineLayout = *m_simulationPL, .debugName = "rw::World::modifyTiles"},
+        {.comp = modifyTiles_comp}};
 
     ChunkManager      m_chunkManager{m_simulationPL};
     const re::Buffer* m_activeChunksBuf = nullptr;

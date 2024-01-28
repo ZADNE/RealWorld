@@ -16,7 +16,7 @@ Inventory::~Inventory() {
     }
 }
 
-void Inventory::resize(const glm::ivec2& newSize) {
+void Inventory::resize(glm::ivec2 newSize) {
     InventoryData::resize(newSize);
     // Notify connected objects about the change
     if (m_ui) { // If connected to any
@@ -25,10 +25,10 @@ void Inventory::resize(const glm::ivec2& newSize) {
 }
 
 bool Inventory::insert(
-    Item&             item,
-    float             portion /* = 1.0f*/,
-    const glm::ivec2& startSlot /* = glm::ivec2(0, 0)*/,
-    bool              reload /* = true*/
+    Item&      item,
+    float      portion /* = 1.0f*/,
+    glm::ivec2 startSlot /* = glm::ivec2(0, 0)*/,
+    bool       reload /* = true*/
 ) {
     if (item.amount <= 0) {
         return true;
@@ -59,10 +59,10 @@ bool Inventory::insert(
 }
 
 bool Inventory::fill(
-    Item&             item,
-    float             portion /* = 1.0f*/,
-    const glm::ivec2& startSlot /* = glm::ivec2(0, 0)*/,
-    bool              reload /* = true*/
+    Item&      item,
+    float      portion /* = 1.0f*/,
+    glm::ivec2 startSlot /* = glm::ivec2(0, 0)*/,
+    bool       reload /* = true*/
 ) {
     if (item.amount <= 0) {
         return true;
@@ -99,9 +99,7 @@ bool Inventory::fill(
 }
 
 int Inventory::remove(
-    const Item& item,
-    const glm::ivec2& startSlot /* = glm::ivec2(0, 0)*/,
-    bool reload /* = true*/
+    const Item& item, glm::ivec2 startSlot /* = glm::ivec2(0, 0)*/, bool reload /* = true*/
 ) {
     if (item.amount <= 0) {
         return 0;

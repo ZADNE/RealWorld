@@ -31,36 +31,32 @@ constexpr glm::ivec2 k_chunkLowZeroBits =
 /**
  * @brief Converts a position in tiles to position in chunks
  */
-constexpr inline glm::ivec2 tiToCh(const glm::ivec2& posTi) {
+constexpr inline glm::ivec2 tiToCh(glm::ivec2 posTi) {
     return posTi >> k_chunkLowZeroBits;
 }
 
 /**
  * @brief Converts a position in chunks to position in tiles
  */
-constexpr inline glm::ivec2 chToTi(const glm::ivec2& posCh) {
+constexpr inline glm::ivec2 chToTi(glm::ivec2 posCh) {
     return posCh << k_chunkLowZeroBits;
 }
 
 /**
  * @brief Converts a position in chunks to its active form equivalent
  */
-constexpr inline glm::ivec2 chToAc(
-    const glm::ivec2& posCh, const glm::ivec2& worldTexSizeMask
-) {
+constexpr inline glm::ivec2 chToAc(glm::ivec2 posCh, glm::ivec2 worldTexSizeMask) {
     return posCh & worldTexSizeMask;
 }
 
 /**
  * @brief Converts a position in chunks to its active form measured in tiles
  */
-constexpr inline glm::ivec2 chToAt(
-    const glm::ivec2& posCh, const glm::ivec2& worldTexSizeMask
-) {
+constexpr inline glm::ivec2 chToAt(glm::ivec2 posCh, glm::ivec2 worldTexSizeMask) {
     return chToTi(chToAc(posCh, worldTexSizeMask));
 }
 
-constexpr inline int acToIndex(const glm::ivec2& posAc, const glm::ivec2& activeChunks) {
+constexpr inline int acToIndex(glm::ivec2 posAc, glm::ivec2 activeChunks) {
     return posAc.y * activeChunks.x + posAc.x;
 }
 

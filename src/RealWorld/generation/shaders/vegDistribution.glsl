@@ -1,8 +1,8 @@
 /*! 
  *  @author    Dubsky Tomas
  */
-#ifndef VEGETATION_GLSL
-#define VEGETATION_GLSL
+#ifndef VEG_DISTRIBUTION_GLSL
+#define VEG_DISTRIBUTION_GLSL
 
 struct VegTemplate{
     uint branchFirstIndex;
@@ -22,25 +22,25 @@ const uint k_vegTemplatesBranchCount =
     k_vegTemplates[k_vegTemplates.length() - 1].branchCount;
 
 // Describes vegetation distribution
-struct Vegetation {
+struct VegDistr {
     // Represents probabilities to generate each template
     // Probabilities are per chunk
     float genProbability[k_vegTemplates.length()];
 };
 
-const Vegetation k_mountainVeg =    {{  0.01,   0.0,    0.0}};
-const Vegetation k_tundraVeg =      {{  0.01,   0.0,    0.0}};
-const Vegetation k_taigaVeg =       {{  0.01,   0.0,    0.0}};
+const VegDistr k_mountainVeg =    {{  0.01,   0.0,    0.0}};
+const VegDistr k_tundraVeg =      {{  0.01,   0.0,    0.0}};
+const VegDistr k_taigaVeg =       {{  0.01,   0.0,    0.0}};
 
-const Vegetation k_grasslandVeg =   {{  0.1,    0.0,    1.0}};
-const Vegetation k_forestVeg =      {{  2.0,    0.0,    1.0}};
-const Vegetation k_swampVeg =       {{  0.0,    0.0,    0.0}};
+const VegDistr k_grasslandVeg =   {{  0.1,    0.0,    1.0}};
+const VegDistr k_forestVeg =      {{  2.0,    0.0,    1.0}};
+const VegDistr k_swampVeg =       {{  0.0,    0.0,    0.0}};
 
-const Vegetation k_desertVeg =      {{  0.0,    0.1,    0.0}};
-const Vegetation k_savannaVeg =     {{  0.0,    1.0,    1.0}};
-const Vegetation k_rainforestVeg =  {{  0.0,    1.0,    1.0}};
+const VegDistr k_desertVeg =      {{  0.0,    0.1,    0.0}};
+const VegDistr k_savannaVeg =     {{  0.0,    1.0,    1.0}};
+const VegDistr k_rainforestVeg =  {{  0.0,    1.0,    1.0}};
 
-const Vegetation k_biomeVegetations[3][3] = {
+const VegDistr k_biomeVegDistrs[3][3] = {
 //humidity> |low                |normal             |high           temperature \/
     {       k_mountainVeg,      k_tundraVeg,        k_taigaVeg      },  //-low
     {       k_grasslandVeg,     k_forestVeg,        k_swampVeg      },  //-normal
@@ -51,17 +51,17 @@ const Vegetation k_biomeVegetations[3][3] = {
 /**
  * @param biomeClimate x = temperature, y = humidity
  */
-Vegetation biomeVegetation(vec2 biomeClimate){
+VegDistr biomeVegDistr(vec2 biomeClimate){
     // Calculate coords
-    biomeClimate *= vec2(k_biomeVegetations.length() - 1, k_biomeVegetations[0].length() - 1);
+    biomeClimate *= vec2(k_biomeVegDistrs.length() - 1, k_biomeVegDistrs[0].length() - 1);
     ivec2 ll = ivec2(biomeClimate);
     vec2 frac = fract(biomeClimate);
 
     // Gather
-    Vegetation b00 = k_biomeVegetations[ll.x][ll.y];
-    const Vegetation b01 = k_biomeVegetations[ll.x][ll.y + 1];
-    const Vegetation b10 = k_biomeVegetations[ll.x + 1][ll.y];
-    const Vegetation b11 = k_biomeVegetations[ll.x + 1][ll.y + 1];
+    VegDistr b00 = k_biomeVegDistrs[ll.x][ll.y];
+    const VegDistr b01 = k_biomeVegDistrs[ll.x][ll.y + 1];
+    const VegDistr b10 = k_biomeVegDistrs[ll.x + 1][ll.y];
+    const VegDistr b11 = k_biomeVegDistrs[ll.x + 1][ll.y + 1];
 
     for (int i = 0; i < k_vegTemplates.length(); ++i){
         // Interpolate over X axis
@@ -75,4 +75,4 @@ Vegetation biomeVegetation(vec2 biomeClimate){
     return b00;
 }
 
-#endif // !VEGETATION_GLSL
+#endif // !VEG_DISTRIBUTION_GLSL
