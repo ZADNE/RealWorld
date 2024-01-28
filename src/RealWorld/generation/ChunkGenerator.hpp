@@ -42,12 +42,6 @@ public:
      */
     void setTarget(const TargetInfo& targetInfo);
 
-    /**
-     * @brief Should be called at the beginning of each step where chunks will
-     * be generated
-     */
-    void nextStep();
-
     struct OutputInfo {
         glm::ivec2 posCh;          /**< Position of the chunk */
         glm::uint  branchWriteBuf; /**< Index of the double buffered part of
@@ -72,8 +66,6 @@ protected:
 
     static re::Buffer createVegTemplatesBuffer();
 
-    int m_nOfGenChunksThisStep = 0;
-
     const re::Texture* m_worldTex = nullptr;
     glm::ivec2         m_worldTexSizeCh{};
     const re::Buffer*  m_bodiesBuf = nullptr;
@@ -83,7 +75,7 @@ protected:
     struct GenerationPC {
         glm::ivec2 chunkOffsetTi;
         int        seed;
-        glm::uint  storeLayer;
+        glm::uint  storeLayer{};
         glm::uint  edgeConsolidationPromote;
         glm::uint  edgeConsolidationReduce;
         glm::uint  branchWriteBuf;

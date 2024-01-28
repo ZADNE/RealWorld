@@ -53,10 +53,6 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_descriptorSet.write(eStorageBuffer, 5, 0, *m_branchBuf, 0, vk::WholeSize);
 }
 
-void ChunkGenerator::nextStep() {
-    m_nOfGenChunksThisStep = 0;
-}
-
 void ChunkGenerator::generateChunk(
     const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo
 ) {
@@ -115,7 +111,6 @@ void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec
             vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}        // Copy Extent
         }
     );
-    m_nOfGenChunksThisStep++;
 }
 
 } // namespace rw

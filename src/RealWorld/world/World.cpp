@@ -131,16 +131,6 @@ void World::gatherSave(MetadataSave& save) const {
 bool World::saveChunks() {
     // Unrasterize branches so that the saved chunks do not contain them
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
-        auto imageBarrier = re::imageMemoryBarrier(
-            S::eAllCommands,                   // Src stage mask
-            {},                                // Src access mask
-            S::eFragmentShader,                // Dst stage mask
-            A::eInputAttachmentRead,           // Dst access mask
-            vk::ImageLayout::eReadOnlyOptimal, // Old image layout
-            vk::ImageLayout::eGeneral,         // New image layout
-            m_worldTex.image()
-        );
-        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
         m_vegSimulator.unrasterizeVegetation(cmdBuf);
     });
 
@@ -204,6 +194,16 @@ void World::modify(
         *m_simulationPL, eCompute, 0, m_worldDynamicsPC
     );
     cmdBuf->dispatch(1, 1, 1);
+    auto imageBarrier = re::imageMemoryBarrier(
+        S::eComputeShader,                              // Src stage mask
+        A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+        S::eComputeShader,                              // Dst stage mask
+        A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
+        eGeneral,                                       // Old image layout
+        eGeneral,                                       // New image layout
+        m_worldTex.image()
+    );
+    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 }
 
 void World::prepareWorldForDrawing(const re::CommandBuffer& cmdBuf) {

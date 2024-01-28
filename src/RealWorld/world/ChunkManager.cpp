@@ -236,8 +236,6 @@ void ChunkManager::planActivationOfChunks(
     glm::ivec2 botLeftCh  = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
 
-    m_chunkGen.nextStep();
-
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
@@ -251,6 +249,17 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
     if (m_transparentChunkChanges > 0) {
         // Reset the number of update chunks to zero
         m_activeChunksStageBuf->dynamicsGroupSize.x = 0;
+
+        { // Wait for previous dispatch to finish
+            auto bufferBarrier = re::bufferMemoryBarrier(
+                S::eDrawIndirect | S::eComputeShader, // Src stage mask
+                A::eIndirectCommandRead | A::eShaderStorageRead, // Src access mask
+                S::eTransfer,      // Dst stage mask
+                A::eTransferWrite, // Dst access mask
+                m_activeChunksBuf.buffer()
+            );
+            cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
+        }
 
         // Copy the update to active chunks buffer
         auto texSizeCh   = m_worldTexSizeMask + 1;
@@ -294,8 +303,8 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
         );
 
         // Cull the vegetation
-        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
-        cmdBuf->dispatch(k_maxVegCount / 256, 1, 1);
+        // cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute,
+        // *m_cullVegetationPl); cmdBuf->dispatch(k_maxVegCount / 256, 1, 1);
 
         { // Barrier analysis output from tile transformations
             auto bufferBarrier = re::bufferMemoryBarrier(
@@ -382,6 +391,19 @@ bool ChunkManager::planUpload(
     glm::ivec2                        posAt
 ) {
     if (m_nextFreeTileStage < k_tileStageSize) { // If there is a free stage
+        // Wait for unrasterization to finish
+        auto imageBarrier = re::imageMemoryBarrier(
+            S::eColorAttachmentOutput | S::eTransfer, // Src stage mask
+            A::eColorAttachmentRead | A::eColorAttachmentWrite |
+                A::eTransferRead | A::eTransferWrite, // Src access mask
+            S::eTransfer,                             // Dst stage mask
+            A::eTransferWrite,                        // Dst access mask
+            vk::ImageLayout::eGeneral,                // Old image layout
+            vk::ImageLayout::eGeneral,                // New image layout
+            m_worldTex->image()
+        );
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+
         m_tileStageStates[m_nextFreeTileStage] = {
             .transfer = TileStageTransferState::Uploading, .posCh = posCh};
         auto bufOffset = static_cast<vk::DeviceSize>(m_nextFreeTileStage) *
@@ -410,12 +432,24 @@ bool ChunkManager::planDownload(
     const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
 ) {
     if (m_nextFreeTileStage < k_tileStageSize) { // If there is a free stage
+        // Wait for unrasterization to finish
+        auto imageBarrier = re::imageMemoryBarrier(
+            S::eColorAttachmentOutput | S::eTransfer, // Src stage mask
+            A::eColorAttachmentRead | A::eColorAttachmentWrite |
+                A::eTransferRead | A::eTransferWrite, // Src access mask
+            S::eTransfer,                             // Dst stage mask
+            A::eTransferRead,                         // Dst access mask
+            vk::ImageLayout::eGeneral,                // Old image layout
+            vk::ImageLayout::eGeneral,                // New image layout
+            m_worldTex->image()
+        );
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+
         m_tileStageStates[m_nextFreeTileStage] = {
             .transfer = TileStageTransferState::Downloading, .posCh = posCh};
-        vk::DeviceSize bufOffset = m_nextFreeTileStage * k_chunkByteSize;
-
         auto copy = vk::BufferImageCopy2{
-            bufOffset, // Buffer offset
+            static_cast<vk::DeviceSize>(m_nextFreeTileStage) *
+                k_chunkByteSize, // Buffer offset
             0u,
             0u,                          // Tightly packed
             {eColor, 0u, 0u, 1u},        // Subresource

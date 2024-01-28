@@ -22,7 +22,7 @@ void ChunkGenerator::prepareToGenerate(const re::CommandBuffer& cmdBuf) {
 }
 
 void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
-    if (m_nOfGenChunksThisStep != 0) { // Barrier from previous chunk
+    { // Barrier from previous chunk
         std::array barriers = std::to_array(
             {re::imageMemoryBarrier(
                  S::eTransfer,           // Src stage mask

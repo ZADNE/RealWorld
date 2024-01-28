@@ -152,16 +152,14 @@ void interpret(
 } // namespace
 
 void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
-    if (m_nOfGenChunksThisStep != 0) { // Barrier from previous chunk
-        auto previousChunkBarrier = re::bufferMemoryBarrier(
-            S::eComputeShader,      // Src stage mask
-            A::eShaderStorageRead,  // Src access mask
-            S::eComputeShader,      // Dst stage mask
-            A::eShaderStorageWrite, // Dst access mask
-            *m_vegPreparationBuf
-        );
-        cmdBuf->pipelineBarrier2({{}, {}, previousChunkBarrier, {}});
-    }
+    auto previousChunkBarrier = re::bufferMemoryBarrier(
+        S::eComputeShader,      // Src stage mask
+        A::eShaderStorageRead,  // Src access mask
+        S::eComputeShader,      // Dst stage mask
+        A::eShaderStorageWrite, // Dst access mask
+        *m_vegPreparationBuf
+    );
+    cmdBuf->pipelineBarrier2({{}, {}, previousChunkBarrier, {}});
 
     // Dispatch preparation
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
