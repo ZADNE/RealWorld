@@ -303,8 +303,8 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
         );
 
         // Cull the vegetation
-        // cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute,
-        // *m_cullVegetationPl); cmdBuf->dispatch(k_maxVegCount / 256, 1, 1);
+        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
+        cmdBuf->dispatch(k_maxVegCount / 256, 1, 1);
 
         { // Barrier analysis output from tile transformations
             auto bufferBarrier = re::bufferMemoryBarrier(
