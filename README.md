@@ -1,4 +1,4 @@
-# RealWorld: A real-time tile-based game world simulation demo
+# RealWorld: A tile-based game world simulation demo
 
 ## Features:
 - 2D endless tile-based world; procedurally generated as the player moves in it
