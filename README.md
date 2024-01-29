@@ -11,9 +11,9 @@
 
 The project is developed using [RealEngine](https://github.com/ZADNE/RealEngine) library.
 
-#### See [video on YouTube](https://youtu.be/XPsG03OpFHg).
+## Sample gallery
 
-## Sample image gallery
+### See [video on YouTube](https://youtu.be/XPsG03OpFHg).
 
 #### Evaporation of water dropped into lava and ponds created by precipitation of the steam.
 
