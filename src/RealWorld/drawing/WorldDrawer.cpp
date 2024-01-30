@@ -15,18 +15,21 @@ namespace rw {
 WorldDrawer::WorldDrawer(glm::uvec2 viewSizePx, glm::uint maxNumberOfExternalLights)
     : m_viewSizeTi(viewSizeTi(viewSizePx))
     , m_tileDrawer(viewSizePx, m_viewSizeTi)
-    , m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights) {
+    , m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights)
+    , m_minimapDawer(viewSizePx, m_viewSizeTi) {
 }
 
 void WorldDrawer::setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi) {
     m_tileDrawer.setTarget(worldTex, worldTexSizeTi);
     m_shadowDrawer.setTarget(worldTex, worldTexSizeTi);
+    m_minimapDawer.setTarget(worldTexSizeTi);
 }
 
 void WorldDrawer::resizeView(glm::uvec2 viewSizePx) {
     m_viewSizeTi = viewSizeTi(viewSizePx);
     m_tileDrawer.resizeView(viewSizePx, m_viewSizeTi);
     m_shadowDrawer.resizeView(viewSizePx, m_viewSizeTi);
+    m_minimapDawer.resizeView(viewSizePx, m_viewSizeTi);
 }
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
@@ -60,6 +63,7 @@ void WorldDrawer::drawShadows(const re::CommandBuffer& cmdBuf) {
 
 void WorldDrawer::drawMinimap(const re::CommandBuffer& cmdBuf) {
     m_tileDrawer.drawMinimap(cmdBuf);
+    m_minimapDawer.drawMinimapLines(cmdBuf, m_botLeftPx);
 }
 
 glm::uvec2 WorldDrawer::viewSizeTi(glm::vec2 viewSizePx) const {

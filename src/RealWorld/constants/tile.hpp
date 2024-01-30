@@ -6,11 +6,14 @@
 #include <cmath>
 #include <cstdint>
 
+#include <glm/common.hpp>
 #include <glm/vec2.hpp>
 
 namespace rw {
 
-// Physics steps per second
+/**
+ * @brief The number of physics steps per second
+ */
 constexpr int k_physicsStepsPerSecond = 100;
 
 /**
@@ -90,21 +93,21 @@ enum class TileLayer : uint32_t {
 /**
  * @brief Converts a position in pixels to position in tiles
  */
-constexpr inline glm::vec2 pxToTi(glm::vec2 posPx) {
+constexpr glm::vec2 pxToTi(glm::vec2 posPx) {
     glm::vec2 posTiFrac = posPx / TilePx;
     return {std::floor(posTiFrac.x), std::floor(posTiFrac.y)};
 }
-constexpr inline glm::ivec2 pxToTi(glm::ivec2 posPx) {
+constexpr glm::ivec2 pxToTi(glm::ivec2 posPx) {
     return posPx >> k_tileLowZeroBits;
 }
 
 /**
  * @brief Converts a position in tiles to position in pixels
  */
-constexpr inline glm::vec2 tiToPx(glm::vec2 posTi) {
+constexpr glm::vec2 tiToPx(glm::vec2 posTi) {
     return posTi * TilePx;
 }
-constexpr inline glm::ivec2 tiToPx(glm::ivec2 posTi) {
+constexpr glm::ivec2 tiToPx(glm::ivec2 posTi) {
     return posTi << k_tileLowZeroBits;
 }
 

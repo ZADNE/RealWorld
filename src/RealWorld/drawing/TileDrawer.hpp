@@ -38,15 +38,16 @@ private:
         glm::ivec2 botLeftTi;
         glm::vec2  minimapOffset;
         glm::vec2  minimapSize;
-    };
+    } m_pushConstants;
 
-    PushConstants      m_pushConstants;
     re::PipelineLayout m_pipelineLayout;
     re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
          .layout    = m_pipelineLayout.descriptorSetLayout(0),
          .debugName = "rw::TileDrawer::descriptorSet"}};
     re::Pipeline       m_drawTilesPl;
-    re::Pipeline       m_drawMinimapPl;
+
+    // Minimap
+    re::Pipeline m_drawMinimapPl;
 };
 
 } // namespace rw

@@ -4,6 +4,7 @@
 #pragma once
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 
+#include <RealWorld/drawing/MinimapDrawer.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
 
@@ -54,8 +55,9 @@ private:
     glm::uvec2 m_viewSizeTi;
     glm::uvec2 viewSizeTi(glm::vec2 viewSizePx) const;
 
-    TileDrawer   m_tileDrawer;
-    ShadowDrawer m_shadowDrawer;
+    TileDrawer    m_tileDrawer;
+    ShadowDrawer  m_shadowDrawer;
+    MinimapDrawer m_minimapDawer;
 };
 
 } // namespace rw
