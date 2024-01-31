@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #include <stdexcept>
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
 #include <RealWorld/world/Chunk.hpp>
