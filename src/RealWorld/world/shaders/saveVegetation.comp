@@ -18,7 +18,7 @@ layout (local_size_x = 256,
 
 const ivec2 k_chunkCenterOffsetTi = iChunkTi / 2;
 
-const ivec2 k_chunkNotActive = ivec2(2147483647, 2147483647);
+const ivec2 k_chunkNotActive = ivec2(0x7FFFFFFF, 0x7FFFFFFF);
 
 void main(){
     const uint veg = gl_GlobalInvocationID.x;

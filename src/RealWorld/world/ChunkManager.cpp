@@ -7,6 +7,7 @@
 #include <future>
 
 #include <RealEngine/graphics/synchronization/Fence.hpp>
+#include <RealEngine/utility/Math.hpp>
 
 #include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/save/ChunkLoader.hpp>
@@ -231,7 +232,7 @@ void ChunkManager::planActivationOfChunks(
     const re::CommandBuffer& cmdBuf,
     glm::ivec2               botLeftTi,
     glm::ivec2               topRightTi,
-    glm::uint                branchReadBuf
+    glm::uint                branchWriteBuf
 ) {
     glm::ivec2 botLeftCh  = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
@@ -239,7 +240,7 @@ void ChunkManager::planActivationOfChunks(
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
-            planTransition(cmdBuf, glm::ivec2(x, y), branchReadBuf);
+            planTransition(cmdBuf, glm::ivec2(x, y), branchWriteBuf);
         }
     }
 }
@@ -304,7 +305,7 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
 
         // Cull the vegetation
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
-        cmdBuf->dispatch(k_maxVegCount / 256, 1, 1);
+        cmdBuf->dispatch(re::ceilDiv(k_maxVegCount, 256), 1, 1);
 
         { // Barrier analysis output from tile transformations
             auto bufferBarrier = re::bufferMemoryBarrier(
@@ -321,7 +322,7 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
 }
 
 void ChunkManager::planTransition(
-    const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchReadBuf
+    const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchWriteBuf
 ) {
     auto posAc = chToAc(posCh, m_worldTexSizeMask);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexSizeMask + 1));
@@ -330,7 +331,7 @@ void ChunkManager::planTransition(
         return; // No transition is needed
     } else if (activeChunk == k_chunkNotActive) {
         // No chunk is active at the spot
-        planActivation(cmdBuf, activeChunk, posCh, chToTi(posAc), branchReadBuf);
+        planActivation(cmdBuf, activeChunk, posCh, chToTi(posAc), branchWriteBuf);
     } else if (activeChunk != k_chunkBeingDownloaded && activeChunk != k_chunkBeingUploaded) {
         // A different chunk is active at the spot
         planDeactivation(cmdBuf, activeChunk, chToTi(posAc));
@@ -342,7 +343,7 @@ void ChunkManager::planActivation(
     glm::ivec2&              activeChunk,
     glm::ivec2               posCh,
     glm::ivec2               posAt,
-    glm::uint                branchReadBuf
+    glm::uint                branchWriteBuf
 ) {
     // Try to find the chunk among inactive chunks
     auto it = m_inactiveChunks.find(posCh);
@@ -367,7 +368,10 @@ void ChunkManager::planActivation(
             }
         } else {
             // Chunk is not on the disk, it has to be generated
-            m_chunkGen.generateChunk(cmdBuf, ChunkGenerator::OutputInfo{.posCh = posCh});
+            m_chunkGen.generateChunk(
+                cmdBuf,
+                ChunkGenerator::OutputInfo{.posCh = posCh, .branchWriteBuf = branchWriteBuf}
+            );
             activeChunk = posCh;
             m_transparentChunkChanges++;
         }

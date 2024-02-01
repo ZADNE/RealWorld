@@ -156,8 +156,8 @@ private:
     static constexpr auto k_tileStageSize = 16;
     enum class TileStageTransferState { Downloading, Uploading };
     struct TileStageState {
-        TileStageTransferState transfer;
-        glm::ivec2             posCh;
+        TileStageTransferState transfer{};
+        glm::ivec2             posCh{~0, ~0};
     };
     std::array<TileStageState, k_tileStageSize> m_tileStageStates{};
     int                                         m_nextFreeTileStage = 0;

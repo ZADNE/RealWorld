@@ -43,9 +43,9 @@ public:
     void setTarget(const TargetInfo& targetInfo);
 
     struct OutputInfo {
-        glm::ivec2 posCh;          /**< Position of the chunk */
-        glm::uint  branchWriteBuf; /**< Index of the double buffered part of
-                                     branch buffer that is for writing */
+        glm::ivec2 posCh{~0, ~0};      /**< Position of the chunk */
+        glm::uint branchWriteBuf{~0u}; /**< Index of the double buffered part of
+                                    branch buffer that is for writing */
     };
 
     /**
