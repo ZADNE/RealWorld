@@ -26,7 +26,7 @@ void main(){
     if (veg < b_veg.vegCount){
         // Load the vegetation
         ivec2 rootPosCh = b_veg.rootPosCh[veg];
-        ivec2 rootPosAc = rootPosCh & b_worldTexSizeMask;
+        ivec2 rootPosAc = rootPosCh & b_acChunks.worldTexSizeMask;
 
         // Test whether it should stay
         if (rootPosCh != k_chunkNotActive && rootPosCh != activeChunkAtPos(rootPosAc)){

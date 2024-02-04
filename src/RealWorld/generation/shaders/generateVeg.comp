@@ -75,7 +75,7 @@ void main(){
                 // Create instance to be generated
                 uint branchBaseIndex = atomicAdd(s_branchInstanceCount, vegBranchCount);
                 float greenMass = biomeClimate.x + biomeClimate.y;
-                b_vegInstances[atomicAdd(s_vegInstanceCount, 1)] = VegInstance(
+                b_vegPrep.vegInstances[atomicAdd(s_vegInstanceCount, 1)] = VegInstance(
                     templateIndex,              // templateIndex
                     branchWriteIndex,           // writeIndex
                     random(),                   // randomSeed
@@ -98,7 +98,7 @@ void main(){
 
     barrier();
     if (gl_LocalInvocationIndex == 0){
-        b_vegetationDispatchSize = uvec4(s_vegInstanceCount, 1, 1, 0);
-        b_branchDispatchSize = uvec4(s_branchInstanceCount, 1, 1, 0);
+        b_vegPrep.vegDispatchSize = uvec4(s_vegInstanceCount, 1, 1, 0);
+        b_vegPrep.branchDispatchSize = uvec4(s_branchInstanceCount, 1, 1, 0);
     }
 }

@@ -6,9 +6,9 @@
 
 layout (binding = PlayerHitboxSB_BINDING, std430)
 restrict buffer PlayerHitboxSB {
-    vec2 b_botLeftPx[2];
-    vec2 b_dimsPx;
-    vec2 b_velocityPx;
-};
+    vec2 botLeftPx[2];
+    vec2 dimsPx;
+    vec2 velocityPx;
+} b_player;
 
 #endif // !PLAYER_HITBOX_SB_GLSL

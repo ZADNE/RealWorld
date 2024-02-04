@@ -29,7 +29,7 @@ float scaleAngle(float a, float s){
 void generateTree(){
     if (gl_LocalInvocationID.x < s_tmplt.branchCount){
         // Load and randomize branch template
-        Branch b = u_vegTemplateBranches[s_tmplt.branchFirstIndex + gl_LocalInvocationID.x];
+        Branch b = u_vegTemplates.branches[s_tmplt.branchFirstIndex + gl_LocalInvocationID.x];
         b.relRestAngleNorm = fract(bool(s_instance.randomSeed & 1) ? b.relRestAngleNorm : -b.relRestAngleNorm);
         b.relRestAngleNorm = scaleAngle(b.relRestAngleNorm, s_instance.angleFactor);
         b.lengthTi *= 1.0 + (randomFloat() - 0.5) * s_tmplt.rndLength;
@@ -49,7 +49,7 @@ void generateTree(){
         b_branch.densityStiffness[writeIndex] = vec2(b.density, b.stiffness);
 
         // Write raster generation info
-        b_branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
+        b_vegPrep.branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
             b.absPosTi,     // offsetTi
             uvec2(sizeTi),  // sizeTi
             b.wallType,     // wallType
@@ -93,7 +93,7 @@ void generateGrass(){
     b_branch.densityStiffness[writeIndex] = vec2(8.0, 0.015625);
 
     // Write raster generation info
-    b_branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
+    b_vegPrep.branchInstances[s_instance.branchBaseIndex + gl_LocalInvocationID.x] = BranchInstance(
         vec2(0),        // offsetTi
         uvec2(sizeTi),  // sizeTi
         WHEAT_WL,       // wallType
@@ -105,7 +105,7 @@ void generateGrass(){
 void main(){
     // Load vegetation instance & template description
     if (gl_LocalInvocationID.x == 0){
-        s_instance = b_vegInstances[gl_WorkGroupID.x];
+        s_instance = b_vegPrep.vegInstances[gl_WorkGroupID.x];
         s_tmplt = k_vegTemplates[s_instance.templateIndex];
     }
     barrier();

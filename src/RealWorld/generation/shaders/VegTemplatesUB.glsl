@@ -9,7 +9,7 @@
 #extension GL_EXT_scalar_block_layout : require
 layout (set = 0, binding = VegTemplatesUB_BINDING, std430)
 restrict uniform VegTemplatesUB {
-    Branch u_vegTemplateBranches[k_vegTemplatesBranchCount];
-};
+    Branch branches[k_vegTemplatesBranchCount];
+} u_vegTemplates;
 
 #endif // !VEG_TEMPLATES_UB_GLSL

@@ -28,10 +28,10 @@ struct BranchInstance{
 
 layout (binding = VegPreparationSB_BINDING, std430)
 VegPreparationSB_ACCESS restrict buffer VegPreparationSB {
-    uvec4           b_vegetationDispatchSize;
-    uvec4           b_branchDispatchSize;
-    VegInstance     b_vegInstances[32];
-    BranchInstance  b_branchInstances[32*64];
-};
+    uvec4           vegDispatchSize;
+    uvec4           branchDispatchSize;
+    VegInstance     vegInstances[32];
+    BranchInstance  branchInstances[32*64];
+} b_vegPrep;
 
 #endif // !VEG_PREPARATION_SB_GLSL
