@@ -87,7 +87,7 @@ void main(){
 
                 // Save vegetation
                 b_veg.rootPosCh[vegWriteIndex]          = tiToCh(pTi);
-                b_veg.firstIndexAndCount[vegWriteIndex] = ivec2(branchWriteIndex, branchWriteIndex);
+                b_veg.firstIndexAndCount[vegWriteIndex] = ivec2(branchWriteIndex, vegBranchCount);
             } else {
                 // No space for new branches or vegetation
                 atomicAdd(b_branch.vertexCount, uint(-vegBranchCount));
