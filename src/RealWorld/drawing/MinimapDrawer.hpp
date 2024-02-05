@@ -26,7 +26,7 @@ private:
     glm::vec2 m_viewSizePx;
     glm::vec2 m_viewSizeTi;
     glm::vec2 m_worldTexCh;
-    re::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 256u, 1.0f};
+    re::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 512u, 1.0f};
     MinimapLayout m_layout;
 };
 
