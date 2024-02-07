@@ -14,7 +14,8 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/vegetation/BodySimulator.hpp>
 #include <RealWorld/vegetation/VegSimulator.hpp>
-#include <RealWorld/world/ChunkManager.hpp>
+#include <RealWorld/world/ActivationManager.hpp>
+#include <RealWorld/world/shaders/AllShaders.hpp>
 
 namespace rw {
 
@@ -43,10 +44,8 @@ public:
      * computation commands
      * @param botLeftTi         The most bottom-left tile that has to be active
      * @param topRightTi        The most top-right tile that has to be active
-     * @return                  The number of chunks that had to be activated
-     * this step
      */
-    int step(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
+    void step(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
 
     /**
      * @brief Modifies tiles in the world
@@ -83,7 +82,7 @@ private:
     void fluidDynamicsStep(
         const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
-    void tileTransformationsStep(const re::CommandBuffer& cmdBuf, int activatedChunkCount);
+    void tileTransformationsStep(const re::CommandBuffer& cmdBuf);
 
     re::Texture m_worldTex;
     int         m_seed = 0;
@@ -118,11 +117,10 @@ private:
         {.pipelineLayout = *m_simulationPL, .debugName = "rw::World::modifyTiles"},
         {.comp = modifyTiles_comp}};
 
-    ChunkManager      m_chunkManager{m_simulationPL};
+    ActivationManager m_activationManager{m_simulationPL};
     const re::Buffer* m_activeChunksBuf = nullptr;
-
-    BodySimulator m_bodySimulator{m_simulationPL};
-    VegSimulator  m_vegSimulator{};
+    BodySimulator     m_bodySimulator{m_simulationPL};
+    VegSimulator      m_vegSimulator{};
 
     bool m_permuteOrder = true;
 };

@@ -105,7 +105,7 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
     );
 
     // Update chunk manager
-    m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
+    m_activeChunksBuf = &m_activationManager.setTarget(ActivationManager::TargetInfo{
         .seed           = m_seed,
         .folderPath     = save.path,
         .worldTex       = m_worldTex,
@@ -129,30 +129,29 @@ bool World::saveChunks() {
     });
 
     // Save the chunks
-    return m_chunkManager.saveChunks();
+    return m_activationManager.saveChunks();
 }
 
 size_t World::numberOfInactiveChunks() {
-    return m_chunkManager.numberOfInactiveChunks();
+    return m_activationManager.numberOfInactiveChunks();
 }
 
-int World::step(
+void World::step(
     const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
     // Unrasterize branches
     m_vegSimulator.unrasterizeVegetation(cmdBuf);
 
-    int activatedChunkCount = 0;
-    { // Chunk manager
-        auto dbg = cmdBuf.createDebugRegion("chunk manager");
-        m_chunkManager.beginStep();
-        m_chunkManager.planActivationOfChunks(
+    { // Activation manager
+        auto dbg = cmdBuf.createDebugRegion("activation manager");
+        m_activationManager.beginStep();
+        m_activationManager.planActivationOfArea(
             cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
         );
         cmdBuf->bindDescriptorSets(
             vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
         );
-        activatedChunkCount = m_chunkManager.endStep(cmdBuf);
+        m_activationManager.endStep(cmdBuf);
     }
 
     // Bodies
@@ -162,12 +161,10 @@ int World::step(
     m_vegSimulator.rasterizeVegetation(cmdBuf);
 
     // Tile transformations
-    tileTransformationsStep(cmdBuf, activatedChunkCount);
+    tileTransformationsStep(cmdBuf);
 
     // Fluid dynamics
     fluidDynamicsStep(cmdBuf, botLeftTi, topRightTi);
-
-    return activatedChunkCount;
 }
 
 void World::modify(
@@ -270,9 +267,7 @@ void World::fluidDynamicsStep(
     }
 }
 
-void World::tileTransformationsStep(
-    const re::CommandBuffer& cmdBuf, int activatedChunkCount
-) {
+void World::tileTransformationsStep(const re::CommandBuffer& cmdBuf) {
     // Set up cmdBuf state for simulation
     auto dbg = cmdBuf.createDebugRegion("tile transformations");
     xorshift32(m_worldDynamicsPC.timeHash);
@@ -295,8 +290,7 @@ void World::tileTransformationsStep(
     // Tile transformations
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
     cmdBuf->dispatchIndirect(
-        **m_activeChunksBuf,
-        offsetof(ChunkManager::ActiveChunksSB, dynamicsGroupSize)
+        **m_activeChunksBuf, offsetof(ActiveChunksSB, dynamicsGroupSize)
     );
 }
 

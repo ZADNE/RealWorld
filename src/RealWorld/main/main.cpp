@@ -9,11 +9,13 @@
 
 int main(int argc, char* argv[]) {
     vk::StructureChain chain{
-        vk::PhysicalDeviceFeatures2{vk::PhysicalDeviceFeatures{}
-                                        .setTessellationShader(true)
-                                        .setVertexPipelineStoresAndAtomics(true)
-                                        .setFragmentStoresAndAtomics(true)
-                                        .setGeometryShader(true)},
+        vk::PhysicalDeviceFeatures2{
+            vk::PhysicalDeviceFeatures{}
+                .setTessellationShader(true)
+                .setVertexPipelineStoresAndAtomics(true)
+                .setFragmentStoresAndAtomics(true)
+                .setGeometryShader(true)
+                .setMultiDrawIndirect(true)},
         vk::PhysicalDeviceVulkan12Features{}
             .setStorageBuffer8BitAccess(true)
             .setUniformBufferStandardLayout(true)

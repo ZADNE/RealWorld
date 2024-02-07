@@ -2,22 +2,16 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <unordered_map>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
+#include <glm/vec2.hpp>
 
 #include <RealEngine/graphics/buffers/BufferMapped.hpp>
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
-#include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/world/Chunk.hpp>
-#include <RealWorld/world/shaders/AllShaders.hpp>
-
 namespace rw {
+
+class ActivationManager;
 
 /**
  * @brief Ensures that chunks are activated when needed.
@@ -26,141 +20,81 @@ namespace rw {
  */
 class ChunkManager {
 public:
-#pragma warning(push)
-#pragma warning(disable : 4200)
-    struct ActiveChunksSB {
-        glm::ivec2 activeChunksMask;
-        glm::ivec2 worldTexSizeCh;
-        glm::ivec4 dynamicsGroupSize;
-        glm::ivec2 offsets[]; // First indices: offsets of update chunks, in tiles
-        // Following indices: absolute positions of chunks, in chunks
-    };
-#pragma warning(pop)
-
     /**
      * @brief Contructs chunks manager
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    explicit ChunkManager(const re::PipelineLayout& pipelineLayout);
-
-    struct TargetInfo {
-        int seed;                      /**< Seed of the new world */
-        const std::string& folderPath; /**< Path to the folder that contains the new world */
-        const re::Texture& worldTex; /**< The world texture that will be managed */
-        glm::ivec2         worldTexSizeCh; /**< Must be a multiple of 8 */
-        re::DescriptorSet& descriptorSet;
-        const re::Buffer&  bodiesBuf;
-        const re::Buffer&  branchBuf;
-    };
+    ChunkManager(const re::PipelineLayout& pipelineLayout, ActivationManager& actManager);
 
     /**
      * @brief   Retargets the chunk manager to a new world.
      * @detail  Frees all chunks of the previous world without saving them.
      * @param targetInfo    Info about the new world
-     * @return              Active chunks storage buffer
      */
-    const re::Buffer& setTarget(const TargetInfo& targetInfo);
+    void setTarget(glm::ivec2 worldTexSizeCh);
 
     /**
      * @brief Saves all chunks, keeps them in the memory.
      * @note This operation is slow!
      * @return True if successful, false otherwise.
      */
-    bool saveChunks();
+    bool saveChunks(const re::Texture& worldTex);
 
     /**
-     * @brief Gets the number of inactive chunks held in memory.
-     *
-     * @return The number of chunks held in memory.
+     * @brief Finishes tile transfers from previous step
+     * @return Number of finished uploads (= number of transparent changes)
      */
-    size_t numberOfInactiveChunks();
-
-    void beginStep();
+    int beginStep();
 
     /**
-     * @brief Plans activation of chunks that overlap given rectangular area
-     * @param cmdBuf Command buffer that will record the commands
-     * @param botLeftTi Bottom left corner of the rectangular area
-     * @param topRightTi Top right corner of the rectangular area
-     * @param branchWriteBuf Index of the double buffered part of branch buffer
-     *                      that is for writing
-     * @warning Must be called between beginStep() and endStep().
+     * @brief Uploads and downloads can only be planned when there is enough space
      */
-    void planActivationOfChunks(
-        const re::CommandBuffer& cmdBuf,
-        glm::ivec2               botLeftTi,
-        glm::ivec2               topRightTi,
-        glm::uint                branchWriteBuf
+    bool hasFreeTransferSpace() const;
+
+    /**
+     * @brief Plans an upload transfer
+     * @pre  hasFreeTransferSpace() == true
+     * @note Must be called between beginStep() and endStep()
+     */
+    void planUpload(
+        const std::vector<unsigned char>& tiles, glm::ivec2 posCh, glm::ivec2 posAt
     );
 
-    int endStep(const re::CommandBuffer& cmdBuf);
-
-private:
-    void planTransition(
-        const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchWriteBuf
-    );
-
-    void planActivation(
-        const re::CommandBuffer& cmdBuf,
-        glm::ivec2&              activeChunk,
-        glm::ivec2               posCh,
-        glm::ivec2               posAt,
-        glm::uint                branchWriteBuf
-    );
-
-    void planDeactivation(
-        const re::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
-    );
-
-    bool planUpload(
-        const re::CommandBuffer&          cmdBuf,
-        const std::vector<unsigned char>& tiles,
-        glm::ivec2                        posCh,
-        glm::ivec2                        posAt
-    );
-
-    bool planDownload(
+    /**
+     * @brief Plans a download transfer
+     * @pre  hasFreeTransferSpace() == true
+     * @note Must be called between beginStep() and endStep()
+     */
+    void planDownload(
         const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
     );
 
-    void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;
-
     /**
-     * @brief Key: posCh, Val: inactive chunk (current tiles)
+     * @brief Peforms all previously planned transfers
      */
-    std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
+    void endStep(const re::CommandBuffer& cmdBuf, const re::Texture& worldTex);
 
-    static constexpr auto k_chunkNotActive = glm::ivec2{
-        std::numeric_limits<int>::max()};
-    static constexpr auto k_chunkBeingDownloaded = k_chunkNotActive - 1;
-    static constexpr auto k_chunkBeingUploaded   = k_chunkNotActive - 2;
+private:
+    glm::ivec2 m_worldTexSizeMask{};
 
-    re::Buffer                       m_activeChunksBuf;
-    re::BufferMapped<ActiveChunksSB> m_activeChunksStageBuf;
-    int m_transparentChunkChanges = 0; /**< Number of changes in this step */
-    glm::ivec2& activeChunkAtIndex(int acIndex);
-
-    re::Pipeline m_analyzeContinuityPl;
-    glm::uvec2   m_analyzeContinuityGroupCount{};
-
-    re::Pipeline m_cullVegetationPl;
-
-    std::string        m_folderPath;
-    ChunkGenerator     m_chunkGen;
-    const re::Texture* m_worldTex = nullptr;
-    glm::ivec2         m_worldTexSizeMask{};
+    ActivationManager& m_actManager;
 
     // Tile stage
     static constexpr auto k_tileStageSize = 16;
-    enum class TileStageTransferState { Downloading, Uploading };
-    struct TileStageState {
-        TileStageTransferState transfer{};
-        glm::ivec2             posCh{~0, ~0};
-    };
-    std::array<TileStageState, k_tileStageSize> m_tileStageStates{};
-    int                                         m_nextFreeTileStage = 0;
-    re::BufferMapped<unsigned char>             m_tilesStageBuf;
+    /**
+     * @brief Target global position of the transfered chunk, in chunks
+     */
+    std::array<glm::ivec2, k_tileStageSize> m_tileStageTargetCh{};
+    /**
+     * @brief Uploads are emplaced at the beginning, downloads at the end
+     */
+    std::array<vk::BufferImageCopy2, k_tileStageSize> m_copyRegions;
+    re::BufferMapped<unsigned char>                   m_tilesStageBuf;
+
+    int  m_nextUploadTileStage   = 0;
+    int  m_nextDownloadTileStage = k_tileStageSize - 1;
+    void resetTileStages();
 };
 
 } // namespace rw
