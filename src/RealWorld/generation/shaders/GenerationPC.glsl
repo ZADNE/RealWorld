@@ -6,7 +6,8 @@
 
 layout (push_constant, std430)
 uniform GenerationPC {
-    ivec2 p_chunkOffsetTi;
+    ivec2 p_chunkTi;
+    ivec2 p_worldTexSizeCh;
     int   p_seed;
     uint  p_storeLayer;               // Refers to layers of tile image
     uint  p_edgeConsolidationPromote;

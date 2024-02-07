@@ -19,4 +19,13 @@ float chToTi(float posCh) { return posCh * ChunkTi.x; }
 ivec2 chToTi(ivec2 posCh) { return posCh << k_chunkLowZeroBits; }
 int   chToTi(int posCh)   { return posCh << k_chunkLowZeroBits.x; }
 
+ivec2 chToAc(ivec2 posCh, ivec2 worldTexSizeCh) {
+    return ivec2(posCh & (worldTexSizeCh - 1));
+}
+
+int chToIndex(ivec2 posCh, ivec2 worldTexSizeCh) {
+    ivec2 posAc = chToAc(posCh, worldTexSizeCh);
+    return posAc.y * worldTexSizeCh.x + posAc.x;
+}
+
 #endif // !CHUNK_GLSL

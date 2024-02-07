@@ -4,12 +4,9 @@
 #pragma once
 #include <cstdint>
 
-namespace rw {
+#include <glm/vec2.hpp>
 
-/**
- * @brief Is the maximum number of vegetation that can be simulated
- */
-constexpr uint32_t k_maxVegCount = 8192;
+namespace rw {
 
 /**
  * @brief Is the maximum number of branches that can be simulated
@@ -19,8 +16,24 @@ constexpr uint32_t k_maxVegCount = 8192;
 constexpr uint32_t k_maxBranchCount = 65536;
 
 /**
+ * @brief Maximum number of individual allocations with the branch buffer
+ */
+constexpr uint32_t k_maxBranchAllocCount = 256;
+
+/**
  * @brief Is the number of bytes in raster buffer that each branch has
  */
 constexpr uint32_t k_branchRasterSpace = 64;
+
+/**
+ * @brief Is the maximum size of the world texture, in chunks
+ */
+constexpr glm::uvec2 k_maxWorldTexSizeCh{64, 64};
+
+/**
+ * @brief Is the maximum number of chunks of the world texture
+ */
+constexpr uint32_t k_maxWorldTexChunkCount = k_maxWorldTexSizeCh.x *
+                                             k_maxWorldTexSizeCh.y;
 
 } // namespace rw

@@ -56,7 +56,6 @@ const re::Buffer& ChunkManager::setTarget(const TargetInfo& targetInfo) {
         .worldTex       = targetInfo.worldTex,
         .worldTexSizeCh = targetInfo.worldTexSizeCh,
         .bodiesBuf      = targetInfo.bodiesBuf,
-        .vegBuf         = targetInfo.vegBuf,
         .branchBuf      = targetInfo.branchBuf});
     m_worldTex = &targetInfo.worldTex;
 
@@ -303,9 +302,9 @@ int ChunkManager::endStep(const re::CommandBuffer& cmdBuf) {
             m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1
         );
 
-        // Cull the vegetation
-        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
-        cmdBuf->dispatch(re::ceilDiv(k_maxVegCount, 256), 1, 1);
+        // Save vegetation
+        // cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_cullVegetationPl);
+        // cmdBuf->dispatch(re::ceilDiv(k_maxVegCount, 256), 1, 1);
 
         { // Barrier analysis output from tile transformations
             auto bufferBarrier = re::bufferMemoryBarrier(

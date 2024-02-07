@@ -14,36 +14,11 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/vegetation/Branch.hpp>
 #include <RealWorld/vegetation/shaders/AllShaders.hpp>
 
 namespace rw {
-
-#pragma warning(push)
-#pragma warning(disable : 4200)
-struct BranchSB {
-    // Double-buffered params
-    glm::vec2 absPosTi[2][k_maxBranchCount];
-    float     absAngNorm[2][k_maxBranchCount];
-
-    // Single-buffered params
-    glm::uint parentOffset15wallType31[k_maxBranchCount];
-    float     relRestAngNorm[k_maxBranchCount];
-    float     angVel[k_maxBranchCount];
-    float     radiusTi[k_maxBranchCount];
-    float     lengthTi[k_maxBranchCount];
-    glm::vec2 densityStiffness[k_maxBranchCount];
-    uint8_t   raster[k_maxBranchCount][k_branchRasterSpace];
-
-    // Footer
-    glm::uint vertexCount;
-    glm::uint instanceCount;
-    glm::uint firstVertex;
-    glm::uint firstInstance;
-};
-#pragma warning(pop)
 
 /**
  * @brief   Simulates swaying and growth of vegetation
@@ -64,7 +39,6 @@ public:
     void rasterizeVegetation(const re::CommandBuffer& cmdBuf);
 
     struct VegStorage {
-        const re::Buffer& vegBuf;
         const re::Buffer& branchBuf;
     };
 
@@ -117,7 +91,6 @@ private:
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
         .debugName = "rw::VegSimulator::descriptorSet"}};
-    re::Buffer        m_vegBuf;
     re::Buffer        m_branchBuf;
     glm::uvec2        m_worldTexSizeTi{};
 

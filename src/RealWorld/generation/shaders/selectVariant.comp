@@ -37,7 +37,7 @@ void main() {
     //Determine the variation
     vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
     uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
-    uvec2 variation = uvec2(hash22(vec2(p_chunkOffsetTi + pTi)) * variationRange) + variationOffset;
+    uvec2 variation = uvec2(hash22(vec2(p_chunkTi + pTi)) * variationRange) + variationOffset;
 
     //Store the new tile
     imageStore(u_tilesImage, ivec3(gl_GlobalInvocationID.xy, p_storeLayer), uvec4(block_wall.x, variation.x, block_wall.y, variation.y));

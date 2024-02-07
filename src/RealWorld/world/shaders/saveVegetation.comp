@@ -6,10 +6,8 @@
 #include <RealWorld/constants/chunk.glsl>
 const int ActiveChunksSB_BINDING = 1;
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
-const int VegSB_BINDING = 3;
-#include <RealWorld/vegetation/shaders/VegSB.glsl>
-const int BranchSB_BINDING = 4;
-#include <RealWorld/vegetation/shaders/BranchSB.glsl>
+const int BranchSB_BINDING = 3;
+#include <RealWorld/vegetation/shaders/BranchSBWithAllocation.glsl>
 
 layout (local_size_x = 256,
         local_size_y = 1,
@@ -23,7 +21,7 @@ const ivec2 k_chunkNotActive = ivec2(0x7FFFFFFF, 0x7FFFFFFF);
 void main(){
     const uint veg = gl_GlobalInvocationID.x;
     // If within bounds
-    if (veg < b_veg.vegCount){
+    /*if (veg < b_veg.vegCount){
         // Load the vegetation
         ivec2 rootPosCh = b_veg.rootPosCh[veg];
         ivec2 rootPosAc = rootPosCh & b_acChunks.worldTexSizeMask;
@@ -41,5 +39,5 @@ void main(){
             b_veg.rootPosCh[veg] = k_chunkNotActive;
             b_veg.firstIndexAndCount[veg] = ivec2(0, 0);
         }
-    }
+    }*/
 }

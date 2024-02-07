@@ -17,8 +17,7 @@ namespace rw {
 constexpr uint32_t k_worldTexBinding          = 0;
 constexpr uint32_t k_activeChunksBufBinding   = 1;
 constexpr uint32_t k_tilePropertiesBufBinding = 2;
-constexpr uint32_t k_vegBufBinding            = 3;
-constexpr uint32_t k_branchBufBinding         = 4;
+constexpr uint32_t k_branchBufBinding         = 3;
 
 // Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
@@ -65,7 +64,6 @@ World::World()
                   {{{k_worldTexBinding, eStorageImage, 1, eCompute},
                     {k_activeChunksBufBinding, eStorageBuffer, 1, eCompute},
                     {k_tilePropertiesBufBinding, eUniformBuffer, 1, eCompute},
-                    {k_vegBufBinding, eStorageBuffer, 1, eCompute},
                     {k_branchBufBinding, eStorageBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}}
       )
@@ -103,9 +101,6 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
     // Vegetation simulator
     auto vegStorage = m_vegSimulator.adoptSave(m_worldTex, worldTexSizeCh);
     m_simulationDS.write(
-        eStorageBuffer, k_vegBufBinding, 0, vegStorage.vegBuf, 0, vk::WholeSize
-    );
-    m_simulationDS.write(
         eStorageBuffer, k_branchBufBinding, 0, vegStorage.branchBuf, 0, vk::WholeSize
     );
 
@@ -117,7 +112,6 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
         .worldTexSizeCh = worldTexSizeCh,
         .descriptorSet  = m_simulationDS,
         .bodiesBuf      = bodiesBuf,
-        .vegBuf         = vegStorage.vegBuf,
         .branchBuf      = vegStorage.branchBuf});
 
     return m_worldTex;

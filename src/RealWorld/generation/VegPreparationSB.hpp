@@ -21,7 +21,7 @@ struct BranchInstance {
     glm::vec2  offsetTi;
     glm::uvec2 sizeTi;
     glm::uint  wallType;
-    glm::uint  writeIndex;  // Index to the branch buffers (vector and raster)
+    glm::uint  writeIndex; // Index to the branch buffers (vector and raster)
     glm::uint  randomSeed;
     glm::uint  padding;
 };
@@ -32,8 +32,8 @@ struct BranchInstance {
 struct VegPreparationSB {
     glm::uvec4     b_vegetationDispatchSize;
     glm::uvec4     b_branchDispatchSize;
-    VegInstance    b_vegInstances[32];
-    BranchInstance b_branchInstances[32 * 64];
+    VegInstance    b_vegInstances[64];
+    BranchInstance b_branchInstances[64 * 64];
 };
 
 } // namespace rw

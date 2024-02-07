@@ -33,7 +33,6 @@ public:
         const re::Texture& worldTex; /**< Receives the generated tiles */
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
-        const re::Buffer&  vegBuf;
         const re::Buffer&  branchBuf;
     };
 
@@ -66,14 +65,13 @@ protected:
 
     static re::Buffer createVegTemplatesBuffer();
 
-    const re::Texture* m_worldTex = nullptr;
-    glm::ivec2         m_worldTexSizeCh{};
+    const re::Texture* m_worldTex  = nullptr;
     const re::Buffer*  m_bodiesBuf = nullptr;
-    const re::Buffer*  m_vegBuf    = nullptr;
     const re::Buffer*  m_branchBuf = nullptr;
 
     struct GenerationPC {
-        glm::ivec2 chunkOffsetTi;
+        glm::ivec2 chunkTi;
+        glm::ivec2 worldTexSizeCh;
         int        seed;
         glm::uint  storeLayer{};
         glm::uint  edgeConsolidationPromote;

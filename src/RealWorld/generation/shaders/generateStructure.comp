@@ -14,7 +14,7 @@ layout (set = 0, binding = 1, rgba8ui) uniform restrict writeonly uimage2D      
 
 void main(){
     //Compute position
-    ivec2 pTi = p_chunkOffsetTi + ivec2(gl_GlobalInvocationID.xy) - k_genBorderWidth;
+    ivec2 pTi = p_chunkTi + ivec2(gl_GlobalInvocationID.xy) - k_genBorderWidth;
     vec2 pPx = vec2(pTi) * TilePx;
 
     //Compute terrain

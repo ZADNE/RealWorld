@@ -20,13 +20,13 @@ ChunkGenerator::ChunkGenerator()
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
-                  {0, eStorageImage, 1, eCompute},  // Tiles image
-                  {1, eStorageImage, 1, eCompute},  // Material image
-                  {2, eUniformBuffer, 1, eCompute}, // VegTemplatesUB
-                  {3, eStorageBuffer, 1, eCompute}, // Bodies
-                  {4, eStorageBuffer, 1, eCompute}, // Vegetation buffer
-                  {5, eStorageBuffer, 1, eCompute}, // Branch buffer
-                  {6, eStorageBuffer, 1, eCompute}  // Veg Preparation
+                  {0, eStorageImage, 1, eCompute},      // Tiles image
+                  {1, eStorageImage, 1, eCompute},      // Material image
+                  {2, eUniformBuffer, 1, eCompute},     // VegTemplatesUB
+                  {3, eStorageBuffer, 1, eCompute},     // Bodies
+                  /*{4, eStorageBuffer, 1, eCompute},*/ // Reserved...
+                  {5, eStorageBuffer, 1, eCompute},     // Branch buffer
+                  {6, eStorageBuffer, 1, eCompute}      // Veg Preparation
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       )
@@ -42,21 +42,19 @@ ChunkGenerator::ChunkGenerator()
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
-    m_genPC.seed     = targetInfo.seed;
-    m_worldTex       = &targetInfo.worldTex;
-    m_worldTexSizeCh = targetInfo.worldTexSizeCh;
-    m_bodiesBuf      = &targetInfo.bodiesBuf;
-    m_vegBuf         = &targetInfo.vegBuf;
-    m_branchBuf      = &targetInfo.branchBuf;
+    m_genPC.seed           = targetInfo.seed;
+    m_worldTex             = &targetInfo.worldTex;
+    m_genPC.worldTexSizeCh = targetInfo.worldTexSizeCh;
+    m_bodiesBuf            = &targetInfo.bodiesBuf;
+    m_branchBuf            = &targetInfo.branchBuf;
     m_descriptorSet.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, vk::WholeSize);
-    m_descriptorSet.write(eStorageBuffer, 4, 0, *m_vegBuf, 0, vk::WholeSize);
     m_descriptorSet.write(eStorageBuffer, 5, 0, *m_branchBuf, 0, vk::WholeSize);
 }
 
 void ChunkGenerator::generateChunk(
     const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo
 ) {
-    m_genPC.chunkOffsetTi  = chToTi(outputInfo.posCh);
+    m_genPC.chunkTi        = chToTi(outputInfo.posCh);
     m_genPC.branchWriteBuf = outputInfo.branchWriteBuf;
 
     prepareToGenerate(cmdBuf);
@@ -97,7 +95,7 @@ void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec
     );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, barriers});
     // Copy the generated chunk to the world texture
-    auto dstOffsetTi = chToAt(posCh, m_worldTexSizeCh - 1);
+    auto dstOffsetTi = chToAt(posCh, m_genPC.worldTexSizeCh - 1);
     cmdBuf->copyImage(
         m_tilesTex.image(),
         eGeneral, // Src image
