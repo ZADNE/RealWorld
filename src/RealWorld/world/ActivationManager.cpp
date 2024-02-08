@@ -144,6 +144,7 @@ void ActivationManager::activateArea(
         }
     }
 
+    // Record planned generation
     m_chunkGen.generate(cmdBuf, branchWriteBuf);
 
     // Record planned uploads/downloads
@@ -229,7 +230,6 @@ void ActivationManager::planDeactivation(glm::ivec2& activeChunk, glm::ivec2 pos
 }
 
 void ActivationManager::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
-
     // Reset the number of update chunks to zero
     m_activeChunksStageBuf->dynamicsGroupSize.x = 0;
 

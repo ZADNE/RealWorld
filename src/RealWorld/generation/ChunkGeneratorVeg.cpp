@@ -152,14 +152,37 @@ void interpret(
 } // namespace
 
 void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
-    auto previousChunkBarrier = re::bufferMemoryBarrier(
-        S::eComputeShader,      // Src stage mask
-        A::eShaderStorageRead,  // Src access mask
-        S::eComputeShader,      // Dst stage mask
-        A::eShaderStorageWrite, // Dst access mask
+    auto previousGenerationBarrier = re::bufferMemoryBarrier(
+        S::eComputeShader,     // Src stage mask
+        A::eShaderStorageRead, // Src access mask
+        S::eTransfer,          // Dst stage mask
+        A::eTransferWrite,     // Dst access mask
         *m_vegPreparationBuf
     );
-    cmdBuf->pipelineBarrier2({{}, {}, previousChunkBarrier, {}});
+    cmdBuf->pipelineBarrier2({{}, {}, previousGenerationBarrier, {}});
+
+    { // Clear dispatch counts
+        cmdBuf->fillBuffer(
+            *m_vegPreparationBuf,
+            offsetof(VegPreparationSB, vegDispatchSize.x),
+            sizeof(VegPreparationSB::vegDispatchSize.x),
+            0
+        );
+        cmdBuf->fillBuffer(
+            *m_vegPreparationBuf,
+            offsetof(VegPreparationSB, branchDispatchSize.x),
+            sizeof(VegPreparationSB::branchDispatchSize.x),
+            0
+        );
+        auto clearCountsBarrier = re::bufferMemoryBarrier(
+            S::eTransfer,                                   // Src stage mask
+            A::eTransferWrite,                              // Src access mask
+            S::eComputeShader,                              // Dst stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
+            *m_vegPreparationBuf
+        );
+        cmdBuf->pipelineBarrier2({{}, {}, clearCountsBarrier, {}});
+    }
 
     // Dispatch preparation
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
@@ -167,9 +190,9 @@ void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
 
     { // Add barriers between preparation and vector generation
         auto preparationBarrier = re::bufferMemoryBarrier(
-            S::eComputeShader,                    // Src stage mask
-            A::eShaderStorageWrite,               // Src access mask
-            S::eDrawIndirect | S::eComputeShader, // Dst stage mask
+            S::eComputeShader,                              // Src stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+            S::eDrawIndirect | S::eComputeShader,           // Dst stage mask
             A::eIndirectCommandRead | A::eShaderStorageRead |
                 A::eShaderStorageWrite, // Dst access mask
             *m_vegPreparationBuf
@@ -180,7 +203,7 @@ void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
     // Dispatch branch vector generation
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVectorVegPl);
     cmdBuf->dispatchIndirect(
-        *m_vegPreparationBuf, offsetof(VegPreparationSB, vegetationDispatchSize)
+        *m_vegPreparationBuf, offsetof(VegPreparationSB, vegDispatchSize)
     );
 
     { // Add barriers between vector generation and raster generation

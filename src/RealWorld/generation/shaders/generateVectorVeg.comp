@@ -49,7 +49,7 @@ void generateTree(){
         b_branch.densityStiffness[outputIndex] = vec2(b.density, b.stiffness);
 
         // Write raster generation info
-        b_vegPrep.branchInstances[gl_WorkGroupID.z][s_inst.branchPrepInstIndex + gl_LocalInvocationID.x] = BranchInstance(
+        b_vegPrep.branchInstances[s_inst.branchPrepInstIndex + gl_LocalInvocationID.x] = BranchInstance(
             b.absPosTi,     // offsetTi
             uvec2(sizeTi),  // sizeTi
             b.wallType,     // wallType
@@ -93,7 +93,7 @@ void generateGrass(){
     b_branch.densityStiffness[outputIndex] = vec2(8.0, 0.015625);
 
     // Write raster generation info
-    b_vegPrep.branchInstances[gl_WorkGroupID.z][s_inst.branchPrepInstIndex + gl_LocalInvocationID.x] = BranchInstance(
+    b_vegPrep.branchInstances[s_inst.branchPrepInstIndex + gl_LocalInvocationID.x] = BranchInstance(
         vec2(0),        // offsetTi
         uvec2(sizeTi),  // sizeTi
         WHEAT_WL,       // wallType
@@ -105,7 +105,7 @@ void generateGrass(){
 void main(){
     // Load vegetation instance & template description
     if (gl_LocalInvocationID.x == 0){
-        s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.z][gl_WorkGroupID.x];
+        s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.x];
         s_tmplt = k_vegTemplates[s_inst.templateIndex];
     }
     barrier();

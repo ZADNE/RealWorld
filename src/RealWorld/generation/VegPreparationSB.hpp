@@ -5,6 +5,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
+#include <RealWorld/constants/generation.hpp>
+
 namespace rw {
 
 struct VegInstance {
@@ -29,10 +31,10 @@ struct BranchInstance {
  * @brief Is C++ representation with the same layout as the GLSL storage buffer
  */
 struct VegPreparationSB {
-    glm::uvec4     vegetationDispatchSize;
+    glm::uvec4     vegDispatchSize;
     glm::uvec4     branchDispatchSize;
-    VegInstance    vegInstances[k_maxParallelChunks][64];
-    BranchInstance branchInstances[k_maxParallelChunks][64 * 64];
+    VegInstance    vegInstances[k_maxParallelChunks * 64];
+    BranchInstance branchInstances[k_maxParallelChunks * 64 * 64];
 };
 
 } // namespace rw

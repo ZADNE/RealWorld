@@ -31,8 +31,8 @@ layout (binding = VegPreparationSB_BINDING, std430)
 VegPreparationSB_ACCESS restrict buffer VegPreparationSB {
     uvec4           vegDispatchSize;
     uvec4           branchDispatchSize;
-    VegInstance     vegInstances[k_maxParallelChunks][64];
-    BranchInstance  branchInstances[k_maxParallelChunks][64*64];
+    VegInstance     vegInstances[k_maxParallelChunks * 64];
+    BranchInstance  branchInstances[k_maxParallelChunks * 64 * 64];
 } b_vegPrep;
 
 #endif // !VEG_PREPARATION_SB_GLSL

@@ -16,6 +16,21 @@ using B = vk::BufferUsageFlagBits;
 
 namespace rw {
 
+namespace {
+using SB = VegPreparationSB;
+struct VegPreparationSBInitHelper {
+    decltype(SB::vegDispatchSize)    vegDispatchSize{0, 1, 1, 0};
+    decltype(SB::branchDispatchSize) branchDispatchSize{0, 1, 1, 0};
+};
+using SBInitHelper = VegPreparationSBInitHelper;
+static_assert(offsetof(SB, vegDispatchSize) == offsetof(SBInitHelper, vegDispatchSize));
+static_assert(
+    offsetof(SB, branchDispatchSize) == offsetof(SBInitHelper, branchDispatchSize)
+);
+
+constexpr VegPreparationSBInitHelper k_vegPreparationSBInitHelper{};
+} // namespace
+
 ChunkGenerator::ChunkGenerator()
     : m_pipelineLayout(
           {},
@@ -34,8 +49,9 @@ ChunkGenerator::ChunkGenerator()
     , m_vegPreparationBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(VegPreparationSB),
-          .usage       = B::eStorageBuffer | B::eIndirectBuffer,
-          .debugName   = "rw::ChunkGenerator::vegPreparation"}) {
+          .usage     = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
+          .initData  = re::objectToByteSpan(k_vegPreparationSBInitHelper),
+          .debugName = "rw::ChunkGenerator::vegPreparation"}) {
     m_descriptorSet.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
     m_descriptorSet.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
     m_descriptorSet.write(eUniformBuffer, 2, 0, m_vegTemplatesBuf, 0, vk::WholeSize);
