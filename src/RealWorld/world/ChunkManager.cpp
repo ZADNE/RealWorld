@@ -43,16 +43,18 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
     re::Fence         downloadFinishedFence{{}};
     cmdBuf->begin({eOneTimeSubmit});
 
-    auto imageBarrier = re::imageMemoryBarrier(
-        S::eAllCommands,           // Src stage mask
-        {},                        // Src access mask
-        S::eTransfer,              // Dst stage mask
-        A::eTransferRead,          // Dst access mask
-        vk::ImageLayout::eGeneral, // Old image layout
-        vk::ImageLayout::eGeneral, // New image layout
-        worldTex.image()
-    );
-    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    { // Wait for unrasterization to finish
+        auto imageBarrier = re::imageMemoryBarrier(
+            S::eAllCommands,                 // Src stage mask
+            A::eMemoryRead | A::eMemoryRead, // Src access mask
+            S::eTransfer,                    // Dst stage mask
+            A::eTransferRead,                // Dst access mask
+            vk::ImageLayout::eGeneral,       // Old image layout
+            vk::ImageLayout::eGeneral,       // New image layout
+            worldTex.image()
+        );
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    }
 
     auto saveAllChunksInTileStage = [&]() {
         std::array<std::future<void>, k_tileStageSize> futures{};
@@ -76,6 +78,7 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
                 if (hasFreeTransferSpace()) { // If there is space in the stage
                     planDownload(activeChunk, chToTi(posAc));
                 } else {
+                    endStep(cmdBuf, worldTex);
                     cmdBuf->end();
                     cmdBuf.submitToComputeQueue(*downloadFinishedFence);
                     downloadFinishedFence.wait();
@@ -87,17 +90,20 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
         }
     }
 
-    imageBarrier = re::imageMemoryBarrier(
-        S::eTransfer,                      // Src stage mask
-        A::eTransferRead,                  // Src access mask
-        S::eAllCommands,                   // Dst stage mask
-        {},                                // Dst access mask
-        vk::ImageLayout::eGeneral,         // Old image layout
-        vk::ImageLayout::eReadOnlyOptimal, // New image layout
-        worldTex.image()
-    );
-    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    endStep(cmdBuf, worldTex);
 
+    { // Transition world texture back to original layout
+        auto imageBarrier = re::imageMemoryBarrier(
+            S::eTransfer,                      // Src stage mask
+            A::eTransferRead,                  // Src access mask
+            S::eAllCommands,                   // Dst stage mask
+            {},                                // Dst access mask
+            vk::ImageLayout::eGeneral,         // Old image layout
+            vk::ImageLayout::eReadOnlyOptimal, // New image layout
+            worldTex.image()
+        );
+        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+    }
     cmdBuf->end();
     cmdBuf.submitToComputeQueue(*downloadFinishedFence);
     downloadFinishedFence.wait();

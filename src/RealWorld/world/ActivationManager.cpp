@@ -39,7 +39,6 @@ ActivationManager::ActivationManager(const re::PipelineLayout& pipelineLayout)
 const re::Buffer& ActivationManager::setTarget(const TargetInfo& targetInfo) {
     m_folderPath = targetInfo.folderPath;
     m_worldTex   = &targetInfo.worldTex;
-    m_inactiveChunks.clear();
 
     // Recalculate active chunks mask and analyzer dispatch size
     m_worldTexSizeMask            = targetInfo.worldTexSizeCh - 1;
@@ -102,6 +101,8 @@ bool ActivationManager::saveChunks() {
             saveChunk(pair.second.tiles().data(), pair.first);
         }
     );
+
+    m_inactiveChunks.clear();
 
     // Save all chunks inside the world texture
     return m_chunkManager.saveChunks(*m_worldTex);

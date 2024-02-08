@@ -7,6 +7,8 @@
 
 #include <lodepng/lodepng.hpp>
 
+#include <RealEngine/utility/BuildType.hpp>
+
 #include <RealWorld/save/ChunkLoader.hpp>
 
 namespace rw {
@@ -37,16 +39,16 @@ void ChunkLoader::saveChunk(
     glm::uvec2         chunkDims,
     const uint8_t*     tiles
 ) {
-    std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);
+    if constexpr (re::k_buildType == re::BuildType::Release) {
+        std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);
 
-#ifndef _DEBUG
-    unsigned int error = lodepng::encode(
-        fullPath, tiles, chunkDims.x, chunkDims.y, LodePNGColorType::LCT_RGBA, 8u
-    );
+        unsigned int error = lodepng::encode(
+            fullPath, tiles, chunkDims.x, chunkDims.y, LodePNGColorType::LCT_RGBA, 8u
+        );
 
-    if (error)
-        throw std::runtime_error("Error encoding or saving chunk " + fullPath);
-#endif // ! _DEBUG
+        if (error)
+            throw std::runtime_error("Error encoding or saving chunk " + fullPath);
+    }
 }
 
 std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos) {

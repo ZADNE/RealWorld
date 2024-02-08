@@ -8,11 +8,10 @@
 
 namespace rw {
 
-#ifdef _DEBUG
-constexpr unsigned int k_frameRateLimit = 300u;
-#else
-constexpr unsigned int k_frameRateLimit = re::Synchronizer::k_doNotLimitFramesPerSecond;
-#endif // _DEBUG
+constexpr unsigned int k_frameRateLimit =
+    (re::k_buildType == re::BuildType::Debug)
+        ? 300u
+        : re::Synchronizer::k_doNotLimitFramesPerSecond;
 
 constexpr vk::ClearValue k_skyBlue =
     vk::ClearColorValue{0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f};
