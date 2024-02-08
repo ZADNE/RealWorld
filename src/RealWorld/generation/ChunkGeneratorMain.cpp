@@ -8,6 +8,7 @@ using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
 using enum vk::ImageLayout;
 using enum vk::ImageAspectFlagBits;
+using enum vk::CommandBufferUsageFlagBits;
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
@@ -51,26 +52,41 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_descriptorSet.write(eStorageBuffer, 5, 0, *m_branchBuf, 0, vk::WholeSize);
 }
 
-void ChunkGenerator::generateChunk(
-    const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo
-) {
-    m_genPC.chunkTi        = chToTi(outputInfo.posCh);
-    m_genPC.branchWriteBuf = outputInfo.branchWriteBuf;
-
-    prepareToGenerate(cmdBuf);
-
-    // Terrain generation
-    generateBasicTerrain(cmdBuf);
-    consolidateEdges(cmdBuf);
-    selectVariant(cmdBuf);
-
-    // Vegetation generation
-    generateVegetation(cmdBuf);
-
-    finishGeneration(cmdBuf, outputInfo.posCh);
+bool ChunkGenerator::planGeneration(glm::ivec2 posCh) {
+    if (m_chunksPlanned < k_maxParallelChunks) { // If there is space
+        m_genPC.chunkTi[m_chunksPlanned++] = chToTi(posCh);
+        return true;
+    }
+    return false;
 }
 
-void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec2 posCh) {
+void ChunkGenerator::generate(const re::CommandBuffer& cmdBuf, glm::uint branchWriteBuf) {
+    if (m_chunksPlanned > 0) {
+        auto&                            secCmdBuf = m_cmdBuf.write();
+        vk::CommandBufferInheritanceInfo inheritanceInfo{};
+        secCmdBuf->begin({eOneTimeSubmit, &inheritanceInfo});
+        secCmdBuf->bindDescriptorSets(
+            vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
+        );
+        m_genPC.branchWriteBuf = branchWriteBuf;
+
+        // Terrain generation
+        generateBasicTerrain(secCmdBuf);
+        consolidateEdges(secCmdBuf);
+        selectVariant(secCmdBuf);
+
+        // Vegetation generation
+        generateVegetation(secCmdBuf);
+
+        copyToDestination(secCmdBuf);
+
+        secCmdBuf->end({});
+        cmdBuf->executeCommands(*secCmdBuf);
+        m_chunksPlanned = 0;
+    }
+}
+
+void ChunkGenerator::copyToDestination(const re::CommandBuffer& cmdBuf) {
     // Wait for the generation to finish
     auto barriers = std::to_array(
         {re::imageMemoryBarrier(
@@ -81,7 +97,8 @@ void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec
              eGeneral,                                       // Old image layout
              eGeneral,                                       // New image layout
              m_tilesTex.image(),
-             vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}
+             vk::ImageSubresourceRange{
+                 eColor, 0, 1, k_maxParallelChunks * m_genPC.storeSegment, k_maxParallelChunks}
          ),
          re::imageMemoryBarrier(
              S::eColorAttachmentOutput, // Src stage mask
@@ -94,20 +111,28 @@ void ChunkGenerator::finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec
          )}
     );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, barriers});
+
     // Copy the generated chunk to the world texture
-    auto dstOffsetTi = chToAt(posCh, m_genPC.worldTexSizeCh - 1);
+    std::array<vk::ImageCopy, k_maxParallelChunks> regions;
+    for (int i = 0; i < m_chunksPlanned; ++i) {
+        auto dstOffsetTi =
+            chToAt(tiToCh(m_genPC.chunkTi[i]), m_genPC.worldTexSizeCh - 1);
+        regions[i] = vk::ImageCopy{
+            vk::ImageSubresourceLayers{
+                eColor, 0, k_maxParallelChunks * m_genPC.storeSegment + i, 1}, // Src subresource
+            vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
+            vk::ImageSubresourceLayers{eColor, 0, 0, 1},   // Dst subresource
+            vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
+            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}        // Copy Extent
+        };
+    }
+    std::span spanOfRegions{regions.begin(), regions.begin() + m_chunksPlanned};
     cmdBuf->copyImage(
         m_tilesTex.image(),
         eGeneral, // Src image
         m_worldTex->image(),
         eGeneral, // Dst image
-        vk::ImageCopy{
-            vk::ImageSubresourceLayers{eColor, 0, m_genPC.storeLayer, 1}, // Src subresource
-            vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
-            vk::ImageSubresourceLayers{eColor, 0, 0, 1},   // Dst subresource
-            vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
-            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}        // Copy Extent
-        }
+        spanOfRegions
     );
 }
 

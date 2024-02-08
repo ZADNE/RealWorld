@@ -21,7 +21,7 @@ const int k_invocOffsetTi = iChunkTi.x / int(gl_WorkGroupSize.x);
 const int k_randomOffsetTi = k_invocOffsetTi - 1;
 
 int invocXPosTi(){
-    int basePosTi = p_chunkTi.x + int(gl_LocalInvocationID.x) * k_invocOffsetTi;
+    int basePosTi = p_chunkTi[gl_WorkGroupID.z].x + int(gl_LocalInvocationID.x) * k_invocOffsetTi;
     int randomOffsetTi = int(random()) & k_randomOffsetTi;
     return basePosTi + randomOffsetTi;
 }
@@ -40,8 +40,9 @@ void main(){
     }
     barrier();
 
+    ivec2 chunkTi = p_chunkTi[gl_WorkGroupID.z];
     g_randomState =
-        uint(p_chunkTi.y << 16 | p_chunkTi.x) ^
+        uint(chunkTi.y << 16 | chunkTi.x) ^
         uint(gl_LocalInvocationID.x * 2713) ^
         uint(p_seed);
     ivec2 pTi = ivec2(invocXPosTi(), 0);
@@ -55,7 +56,7 @@ void main(){
     uint templateIndex = ~0;
 
     // Gather vegetation of the chunk
-    if (pTi.y >= p_chunkTi.y && pTi.y < (p_chunkTi.y + iChunkTi.y)) {// If on the horizon
+    if (pTi.y >= chunkTi.y && pTi.y < (chunkTi.y + iChunkTi.y)) {// If on the horizon
         // Select the vegetation to generate
         VegDistr distr = biomeVegDistr(biomeClimate);
         float rndTemplate = randomFloat() * float(gl_WorkGroupSize.x);
@@ -77,7 +78,7 @@ void main(){
     if (gl_LocalInvocationID.x == 0){
         if (s_newBranchCount > 0){
             s_globalFirstBranchIndex = allocateBranches(
-                s_newBranchCount, tiToCh(p_chunkTi), p_worldTexSizeCh);
+                s_newBranchCount, tiToCh(chunkTi), p_worldTexSizeCh);
         } else {
             s_globalFirstBranchIndex = -1; // There is no vegetation in the chunk
         }
@@ -89,7 +90,7 @@ void main(){
         if (templateIndex != ~0){ // If it represents a vegetation
             uint branchPrepInstIndex = atomicAdd(s_branchPrepInstCount, k_vegTemplates[templateIndex].branchCount);
             float greenMass = biomeClimate.x + biomeClimate.y;
-            b_vegPrep.vegInstances[atomicAdd(s_vegPrepInstCount, 1)] = VegInstance(
+            b_vegPrep.vegInstances[gl_WorkGroupID.z][atomicAdd(s_vegPrepInstCount, 1)] = VegInstance(
                 templateIndex,                                  // templateIndex
                 s_globalFirstBranchIndex + branchLocalOffset,   // outputIndex
                 random(),                                       // randomSeed
@@ -103,7 +104,7 @@ void main(){
     barrier();
 
     if (gl_LocalInvocationIndex == 0){
-        b_vegPrep.vegDispatchSize = uvec4(s_vegPrepInstCount, 1, 1, 0);
-        b_vegPrep.branchDispatchSize = uvec4(s_branchPrepInstCount, 1, 1, 0);
+        b_vegPrep.vegDispatchSize = uvec4(s_vegPrepInstCount, 1, gl_NumWorkGroups.z, 0);
+        b_vegPrep.branchDispatchSize = uvec4(s_branchPrepInstCount, 1, gl_NumWorkGroups.z, 0);
     }
 }

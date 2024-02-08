@@ -17,7 +17,7 @@ layout (local_size_x = 2,
 ) in;
 
 void main(){
-    BranchInstance instance = b_vegPrep.branchInstances[gl_WorkGroupID.x];
+    BranchInstance instance = b_vegPrep.branchInstances[gl_WorkGroupID.z][gl_WorkGroupID.x];
     g_randomState = instance.randomSeed ^ gl_LocalInvocationIndex * 2713;
     uint val;
     switch (instance.wallType){

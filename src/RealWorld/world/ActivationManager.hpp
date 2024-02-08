@@ -56,25 +56,20 @@ public:
      */
     size_t numberOfInactiveChunks();
 
-    void beginStep();
-
     /**
-     * @brief Plans activation of chunks that overlap given rectangular area
+     * @brief Activates chunks that overlap given rectangular area
      * @param cmdBuf Command buffer that will record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
      * @param branchWriteBuf Index of the double buffered part of branch buffer
      *                      that is for writing
-     * @warning Must be called between beginStep() and endStep().
      */
-    void planActivationOfArea(
+    void activateArea(
         const re::CommandBuffer& cmdBuf,
         glm::ivec2               botLeftTi,
         glm::ivec2               topRightTi,
         glm::uint                branchWriteBuf
     );
-
-    void endStep(const re::CommandBuffer& cmdBuf);
 
     glm::ivec2& activeChunkAtIndex(int acIndex);
 
@@ -83,21 +78,15 @@ public:
     void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;
 
 private:
-    void planTransition(
-        const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::uint branchWriteBuf
-    );
+    void planTransition(glm::ivec2 posCh, glm::uint branchWriteBuf);
 
     void planActivation(
-        const re::CommandBuffer& cmdBuf,
-        glm::ivec2&              activeChunk,
-        glm::ivec2               posCh,
-        glm::ivec2               posAt,
-        glm::uint                branchWriteBuf
+        glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAt, glm::uint branchWriteBuf
     );
 
-    void planDeactivation(
-        const re::CommandBuffer& cmdBuf, glm::ivec2& activeChunk, glm::ivec2 posAt
-    );
+    void planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAt);
+
+    void analyzeAfterChanges(const re::CommandBuffer& cmdBuf);
 
     int m_transparentChunkChanges = 0; /**< Number of changes in this step */
 

@@ -6,5 +6,6 @@
 
 const int k_genBorderWidth = 8;
 const int k_genGroupSize = 16;
+const int k_maxParallelChunks = 12;
 
 #endif // !GENERATION_GLSL

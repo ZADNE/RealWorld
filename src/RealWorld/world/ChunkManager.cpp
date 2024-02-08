@@ -56,7 +56,7 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
 
     auto saveAllChunksInTileStage = [&]() {
         std::array<std::future<void>, k_tileStageSize> futures{};
-        for (size_t i = k_tileStageSize - 1; i > m_nextDownloadTileStage; --i) {
+        for (int i = k_tileStageSize - 1; i > m_nextDownloadTileStage; --i) {
             futures[i] = std::async(std::launch::async, [this, i]() {
                 m_actManager.saveChunk(
                     &m_tilesStageBuf[k_chunkByteSize * i], m_tileStageTargetCh[i]
@@ -74,7 +74,7 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
                 m_actManager.activeChunkAtIndex(acToIndex(posAc, worldTexSize));
             if (activeChunk != k_chunkNotActive) {
                 if (hasFreeTransferSpace()) { // If there is space in the stage
-                    planDownload(cmdBuf, activeChunk, chToTi(posAc));
+                    planDownload(activeChunk, chToTi(posAc));
                 } else {
                     cmdBuf->end();
                     cmdBuf.submitToComputeQueue(*downloadFinishedFence);
@@ -108,7 +108,7 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
 
 int ChunkManager::beginStep() {
     // Finalize uploads from previous step
-    for (size_t i = 0; i < m_nextUploadTileStage; ++i) {
+    for (int i = 0; i < m_nextUploadTileStage; ++i) {
         glm::ivec2 posCh       = m_tileStageTargetCh[i];
         auto       posAc       = chToAc(posCh, m_worldTexSizeMask);
         auto&      activeChunk = m_actManager.activeChunkAtIndex(
@@ -119,7 +119,7 @@ int ChunkManager::beginStep() {
     }
 
     // Finalize downloads from previous step
-    for (size_t i = k_tileStageSize - 1; i > m_nextDownloadTileStage; --i) {
+    for (int i = k_tileStageSize - 1; i > m_nextDownloadTileStage; --i) {
         glm::ivec2 posCh       = m_tileStageTargetCh[i];
         auto       posAc       = chToAc(posCh, m_worldTexSizeMask);
         auto&      activeChunk = m_actManager.activeChunkAtIndex(
@@ -165,9 +165,7 @@ void ChunkManager::planUpload(
     m_nextUploadTileStage++;
 }
 
-void ChunkManager::planDownload(
-    const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
-) {
+void ChunkManager::planDownload(glm::ivec2 posCh, glm::ivec2 posAt) {
     assert(hasFreeTransferSpace());
 
     m_tileStageTargetCh[m_nextDownloadTileStage] = posCh;

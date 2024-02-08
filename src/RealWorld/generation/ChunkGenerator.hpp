@@ -41,27 +41,27 @@ public:
      */
     void setTarget(const TargetInfo& targetInfo);
 
-    struct OutputInfo {
-        glm::ivec2 posCh{~0, ~0};      /**< Position of the chunk */
-        glm::uint branchWriteBuf{~0u}; /**< Index of the double buffered part of
-                                    branch buffer that is for writing */
-    };
+    /**
+     * @brief Plans generation a chunk - tiles and vegetation
+     * @return True if it could be planned
+     */
+    [[nodiscard]] bool planGeneration(glm::ivec2 posCh);
 
     /**
-     * @brief Generates a chunk - tiles and vegetation
+     * @brief Generates planned chunks
+     * @param branchWriteBuf Index of the double buffered part of branch buffer
+     * that is for writing
      */
-    void generateChunk(const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo);
+    void generate(const re::CommandBuffer& cmdBuf, glm::uint branchWriteBuf);
 
 protected:
-    void prepareToGenerate(const re::CommandBuffer& cmdBuf);
-
     void generateBasicTerrain(const re::CommandBuffer& cmdBuf);
     void consolidateEdges(const re::CommandBuffer& cmdBuf);
     void selectVariant(const re::CommandBuffer& cmdBuf);
 
     void generateVegetation(const re::CommandBuffer& cmdBuf);
 
-    void finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec2 posCh);
+    void copyToDestination(const re::CommandBuffer& cmdBuf);
 
     static re::Buffer createVegTemplatesBuffer();
 
@@ -70,14 +70,24 @@ protected:
     const re::Buffer*  m_branchBuf = nullptr;
 
     struct GenerationPC {
-        glm::ivec2 chunkTi;
+        glm::ivec2 chunkTi[k_maxParallelChunks];
         glm::ivec2 worldTexSizeCh;
         int        seed;
-        glm::uint  storeLayer{};
+        glm::uint  storeSegment{}; // Always 0 or 1
         glm::uint  edgeConsolidationPromote;
         glm::uint  edgeConsolidationReduce;
         glm::uint  branchWriteBuf;
     } m_genPC;
+    static_assert(sizeof(GenerationPC) <= 128, "PC min size guarantee");
+    int m_chunksPlanned = 0; /**< Number of chunks planned to generate this step */
+
+    re::StepDoubleBuffered<re::CommandBuffer> m_cmdBuf{
+        re::CommandBuffer{
+            {.level     = vk::CommandBufferLevel::eSecondary,
+             .debugName = "rw::ChunkGenerator::cmdBuf[0]"}},
+        re::CommandBuffer{
+            {.level     = vk::CommandBufferLevel::eSecondary,
+             .debugName = "rw::ChunkGenerator::cmdBuf[1]"}}};
 
     re::PipelineLayout m_pipelineLayout;
     re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
@@ -112,7 +122,7 @@ protected:
     re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
-        .layers = 2,
+        .layers = k_maxParallelChunks * 2,
         .usage  = vk::ImageUsageFlagBits::eStorage |
                  vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral,
@@ -120,6 +130,7 @@ protected:
     re::Texture m_materialTex{re::TextureCreateInfo{
         .format        = vk::Format::eR8G8B8A8Uint,
         .extent        = {k_genChunkSize.x, k_genChunkSize.y, 1u},
+        .layers        = k_maxParallelChunks,
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral,
         .debugName     = "rw::ChunkGenerator::material"}};

@@ -23,22 +23,27 @@ const ivec2 OFFSETS[] = {
 };
 
 void main() {
-    //Load previous value of the tile
-    const uint loadLayer = (p_storeLayer + 1) & 1;
-    ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
+    // Load previous value of the tile
+    const uint loadLayer = tileImgLoadLayer();
+    const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
     uvec2 block_wall = imageLoad(u_tilesImage, ivec3(pTi, loadLayer)).TILE_TYPE;
 
-    //Examine neighbors
+    // Examine neighbors
     uvec2 inner = {0u, 0u};
     for (int i = 0; i < OFFSETS.length(); i++){
-        inner |= uvec2(isNonsolidTile(imageLoad(u_tilesImage, ivec3(pTi + OFFSETS[i], loadLayer)).TILE_TYPE));
+        uvec2 neighbor = imageLoad(u_tilesImage, ivec3(pTi + OFFSETS[i], loadLayer)).TILE_TYPE;
+        inner |= uvec2(isNonsolidTile(neighbor));
     }
 
-    //Determine the variation
+    // Determine the variation
     vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
     uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
-    uvec2 variation = uvec2(hash22(vec2(p_chunkTi + pTi)) * variationRange) + variationOffset;
+    uvec2 variation = uvec2(hash22(vec2(p_chunkTi[gl_WorkGroupID.z] + pTi)) * variationRange) + variationOffset;
 
-    //Store the new tile
-    imageStore(u_tilesImage, ivec3(gl_GlobalInvocationID.xy, p_storeLayer), uvec4(block_wall.x, variation.x, block_wall.y, variation.y));
+    // Store the new tile
+    imageStore(
+        u_tilesImage,
+        ivec3(pTi, tileImgStoreLayer()),
+        uvec4(block_wall.x, variation.x, block_wall.y, variation.y)
+    );
 }

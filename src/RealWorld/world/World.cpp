@@ -142,17 +142,13 @@ void World::step(
     // Unrasterize branches
     m_vegSimulator.unrasterizeVegetation(cmdBuf);
 
-    { // Activation manager
-        auto dbg = cmdBuf.createDebugRegion("activation manager");
-        m_activationManager.beginStep();
-        m_activationManager.planActivationOfArea(
-            cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
-        );
-        cmdBuf->bindDescriptorSets(
-            vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
-        );
-        m_activationManager.endStep(cmdBuf);
-    }
+    // Activation manager
+    cmdBuf->bindDescriptorSets(
+        vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
+    );
+    m_activationManager.activateArea(
+        cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
+    );
 
     // Bodies
     // m_bodySimulator.step(cmdBuf);

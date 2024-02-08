@@ -50,7 +50,7 @@ public:
     /**
      * @brief Uploads and downloads can only be planned when there is enough space
      */
-    bool hasFreeTransferSpace() const;
+    [[nodiscard]] bool hasFreeTransferSpace() const;
 
     /**
      * @brief Plans an upload transfer
@@ -66,9 +66,7 @@ public:
      * @pre  hasFreeTransferSpace() == true
      * @note Must be called between beginStep() and endStep()
      */
-    void planDownload(
-        const re::CommandBuffer& cmdBuf, glm::ivec2 posCh, glm::ivec2 posAt
-    );
+    void planDownload(glm::ivec2 posCh, glm::ivec2 posAt);
 
     /**
      * @brief Peforms all previously planned transfers
