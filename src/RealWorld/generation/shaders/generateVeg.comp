@@ -94,13 +94,13 @@ void main(){
         if (templateIndex != ~0){ // If this thread represents a vegetation
             float greenMass = biomeClimate.x + biomeClimate.y;
             b_vegPrep.vegInstances[s_vegPrepI + vegPrepThreadOffset] = VegInstance(
-                templateIndex,                                  // templateIndex
-                s_globalFirstBranchIndex + branchThreadOffset,  // outputIndex
-                random(),                                       // randomSeed
+                templateIndex,                                      // templateIndex
+                s_globalFirstBranchIndex + branchThreadOffset,      // outputIndex
+                random(),                                           // randomSeed
                 s_branchPrepI + branchThreadOffset,
-                pTi,                                            // rootPosTi
-                greenMass * 0.25 + 0.75,                        // sizeFactor
-                0.5 * randomFloat() + 0.75                      // angleFactor
+                (templateIndex != 2 /*not wheat*/) ? pTi : chunkTi, // rootPosTi
+                greenMass * 0.25 + 0.75,                            // sizeFactor
+                0.5 * randomFloat() + 0.75                          // angleFactor
             );
         }
     }

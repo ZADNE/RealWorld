@@ -6,6 +6,8 @@
 #include <RealWorld/constants/chunk.glsl>
 const int ActiveChunksSB_BINDING = 1;
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
+const int BranchSB_BINDING = 3;
+#include <RealWorld/vegetation/shaders/BranchSB.glsl>
 
 layout (local_size_x = 16,
         local_size_y = 16,
@@ -27,44 +29,45 @@ void main(){
     s_chunkAc[posSh.y][posSh.x] =
         activeChunkAtPos(ivec2(gl_GlobalInvocationID.xy));
 
-    // Fetch sides of the tile
-    const uvec2 workGroupOffset = gl_WorkGroupSize.xy * gl_WorkGroupID.xy;
     const ivec2 mask = b_acChunks.worldTexSizeMask;
-    const uvec2 lb = (gl_WorkGroupSize.xy * gl_WorkGroupID.xy - 1) & mask;
-    const uvec2 rt = (gl_WorkGroupSize.xy * (gl_WorkGroupID.xy + 1)) & mask;
-    switch (gl_LocalInvocationID.y >> 1){
-    case 0: // Top
-        s_chunkAc[gl_WorkGroupSize.y + 1][posSh.x] =
-            activeChunkAtPos(ivec2(workGroupOffset.x + gl_LocalInvocationID.x, rt.y));
-        break;
-    case 1: // Bottom
-        s_chunkAc[0][posSh.x] =
-            activeChunkAtPos(ivec2(workGroupOffset.x + gl_LocalInvocationID.x, lb.y));
-        break;
-    case 2: // Left
-        s_chunkAc[posSh.x][0] =
-            activeChunkAtPos(ivec2(lb.x, workGroupOffset.y + gl_LocalInvocationID.x));
-        break;
-    case 3: // Right
-        s_chunkAc[posSh.x][gl_WorkGroupSize.x + 1] =
-            activeChunkAtPos(ivec2(rt.x, workGroupOffset.y + gl_LocalInvocationID.x));
-        break;
-    case 4: // Left top
-        s_chunkAc[gl_WorkGroupSize.y + 1][0] =
-            activeChunkAtPos(ivec2(lb.x, rt.y));
-        break;
-    case 5: // Left bottom
-        s_chunkAc[0][0] =
-            activeChunkAtPos(ivec2(lb.x, lb.y));
-        break;
-    case 6: // Right top
-        s_chunkAc[gl_WorkGroupSize.y + 1][gl_WorkGroupSize.x + 1] =
-            activeChunkAtPos(ivec2(rt.x, rt.y));
-        break;
-    case 7: // Right bottom
-        s_chunkAc[0][gl_WorkGroupSize.x + 1] =
-            activeChunkAtPos(ivec2(rt.x, lb.y));
-        break;
+    { // Fetch sides of the tile
+        const uvec2 workGroupOffset = gl_WorkGroupSize.xy * gl_WorkGroupID.xy;
+        const uvec2 lb = (gl_WorkGroupSize.xy * gl_WorkGroupID.xy - 1) & mask;
+        const uvec2 rt = (gl_WorkGroupSize.xy * (gl_WorkGroupID.xy + 1)) & mask;
+        switch (gl_LocalInvocationID.y >> 1){
+        case 0: // Top
+            s_chunkAc[gl_WorkGroupSize.y + 1][posSh.x] =
+                activeChunkAtPos(ivec2(workGroupOffset.x + gl_LocalInvocationID.x, rt.y));
+            break;
+        case 1: // Bottom
+            s_chunkAc[0][posSh.x] =
+                activeChunkAtPos(ivec2(workGroupOffset.x + gl_LocalInvocationID.x, lb.y));
+            break;
+        case 2: // Left
+            s_chunkAc[posSh.x][0] =
+                activeChunkAtPos(ivec2(lb.x, workGroupOffset.y + gl_LocalInvocationID.x));
+            break;
+        case 3: // Right
+            s_chunkAc[posSh.x][gl_WorkGroupSize.x + 1] =
+                activeChunkAtPos(ivec2(rt.x, workGroupOffset.y + gl_LocalInvocationID.x));
+            break;
+        case 4: // Left top
+            s_chunkAc[gl_WorkGroupSize.y + 1][0] =
+                activeChunkAtPos(ivec2(lb.x, rt.y));
+            break;
+        case 5: // Left bottom
+            s_chunkAc[0][0] =
+                activeChunkAtPos(ivec2(lb.x, lb.y));
+            break;
+        case 6: // Right top
+            s_chunkAc[gl_WorkGroupSize.y + 1][gl_WorkGroupSize.x + 1] =
+                activeChunkAtPos(ivec2(rt.x, rt.y));
+            break;
+        case 7: // Right bottom
+            s_chunkAc[0][gl_WorkGroupSize.x + 1] =
+                activeChunkAtPos(ivec2(rt.x, lb.y));
+            break;
+        }
     }
     barrier();
 
@@ -90,18 +93,20 @@ void main(){
             debugPrintfEXT("\n");
         }
     }*/
-    
+
     // Test update chunk continuity
-    const ivec2 ch00 = s_chunkAc[posSh.y][posSh.x];
-    const ivec2 ch01 = s_chunkAc[posSh.y + 1][posSh.x];
-    const ivec2 ch10 = s_chunkAc[posSh.y][posSh.x + 1];
-    const ivec2 ch11 = s_chunkAc[posSh.y + 1][posSh.x + 1];
     int localOffsetOffset = -1;
-    if ((ch00 + ivec2(0, 1)) == ch01 &&
-        (ch10 + ivec2(0, 1)) == ch11 && 
-        (ch00 + ivec2(1, 0)) == ch10){
-        // Reduce offsets in shared memory
-        localOffsetOffset = atomicAdd(s_dispatchOffset, 1);
+    {
+        const ivec2 ch00 = s_chunkAc[posSh.y][posSh.x];
+        const ivec2 ch01 = s_chunkAc[posSh.y + 1][posSh.x];
+        const ivec2 ch10 = s_chunkAc[posSh.y][posSh.x + 1];
+        const ivec2 ch11 = s_chunkAc[posSh.y + 1][posSh.x + 1];
+        if ((ch00 + ivec2(0, 1)) == ch01 &&
+            (ch10 + ivec2(0, 1)) == ch11 && 
+            (ch00 + ivec2(1, 0)) == ch10){
+            // Reduce offsets in shared memory
+            localOffsetOffset = atomicAdd(s_dispatchOffset, 1);
+        }
     }
     barrier();
 
@@ -115,5 +120,35 @@ void main(){
     if (localOffsetOffset != -1){
         b_acChunks.offsets[s_dispatchOffset + localOffsetOffset] =
             chToTi(ivec2(gl_GlobalInvocationID.xy)) + k_chunkCenterOffsetTi;
+    }
+
+    // (De)activate branches of the chunk
+    int chunkIndex = chToIndex(ivec2(gl_GlobalInvocationID.xy), mask + 1);
+    int allocIndex = b_branch.allocReg.allocIndexOfTheChunk[chunkIndex];
+    if (allocIndex > 0) { // If there is an allocation for this chunk
+        const ivec2 chmm = s_chunkAc[posSh.y - 1][posSh.x - 1];
+        const ivec2 ch0m = s_chunkAc[posSh.y - 1][posSh.x];
+        const ivec2 chpm = s_chunkAc[posSh.y - 1][posSh.x + 1];
+        const ivec2 chm0 = s_chunkAc[posSh.y][posSh.x - 1];
+        const ivec2 ch00 = s_chunkAc[posSh.y][posSh.x];
+        const ivec2 chp0 = s_chunkAc[posSh.y][posSh.x + 1];
+        const ivec2 chmp = s_chunkAc[posSh.y + 1][posSh.x - 1];
+        const ivec2 ch0p = s_chunkAc[posSh.y + 1][posSh.x];
+        const ivec2 chpp = s_chunkAc[posSh.y + 1][posSh.x + 1];
+        if ((chmm + ivec2(1, 0)) == ch0m &&
+            (ch0m + ivec2(1, 0)) == chpm &&
+            (chpm + ivec2(0, 1)) == chp0 &&
+            (chp0 + ivec2(0, 1)) == chpp &&
+            (chpp + ivec2(-1,0)) == ch0p &&
+            (ch0p + ivec2(-1,0)) == chmp &&
+            (chmp + ivec2(0,-1)) == chm0 &&
+            (chm0 + ivec2(1, 0)) == ch00){
+            // Branches of the chunk should be active
+            b_branch.allocReg.allocations[allocIndex].activeBranchCount =
+                b_branch.allocReg.allocations[allocIndex].branchCount;
+        } else {
+            // Branches of the chunk should NOT be active
+            b_branch.allocReg.allocations[allocIndex].activeBranchCount = 0;
+        }
     }
 }

@@ -14,11 +14,13 @@ namespace rw {
  * @brief All branches of a chunk are inside one allocation
  */
 struct BranchAllocation {
-    glm::uint vertexCount   = 0;
-    glm::uint instanceCount = 1;
-    glm::uint firstVertex   = k_maxBranchCount;
-    glm::uint firstInstance = 0;
-    glm::uint size          = 0;
+    glm::uint activeBranchCount = 0;
+    glm::uint instanceCount     = 1;
+    glm::uint firstBranch       = k_maxBranchCount;
+    glm::uint firstInstance     = 0;
+
+    glm::uint branchCount = 0;
+    glm::uint capacity    = 0;
 };
 
 struct BranchAllocRegister {

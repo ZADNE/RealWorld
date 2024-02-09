@@ -62,7 +62,7 @@ void generateTree(){
 const int k_randomOffsetTi = iChunkTi.x - 1;
 
 int invocXPosTi(){
-    return p_chunkTi[gl_WorkGroupID.z].x + (int(random()) & k_randomOffsetTi);
+    return int(s_inst.rootPosTi.x) + (int(random()) & k_randomOffsetTi);
 }
 
 void generateGrass(){

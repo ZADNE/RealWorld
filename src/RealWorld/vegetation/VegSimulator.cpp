@@ -166,7 +166,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     // Prepare branch buffer
     BranchAllocRegister allocReg{};
     allocReg.allocations[0] =
-        BranchAllocation{.firstVertex = 0, .size = k_maxBranchCount};
+        BranchAllocation{.firstBranch = 0, .capacity = k_maxBranchCount};
 
     m_branchBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage       = vma::MemoryUsage::eAutoPreferDevice,

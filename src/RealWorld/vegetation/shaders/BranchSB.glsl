@@ -9,11 +9,13 @@
 
 // All allocations within the list belong to one chunk
 struct BranchAllocation {
-    uint vertexCount;
+    uint activeBranchCount;
     uint instanceCount;
-    uint firstVertex;
+    uint firstBranch;
     uint firstInstance;
-    uint size;
+
+    uint branchCount;
+    uint capacity;
 };
 
 struct BranchAllocRegister {
