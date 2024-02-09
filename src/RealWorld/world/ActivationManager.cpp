@@ -42,7 +42,7 @@ const re::Buffer& ActivationManager::setTarget(const TargetInfo& targetInfo) {
 
     // Recalculate active chunks mask and analyzer dispatch size
     m_worldTexSizeMask            = targetInfo.worldTexSizeCh - 1;
-    m_analyzeContinuityGroupCount = targetInfo.worldTexSizeCh / 8;
+    m_analyzeContinuityGroupCount = targetInfo.worldTexSizeCh / 16;
 
     // Reset ActiveChunks storage buffer
     vk::DeviceSize bufSize = calcActiveChunksBufSize(targetInfo.worldTexSizeCh);

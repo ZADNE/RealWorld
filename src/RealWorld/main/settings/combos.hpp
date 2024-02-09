@@ -26,8 +26,6 @@ constexpr std::array k_resolutions = {
     glm::ivec2{3840, 2160}};
 
 constexpr std::array k_worldTexSizes = {
-    glm::ivec2{8, 8},
-    glm::ivec2{16, 8},
     glm::ivec2{16, 16},
     glm::ivec2{32, 16},
     glm::ivec2{32, 32},

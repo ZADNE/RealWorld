@@ -51,7 +51,7 @@ void main(){
     ivec2 centerTi = b_acChunks.offsets[gl_WorkGroupID.x]
                      + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
                      + (ivec2(random(), random()) & (k_invocDisplacement - 1));
-    
+
     uvec4 tile = tileLoad(centerTi);
     uvec2 edgeTile = uvec2(0);
     uvec2 nearbyProperties = uvec2(0);
@@ -69,6 +69,7 @@ void main(){
             break;
         }
     }
+
     // Transform wall of the tile
     uvec2 wallRuleIndices = u_wallProperties[tile.WL_T].yz;
     for (uint i = wallRuleIndices.x; i <= wallRuleIndices.y;++i) {
@@ -76,7 +77,7 @@ void main(){
             break;
         }
     }
-    
+
     // Select variant
     uvec2 currentlyInner = uvec2(lessThan(tile.TILE_VAR, uvec2(12)));
     uvec2 isSolid = uvec2(isSolidTile(tile.TILE_TYPE));
@@ -86,7 +87,7 @@ void main(){
         mix(tile.TILE_VAR, uvec2(0), bvec2(switchToInner | switchToOuter))
         + mix(uvec2(0), random2() % 12, bvec2(switchToInner))
         + mix(uvec2(0), random2() % 4 + 12, bvec2(switchToOuter));
-    
+
     // Store the transformed tile
     tileStore(centerTi, tile);
 }

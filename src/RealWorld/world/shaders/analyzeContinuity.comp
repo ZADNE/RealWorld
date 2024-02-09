@@ -7,27 +7,113 @@
 const int ActiveChunksSB_BINDING = 1;
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
 
-layout (local_size_x = 8,
-        local_size_y = 8,
+layout (local_size_x = 16,
+        local_size_y = 16,
         local_size_z = 1
 ) in;
 
 const ivec2 k_chunkCenterOffsetTi = iChunkTi / 2;
 
+shared ivec2 s_chunkAc[gl_WorkGroupSize.y + 2][gl_WorkGroupSize.x + 2 + 1];
+shared int   s_dispatchOffset;
+
 void main(){
-    //Gather chunks
-    const ivec2 posCh = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 ch00 = activeChunkAtPos(posCh);
-    ivec2 ch01 = activeChunkAtPos((posCh + ivec2(0, 1)) & b_acChunks.worldTexSizeMask);
-    ivec2 ch10 = activeChunkAtPos((posCh + ivec2(1, 0)) & b_acChunks.worldTexSizeMask);
-    ivec2 ch11 = activeChunkAtPos((posCh + ivec2(1, 1)) & b_acChunks.worldTexSizeMask);
+    if (gl_LocalInvocationIndex == 0){
+        s_dispatchOffset = 0;
+    }
+
+    // Fetch center of the tile
+    const uvec2 posSh = gl_LocalInvocationID.xy + 1; // Index to shared memory of the thread
+    s_chunkAc[posSh.y][posSh.x] =
+        activeChunkAtPos(ivec2(gl_GlobalInvocationID.xy));
+
+    // Fetch sides of the tile
+    const uvec2 workGroupOffset = gl_WorkGroupSize.xy * gl_WorkGroupID.xy;
+    const ivec2 mask = b_acChunks.worldTexSizeMask;
+    const uvec2 lb = (gl_WorkGroupSize.xy * gl_WorkGroupID.xy - 1) & mask;
+    const uvec2 rt = (gl_WorkGroupSize.xy * (gl_WorkGroupID.xy + 1)) & mask;
+    switch (gl_LocalInvocationID.y >> 1){
+    case 0: // Top
+        s_chunkAc[gl_WorkGroupSize.y + 1][posSh.x] =
+            activeChunkAtPos(ivec2(workGroupOffset.x + gl_LocalInvocationID.x, rt.y));
+        break;
+    case 1: // Bottom
+        s_chunkAc[0][posSh.x] =
+            activeChunkAtPos(ivec2(workGroupOffset.x + gl_LocalInvocationID.x, lb.y));
+        break;
+    case 2: // Left
+        s_chunkAc[posSh.x][0] =
+            activeChunkAtPos(ivec2(lb.x, workGroupOffset.y + gl_LocalInvocationID.x));
+        break;
+    case 3: // Right
+        s_chunkAc[posSh.x][gl_WorkGroupSize.x + 1] =
+            activeChunkAtPos(ivec2(rt.x, workGroupOffset.y + gl_LocalInvocationID.x));
+        break;
+    case 4: // Left top
+        s_chunkAc[gl_WorkGroupSize.y + 1][0] =
+            activeChunkAtPos(ivec2(lb.x, rt.y));
+        break;
+    case 5: // Left bottom
+        s_chunkAc[0][0] =
+            activeChunkAtPos(ivec2(lb.x, lb.y));
+        break;
+    case 6: // Right top
+        s_chunkAc[gl_WorkGroupSize.y + 1][gl_WorkGroupSize.x + 1] =
+            activeChunkAtPos(ivec2(rt.x, rt.y));
+        break;
+    case 7: // Right bottom
+        s_chunkAc[0][gl_WorkGroupSize.x + 1] =
+            activeChunkAtPos(ivec2(rt.x, lb.y));
+        break;
+    }
+    barrier();
+
+    /* // Debug print of the shared memory tile
+    if (gl_GlobalInvocationID.xy == uvec2(gl_NumWorkGroups.x * gl_WorkGroupSize.x - 1, 0)){
+        debugPrintfEXT("global: %v2u\n", gl_GlobalInvocationID.xy);
+        debugPrintfEXT("lb:     %v2u\n", lb);
+        debugPrintfEXT("rt:     %v2u\n", rt);
+        for (int y = 17; y >= 0; y--){
+            for (int x = 0; x < 18; x++){
+                ivec2 ac = s_chunkAc[y][x];
+                if (ac.x >= 10 || ac.x < 0){
+                    debugPrintfEXT("%i,", ac.x);
+                } else {
+                    debugPrintfEXT(" %i,", ac.x);
+                }
+                if (ac.y >= 10 || ac.y < 0){
+                    debugPrintfEXT("%i ", ac.y);
+                } else {
+                    debugPrintfEXT(" %i ", ac.y);
+                }
+            }
+            debugPrintfEXT("\n");
+        }
+    }*/
     
-    //Test their continuity
+    // Test update chunk continuity
+    const ivec2 ch00 = s_chunkAc[posSh.y][posSh.x];
+    const ivec2 ch01 = s_chunkAc[posSh.y + 1][posSh.x];
+    const ivec2 ch10 = s_chunkAc[posSh.y][posSh.x + 1];
+    const ivec2 ch11 = s_chunkAc[posSh.y + 1][posSh.x + 1];
+    int localOffsetOffset = -1;
     if ((ch00 + ivec2(0, 1)) == ch01 &&
         (ch10 + ivec2(0, 1)) == ch11 && 
         (ch00 + ivec2(1, 0)) == ch10){
-        //The update chunk is continous
-        int i = atomicAdd(b_acChunks.dynamicsGroupSize.x, 1);
-        b_acChunks.offsets[i] = chToTi(posCh) + k_chunkCenterOffsetTi;
+        // Reduce offsets in shared memory
+        localOffsetOffset = atomicAdd(s_dispatchOffset, 1);
+    }
+    barrier();
+
+    if (gl_LocalInvocationIndex == 0){
+        // Reduce offsets in global memory
+        s_dispatchOffset = atomicAdd(b_acChunks.dynamicsGroupSize.x, s_dispatchOffset);
+    }
+    barrier();
+
+    // Output update chunk offsets
+    if (localOffsetOffset != -1){
+        b_acChunks.offsets[s_dispatchOffset + localOffsetOffset] =
+            chToTi(ivec2(gl_GlobalInvocationID.xy)) + k_chunkCenterOffsetTi;
     }
 }
