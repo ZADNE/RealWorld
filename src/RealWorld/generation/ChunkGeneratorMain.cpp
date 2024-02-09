@@ -78,7 +78,7 @@ bool ChunkGenerator::planGeneration(glm::ivec2 posCh) {
 
 void ChunkGenerator::generate(const re::CommandBuffer& cmdBuf, glm::uint branchWriteBuf) {
     if (m_chunksPlanned > 0) {
-        auto&                            secCmdBuf = m_cmdBuf.write();
+        auto&                            secCmdBuf = *m_cmdBuf;
         vk::CommandBufferInheritanceInfo inheritanceInfo{};
         secCmdBuf->begin({eOneTimeSubmit, &inheritanceInfo});
         secCmdBuf->bindDescriptorSets(

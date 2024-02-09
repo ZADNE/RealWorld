@@ -78,11 +78,9 @@ public:
     void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;
 
 private:
-    void planTransition(glm::ivec2 posCh, glm::uint branchWriteBuf);
+    void planTransition(glm::ivec2 posCh);
 
-    void planActivation(
-        glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAt, glm::uint branchWriteBuf
-    );
+    void planActivation(glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAt);
 
     void planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAt);
 

@@ -28,7 +28,7 @@ vk::DeviceSize calcActiveChunksBufSize(glm::ivec2 worldTexSizeCh) {
 } // namespace
 
 ActivationManager::ActivationManager(const re::PipelineLayout& pipelineLayout)
-    : m_chunkManager(pipelineLayout, *this)
+    : m_chunkManager(*this)
     , m_analyzeContinuityPl(
           {.pipelineLayout = *pipelineLayout,
            .debugName      = "rw::ChunkManager::analyzeContinuity"},
@@ -141,7 +141,7 @@ void ActivationManager::activateArea(
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
-            planTransition(glm::ivec2(x, y), branchWriteBuf);
+            planTransition(glm::ivec2(x, y));
         }
     }
 
@@ -170,7 +170,7 @@ void ActivationManager::saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const 
     ChunkLoader::saveChunk(m_folderPath, posCh, iChunkTi, tiles);
 }
 
-void ActivationManager::planTransition(glm::ivec2 posCh, glm::uint branchWriteBuf) {
+void ActivationManager::planTransition(glm::ivec2 posCh) {
     auto posAc = chToAc(posCh, m_worldTexSizeMask);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexSizeMask + 1));
     if (activeChunk == posCh) {
@@ -178,7 +178,7 @@ void ActivationManager::planTransition(glm::ivec2 posCh, glm::uint branchWriteBu
         return; // No transition is needed
     } else if (activeChunk == k_chunkNotActive) {
         // No chunk is active at the spot
-        planActivation(activeChunk, posCh, chToTi(posAc), branchWriteBuf);
+        planActivation(activeChunk, posCh, chToTi(posAc));
     } else if (activeChunk != k_chunkBeingDownloaded && activeChunk != k_chunkBeingUploaded) {
         // A different chunk is active at the spot
         planDeactivation(activeChunk, chToTi(posAc));
@@ -186,7 +186,7 @@ void ActivationManager::planTransition(glm::ivec2 posCh, glm::uint branchWriteBu
 }
 
 void ActivationManager::planActivation(
-    glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAt, glm::uint branchWriteBuf
+    glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAt
 ) {
     // Try to find the chunk among inactive chunks
     auto it = m_inactiveChunks.find(posCh);

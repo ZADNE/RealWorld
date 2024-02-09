@@ -25,7 +25,7 @@ public:
      *
      * Chunk manager needs to have set its target to work properly.
      */
-    ChunkManager(const re::PipelineLayout& pipelineLayout, ActivationManager& actManager);
+    explicit ChunkManager(ActivationManager& actManager);
 
     /**
      * @brief   Retargets the chunk manager to a new world.
@@ -78,21 +78,33 @@ private:
 
     ActivationManager& m_actManager;
 
-    // Tile stage
-    static constexpr auto k_tileStageSize = 16;
-    /**
-     * @brief Target global position of the transfered chunk, in chunks
-     */
-    std::array<glm::ivec2, k_tileStageSize> m_tileStageTargetCh{};
-    /**
-     * @brief Uploads are emplaced at the beginning, downloads at the end
-     */
-    std::array<vk::BufferImageCopy2, k_tileStageSize> m_copyRegions;
-    re::BufferMapped<unsigned char>                   m_tilesStageBuf;
+    static constexpr auto k_tileStageSlots = 16;
+    struct TileStage {
+        /**
+         * @brief Target global position of the transfered chunk, in chunks
+         */
+        std::array<glm::ivec2, k_tileStageSlots> targetCh{};
+        /**
+         * @brief Uploads are emplaced at the beginning, downloads at the end
+         */
+        std::array<vk::BufferImageCopy2, k_tileStageSlots> copyRegions;
+        /**
+         * @brief Vulkan coppies from and to this buffer
+         */
+        re::BufferMapped<unsigned char> buf{re::BufferCreateInfo{
+            .allocFlags = vma::AllocationCreateFlagBits::eMapped |
+                          vma::AllocationCreateFlagBits::eHostAccessRandom,
+            .sizeInBytes = k_tileStageSlots * k_chunkByteSize,
+            .usage       = vk::BufferUsageFlagBits::eTransferSrc |
+                     vk::BufferUsageFlagBits::eTransferDst,
+            .debugName = "rw::ChunkManager::tilesStage"}};
 
-    int  m_nextUploadTileStage   = 0;
-    int  m_nextDownloadTileStage = k_tileStageSize - 1;
-    void resetTileStages();
+        int  nextUploadSlot   = 0;
+        int  nextDownloadSlot = k_tileStageSlots - 1;
+        void resetTileStage();
+        bool hasFreeTransferSpace() const;
+    };
+    re::StepDoubleBuffered<TileStage> m_ts;
 };
 
 } // namespace rw
