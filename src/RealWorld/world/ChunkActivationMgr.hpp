@@ -9,21 +9,20 @@
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/world/ActiveChunksSB.hpp>
 #include <RealWorld/world/Chunk.hpp>
-#include <RealWorld/world/ChunkManager.hpp>
-#include <RealWorld/world/VegManager.hpp>
+#include <RealWorld/world/ChunkTransferMgr.hpp>
 
 namespace rw {
 
 /**
- * @brief Ensures correct (de)activation of chunks and branches
+ * @brief Ensures correct (de)activation of chunks (tiles and branches)
  */
-class ActivationManager {
+class ChunkActivationMgr {
 public:
     /**
      * @brief Contructs activation manager
      * @note Activation manager needs to have set its target to work properly.
      */
-    explicit ActivationManager(const re::PipelineLayout& pipelineLayout);
+    explicit ChunkActivationMgr(const re::PipelineLayout& pipelineLayout);
 
     struct TargetInfo {
         int seed;                      /**< Seed of the new world */
@@ -87,16 +86,10 @@ private:
 
     void analyzeAfterChanges(const re::CommandBuffer& cmdBuf);
 
-    /**
-     * @brief Checks if ChunkManager and VegManager have enough transfer space
-     * to move it
-     */
-    [[nodiscard]] bool canBeTransfered(glm::ivec2 posAc) const;
-
     int m_transparentChunkChanges = 0; /**< Number of changes in this step */
 
     /**
-     * @brief Key: posCh, Val: inactive chunk (current tiles)
+     * @brief Key: posCh, Val: inactive chunk
      */
     std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
 
@@ -112,9 +105,8 @@ private:
     re::Buffer                       m_activeChunksBuf;
     re::BufferMapped<ActiveChunksSB> m_activeChunksStageBuf;
 
-    ChunkGenerator m_chunkGen;
-    ChunkManager   m_chunkManager;
-    VegManager     m_vegManager;
+    ChunkGenerator   m_chunkGen;
+    ChunkTransferMgr m_chunkTransferMgr;
 };
 
 } // namespace rw

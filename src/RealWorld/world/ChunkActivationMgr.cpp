@@ -8,7 +8,7 @@
 #include <glm/gtx/hash.hpp>
 
 #include <RealWorld/save/ChunkLoader.hpp>
-#include <RealWorld/world/ActivationManager.hpp>
+#include <RealWorld/world/ChunkActivationMgr.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
 
 using enum vk::BufferUsageFlagBits;
@@ -27,16 +27,16 @@ vk::DeviceSize calcActiveChunksBufSize(glm::ivec2 worldTexSizeCh) {
 }
 } // namespace
 
-ActivationManager::ActivationManager(const re::PipelineLayout& pipelineLayout)
+ChunkActivationMgr::ChunkActivationMgr(const re::PipelineLayout& pipelineLayout)
     : m_analyzeContinuityPl(
           {.pipelineLayout = *pipelineLayout,
-           .debugName      = "rw::ChunkManager::analyzeContinuity"},
+           .debugName      = "rw::ChunkActivationMgr::analyzeContinuity"},
           {.comp = analyzeContinuity_comp}
       )
-    , m_vegManager(pipelineLayout) {
+    , m_chunkTransferMgr(pipelineLayout) {
 }
 
-const re::Buffer& ActivationManager::setTarget(const TargetInfo& targetInfo) {
+const re::Buffer& ChunkActivationMgr::setTarget(const TargetInfo& targetInfo) {
     m_folderPath = targetInfo.folderPath;
     m_worldTex   = &targetInfo.worldTex;
     m_branchBuf  = &targetInfo.branchBuf;
@@ -51,13 +51,13 @@ const re::Buffer& ActivationManager::setTarget(const TargetInfo& targetInfo) {
              .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
              .sizeInBytes = bufSize,
              .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
-             .debugName   = "rw::ChunkManager::activeChunks"}};
+             .debugName   = "rw::ChunkActivationMgr::activeChunks"}};
     m_activeChunksStageBuf = re::BufferMapped<ActiveChunksSB>{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = bufSize,
         .usage       = eTransferSrc,
-        .debugName   = "rw::ChunkManager::activeChunksStage"}};
+        .debugName   = "rw::ChunkActivationMgr::activeChunksStage"}};
     m_activeChunksStageBuf->activeChunksMask  = m_worldTexMaskCh;
     m_activeChunksStageBuf->worldTexSizeCh    = targetInfo.worldTexCh;
     m_activeChunksStageBuf->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
@@ -87,13 +87,12 @@ const re::Buffer& ActivationManager::setTarget(const TargetInfo& targetInfo) {
         .bodiesBuf      = targetInfo.bodiesBuf,
         .branchBuf      = targetInfo.branchBuf});
 
-    m_chunkManager.reset();
-    m_vegManager.reset();
+    m_chunkTransferMgr.reset();
 
     return m_activeChunksBuf;
 }
 
-bool ActivationManager::saveChunks() {
+bool ChunkActivationMgr::saveChunks() {
     // Save all inactive chunks
     std::for_each(
         std::execution::par_unseq,
@@ -107,14 +106,14 @@ bool ActivationManager::saveChunks() {
     m_inactiveChunks.clear();
 
     // Save all chunks inside the world texture
-    return m_chunkManager.saveChunks(*m_worldTex, m_worldTexMaskCh + 1, *this);
+    return m_chunkTransferMgr.saveChunks(*m_worldTex, m_worldTexMaskCh + 1, *this);
 }
 
-size_t ActivationManager::numberOfInactiveChunks() {
+size_t ChunkActivationMgr::numberOfInactiveChunks() {
     return m_inactiveChunks.size();
 }
 
-void ActivationManager::activateArea(
+void ChunkActivationMgr::activateArea(
     const re::CommandBuffer& cmdBuf,
     glm::ivec2               botLeftTi,
     glm::ivec2               topRightTi,
@@ -135,7 +134,8 @@ void ActivationManager::activateArea(
     }
 
     // Finish transfers from previous step
-    m_transparentChunkChanges = m_chunkManager.beginStep(m_worldTexMaskCh + 1, *this);
+    m_transparentChunkChanges =
+        m_chunkTransferMgr.beginStep(m_worldTexMaskCh + 1, *this);
 
     glm::ivec2 botLeftCh  = tiToCh(botLeftTi);
     glm::ivec2 topRightCh = tiToCh(topRightTi);
@@ -151,7 +151,7 @@ void ActivationManager::activateArea(
     m_chunkGen.generate(cmdBuf, branchWriteBuf);
 
     // Record planned uploads/downloads
-    m_chunkManager.endStep(cmdBuf, *m_worldTex);
+    m_chunkTransferMgr.endStep(cmdBuf, *m_worldTex);
 
     // If there have been transparent changes
     if (m_transparentChunkChanges > 0) {
@@ -159,20 +159,20 @@ void ActivationManager::activateArea(
     }
 }
 
-glm::ivec2& ActivationManager::activeChunkAtIndex(int acIndex) {
+glm::ivec2& ChunkActivationMgr::activeChunkAtIndex(int acIndex) {
     return m_activeChunksStageBuf
         ->offsets[m_worldTexMaskCh.x * m_worldTexMaskCh.y + acIndex];
 }
 
-void ActivationManager::addInactiveChunk(glm::ivec2 posCh, Chunk&& chunk) {
+void ChunkActivationMgr::addInactiveChunk(glm::ivec2 posCh, Chunk&& chunk) {
     m_inactiveChunks.emplace(posCh, std::move(chunk));
 }
 
-void ActivationManager::saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const {
+void ChunkActivationMgr::saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const {
     ChunkLoader::saveChunk(m_folderPath, posCh, iChunkTi, tiles);
 }
 
-void ActivationManager::planTransition(glm::ivec2 posCh) {
+void ChunkActivationMgr::planTransition(glm::ivec2 posCh) {
     auto posAc = chToAc(posCh, m_worldTexMaskCh);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexMaskCh + 1));
     if (activeChunk == posCh) {
@@ -187,15 +187,15 @@ void ActivationManager::planTransition(glm::ivec2 posCh) {
     }
 }
 
-void ActivationManager::planActivation(
+void ChunkActivationMgr::planActivation(
     glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc
 ) {
     // Try to find the chunk among inactive chunks
     auto it = m_inactiveChunks.find(posCh);
     if (it != m_inactiveChunks.end()) {
         // Query upload of the chunk
-        if (canBeTransfered(posAc)) {
-            m_chunkManager.planUpload(it->second.tiles(), posCh, chToTi(posAc));
+        if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
+            m_chunkTransferMgr.planUpload(it->second.tiles(), posCh, chToTi(posAc));
             // Remove the chunk from inactive chunks
             m_inactiveChunks.erase(it);
             // And signal that it is being uploaded
@@ -204,8 +204,8 @@ void ActivationManager::planActivation(
     } else {
         auto tiles = ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
         if (tiles.size() > 0) { // If chunk has been loaded
-            if (canBeTransfered(posAc)) {
-                m_chunkManager.planUpload(tiles, posCh, chToTi(posAc));
+            if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
+                m_chunkTransferMgr.planUpload(tiles, posCh, chToTi(posAc));
                 // Signal that it is being uploaded
                 activeChunk = k_chunkBeingUploaded;
             } else {
@@ -223,29 +223,18 @@ void ActivationManager::planActivation(
     }
 }
 
-void ActivationManager::planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAc) {
+void ChunkActivationMgr::planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAc) {
     // Query download of the chunk
-    if (canBeTransfered(posAc)) {
-        m_chunkManager.planDownload(activeChunk, chToTi(posAc));
+    if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
+        m_chunkTransferMgr.planDownload(activeChunk, chToTi(posAc));
         activeChunk = k_chunkBeingDownloaded; // Deactivate the spot
         m_transparentChunkChanges++;
     }
 }
 
-void ActivationManager::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
+void ChunkActivationMgr::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
     // Reset the number of update chunks to zero
     m_activeChunksStageBuf->dynamicsGroupSize.x = 0;
-
-    { // Wait for previous dispatch to finish
-        auto bufferBarrier = re::bufferMemoryBarrier(
-            S::eDrawIndirect | S::eComputeShader,            // Src stage mask
-            A::eIndirectCommandRead | A::eShaderStorageRead, // Src access mask
-            S::eTransfer,                                    // Dst stage mask
-            A::eTransferWrite,                               // Dst access mask
-            m_activeChunksBuf.buffer()
-        );
-        cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
-    }
 
     // Copy the update to active chunks buffer
     auto texSizeCh   = m_worldTexMaskCh + 1;
@@ -308,12 +297,7 @@ void ActivationManager::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
         cmdBuf->pipelineBarrier2({{}, {}, bufferBarriers, {}});
     }
 
-    m_vegManager.downloadBranchAllocRegister(cmdBuf, *m_branchBuf);
-}
-
-bool ActivationManager::canBeTransfered(glm::ivec2 posAc) const {
-    return m_chunkManager.hasFreeTransferSpace() &&
-           m_vegManager.hasFreeTransferSpace(posAc);
+    m_chunkTransferMgr.downloadBranchAllocRegister(cmdBuf, *m_branchBuf);
 }
 
 } // namespace rw

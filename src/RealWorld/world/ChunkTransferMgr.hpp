@@ -6,22 +6,25 @@
 
 #include <RealEngine/graphics/buffers/BufferMapped.hpp>
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
+#include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
+#include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
+
+#include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/vegetation/BranchSB.hpp>
 
 namespace rw {
 
-class ActivationManager;
+class ChunkActivationMgr;
 
 /**
- * @brief Manages uploads and downloads of tiles to/from the world texture
+ * @brief Manages uploads and downloads of tiles and branches to/from the world
+ * texture and branch buffer
  */
-class ChunkManager {
+class ChunkTransferMgr {
 public:
-    /**
-     * @brief Contructs a chunks manager
-     */
-    ChunkManager() = default;
+    explicit ChunkTransferMgr(const re::PipelineLayout& pipelineLayout);
 
     /**
      * @brief Resets state to no pending transfers
@@ -34,19 +37,19 @@ public:
      * @return True if successful, false otherwise.
      */
     bool saveChunks(
-        const re::Texture& worldTex, glm::ivec2 worldTexCh, ActivationManager& actMgr
+        const re::Texture& worldTex, glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr
     );
 
     /**
-     * @brief Finishes tile transfers from previous step
+     * @brief Finishes transfers from previous step
      * @return Number of finished uploads (= number of transparent changes)
      */
-    int beginStep(glm::ivec2 worldTexCh, ActivationManager& actMgr);
+    int beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr);
 
     /**
      * @brief Uploads and downloads can only be planned when there is enough space
      */
-    [[nodiscard]] bool hasFreeTransferSpace() const;
+    [[nodiscard]] bool hasFreeTransferSpace(glm::ivec2 posAc) const;
 
     /**
      * @brief Plans an upload transfer
@@ -54,7 +57,7 @@ public:
      * @note Must be called between beginStep() and endStep()
      */
     void planUpload(
-        const std::vector<unsigned char>& tiles, glm::ivec2 posCh, glm::ivec2 posAt
+        const std::vector<uint8_t>& tiles, glm::ivec2 posCh, glm::ivec2 posAt
     );
 
     /**
@@ -68,6 +71,10 @@ public:
      * @brief Peforms all previously planned transfers
      */
     void endStep(const re::CommandBuffer& cmdBuf, const re::Texture& worldTex);
+
+    void downloadBranchAllocRegister(
+        const re::CommandBuffer& cmdBuf, const re::Buffer& branchBuf
+    );
 
 private:
     static constexpr auto k_tileStageSlots = 16;
@@ -89,7 +96,7 @@ private:
             .sizeInBytes = k_tileStageSlots * k_chunkByteSize,
             .usage       = vk::BufferUsageFlagBits::eTransferSrc |
                      vk::BufferUsageFlagBits::eTransferDst,
-            .debugName = "rw::ChunkManager::ts::buf"}};
+            .debugName = "rw::ChunkTransferMgr::ts::buf"}};
 
         int  nextUploadSlot   = 0;
         int  nextDownloadSlot = k_tileStageSlots - 1;
@@ -97,6 +104,23 @@ private:
         bool hasFreeTransferSpace() const;
     };
     re::StepDoubleBuffered<TileStage> m_ts;
+    re::Pipeline                      m_saveVegetationPl;
+
+    re::BufferMapped<BranchAllocRegister> m_regBuf{re::BufferCreateInfo{
+        .allocFlags = vma::AllocationCreateFlagBits::eMapped |
+                      vma::AllocationCreateFlagBits::eHostAccessRandom,
+        .sizeInBytes = sizeof(BranchAllocRegister),
+        .usage       = vk::BufferUsageFlagBits::eTransferDst,
+        .debugName   = "rw::ChunkTransferMgr::reg"}};
+
+    static constexpr auto k_branchStageSlots = 512;
+    struct BranchStage {
+        int  nextUploadSlot   = 0;
+        int  nextDownloadSlot = k_branchStageSlots - 1;
+        void reset();
+        bool hasFreeTransferSpace(int branchCount) const;
+    };
+    re::StepDoubleBuffered<BranchStage> m_bs;
 };
 
 } // namespace rw

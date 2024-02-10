@@ -16,33 +16,6 @@ constexpr int        k_groupSize    = 16;
 constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
 void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
-    { // Barrier from previous chunk
-        std::array barriers = std::to_array(
-            {re::imageMemoryBarrier(
-                 S::eTransfer,           // Src stage mask
-                 A::eTransferRead,       // Src access mask
-                 S::eComputeShader,      // Dst stage mask
-                 A::eShaderStorageWrite, // Dst access mask
-                 eGeneral,               // Old image layout
-                 eGeneral,               // New image layout
-                 m_tilesTex.image(),
-                 vk::ImageSubresourceRange{
-                     eColor, 0, 1, k_maxParallelChunks * m_genPC.storeSegment, k_maxParallelChunks}
-             ),
-             re::imageMemoryBarrier(
-                 S::eComputeShader,      // Src stage mask
-                 A::eShaderStorageRead,  // Src access mask
-                 S::eComputeShader,      // Dst stage mask
-                 A::eShaderStorageWrite, // Dst access mask
-                 eGeneral,               // Old image layout
-                 eGeneral,               // New image layout
-                 m_materialTex.image(),
-                 vk::ImageSubresourceRange{eColor, 0, 1, 0, k_maxParallelChunks}
-             )}
-        );
-        cmdBuf->pipelineBarrier2({{}, {}, {}, barriers});
-    }
-
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
     m_genPC.storeSegment = 0;
     cmdBuf->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);

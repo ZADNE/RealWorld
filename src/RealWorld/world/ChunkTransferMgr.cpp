@@ -7,8 +7,9 @@
 #include <RealEngine/utility/Math.hpp>
 
 #include <RealWorld/constants/vegetation.hpp>
-#include <RealWorld/world/ActivationManager.hpp>
-#include <RealWorld/world/ChunkManager.hpp>
+#include <RealWorld/world/ChunkActivationMgr.hpp>
+#include <RealWorld/world/ChunkTransferMgr.hpp>
+#include <RealWorld/world/shaders/AllShaders.hpp>
 
 using enum vk::ImageAspectFlagBits;
 using enum vk::CommandBufferUsageFlagBits;
@@ -18,16 +19,24 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
-void ChunkManager::reset() {
-    m_ts.forEach([](auto& ts) { ts.reset(); });
+ChunkTransferMgr::ChunkTransferMgr(const re::PipelineLayout& pipelineLayout)
+    : m_saveVegetationPl(
+          {.pipelineLayout = *pipelineLayout,
+           .debugName      = "rw::ChunkTransferMgr::saveVegetation"},
+          {.comp = saveVegetation_comp}
+      ) {
 }
 
-bool ChunkManager::saveChunks(
-    const re::Texture& worldTex, glm::ivec2 worldTexCh, ActivationManager& actMgr
+void ChunkTransferMgr::reset() {
+    m_ts.forEach([](auto& ts) { ts.reset(); });
+    m_bs.forEach([](auto& bs) { bs.reset(); });
+}
+
+bool ChunkTransferMgr::saveChunks(
+    const re::Texture& worldTex, glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr
 ) {
     // Save all active chunks (they have to be downloaded)
-    assert(hasFreeTransferSpace());
-    re::CommandBuffer cmdBuf{{.debugName = "rw::ChunkManager::saveChunks"}};
+    re::CommandBuffer cmdBuf{{.debugName = "rw::ChunkTransferMgr::saveChunks"}};
     re::Fence         downloadFinishedFence{{}};
     cmdBuf->begin({eOneTimeSubmit});
 
@@ -63,7 +72,7 @@ bool ChunkManager::saveChunks(
             auto& activeChunk =
                 actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
             if (activeChunk != k_chunkNotActive) {
-                if (hasFreeTransferSpace()) { // If there is space in the stage
+                if (hasFreeTransferSpace(posAc)) { // If there is space in the stage
                     planDownload(activeChunk, chToTi(posAc));
                 } else {
                     endStep(cmdBuf, worldTex);
@@ -101,7 +110,7 @@ bool ChunkManager::saveChunks(
     return true;
 }
 
-int ChunkManager::beginStep(glm::ivec2 worldTexCh, ActivationManager& actMgr) {
+int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr) {
     glm::ivec2 worldTexSizeMask = worldTexCh - 1;
     // Finalize uploads from previous step
     for (int i = 0; i < m_ts->nextUploadSlot; ++i) {
@@ -132,15 +141,21 @@ int ChunkManager::beginStep(glm::ivec2 worldTexCh, ActivationManager& actMgr) {
     return nTransparentChanges;
 }
 
-bool ChunkManager::hasFreeTransferSpace() const {
-    return m_ts->hasFreeTransferSpace();
+bool ChunkTransferMgr::hasFreeTransferSpace(glm::ivec2 posAc) const {
+    int allocIndex =
+        m_regBuf->allocIndexOfTheChunk[posAc.y * k_maxWorldTexSizeCh.x + posAc.x];
+    if (allocIndex > 0) {
+        auto branchCount = m_regBuf->allocations[allocIndex].branchCount;
+        // Need space for both tiles and branches
+        return m_bs->hasFreeTransferSpace(branchCount) &&
+               m_ts->hasFreeTransferSpace();
+    }
+    return m_ts->hasFreeTransferSpace(); // No branches allocated for the chunk
 }
 
-void ChunkManager::planUpload(
-    const std::vector<unsigned char>& tiles, glm::ivec2 posCh, glm::ivec2 posAt
+void ChunkTransferMgr::planUpload(
+    const std::vector<uint8_t>& tiles, glm::ivec2 posCh, glm::ivec2 posAt
 ) {
-    assert(hasFreeTransferSpace());
-
     m_ts->targetCh[m_ts->nextUploadSlot] = posCh;
     auto bufOffset = static_cast<vk::DeviceSize>(m_ts->nextUploadSlot) *
                      k_chunkByteSize;
@@ -157,9 +172,7 @@ void ChunkManager::planUpload(
     m_ts->nextUploadSlot++;
 }
 
-void ChunkManager::planDownload(glm::ivec2 posCh, glm::ivec2 posAt) {
-    assert(hasFreeTransferSpace());
-
+void ChunkTransferMgr::planDownload(glm::ivec2 posCh, glm::ivec2 posAt) {
     m_ts->targetCh[m_ts->nextDownloadSlot] = posCh;
     auto bufOffset = static_cast<vk::DeviceSize>(m_ts->nextDownloadSlot) *
                      k_chunkByteSize;
@@ -175,7 +188,9 @@ void ChunkManager::planDownload(glm::ivec2 posCh, glm::ivec2 posAt) {
     m_ts->nextDownloadSlot--;
 }
 
-void ChunkManager::endStep(const re::CommandBuffer& cmdBuf, const re::Texture& worldTex) {
+void ChunkTransferMgr::endStep(
+    const re::CommandBuffer& cmdBuf, const re::Texture& worldTex
+) {
     // If there are uploads scheduled
     if (m_ts->nextUploadSlot > 0) {
         // Wait for unrasterization to finish
@@ -223,13 +238,30 @@ void ChunkManager::endStep(const re::CommandBuffer& cmdBuf, const re::Texture& w
     }
 }
 
-void ChunkManager::TileStage::reset() {
+void ChunkTransferMgr::downloadBranchAllocRegister(
+    const re::CommandBuffer& cmdBuf, const re::Buffer& branchBuf
+) {
+    vk::BufferCopy2 copyRegion{
+        offsetof(BranchSB, allocReg), 0ull, sizeof(BranchAllocRegister)};
+    cmdBuf->copyBuffer2({*branchBuf, m_regBuf.buffer(), copyRegion});
+}
+
+void ChunkTransferMgr::TileStage::reset() {
     nextUploadSlot   = 0;
     nextDownloadSlot = k_tileStageSlots - 1;
 }
 
-bool ChunkManager::TileStage::hasFreeTransferSpace() const {
+bool ChunkTransferMgr::TileStage::hasFreeTransferSpace() const {
     return nextUploadSlot <= nextDownloadSlot;
+}
+
+void ChunkTransferMgr::BranchStage::reset() {
+    nextUploadSlot   = 0;
+    nextDownloadSlot = k_branchStageSlots - 1;
+}
+
+bool ChunkTransferMgr::BranchStage::hasFreeTransferSpace(int branchCount) const {
+    return (nextUploadSlot + branchCount) <= (nextDownloadSlot - 1);
 }
 
 } // namespace rw

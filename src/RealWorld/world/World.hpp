@@ -14,7 +14,7 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/vegetation/BodySimulator.hpp>
 #include <RealWorld/vegetation/VegSimulator.hpp>
-#include <RealWorld/world/ActivationManager.hpp>
+#include <RealWorld/world/ChunkActivationMgr.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
 
 namespace rw {
@@ -117,10 +117,10 @@ private:
         {.pipelineLayout = *m_simulationPL, .debugName = "rw::World::modifyTiles"},
         {.comp = modifyTiles_comp}};
 
-    ActivationManager m_activationManager{m_simulationPL};
-    const re::Buffer* m_activeChunksBuf = nullptr;
-    BodySimulator     m_bodySimulator{m_simulationPL};
-    VegSimulator      m_vegSimulator{};
+    ChunkActivationMgr m_chunkActivationMgr{m_simulationPL};
+    const re::Buffer*  m_activeChunksBuf = nullptr;
+    BodySimulator      m_bodySimulator{m_simulationPL};
+    VegSimulator       m_vegSimulator{};
 
     bool m_permuteOrder = true;
 };

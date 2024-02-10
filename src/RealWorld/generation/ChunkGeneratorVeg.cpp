@@ -152,15 +152,6 @@ void interpret(
 } // namespace
 
 void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
-    auto previousGenerationBarrier = re::bufferMemoryBarrier(
-        S::eComputeShader,     // Src stage mask
-        A::eShaderStorageRead, // Src access mask
-        S::eTransfer,          // Dst stage mask
-        A::eTransferWrite,     // Dst access mask
-        *m_vegPreparationBuf
-    );
-    cmdBuf->pipelineBarrier2({{}, {}, previousGenerationBarrier, {}});
-
     { // Clear dispatch counts
         cmdBuf->fillBuffer(
             *m_vegPreparationBuf,

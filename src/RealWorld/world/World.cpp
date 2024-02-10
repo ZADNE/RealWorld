@@ -105,7 +105,7 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
     );
 
     // Update chunk manager
-    m_activeChunksBuf = &m_activationManager.setTarget(ActivationManager::TargetInfo{
+    m_activeChunksBuf = &m_chunkActivationMgr.setTarget(ChunkActivationMgr::TargetInfo{
         .seed          = m_seed,
         .folderPath    = save.path,
         .worldTex      = m_worldTex,
@@ -129,11 +129,11 @@ bool World::saveChunks() {
     });
 
     // Save the chunks
-    return m_activationManager.saveChunks();
+    return m_chunkActivationMgr.saveChunks();
 }
 
 size_t World::numberOfInactiveChunks() {
-    return m_activationManager.numberOfInactiveChunks();
+    return m_chunkActivationMgr.numberOfInactiveChunks();
 }
 
 void World::step(
@@ -146,7 +146,7 @@ void World::step(
     cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );
-    m_activationManager.activateArea(
+    m_chunkActivationMgr.activateArea(
         cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
     );
 

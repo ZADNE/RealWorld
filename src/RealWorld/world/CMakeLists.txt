@@ -1,10 +1,9 @@
 ﻿add_subdirectory(shaders)
 
 target_sources(RealWorld PRIVATE 
-    ActivationManager.hpp       ActivationManager.cpp
     ActiveChunksSB.hpp          
     Chunk.hpp                   Chunk.cpp
-    ChunkManager.hpp            ChunkManager.cpp
-    VegManager.hpp              VegManager.cpp
+    ChunkActivationMgr.hpp      ChunkActivationMgr.cpp
+    ChunkTransferMgr.hpp        ChunkTransferMgr.cpp
     World.hpp                   World.cpp
 )
