@@ -47,4 +47,25 @@ struct BranchSB {
     BranchAllocRegister allocReg;
 };
 
+struct BranchSerialized {
+    static_assert(
+        offsetof(BranchSB, allocReg) == 7602176,
+        "Layout of branch members probably changed - fix me"
+    );
+    template<typename T>
+    using NoRef = std::remove_reference_t<T>;
+    using B     = BranchSB;
+
+    NoRef<decltype(*B::absPosTi[0])>   absPosTi;
+    NoRef<decltype(*B::absAngNorm[0])> absAngNorm;
+
+    NoRef<decltype(*B::parentOffset15wallType31)> parentOffset15wallType31;
+    NoRef<decltype(*B::relRestAngNorm)>           relRestAngNorm;
+    NoRef<decltype(*B::angVel)>                   angVel;
+    NoRef<decltype(*B::radiusTi)>                 radiusTi;
+    NoRef<decltype(*B::lengthTi)>                 lengthTi;
+    NoRef<decltype(*B::densityStiffness)>         densityStiffness;
+    NoRef<decltype(*B::raster)>                   raster;
+};
+
 } // namespace rw

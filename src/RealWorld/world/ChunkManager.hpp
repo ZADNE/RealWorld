@@ -14,38 +14,34 @@ namespace rw {
 class ActivationManager;
 
 /**
- * @brief Ensures that chunks are activated when needed.
- *
- * Uploads and downloads chunks from the world texture.
+ * @brief Manages uploads and downloads of tiles to/from the world texture
  */
 class ChunkManager {
 public:
     /**
-     * @brief Contructs chunks manager
-     *
-     * Chunk manager needs to have set its target to work properly.
+     * @brief Contructs a chunks manager
      */
-    explicit ChunkManager(ActivationManager& actManager);
+    ChunkManager() = default;
 
     /**
-     * @brief   Retargets the chunk manager to a new world.
-     * @detail  Frees all chunks of the previous world without saving them.
-     * @param targetInfo    Info about the new world
+     * @brief Resets state to no pending transfers
      */
-    void setTarget(glm::ivec2 worldTexSizeCh);
+    void reset();
 
     /**
      * @brief Saves all chunks, keeps them in the memory.
      * @note This operation is slow!
      * @return True if successful, false otherwise.
      */
-    bool saveChunks(const re::Texture& worldTex);
+    bool saveChunks(
+        const re::Texture& worldTex, glm::ivec2 worldTexCh, ActivationManager& actMgr
+    );
 
     /**
      * @brief Finishes tile transfers from previous step
      * @return Number of finished uploads (= number of transparent changes)
      */
-    int beginStep();
+    int beginStep(glm::ivec2 worldTexCh, ActivationManager& actMgr);
 
     /**
      * @brief Uploads and downloads can only be planned when there is enough space
@@ -74,16 +70,12 @@ public:
     void endStep(const re::CommandBuffer& cmdBuf, const re::Texture& worldTex);
 
 private:
-    glm::ivec2 m_worldTexSizeMask{};
-
-    ActivationManager& m_actManager;
-
     static constexpr auto k_tileStageSlots = 16;
     struct TileStage {
         /**
          * @brief Target global position of the transfered chunk, in chunks
          */
-        std::array<glm::ivec2, k_tileStageSlots> targetCh{};
+        std::array<glm::ivec2, k_tileStageSlots> targetCh;
         /**
          * @brief Uploads are emplaced at the beginning, downloads at the end
          */
@@ -97,11 +89,11 @@ private:
             .sizeInBytes = k_tileStageSlots * k_chunkByteSize,
             .usage       = vk::BufferUsageFlagBits::eTransferSrc |
                      vk::BufferUsageFlagBits::eTransferDst,
-            .debugName = "rw::ChunkManager::tilesStage"}};
+            .debugName = "rw::ChunkManager::ts::buf"}};
 
         int  nextUploadSlot   = 0;
         int  nextDownloadSlot = k_tileStageSlots - 1;
-        void resetTileStage();
+        void reset();
         bool hasFreeTransferSpace() const;
     };
     re::StepDoubleBuffered<TileStage> m_ts;

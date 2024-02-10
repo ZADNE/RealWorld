@@ -10,6 +10,7 @@
 #include <RealWorld/world/ActiveChunksSB.hpp>
 #include <RealWorld/world/Chunk.hpp>
 #include <RealWorld/world/ChunkManager.hpp>
+#include <RealWorld/world/VegManager.hpp>
 
 namespace rw {
 
@@ -28,7 +29,7 @@ public:
         int seed;                      /**< Seed of the new world */
         const std::string& folderPath; /**< Path to the folder that contains the new world */
         const re::Texture& worldTex; /**< The world texture that will be managed */
-        glm::ivec2         worldTexSizeCh; /**< Must be a multiple of 8 */
+        glm::ivec2         worldTexCh; /**< Must be a multiple of 16 */
         re::DescriptorSet& descriptorSet;
         const re::Buffer&  bodiesBuf;
         const re::Buffer&  branchBuf;
@@ -80,11 +81,17 @@ public:
 private:
     void planTransition(glm::ivec2 posCh);
 
-    void planActivation(glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAt);
+    void planActivation(glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc);
 
-    void planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAt);
+    void planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAc);
 
     void analyzeAfterChanges(const re::CommandBuffer& cmdBuf);
+
+    /**
+     * @brief Checks if ChunkManager and VegManager have enough transfer space
+     * to move it
+     */
+    [[nodiscard]] bool canBeTransfered(glm::ivec2 posAc) const;
 
     int m_transparentChunkChanges = 0; /**< Number of changes in this step */
 
@@ -97,15 +104,17 @@ private:
     glm::uvec2   m_analyzeContinuityGroupCount{};
 
     std::string        m_folderPath;
-    const re::Texture* m_worldTex = nullptr;
+    const re::Texture* m_worldTex  = nullptr;
+    const re::Buffer*  m_branchBuf = nullptr;
 
-    glm::ivec2 m_worldTexSizeMask{};
+    glm::ivec2 m_worldTexMaskCh{};
 
     re::Buffer                       m_activeChunksBuf;
     re::BufferMapped<ActiveChunksSB> m_activeChunksStageBuf;
 
-    ChunkManager   m_chunkManager;
     ChunkGenerator m_chunkGen;
+    ChunkManager   m_chunkManager;
+    VegManager     m_vegManager;
 };
 
 } // namespace rw

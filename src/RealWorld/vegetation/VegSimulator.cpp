@@ -171,7 +171,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     m_branchBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage       = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes       = sizeof(BranchSB),
-        .usage             = eStorageBuffer | eIndirectBuffer,
+        .usage             = eStorageBuffer | eIndirectBuffer | eTransferSrc,
         .initData          = re::objectToByteSpan(allocReg),
         .initDataDstOffset = offsetof(BranchSB, allocReg),
         .debugName         = "rw:VegSimulator::branch"}};

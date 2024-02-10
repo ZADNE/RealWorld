@@ -88,12 +88,10 @@ void WorldRoom::step() {
     vk::SemaphoreSubmitInfo waitSems{
         *m_simulationFinishedSem,
         m_stepN - 1,
-        vk::PipelineStageFlagBits2::eComputeShader};
+        vk::PipelineStageFlagBits2::eAllCommands};
     vk::CommandBufferSubmitInfo comBufSubmit{*cmdBuf};
     vk::SemaphoreSubmitInfo     signalSems{
-        *m_simulationFinishedSem,
-        m_stepN,
-        vk::PipelineStageFlagBits2::eComputeShader};
+        *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eAllCommands};
     re::CommandBuffer::submitToComputeQueue(vk::SubmitInfo2{
         {}, waitSems, comBufSubmit, signalSems});
 

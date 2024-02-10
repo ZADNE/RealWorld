@@ -18,16 +18,13 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
-ChunkManager::ChunkManager(ActivationManager& actManager)
-    : m_actManager(actManager) {
+void ChunkManager::reset() {
+    m_ts.forEach([](auto& ts) { ts.reset(); });
 }
 
-void ChunkManager::setTarget(glm::ivec2 worldTexSizeCh) {
-    m_worldTexSizeMask = worldTexSizeCh - 1;
-    m_ts->resetTileStage();
-}
-
-bool ChunkManager::saveChunks(const re::Texture& worldTex) {
+bool ChunkManager::saveChunks(
+    const re::Texture& worldTex, glm::ivec2 worldTexCh, ActivationManager& actMgr
+) {
     // Save all active chunks (they have to be downloaded)
     assert(hasFreeTransferSpace());
     re::CommandBuffer cmdBuf{{.debugName = "rw::ChunkManager::saveChunks"}};
@@ -50,21 +47,21 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
     auto saveAllChunksInTileStage = [&]() {
         std::array<std::future<void>, k_tileStageSlots> futures{};
         for (int i = k_tileStageSlots - 1; i > m_ts->nextDownloadSlot; --i) {
-            futures[i] = std::async(std::launch::async, [this, i, &m_ts = m_ts]() {
-                m_actManager.saveChunk(
-                    &m_ts->buf[k_chunkByteSize * i], m_ts->targetCh[i]
-                );
-            });
+            futures[i] =
+                std::async(std::launch::async, [this, i, &m_ts = m_ts, &actMgr]() {
+                    actMgr.saveChunk(
+                        &m_ts->buf[k_chunkByteSize * i], m_ts->targetCh[i]
+                    );
+                });
         }
-        m_ts->resetTileStage();
+        m_ts->reset();
     };
 
-    auto worldTexSize = m_worldTexSizeMask + 1;
-    for (int y = 0; y < worldTexSize.y; ++y) {
-        for (int x = 0; x < worldTexSize.x; ++x) {
+    for (int y = 0; y < worldTexCh.y; ++y) {
+        for (int x = 0; x < worldTexCh.x; ++x) {
             auto  posAc = glm::ivec2(x, y);
             auto& activeChunk =
-                m_actManager.activeChunkAtIndex(acToIndex(posAc, worldTexSize));
+                actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
             if (activeChunk != k_chunkNotActive) {
                 if (hasFreeTransferSpace()) { // If there is space in the stage
                     planDownload(activeChunk, chToTi(posAc));
@@ -104,29 +101,26 @@ bool ChunkManager::saveChunks(const re::Texture& worldTex) {
     return true;
 }
 
-int ChunkManager::beginStep() {
+int ChunkManager::beginStep(glm::ivec2 worldTexCh, ActivationManager& actMgr) {
+    glm::ivec2 worldTexSizeMask = worldTexCh - 1;
     // Finalize uploads from previous step
     for (int i = 0; i < m_ts->nextUploadSlot; ++i) {
-        glm::ivec2 posCh       = m_ts->targetCh[i];
-        auto       posAc       = chToAc(posCh, m_worldTexSizeMask);
-        auto&      activeChunk = m_actManager.activeChunkAtIndex(
-            acToIndex(posAc, m_worldTexSizeMask + 1)
-        );
+        glm::ivec2 posCh = m_ts->targetCh[i];
+        auto       posAc = chToAc(posCh, worldTexSizeMask);
+        auto& activeChunk = actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
         // Signal that the chunk is active
         activeChunk = posCh;
     }
 
     // Finalize downloads from previous step
     for (int i = k_tileStageSlots - 1; i > m_ts->nextDownloadSlot; --i) {
-        glm::ivec2 posCh       = m_ts->targetCh[i];
-        auto       posAc       = chToAc(posCh, m_worldTexSizeMask);
-        auto&      activeChunk = m_actManager.activeChunkAtIndex(
-            acToIndex(posAc, m_worldTexSizeMask + 1)
-        );
+        glm::ivec2 posCh = m_ts->targetCh[i];
+        auto       posAc = chToAc(posCh, worldTexSizeMask);
+        auto& activeChunk = actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
 
         // Copy the tiles aside from the stage
-        m_actManager.addInactiveChunk(
-            posCh, Chunk{posCh, &m_ts->buf[k_chunkByteSize * i]}
+        actMgr.addInactiveChunk(
+            posCh, Chunk{posCh, &m_ts->buf[k_chunkByteSize * i], nullptr, 0}
         );
 
         // Signal that there is no active chunk at the spot
@@ -134,7 +128,7 @@ int ChunkManager::beginStep() {
     }
 
     int nTransparentChanges = m_ts->nextUploadSlot;
-    m_ts->resetTileStage();
+    m_ts->reset();
     return nTransparentChanges;
 }
 
@@ -229,7 +223,7 @@ void ChunkManager::endStep(const re::CommandBuffer& cmdBuf, const re::Texture& w
     }
 }
 
-void ChunkManager::TileStage::resetTileStage() {
+void ChunkManager::TileStage::reset() {
     nextUploadSlot   = 0;
     nextDownloadSlot = k_tileStageSlots - 1;
 }

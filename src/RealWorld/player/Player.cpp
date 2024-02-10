@@ -46,7 +46,7 @@ void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) 
         vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral
     );
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
-        auto copyRegion = vk::BufferCopy2{0ull, 0ull, sizeof(PlayerHitboxSB)};
+        vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(PlayerHitboxSB)};
         cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
             m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion});
     });

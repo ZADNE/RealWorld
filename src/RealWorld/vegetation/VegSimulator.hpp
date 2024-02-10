@@ -15,7 +15,6 @@
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/vegetation/Branch.hpp>
 #include <RealWorld/vegetation/shaders/AllShaders.hpp>
 
 namespace rw {

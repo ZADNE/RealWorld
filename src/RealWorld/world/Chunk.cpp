@@ -5,18 +5,31 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
+#include <RealWorld/vegetation/BranchSB.hpp>
 #include <RealWorld/world/Chunk.hpp>
 
 namespace rw {
 
-Chunk::Chunk(glm::ivec2 posCh, const uint8_t* tiles)
-    : Chunk(posCh, std::vector<uint8_t>{tiles, tiles + k_chunkByteSize}) {
+Chunk::Chunk(
+    glm::ivec2 posCh, const uint8_t* tiles, const uint8_t* branchesSerialized, size_t branchCount
+)
+    : Chunk(
+          posCh,
+          std::vector<uint8_t>{tiles, tiles + k_chunkByteSize},
+          std::vector<uint8_t>{
+              branchesSerialized,
+              branchesSerialized + (branchCount * sizeof(BranchSerialized))}
+      ) {
 }
 
-Chunk::Chunk(glm::ivec2 posCh, std::vector<uint8_t>&& tiles)
+Chunk::Chunk(
+    glm::ivec2 posCh, std::vector<uint8_t>&& tiles, std::vector<uint8_t>&& branchesSerialized
+)
     : m_posCh(posCh)
-    , m_tiles(std::move(tiles)) {
-    assert(m_tiles.size() >= k_chunkByteSize);
+    , m_tiles(std::move(tiles))
+    , m_branchesSerialized(std::move(branchesSerialized)) {
+    assert(m_tiles.size() == k_chunkByteSize);
+    assert((m_branchesSerialized.size() % sizeof(BranchSerialized)) == 0);
 }
 
 uint8_t Chunk::get(TileAttrib type, glm::uvec2 posTi) const {

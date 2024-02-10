@@ -106,13 +106,13 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
 
     // Update chunk manager
     m_activeChunksBuf = &m_activationManager.setTarget(ActivationManager::TargetInfo{
-        .seed           = m_seed,
-        .folderPath     = save.path,
-        .worldTex       = m_worldTex,
-        .worldTexSizeCh = worldTexSizeCh,
-        .descriptorSet  = m_simulationDS,
-        .bodiesBuf      = bodiesBuf,
-        .branchBuf      = vegStorage.branchBuf});
+        .seed          = m_seed,
+        .folderPath    = save.path,
+        .worldTex      = m_worldTex,
+        .worldTexCh    = worldTexSizeCh,
+        .descriptorSet = m_simulationDS,
+        .bodiesBuf     = bodiesBuf,
+        .branchBuf     = vegStorage.branchBuf});
 
     return m_worldTex;
 }
