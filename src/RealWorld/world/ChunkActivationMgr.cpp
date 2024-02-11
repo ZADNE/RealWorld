@@ -99,7 +99,11 @@ bool ChunkActivationMgr::saveChunks() {
         m_inactiveChunks.begin(),
         m_inactiveChunks.end(),
         [&](const auto& pair) {
-            saveChunk(pair.second.tiles().data(), pair.first);
+            saveChunk(
+                pair.first,
+                pair.second.tiles().data(),
+                pair.second.branchesSerialized()
+            );
         }
     );
 
@@ -125,7 +129,9 @@ void ChunkActivationMgr::activateArea(
         // If the inactive chunk has not been used for a minute
         if (it->second.step() >= k_physicsStepsPerSecond * 60) {
             // Save the chunk to disk
-            saveChunk(it->second.tiles().data(), it->first);
+            saveChunk(
+                it->first, it->second.tiles().data(), it->second.branchesSerialized()
+            );
             // And remove it from the collection
             it = m_inactiveChunks.erase(it);
         } else {
@@ -168,8 +174,10 @@ void ChunkActivationMgr::addInactiveChunk(glm::ivec2 posCh, Chunk&& chunk) {
     m_inactiveChunks.emplace(posCh, std::move(chunk));
 }
 
-void ChunkActivationMgr::saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const {
-    ChunkLoader::saveChunk(m_folderPath, posCh, iChunkTi, tiles);
+void ChunkActivationMgr::saveChunk(
+    glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized
+) const {
+    ChunkLoader::saveChunk(m_folderPath, posCh, iChunkTi, tiles, branchesSerialized);
 }
 
 void ChunkActivationMgr::planTransition(glm::ivec2 posCh) {
@@ -202,16 +210,22 @@ void ChunkActivationMgr::planActivation(
             activeChunk = k_chunkBeingUploaded;
         }
     } else {
-        auto tiles = ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
-        if (tiles.size() > 0) { // If chunk has been loaded
+        auto chunkData = ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
+        if (chunkData.tiles.size() > 0) { // If chunk has been loaded
             if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
-                m_chunkTransferMgr.planUpload(tiles, posCh, chToTi(posAc));
+                m_chunkTransferMgr.planUpload(chunkData.tiles, posCh, chToTi(posAc));
                 // Signal that it is being uploaded
                 activeChunk = k_chunkBeingUploaded;
             } else {
                 // Could not upload the chunk
                 // At least store it as an inactive chunk
-                m_inactiveChunks.emplace(posCh, Chunk{posCh, std::move(tiles), {}});
+                m_inactiveChunks.emplace(
+                    posCh,
+                    Chunk{
+                        posCh,
+                        std::move(chunkData.tiles),
+                        std::move(chunkData.branchesSerialized)}
+                );
             }
         } else {
             // Chunk is not on the disk, it has to be generated

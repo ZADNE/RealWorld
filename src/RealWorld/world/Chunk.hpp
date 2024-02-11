@@ -3,6 +3,7 @@
  */
 #pragma once
 #include <exception>
+#include <span>
 #include <vector>
 
 #include <glm/vec2.hpp>
@@ -26,10 +27,7 @@ public:
      * @param posCh Position of the chunk, in chunk coordinates.
      */
     Chunk(
-        glm::ivec2     posCh,
-        const uint8_t* tiles,
-        const uint8_t* branchesSerialized,
-        size_t         branchCount
+        glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized
     );
 
     /**
@@ -102,11 +100,16 @@ public:
     int step() const;
 
     /**
-     * @brief Gets tiles of the chunk.
-     *
-     * @return Tiles inside a vector.
+     * @brief Gets tiles of the chunk
      */
-    const std::vector<uint8_t>& tiles() const;
+    [[nodiscard]] const std::vector<uint8_t>& tiles() const { return m_tiles; }
+
+    /**
+     * @brief Gets serialized branches of the chunk
+     */
+    [[nodiscard]] const std::vector<uint8_t>& branchesSerialized() const {
+        return m_branchesSerialized;
+    }
 
 private:
     /**

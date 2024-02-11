@@ -2,9 +2,10 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <array>
+
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
-#include <vulkan/vulkan.hpp>
 
 #include <RealWorld/constants/vegetation.hpp>
 

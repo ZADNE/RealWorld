@@ -75,7 +75,9 @@ public:
 
     void addInactiveChunk(glm::ivec2 posCh, Chunk&& chunk);
 
-    void saveChunk(const uint8_t* tiles, glm::ivec2 posCh) const;
+    void saveChunk(
+        glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized
+    ) const;
 
 private:
     void planTransition(glm::ivec2 posCh);

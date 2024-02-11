@@ -164,15 +164,15 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
 
     // Prepare branch buffer
-    BranchAllocRegister allocReg{};
-    allocReg.allocations[0] =
+    auto allocReg = std::make_unique<BranchAllocRegister>(); // Quite big for stack...
+    allocReg->allocations[0] =
         BranchAllocation{.firstBranch = 0, .capacity = k_maxBranchCount};
 
     m_branchBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage       = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes       = sizeof(BranchSB),
         .usage             = eStorageBuffer | eIndirectBuffer | eTransferSrc,
-        .initData          = re::objectToByteSpan(allocReg),
+        .initData          = re::objectToByteSpan(*allocReg),
         .initDataDstOffset = offsetof(BranchSB, allocReg),
         .debugName         = "rw:VegSimulator::branch"}};
 

@@ -59,7 +59,7 @@ bool ChunkTransferMgr::saveChunks(
             futures[i] =
                 std::async(std::launch::async, [this, i, &m_ts = m_ts, &actMgr]() {
                     actMgr.saveChunk(
-                        &m_ts->buf[k_chunkByteSize * i], m_ts->targetCh[i]
+                        m_ts->targetCh[i], &m_ts->buf[k_chunkByteSize * i], {}
                     );
                 });
         }
@@ -129,7 +129,7 @@ int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMg
 
         // Copy the tiles aside from the stage
         actMgr.addInactiveChunk(
-            posCh, Chunk{posCh, &m_ts->buf[k_chunkByteSize * i], nullptr, 0}
+            posCh, Chunk{posCh, &m_ts->buf[k_chunkByteSize * i], {}}
         );
 
         // Signal that there is no active chunk at the spot

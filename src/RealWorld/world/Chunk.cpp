@@ -10,15 +10,11 @@
 
 namespace rw {
 
-Chunk::Chunk(
-    glm::ivec2 posCh, const uint8_t* tiles, const uint8_t* branchesSerialized, size_t branchCount
-)
+Chunk::Chunk(glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized)
     : Chunk(
           posCh,
           std::vector<uint8_t>{tiles, tiles + k_chunkByteSize},
-          std::vector<uint8_t>{
-              branchesSerialized,
-              branchesSerialized + (branchCount * sizeof(BranchSerialized))}
+          std::vector<uint8_t>{branchesSerialized.begin(), branchesSerialized.end()}
       ) {
 }
 
@@ -54,10 +50,6 @@ void Chunk::setUnsafe(TileAttrib type, glm::uvec2 posTi, uint8_t value) {
 
 int Chunk::step() const {
     return ++m_stepsSinceLastOperation;
-}
-
-const std::vector<uint8_t>& Chunk::tiles() const {
-    return m_tiles;
 }
 
 void Chunk::boundsCheck(glm::uvec2 posTi) const {
