@@ -24,11 +24,11 @@ ChunkLoader::ChunkData ChunkLoader::loadChunk(
     state.decoder.remember_unknown_chunks = 1;
     state.info_png.color.colortype        = LCT_RGBA;
     state.decoder.color_convert           = 1;
-    ChunkData                  out{};
-    glm::uvec2                 realDims;
-    unsigned int               err;
-    std::vector<unsigned char> encoded;
-    std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);
+    ChunkData            out{};
+    glm::uvec2           realDims;
+    unsigned int         err;
+    std::vector<uint8_t> encoded;
+    std::string          fullPath = folderPath + chunkToChunkFilename(chunkPos);
 
     // Load file and decode tiles
     if ((err = lodepng::load_file(encoded, fullPath)) ||

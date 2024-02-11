@@ -203,7 +203,9 @@ void ChunkActivationMgr::planActivation(
     if (it != m_inactiveChunks.end()) {
         // Query upload of the chunk
         if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
-            m_chunkTransferMgr.planUpload(it->second.tiles(), posCh, chToTi(posAc));
+            m_chunkTransferMgr.planUpload(
+                posCh, chToTi(posAc), it->second.tiles(), it->second.branchesSerialized()
+            );
             // Remove the chunk from inactive chunks
             m_inactiveChunks.erase(it);
             // And signal that it is being uploaded
@@ -213,7 +215,9 @@ void ChunkActivationMgr::planActivation(
         auto chunkData = ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
         if (chunkData.tiles.size() > 0) { // If chunk has been loaded
             if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
-                m_chunkTransferMgr.planUpload(chunkData.tiles, posCh, chToTi(posAc));
+                m_chunkTransferMgr.planUpload(
+                    posCh, chToTi(posAc), chunkData.tiles, chunkData.branchesSerialized
+                );
                 // Signal that it is being uploaded
                 activeChunk = k_chunkBeingUploaded;
             } else {

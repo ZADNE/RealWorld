@@ -67,6 +67,14 @@ struct BranchSerialized {
     NoRef<decltype(*B::lengthTi)>                 lengthTi;
     NoRef<decltype(*B::densityStiffness)>         densityStiffness;
     NoRef<decltype(*B::raster)>                   raster;
+
+    static constexpr size_t memberCount() {
+        static_assert(
+            offsetof(BranchSB, allocReg) == 7602176,
+            "Also fix the count of members here"
+        );
+        return 9;
+    }
 };
 
 } // namespace rw

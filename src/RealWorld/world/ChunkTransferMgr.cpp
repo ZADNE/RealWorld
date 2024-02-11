@@ -142,19 +142,19 @@ int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMg
 }
 
 bool ChunkTransferMgr::hasFreeTransferSpace(glm::ivec2 posAc) const {
-    int allocIndex =
-        m_regBuf->allocIndexOfTheChunk[posAc.y * k_maxWorldTexSizeCh.x + posAc.x];
-    if (allocIndex > 0) {
-        auto branchCount = m_regBuf->allocations[allocIndex].branchCount;
+    if (int branchCnt = branchCount(posAc)) {
         // Need space for both tiles and branches
-        return m_bs->hasFreeTransferSpace(branchCount) &&
+        return m_bs->hasFreeTransferSpace(branchCnt) &&
                m_ts->hasFreeTransferSpace();
     }
     return m_ts->hasFreeTransferSpace(); // No branches allocated for the chunk
 }
 
 void ChunkTransferMgr::planUpload(
-    const std::vector<uint8_t>& tiles, glm::ivec2 posCh, glm::ivec2 posAt
+    glm::ivec2                  posCh,
+    glm::ivec2                  posAt,
+    const std::vector<uint8_t>& tiles,
+    std::span<const uint8_t>    branchesSerialized
 ) {
     m_ts->targetCh[m_ts->nextUploadSlot] = posCh;
     auto bufOffset = static_cast<vk::DeviceSize>(m_ts->nextUploadSlot) *
@@ -173,19 +173,23 @@ void ChunkTransferMgr::planUpload(
 }
 
 void ChunkTransferMgr::planDownload(glm::ivec2 posCh, glm::ivec2 posAt) {
-    m_ts->targetCh[m_ts->nextDownloadSlot] = posCh;
-    auto bufOffset = static_cast<vk::DeviceSize>(m_ts->nextDownloadSlot) *
-                     k_chunkByteSize;
+    { // Download tiles
+        m_ts->targetCh[m_ts->nextDownloadSlot] = posCh;
+        auto bufOffset = static_cast<vk::DeviceSize>(m_ts->nextDownloadSlot) *
+                         k_chunkByteSize;
 
-    m_ts->copyRegions[m_ts->nextDownloadSlot] = vk::BufferImageCopy2{
-        bufOffset, // Buffer offset
-        0u,
-        0u,                          // Tightly packed
-        {eColor, 0u, 0u, 1u},        // Subresource
-        {posAt.x, posAt.y, 0u},      // Offset
-        {iChunkTi.x, iChunkTi.y, 1u} // Extent
-    };
-    m_ts->nextDownloadSlot--;
+        m_ts->copyRegions[m_ts->nextDownloadSlot] = vk::BufferImageCopy2{
+            bufOffset, // Buffer offset
+            0u,
+            0u,                          // Tightly packed
+            {eColor, 0u, 0u, 1u},        // Subresource
+            {posAt.x, posAt.y, 0u},      // Offset
+            {iChunkTi.x, iChunkTi.y, 1u} // Extent
+        };
+        m_ts->nextDownloadSlot--;
+    }
+    { // Download branches
+    }
 }
 
 void ChunkTransferMgr::endStep(
@@ -244,6 +248,15 @@ void ChunkTransferMgr::downloadBranchAllocRegister(
     vk::BufferCopy2 copyRegion{
         offsetof(BranchSB, allocReg), 0ull, sizeof(BranchAllocRegister)};
     cmdBuf->copyBuffer2({*branchBuf, m_regBuf.buffer(), copyRegion});
+}
+
+int ChunkTransferMgr::branchCount(glm::ivec2 posAc) const {
+    int allocIndex =
+        m_regBuf->allocIndexOfTheChunk[posAc.y * k_maxWorldTexSizeCh.x + posAc.x];
+    if (allocIndex > 0) {
+        return m_regBuf->allocations[allocIndex].branchCount;
+    }
+    return 0;
 }
 
 void ChunkTransferMgr::TileStage::reset() {

@@ -57,7 +57,10 @@ public:
      * @note Must be called between beginStep() and endStep()
      */
     void planUpload(
-        const std::vector<uint8_t>& tiles, glm::ivec2 posCh, glm::ivec2 posAt
+        glm::ivec2                  posCh,
+        glm::ivec2                  posAt,
+        const std::vector<uint8_t>& tiles,
+        std::span<const uint8_t>    branchesSerialized
     );
 
     /**
@@ -84,13 +87,13 @@ private:
          */
         std::array<glm::ivec2, k_tileStageSlots> targetCh;
         /**
-         * @brief Uploads are emplaced at the beginning, downloads at the end
+         * @brief Uploads are placed at the beginning, downloads at the end
          */
         std::array<vk::BufferImageCopy2, k_tileStageSlots> copyRegions;
         /**
-         * @brief Vulkan coppies from and to this buffer
+         * @brief Is the stage buffer for tile uploads and downloads
          */
-        re::BufferMapped<unsigned char> buf{re::BufferCreateInfo{
+        re::BufferMapped<uint8_t> buf{re::BufferCreateInfo{
             .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                           vma::AllocationCreateFlagBits::eHostAccessRandom,
             .sizeInBytes = k_tileStageSlots * k_chunkByteSize,
@@ -104,8 +107,10 @@ private:
         bool hasFreeTransferSpace() const;
     };
     re::StepDoubleBuffered<TileStage> m_ts;
-    re::Pipeline                      m_saveVegetationPl;
 
+    int branchCount(glm::ivec2 posAc) const;
+
+    re::Pipeline                          m_saveVegetationPl;
     re::BufferMapped<BranchAllocRegister> m_regBuf{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
@@ -114,7 +119,23 @@ private:
         .debugName   = "rw::ChunkTransferMgr::reg"}};
 
     static constexpr auto k_branchStageSlots = 512;
+
     struct BranchStage {
+        /**
+         * @brief Uploads are placed at the beginning, downloads at the end
+         */
+        std::array<vk::BufferCopy2, k_tileStageSlots * BranchSerialized::memberCount()> copyRegions;
+        /**
+         * @brief Is the stage buffer for branch uploads and downloads
+         */
+        re::BufferMapped<uint8_t> buf{re::BufferCreateInfo{
+            .allocFlags = vma::AllocationCreateFlagBits::eMapped |
+                          vma::AllocationCreateFlagBits::eHostAccessRandom,
+            .sizeInBytes = k_branchStageSlots * sizeof(BranchSerialized),
+            .usage       = vk::BufferUsageFlagBits::eTransferSrc |
+                     vk::BufferUsageFlagBits::eTransferDst,
+            .debugName = "rw::ChunkTransferMgr::bs::buf"}};
+
         int  nextUploadSlot   = 0;
         int  nextDownloadSlot = k_branchStageSlots - 1;
         void reset();
