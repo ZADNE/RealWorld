@@ -37,7 +37,10 @@ public:
      * @return True if successful, false otherwise.
      */
     bool saveChunks(
-        const re::Texture& worldTex, glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr
+        const re::Texture&  worldTex,
+        const re::Buffer&   branchBuf,
+        glm::ivec2          worldTexCh,
+        ChunkActivationMgr& actMgr
     );
 
     /**
@@ -68,46 +71,71 @@ public:
      * @pre  hasFreeTransferSpace() == true
      * @note Must be called between beginStep() and endStep()
      */
-    void planDownload(glm::ivec2 posCh, glm::ivec2 posAt);
+    void planDownload(glm::ivec2 posCh, glm::ivec2 posAt, glm::uint branchReadBuf);
 
     /**
      * @brief Peforms all previously planned transfers
      */
-    void endStep(const re::CommandBuffer& cmdBuf, const re::Texture& worldTex);
+    void endStep(
+        const re::CommandBuffer& cmdBuf,
+        const re::Texture&       worldTex,
+        const re::Buffer&        branchBuf
+    );
 
     void downloadBranchAllocRegister(
         const re::CommandBuffer& cmdBuf, const re::Buffer& branchBuf
     );
 
 private:
-    static constexpr auto k_tileStageSlots = 16;
-    struct TileStage {
-        /**
-         * @brief Target global position of the transfered chunk, in chunks
-         */
-        std::array<glm::ivec2, k_tileStageSlots> targetCh;
+    static constexpr auto k_stageSlotCount   = 16;
+    static constexpr auto k_branchStageCount = 512;
+
+    struct StageBuf {
+        std::array<std::array<uint8_t, k_chunkByteSize>, k_stageSlotCount> tiles;
+        std::array<uint8_t, k_branchStageCount * sizeof(BranchSerialized)> branches;
+    };
+
+    struct Stage {
+        Stage() { reset(); }
+
+        struct Slot {
+            glm::ivec2 targetCh;
+            size_t     branchBytes;
+        };
+
+        std::array<Slot, k_stageSlotCount> slots;
         /**
          * @brief Uploads are placed at the beginning, downloads at the end
          */
-        std::array<vk::BufferImageCopy2, k_tileStageSlots> copyRegions;
+        std::array<vk::BufferImageCopy2, k_stageSlotCount> tileCopyRegions;
+        /**
+         * @brief Uploads are placed at the beginning, downloads at the end
+         */
+        std::array<vk::BufferCopy2, k_stageSlotCount * BranchSerialized::memberCount()>
+            branchCopyRegions;
         /**
          * @brief Is the stage buffer for tile uploads and downloads
          */
-        re::BufferMapped<uint8_t> buf{re::BufferCreateInfo{
+        re::BufferMapped<StageBuf> buf{re::BufferCreateInfo{
             .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                           vma::AllocationCreateFlagBits::eHostAccessRandom,
-            .sizeInBytes = k_tileStageSlots * k_chunkByteSize,
+            .sizeInBytes = sizeof(StageBuf),
             .usage       = vk::BufferUsageFlagBits::eTransferSrc |
                      vk::BufferUsageFlagBits::eTransferDst,
-            .debugName = "rw::ChunkTransferMgr::ts::buf"}};
+            .debugName = "rw::ChunkTransferMgr::stage::buf"}};
 
-        int  nextUploadSlot   = 0;
-        int  nextDownloadSlot = k_tileStageSlots - 1;
+        int  nextUploadSlot;
+        int  nextDownloadSlot;
+        int  nextBranchUploadSlot;
+        int  nextBranchDownloadSlot;
+        int  nextBranchUploadByte;
+        int  nextBranchDownloadByte;
         void reset();
-        bool hasFreeTransferSpace() const;
+        bool hasFreeTransferSpace(int branchCount) const;
     };
-    re::StepDoubleBuffered<TileStage> m_ts;
+    re::StepDoubleBuffered<Stage> m_stage;
 
+    int allocIndex(glm::ivec2 posAc) const;
     int branchCount(glm::ivec2 posAc) const;
 
     re::Pipeline                          m_saveVegetationPl;
@@ -117,31 +145,6 @@ private:
         .sizeInBytes = sizeof(BranchAllocRegister),
         .usage       = vk::BufferUsageFlagBits::eTransferDst,
         .debugName   = "rw::ChunkTransferMgr::reg"}};
-
-    static constexpr auto k_branchStageSlots = 512;
-
-    struct BranchStage {
-        /**
-         * @brief Uploads are placed at the beginning, downloads at the end
-         */
-        std::array<vk::BufferCopy2, k_tileStageSlots * BranchSerialized::memberCount()> copyRegions;
-        /**
-         * @brief Is the stage buffer for branch uploads and downloads
-         */
-        re::BufferMapped<uint8_t> buf{re::BufferCreateInfo{
-            .allocFlags = vma::AllocationCreateFlagBits::eMapped |
-                          vma::AllocationCreateFlagBits::eHostAccessRandom,
-            .sizeInBytes = k_branchStageSlots * sizeof(BranchSerialized),
-            .usage       = vk::BufferUsageFlagBits::eTransferSrc |
-                     vk::BufferUsageFlagBits::eTransferDst,
-            .debugName = "rw::ChunkTransferMgr::bs::buf"}};
-
-        int  nextUploadSlot   = 0;
-        int  nextDownloadSlot = k_branchStageSlots - 1;
-        void reset();
-        bool hasFreeTransferSpace(int branchCount) const;
-    };
-    re::StepDoubleBuffered<BranchStage> m_bs;
 };
 
 } // namespace rw

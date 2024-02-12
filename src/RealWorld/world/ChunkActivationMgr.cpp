@@ -110,7 +110,9 @@ bool ChunkActivationMgr::saveChunks() {
     m_inactiveChunks.clear();
 
     // Save all chunks inside the world texture
-    return m_chunkTransferMgr.saveChunks(*m_worldTex, m_worldTexMaskCh + 1, *this);
+    return m_chunkTransferMgr.saveChunks(
+        *m_worldTex, *m_branchBuf, m_worldTexMaskCh + 1, *this
+    );
 }
 
 size_t ChunkActivationMgr::numberOfInactiveChunks() {
@@ -149,7 +151,7 @@ void ChunkActivationMgr::activateArea(
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
-            planTransition(glm::ivec2(x, y));
+            planTransition(glm::ivec2(x, y), branchWriteBuf);
         }
     }
 
@@ -157,7 +159,7 @@ void ChunkActivationMgr::activateArea(
     m_chunkGen.generate(cmdBuf, branchWriteBuf);
 
     // Record planned uploads/downloads
-    m_chunkTransferMgr.endStep(cmdBuf, *m_worldTex);
+    m_chunkTransferMgr.endStep(cmdBuf, *m_worldTex, *m_branchBuf);
 
     // If there have been transparent changes
     if (m_transparentChunkChanges > 0) {
@@ -180,7 +182,7 @@ void ChunkActivationMgr::saveChunk(
     ChunkLoader::saveChunk(m_folderPath, posCh, iChunkTi, tiles, branchesSerialized);
 }
 
-void ChunkActivationMgr::planTransition(glm::ivec2 posCh) {
+void ChunkActivationMgr::planTransition(glm::ivec2 posCh, glm::uint branchWriteBuf) {
     auto posAc = chToAc(posCh, m_worldTexMaskCh);
     auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexMaskCh + 1));
     if (activeChunk == posCh) {
@@ -188,15 +190,15 @@ void ChunkActivationMgr::planTransition(glm::ivec2 posCh) {
         return; // No transition is needed
     } else if (activeChunk == k_chunkNotActive) {
         // No chunk is active at the spot
-        planActivation(activeChunk, posCh, posAc);
+        planActivation(activeChunk, posCh, posAc, branchWriteBuf);
     } else if (activeChunk != k_chunkBeingDownloaded && activeChunk != k_chunkBeingUploaded) {
         // A different chunk is active at the spot
-        planDeactivation(activeChunk, posAc);
+        planDeactivation(activeChunk, posAc, branchWriteBuf);
     }
 }
 
 void ChunkActivationMgr::planActivation(
-    glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc
+    glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc, glm::uint branchWriteBuf
 ) {
     // Try to find the chunk among inactive chunks
     auto it = m_inactiveChunks.find(posCh);
@@ -241,10 +243,12 @@ void ChunkActivationMgr::planActivation(
     }
 }
 
-void ChunkActivationMgr::planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAc) {
+void ChunkActivationMgr::planDeactivation(
+    glm::ivec2& activeChunk, glm::ivec2 posAc, glm::uint branchWriteBuf
+) {
     // Query download of the chunk
     if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
-        m_chunkTransferMgr.planDownload(activeChunk, chToTi(posAc));
+        m_chunkTransferMgr.planDownload(activeChunk, chToTi(posAc), 1 - branchWriteBuf);
         activeChunk = k_chunkBeingDownloaded; // Deactivate the spot
         m_transparentChunkChanges++;
     }

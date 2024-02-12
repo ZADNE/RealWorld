@@ -80,11 +80,15 @@ public:
     ) const;
 
 private:
-    void planTransition(glm::ivec2 posCh);
+    void planTransition(glm::ivec2 posCh, glm::uint branchWriteBuf);
 
-    void planActivation(glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc);
+    void planActivation(
+        glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc, glm::uint branchWriteBuf
+    );
 
-    void planDeactivation(glm::ivec2& activeChunk, glm::ivec2 posAc);
+    void planDeactivation(
+        glm::ivec2& activeChunk, glm::ivec2 posAc, glm::uint branchWriteBuf
+    );
 
     void analyzeAfterChanges(const re::CommandBuffer& cmdBuf);
 
