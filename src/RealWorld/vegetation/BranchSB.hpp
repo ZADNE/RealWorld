@@ -8,6 +8,7 @@
 #include <glm/vec4.hpp>
 
 #include <RealWorld/constants/vegetation.hpp>
+#include <RealWorld/constants/world.hpp>
 
 namespace rw {
 

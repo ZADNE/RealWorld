@@ -28,10 +28,15 @@ public:
         int seed;                      /**< Seed of the new world */
         const std::string& folderPath; /**< Path to the folder that contains the new world */
         const re::Texture& worldTex; /**< The world texture that will be managed */
-        glm::ivec2         worldTexCh; /**< Must be a multiple of 16 */
+        glm::ivec2 worldTexCh; /**< Must be a multiple of k_minWorldTexSizeCh */
         re::DescriptorSet& descriptorSet;
         const re::Buffer&  bodiesBuf;
         const re::Buffer&  branchBuf;
+    };
+
+    struct ActivationBuffers {
+        const re::Buffer& activeChunksBuf;
+        const re::Buffer& allocReqBuf;
     };
 
     /**
@@ -40,7 +45,7 @@ public:
      * @param targetInfo    Info about the new world
      * @return              Active chunks storage buffer
      */
-    const re::Buffer& setTarget(const TargetInfo& targetInfo);
+    ActivationBuffers setTarget(const TargetInfo& targetInfo);
 
     /**
      * @brief Saves all chunks, keeps them in the memory.

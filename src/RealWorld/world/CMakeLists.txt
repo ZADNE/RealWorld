@@ -5,5 +5,6 @@ target_sources(RealWorld PRIVATE
     Chunk.hpp                   Chunk.cpp
     ChunkActivationMgr.hpp      ChunkActivationMgr.cpp
     ChunkTransferMgr.hpp        ChunkTransferMgr.cpp
+    ChunkTransferStage.hpp      
     World.hpp                   World.cpp
 )

@@ -7,4 +7,5 @@ target_sources_and_shaders(RealWorld PRIVATE
     light.hpp                   light.glsl
     tile.hpp                    tile.glsl
     vegetation.hpp              vegetation.glsl
+    world.hpp                   world.glsl
 )

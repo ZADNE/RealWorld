@@ -4,8 +4,8 @@
 #ifndef BRANCH_SB_GLSL
 #define BRANCH_SB_GLSL
 #extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/vegetation.glsl>
-#include <RealWorld/constants/chunk.glsl>
 
 // All allocations within the list belong to one chunk
 struct BranchAllocation {
@@ -19,7 +19,7 @@ struct BranchAllocation {
 };
 
 struct BranchAllocRegister {
-    int              allocIndexOfTheChunk[64 * 64];
+    int              allocIndexOfTheChunk[k_maxWorldTexChunkCount];
     BranchAllocation allocations[k_maxBranchAllocCount];
     int              nextAllocIter;
     int              lock;

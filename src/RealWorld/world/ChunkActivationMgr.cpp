@@ -36,14 +36,16 @@ ChunkActivationMgr::ChunkActivationMgr(const re::PipelineLayout& pipelineLayout)
     , m_chunkTransferMgr(pipelineLayout) {
 }
 
-const re::Buffer& ChunkActivationMgr::setTarget(const TargetInfo& targetInfo) {
+ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
+    const TargetInfo& targetInfo
+) {
     m_folderPath = targetInfo.folderPath;
     m_worldTex   = &targetInfo.worldTex;
     m_branchBuf  = &targetInfo.branchBuf;
 
     // Recalculate active chunks mask and analyzer dispatch size
     m_worldTexMaskCh              = targetInfo.worldTexCh - 1;
-    m_analyzeContinuityGroupCount = targetInfo.worldTexCh / 16;
+    m_analyzeContinuityGroupCount = targetInfo.worldTexCh / k_minWorldTexSizeCh;
 
     // Reset ActiveChunks storage buffer
     vk::DeviceSize bufSize = calcActiveChunksBufSize(targetInfo.worldTexCh);
@@ -87,9 +89,9 @@ const re::Buffer& ChunkActivationMgr::setTarget(const TargetInfo& targetInfo) {
         .bodiesBuf      = targetInfo.bodiesBuf,
         .branchBuf      = targetInfo.branchBuf});
 
-    m_chunkTransferMgr.reset();
+    m_chunkTransferMgr.setTarget(targetInfo.worldTexCh);
 
-    return m_activeChunksBuf;
+    return ActivationBuffers{m_activeChunksBuf, m_chunkTransferMgr.allocReqBuf()};
 }
 
 bool ChunkActivationMgr::saveChunks() {
@@ -159,7 +161,7 @@ void ChunkActivationMgr::activateArea(
     m_chunkGen.generate(cmdBuf, branchWriteBuf);
 
     // Record planned uploads/downloads
-    m_chunkTransferMgr.endStep(cmdBuf, *m_worldTex, *m_branchBuf);
+    m_chunkTransferMgr.endStep(cmdBuf, *m_worldTex, *m_branchBuf, m_worldTexMaskCh);
 
     // If there have been transparent changes
     if (m_transparentChunkChanges > 0) {

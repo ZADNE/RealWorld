@@ -1,6 +1,7 @@
 ﻿target_shaders(RealWorld PRIVATE
     BodiesSB.glsl               
     Branch.glsl                 
+    BranchAllocRequestUB.glsl   
     BranchSB.glsl               BranchSBWithAllocation.glsl
     duplicateBranches.geom      
     normAngles.glsl             

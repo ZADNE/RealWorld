@@ -25,15 +25,4 @@ constexpr uint32_t k_maxBranchAllocCount = 256;
  */
 constexpr uint32_t k_branchRasterSpace = 64;
 
-/**
- * @brief Is the maximum size of the world texture, in chunks
- */
-constexpr glm::uvec2 k_maxWorldTexSizeCh{64, 64};
-
-/**
- * @brief Is the maximum number of chunks of the world texture
- */
-constexpr uint32_t k_maxWorldTexChunkCount = k_maxWorldTexSizeCh.x *
-                                             k_maxWorldTexSizeCh.y;
-
 } // namespace rw
