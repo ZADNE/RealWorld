@@ -162,7 +162,7 @@ void ChunkTransferMgr::planUpload(
     const std::vector<uint8_t>& tiles,
     std::span<const uint8_t>    branchesSerialized
 ) {
-    m_stage->insertUpload(posCh, posAt, tiles.data());
+    m_stage->insertUpload(posCh, posAt, tiles.data(), branchesSerialized);
 }
 
 void ChunkTransferMgr::planDownload(
@@ -230,9 +230,12 @@ void ChunkTransferMgr::endStep(
             m_stage->buf.buffer(),
             m_stage->tileDownloadRegions()});
 
-        // Copy branches
-        cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
-            *branchBuf, m_stage->buf.buffer(), m_stage->branchDownloadRegions()});
+        if (m_stage->branchDownloadsPlanned()) {
+            // Download branches
+            cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
+                *branchBuf, m_stage->buf.buffer(), m_stage->branchDownloadRegions()}
+            );
+        }
     }
 
     if (uploadsPlanned || downloadsPlanned) {
@@ -250,10 +253,12 @@ void ChunkTransferMgr::endStep(
             A::eUniformRead,   // Dst access mask
             *m_allocReqBuf
         );
+        cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
 
         // Allocate and deallocate branches
-        cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
+        cmdBuf.debugBarrier();
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_allocBranchesPl);
+        cmdBuf->dispatch(1, 1, 1);
     }
 }
 

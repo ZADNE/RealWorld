@@ -3,41 +3,30 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/constants/chunk.glsl>
+#include <RealWorld/constants/world.glsl>
 const int ActiveChunksSB_BINDING = 1;
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
 const int BranchSB_BINDING = 3;
 #include <RealWorld/vegetation/shaders/BranchSBWithAllocation.glsl>
+const int BranchAllocRequestUB_BINDING = 4;
+#include <RealWorld/vegetation/shaders/BranchAllocRequestUB.glsl>
 
-layout (local_size_x = 256,
+layout (local_size_x = k_maxParallelTransfers,
         local_size_y = 1,
         local_size_z = 1
 ) in;
 
-const ivec2 k_chunkCenterOffsetTi = iChunkTi / 2;
-
-const ivec2 k_chunkNotActive = ivec2(0x7FFFFFFF, 0x7FFFFFFF);
-
 void main(){
-    const uint veg = gl_GlobalInvocationID.x;
-    // If within bounds
-    /*if (veg < b_veg.vegCount){
-        // Load the vegetation
-        ivec2 rootPosCh = b_veg.rootPosCh[veg];
-        ivec2 rootPosAc = rootPosCh & b_acChunks.worldTexSizeMask;
-
-        // Test whether it should stay
-        if (rootPosCh != k_chunkNotActive && rootPosCh != activeChunkAtPos(rootPosAc)){
-            // Cull all branches of the vegetation
-            ivec2 firstIndexAndCount = b_veg.firstIndexAndCount[veg];
-            int lastIndex = firstIndexAndCount.x + firstIndexAndCount.y;
-            for (int branch = firstIndexAndCount.x; branch < lastIndex; ++branch){
-                b_branch.lengthTi[branch] = 0.0;
-            }
-
-            // Cull the vegetation itself
-            b_veg.rootPosCh[veg] = k_chunkNotActive;
-            b_veg.firstIndexAndCount[veg] = ivec2(0, 0);
-        }
-    }*/
+    if (gl_LocalInvocationID.x < u_branchAllocRequest.uploadSlotsEnd){
+        // Allocate branches
+        allocateBranches(
+            u_branchAllocRequest.branchCount[gl_LocalInvocationID.x],
+            u_branchAllocRequest.targetCh[gl_LocalInvocationID.x],
+            u_branchAllocRequest.worldTexCh);
+    } else if (gl_LocalInvocationID.x >= u_branchAllocRequest.downloadSlotsBegin){
+        // Deallocate branches
+        freeBranches(
+            u_branchAllocRequest.targetCh[gl_LocalInvocationID.x],
+            u_branchAllocRequest.worldTexCh);
+    }
 }

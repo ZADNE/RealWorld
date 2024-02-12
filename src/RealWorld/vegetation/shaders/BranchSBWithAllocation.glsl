@@ -69,4 +69,25 @@ int allocateBranches(
     return -1; 
 }
 
+/**
+ * @brief Frees space allocated for branches of the chunk
+ */
+void freeBranches(
+    ivec2 chunkCh, ivec2 worldTexSizeCh
+) {
+    int chunkIndex = chToIndex(chunkCh, worldTexSizeCh);
+    //lockAllocRegister();
+
+    int allocIndex = b_branch.allocReg.allocIndexOfTheChunk[chunkIndex];
+    if (allocIndex >= 0){
+        BranchAllocation alloc = b_branch.allocReg.allocations[allocIndex];
+        alloc.activeBranchCount = 0;
+        alloc.branchCount = 0;
+        b_branch.allocReg.allocations[allocIndex] = alloc;
+        b_branch.allocReg.allocIndexOfTheChunk[chunkIndex] = -1;
+    }
+
+    //unlockAllocRegister();
+}
+
 #endif // !BRANCH_SB_WITH_ALLOCATION_GLSL

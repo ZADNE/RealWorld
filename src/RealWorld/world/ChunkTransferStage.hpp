@@ -13,7 +13,7 @@ namespace rw {
 
 template<uint32_t k_stageSlotCount, uint32_t k_branchStageCount>
 struct StageBuf {
-    std::array<std::array<uint8_t, k_chunkByteSize>, k_stageSlotCount> tiles;
+    std::array<uint8_t, k_chunkByteSize> tiles[k_stageSlotCount];
     std::array<uint8_t, k_branchStageCount * sizeof(BranchSerialized)> branches;
 };
 
@@ -63,12 +63,16 @@ public:
         return slotsAvailable && branchBytesAvailable;
     }
 
-    void insertUpload(glm::ivec2 posCh, glm::ivec2 posAt, const uint8_t* tiles) {
+    void insertUpload(
+        glm::ivec2               posCh,
+        glm::ivec2               posAt,
+        const uint8_t*           tiles,
+        std::span<const uint8_t> branchesSerialized
+    ) {
         auto& upSlotsEnd = m_allocReq.uploadSlotsEnd;
-        auto bufOffset = static_cast<vk::DeviceSize>(upSlotsEnd) * k_chunkByteSize;
-        std::memcpy(&buf[bufOffset], tiles, k_chunkByteSize);
+        std::memcpy(&buf->tiles[upSlotsEnd], tiles, k_chunkByteSize);
         m_tileCopyRegions[upSlotsEnd] = vk::BufferImageCopy2{
-            bufOffset, // Buffer offset
+            offsetof(StageBuf, tiles[upSlotsEnd]), // Buffer offset
             0u,
             0u,                                            // Tightly packed
             {vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u}, // Subresource
@@ -76,7 +80,8 @@ public:
             {iChunkTi.x, iChunkTi.y, 1u}                   // Extent
         };
         m_allocReq.targetCh[upSlotsEnd]    = posCh;
-        m_allocReq.branchCount[upSlotsEnd] = 0;
+        m_allocReq.branchCount[upSlotsEnd] = branchesSerialized.size() /
+                                             sizeof(BranchSerialized);
         upSlotsEnd++;
     }
 
@@ -91,11 +96,9 @@ public:
         glm::uint  branchCount,
         glm::uint  branchReadBuf
     ) {
-        auto downSlotsBegin = --m_allocReq.downloadSlotsBegin;
-        auto bufOffset      = static_cast<vk::DeviceSize>(downSlotsBegin) *
-                         k_chunkByteSize;
+        auto downSlotsBegin               = --m_allocReq.downloadSlotsBegin;
         m_tileCopyRegions[downSlotsBegin] = vk::BufferImageCopy2{
-            bufOffset, // Buffer offset
+            offsetof(StageBuf, tiles[downSlotsBegin]), // Buffer offset
             0u,
             0u,                                            // Tightly packed
             {vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u}, // Subresource
@@ -169,18 +172,23 @@ public:
     vk::ArrayProxyNoTemporaries<const vk::BufferImageCopy2> tileDownloadRegions() const {
         return {
             static_cast<uint32_t>(k_stageSlotCount - downloadSlotsBegin()),
-            &m_tileCopyRegions[downloadSlotsBegin()]};
+            m_tileCopyRegions.data() + downloadSlotsBegin()};
+    }
+
+    bool branchDownloadsPlanned() const {
+        return nextBranchDownloadSlot < m_branchCopyRegions.size();
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferCopy2> branchDownloadRegions() const {
         return {
             static_cast<uint32_t>(m_branchCopyRegions.size() - nextBranchDownloadSlot),
-            &m_branchCopyRegions[nextBranchDownloadSlot]};
+            m_branchCopyRegions.data() + nextBranchDownloadSlot};
     }
 
     const BranchAllocRequestUB& branchAllocRequest() const {
         return m_allocReq;
     }
+
     /**
      * @brief Is the stage buffer for tile uploads and downloads
      */
