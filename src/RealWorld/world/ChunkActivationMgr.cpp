@@ -39,9 +39,10 @@ ChunkActivationMgr::ChunkActivationMgr(const re::PipelineLayout& pipelineLayout)
 ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
     const TargetInfo& targetInfo
 ) {
-    m_folderPath = targetInfo.folderPath;
-    m_worldTex   = &targetInfo.worldTex;
-    m_branchBuf  = &targetInfo.branchBuf;
+    m_folderPath        = targetInfo.folderPath;
+    m_worldTex          = &targetInfo.worldTex;
+    m_branchBuf         = &targetInfo.branchBuf;
+    m_branchAllocRegBuf = &targetInfo.branchAllocRegBuf;
 
     // Recalculate active chunks mask and analyzer dispatch size
     m_worldTexMaskCh              = targetInfo.worldTexCh - 1;
@@ -79,15 +80,16 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
         });
     });
     targetInfo.descriptorSet.write(
-        vk::DescriptorType::eStorageBuffer, 1u, 0u, m_activeChunksBuf, 0ull, bufSize
+        vk::DescriptorType::eStorageBuffer, 1u, 0u, m_activeChunksBuf
     );
 
     m_chunkGen.setTarget(ChunkGenerator::TargetInfo{
-        .seed           = targetInfo.seed,
-        .worldTex       = targetInfo.worldTex,
-        .worldTexSizeCh = targetInfo.worldTexCh,
-        .bodiesBuf      = targetInfo.bodiesBuf,
-        .branchBuf      = targetInfo.branchBuf});
+        .seed              = targetInfo.seed,
+        .worldTex          = targetInfo.worldTex,
+        .worldTexSizeCh    = targetInfo.worldTexCh,
+        .bodiesBuf         = targetInfo.bodiesBuf,
+        .branchBuf         = targetInfo.branchBuf,
+        .branchAllocRegBuf = targetInfo.branchAllocRegBuf});
 
     m_chunkTransferMgr.setTarget(targetInfo.worldTexCh);
 
@@ -158,7 +160,7 @@ void ChunkActivationMgr::activateArea(
     }
 
     // Record planned generation
-    m_chunkGen.generate(cmdBuf, branchWriteBuf);
+    m_chunkGen.generate(cmdBuf);
 
     // Record planned uploads/downloads
     m_chunkTransferMgr.endStep(cmdBuf, *m_worldTex, *m_branchBuf, m_worldTexMaskCh);
@@ -282,15 +284,23 @@ void ChunkActivationMgr::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
         copyRegions                      // Regions
     });
 
-    { // Wait for the copy to finish
-        auto bufferBarrier = re::bufferMemoryBarrier(
-            S::eTransfer,                                   // Src stage mask
-            A::eTransferWrite,                              // Src access mask
-            S::eComputeShader,                              // Dst stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-            m_activeChunksBuf.buffer(),
-            offsetof(ActiveChunksSB, dynamicsGroupSize), // Offset
-            vk::WholeSize                                // Size
+    { // Wait for the copy and branch allocations to finish
+        auto bufferBarrier = std::to_array(
+            {re::bufferMemoryBarrier(
+                 S::eTransfer,      // Src stage mask
+                 A::eTransferWrite, // Src access mask
+                 S::eComputeShader, // Dst stage mask
+                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
+                 m_activeChunksBuf.buffer(),
+                 offsetof(ActiveChunksSB, dynamicsGroupSize) // Offset
+             ),
+             re::bufferMemoryBarrier(
+                 S::eComputeShader, // Src stage mask
+                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+                 S::eComputeShader, // Dst stage mask
+                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
+                 m_branchAllocRegBuf->buffer()
+             )}
         );
         cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
     }
@@ -301,7 +311,7 @@ void ChunkActivationMgr::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
         m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1
     );
 
-    { // Barrier analysis output from tile transformations and alloc register download
+    { // Barrier analysis output from tile transformations and rasterization
         auto bufferBarriers = std::to_array(
             {re::bufferMemoryBarrier(
                  S::eComputeShader,       // Src stage mask
@@ -313,15 +323,15 @@ void ChunkActivationMgr::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
              re::bufferMemoryBarrier(
                  S::eComputeShader, // Src stage mask
                  A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-                 S::eTransfer,     // Dst stage mask
-                 A::eTransferRead, // Dst access mask
-                 m_branchBuf->buffer()
+                 S::eDrawIndirect | S::eTransfer,            // Dst stage mask
+                 A::eIndirectCommandRead | A::eTransferRead, // Dst access mask
+                 m_branchAllocRegBuf->buffer()
              )}
         );
         cmdBuf->pipelineBarrier2({{}, {}, bufferBarriers, {}});
     }
 
-    m_chunkTransferMgr.downloadBranchAllocRegister(cmdBuf, *m_branchBuf);
+    m_chunkTransferMgr.downloadBranchAllocRegister(cmdBuf, *m_branchAllocRegBuf);
 }
 
 } // namespace rw

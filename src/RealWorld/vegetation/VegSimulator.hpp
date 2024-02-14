@@ -39,6 +39,7 @@ public:
 
     struct VegStorage {
         const re::Buffer& branchBuf;
+        const re::Buffer& branchAllocRegBuf;
     };
 
     VegStorage adoptSave(const re::Texture& worldTex, glm::ivec2 worldTexSizeCh);
@@ -91,6 +92,7 @@ private:
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
         .debugName = "rw::VegSimulator::descriptorSet"}};
     re::Buffer        m_branchBuf;
+    re::Buffer        m_branchAllocRegBuf;
     glm::uvec2        m_worldTexSizeTi{};
 
     void beginWorldTextureRenderPass(

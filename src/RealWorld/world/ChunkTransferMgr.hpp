@@ -10,6 +10,7 @@
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/constants/world.hpp>
+#include <RealWorld/vegetation/BranchAllocRegSB.hpp>
 #include <RealWorld/world/ChunkTransferStage.hpp>
 
 namespace rw {
@@ -82,28 +83,30 @@ public:
     );
 
     void downloadBranchAllocRegister(
-        const re::CommandBuffer& cmdBuf, const re::Buffer& branchBuf
+        const re::CommandBuffer& cmdBuf, const re::Buffer& branchAllocRegBuf
     );
 
     const re::Buffer& allocReqBuf() const { return m_allocReqBuf; }
 
 private:
-    static constexpr auto k_stageSlotCount = k_maxParallelTransfers;
+    int branchCount(glm::ivec2 posAc) const;
+    int allocIndex(glm::ivec2 posAc) const;
+
+    static constexpr auto k_stageSlotCount = k_chunkTransferSlots;
     re::StepDoubleBuffered<ChunkTransferStage<k_stageSlotCount, 512>> m_stage;
 
-    int allocIndex(glm::ivec2 posAc) const;
-    int branchCount(glm::ivec2 posAc) const;
+    glm::ivec2 m_worldTexCh{};
 
-    re::Pipeline                          m_allocBranchesPl;
-    re::BufferMapped<BranchAllocRegister> m_regBuf{re::BufferCreateInfo{
+    re::Pipeline                       m_allocBranchesPl;
+    re::BufferMapped<BranchAllocRegSB> m_regBuf{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
-        .sizeInBytes = sizeof(BranchAllocRegister),
+        .sizeInBytes = sizeof(BranchAllocRegSB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst,
         .debugName   = "rw::ChunkTransferMgr::reg"}};
 
     re::Buffer m_allocReqBuf{re::BufferCreateInfo{
-        .sizeInBytes = sizeof(BranchAllocRequestUB),
+        .sizeInBytes = sizeof(BranchAllocReqUB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst |
                  vk::BufferUsageFlagBits::eUniformBuffer,
         .debugName = "rw::ChunkTransferMgr::allocReq"}};

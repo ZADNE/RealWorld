@@ -331,7 +331,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     analysisDS.write(eStorageImage, 1u, 0u, transluTex, eGeneral);
     analysisDS.write(eCombinedImageSampler, 3u, 0u, blockLightAtlasTex, eReadOnlyOptimal);
     analysisDS.write(eCombinedImageSampler, 4u, 0u, wallLightAtlasTex, eReadOnlyOptimal);
-    analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf, 0ull, vk::WholeSize);
+    analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf);
 
     // Calculation descriptor set
     calculationDS.write(eCombinedImageSampler, 0u, 0u, lightTex, eReadOnlyOptimal);

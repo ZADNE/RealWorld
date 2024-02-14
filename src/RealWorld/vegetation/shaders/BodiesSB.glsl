@@ -11,7 +11,7 @@ struct Body {
     vec2  rotationRad; /**< y component is unused */
 };
 
-layout (set = 0, binding = BodiesSB_BINDING, std430)
+layout (set = 0, binding = k_bodiesBinding, std430)
 restrict buffer BodiesSB {
     uint b_bodiesDispatchX;
     uint b_bodiesDispatchY;

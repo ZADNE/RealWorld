@@ -1,13 +1,9 @@
 /*!
  *  @author     Dubsky Tomas
  */
-#ifndef VEG_PREPARATION_SB_GLSL
-#define VEG_PREPARATION_SB_GLSL
+#ifndef VEG_PREP_SB_GLSL
+#define VEG_PREP_SB_GLSL
 #include <RealWorld/constants/generation.glsl>
-
-#ifndef VegPreparationSB_ACCESS
-#define VegPreparationSB_ACCESS
-#endif
 
 struct VegInstance{
     uint  templateIndex; // Index of the template
@@ -27,12 +23,16 @@ struct BranchInstance{
     uint  randomSeed;
 };
 
-layout (binding = VegPreparationSB_BINDING, std430)
-VegPreparationSB_ACCESS restrict buffer VegPreparationSB {
+#ifndef VegPrepSB_ACCESS
+#define VegPrepSB_ACCESS
+#endif
+
+layout (binding = k_vegPrepBinding, std430)
+VegPrepSB_ACCESS restrict buffer VegPrepSB {
     uvec4           vegDispatchSize;
     uvec4           branchDispatchSize;
-    VegInstance     vegInstances[k_maxParallelChunks * 64];
-    BranchInstance  branchInstances[k_maxParallelChunks * 64 * 64];
+    VegInstance     vegInstances[k_chunkGenSlots * 64];
+    BranchInstance  branchInstances[k_chunkGenSlots * 64 * 64];
 } b_vegPrep;
 
-#endif // !VEG_PREPARATION_SB_GLSL
+#endif // !VEG_PREP_SB_GLSL

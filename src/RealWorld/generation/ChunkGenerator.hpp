@@ -34,6 +34,7 @@ public:
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
         const re::Buffer&  branchBuf;
+        const re::Buffer&  branchAllocRegBuf;
     };
 
     /**
@@ -49,10 +50,8 @@ public:
 
     /**
      * @brief Generates planned chunks
-     * @param branchWriteBuf Index of the double buffered part of branch buffer
-     * that is for writing
      */
-    void generate(const re::CommandBuffer& cmdBuf, glm::uint branchWriteBuf);
+    void generate(const re::CommandBuffer& cmdBuf);
 
 protected:
     void generateBasicTerrain(const re::CommandBuffer& cmdBuf);
@@ -70,13 +69,12 @@ protected:
     const re::Buffer*  m_branchBuf = nullptr;
 
     struct GenerationPC {
-        glm::ivec2 chunkTi[k_maxParallelChunks];
+        glm::ivec2 chunkTi[k_chunkGenSlots];
         glm::ivec2 worldTexSizeCh;
         int        seed;
         glm::uint  storeSegment{}; // Always 0 or 1
         glm::uint  edgeConsolidationPromote;
         glm::uint  edgeConsolidationReduce;
-        glm::uint  branchWriteBuf;
     } m_genPC;
     static_assert(sizeof(GenerationPC) <= 128, "PC min size guarantee");
     int m_chunksPlanned = 0; /**< Number of chunks planned to generate this step */
@@ -122,7 +120,7 @@ protected:
     re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
-        .layers = k_maxParallelChunks * 2,
+        .layers = k_chunkGenSlots * 2,
         .usage  = vk::ImageUsageFlagBits::eStorage |
                  vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral,
@@ -130,7 +128,7 @@ protected:
     re::Texture m_materialTex{re::TextureCreateInfo{
         .format        = vk::Format::eR8G8B8A8Uint,
         .extent        = {k_genChunkSize.x, k_genChunkSize.y, 1u},
-        .layers        = k_maxParallelChunks,
+        .layers        = k_chunkGenSlots,
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral,
         .debugName     = "rw::ChunkGenerator::material"}};

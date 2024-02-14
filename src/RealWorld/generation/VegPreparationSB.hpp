@@ -33,8 +33,8 @@ struct BranchInstance {
 struct VegPreparationSB {
     glm::uvec4     vegDispatchSize;
     glm::uvec4     branchDispatchSize;
-    VegInstance    vegInstances[k_maxParallelChunks * 64];
-    BranchInstance branchInstances[k_maxParallelChunks * 64 * 64];
+    VegInstance    vegInstances[k_chunkGenSlots * 64];
+    BranchInstance branchInstances[k_chunkGenSlots * 64 * 64];
 };
 
 } // namespace rw

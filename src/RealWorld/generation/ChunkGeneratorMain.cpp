@@ -30,21 +30,29 @@ static_assert(
 );
 
 constexpr VegPreparationSBInitHelper k_vegPreparationSBInitHelper{};
+
+constexpr glm::uint k_tilesImageBinding     = 0;
+constexpr glm::uint k_materialImageBinding  = 1;
+constexpr glm::uint k_vegTemplatesBinding   = 2;
+constexpr glm::uint k_bodyBinding           = 3;
+constexpr glm::uint k_branchBinding         = 4;
+constexpr glm::uint k_branchAllocRegBinding = 5;
+constexpr glm::uint k_vegPrepBinding        = 6;
+
 } // namespace
 
 ChunkGenerator::ChunkGenerator()
     : m_pipelineLayout(
           {},
           re::PipelineLayoutDescription{
-              .bindings = {{
-                  {0, eStorageImage, 1, eCompute},      // Tiles image
-                  {1, eStorageImage, 1, eCompute},      // Material image
-                  {2, eUniformBuffer, 1, eCompute},     // VegTemplatesUB
-                  {3, eStorageBuffer, 1, eCompute},     // Bodies
-                  /*{4, eStorageBuffer, 1, eCompute},*/ // Reserved...
-                  {5, eStorageBuffer, 1, eCompute},     // Branch buffer
-                  {6, eStorageBuffer, 1, eCompute}      // Veg Preparation
-              }},
+              .bindings =
+                  {{{k_tilesImageBinding, eStorageImage, 1, eCompute},
+                    {k_materialImageBinding, eStorageImage, 1, eCompute},
+                    {k_vegTemplatesBinding, eUniformBuffer, 1, eCompute},
+                    {k_bodyBinding, eStorageBuffer, 1, eCompute},
+                    {k_branchBinding, eStorageBuffer, 1, eCompute},
+                    {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
+                    {k_vegPrepBinding, eStorageBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
       )
     , m_vegPreparationBuf(re::BufferCreateInfo{
@@ -53,10 +61,12 @@ ChunkGenerator::ChunkGenerator()
           .usage     = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
           .initData  = re::objectToByteSpan(k_vegPreparationSBInitHelper),
           .debugName = "rw::ChunkGenerator::vegPreparation"}) {
-    m_descriptorSet.write(eStorageImage, 0, 0, m_tilesTex, eGeneral);
-    m_descriptorSet.write(eStorageImage, 1, 0, m_materialTex, eGeneral);
-    m_descriptorSet.write(eUniformBuffer, 2, 0, m_vegTemplatesBuf, 0, vk::WholeSize);
-    m_descriptorSet.write(eStorageBuffer, 6, 0, m_vegPreparationBuf, 0, vk::WholeSize);
+    m_descriptorSet.write(eStorageImage, k_tilesImageBinding, 0, m_tilesTex, eGeneral);
+    m_descriptorSet.write(
+        eStorageImage, k_materialImageBinding, 0, m_materialTex, eGeneral
+    );
+    m_descriptorSet.write(eUniformBuffer, k_vegTemplatesBinding, 0, m_vegTemplatesBuf);
+    m_descriptorSet.write(eStorageBuffer, k_vegPrepBinding, 0, m_vegPreparationBuf);
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
@@ -65,19 +75,22 @@ void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
     m_genPC.worldTexSizeCh = targetInfo.worldTexSizeCh;
     m_bodiesBuf            = &targetInfo.bodiesBuf;
     m_branchBuf            = &targetInfo.branchBuf;
-    m_descriptorSet.write(eStorageBuffer, 3, 0, *m_bodiesBuf, 0, vk::WholeSize);
-    m_descriptorSet.write(eStorageBuffer, 5, 0, *m_branchBuf, 0, vk::WholeSize);
+    m_descriptorSet.write(eStorageBuffer, k_bodyBinding, 0, *m_bodiesBuf);
+    m_descriptorSet.write(eStorageBuffer, k_branchBinding, 0, *m_branchBuf);
+    m_descriptorSet.write(
+        eStorageBuffer, k_branchAllocRegBinding, 0, targetInfo.branchAllocRegBuf
+    );
 }
 
 bool ChunkGenerator::planGeneration(glm::ivec2 posCh) {
-    if (m_chunksPlanned < k_maxParallelChunks) { // If there is space
+    if (m_chunksPlanned < k_chunkGenSlots) { // If there is space
         m_genPC.chunkTi[m_chunksPlanned++] = chToTi(posCh);
         return true;
     }
     return false;
 }
 
-void ChunkGenerator::generate(const re::CommandBuffer& cmdBuf, glm::uint branchWriteBuf) {
+void ChunkGenerator::generate(const re::CommandBuffer& cmdBuf) {
     if (m_chunksPlanned > 0) {
         auto&                            secCmdBuf = *m_cmdBuf;
         vk::CommandBufferInheritanceInfo inheritanceInfo{};
@@ -85,7 +98,6 @@ void ChunkGenerator::generate(const re::CommandBuffer& cmdBuf, glm::uint branchW
         secCmdBuf->bindDescriptorSets(
             vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
         );
-        m_genPC.branchWriteBuf = branchWriteBuf;
 
         // Terrain generation
         generateBasicTerrain(secCmdBuf);
@@ -115,7 +127,7 @@ void ChunkGenerator::copyToDestination(const re::CommandBuffer& cmdBuf) {
              eGeneral,                                       // New image layout
              m_tilesTex.image(),
              vk::ImageSubresourceRange{
-                 eColor, 0, 1, k_maxParallelChunks * m_genPC.storeSegment, k_maxParallelChunks}
+                 eColor, 0, 1, k_chunkGenSlots * m_genPC.storeSegment, k_chunkGenSlots}
          ),
          re::imageMemoryBarrier(
              S::eColorAttachmentOutput, // Src stage mask
@@ -130,13 +142,13 @@ void ChunkGenerator::copyToDestination(const re::CommandBuffer& cmdBuf) {
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, barriers});
 
     // Copy the generated chunk to the world texture
-    std::array<vk::ImageCopy, k_maxParallelChunks> regions;
+    std::array<vk::ImageCopy, k_chunkGenSlots> regions;
     for (int i = 0; i < m_chunksPlanned; ++i) {
         auto dstOffsetTi =
             chToAt(tiToCh(m_genPC.chunkTi[i]), m_genPC.worldTexSizeCh - 1);
         regions[i] = vk::ImageCopy{
             vk::ImageSubresourceLayers{
-                eColor, 0, k_maxParallelChunks * m_genPC.storeSegment + i, 1}, // Src subresource
+                eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1}, // Src subresource
             vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
             vk::ImageSubresourceLayers{eColor, 0, 0, 1},   // Dst subresource
             vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset

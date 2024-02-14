@@ -5,11 +5,9 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/world/shaders/random.glsl>
-const uint worldImage_BINDING = 0;
+#include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
-const uint ActiveChunksSB_BINDING = 1;
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
-const uint TilePropertiesUB_BINDING = 2;
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 

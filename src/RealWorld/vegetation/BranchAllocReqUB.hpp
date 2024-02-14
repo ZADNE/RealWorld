@@ -6,9 +6,9 @@
 
 namespace rw {
 
-struct BranchAllocRequestUB {
-    glm::ivec2 targetCh[k_maxParallelTransfers];
-    int        branchCount[k_maxParallelTransfers];
+struct BranchAllocReqUB {
+    glm::ivec2 targetCh[k_chunkTransferSlots];
+    int        branchCount[k_chunkTransferSlots];
     glm::ivec2 worldTexCh;
     int        uploadSlotsEnd;
     int        downloadSlotsBegin;

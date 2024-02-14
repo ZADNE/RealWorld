@@ -50,12 +50,12 @@ ChunkLoader::ChunkData ChunkLoader::loadChunk(
             if (chunkName == k_branchPNGChunkName) {
                 const uint8_t* data = lodepng_chunk_data_const(chunk);
                 out.branchesSerialized.assign(data, data + lodepng_chunk_length(chunk));
-                return out; // Successfully loaded RTI
+                return out; // Successfully loaded chunk AND branches
             }
         }
     }
 
-    return out;
+    return out; // No branches found but that is fine
 }
 
 void ChunkLoader::saveChunk(

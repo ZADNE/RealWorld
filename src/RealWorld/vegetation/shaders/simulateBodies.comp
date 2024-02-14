@@ -4,11 +4,9 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/body.glsl>
-
-const uint worldImage_BINDING = 0;
+#include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
-const int BodiesSB_BINDING = 3;
-#include <RealWorld/vegetation/shaders/BodiesSB.glsl>
+//#include <RealWorld/vegetation/shaders/BodiesSB.glsl>
 
 layout (local_size_x = k_simulateBodiesGroupSizeX,
         local_size_y = k_simulateBodiesGroupSizeY,
@@ -16,8 +14,8 @@ layout (local_size_x = k_simulateBodiesGroupSizeX,
 ) in;
 
 void main(){
-    if (gl_GlobalInvocationID.x < b_currentBodyCount) {
+    /*if (gl_GlobalInvocationID.x < b_currentBodyCount) {
     ivec2 posTi = ivec2(b_bodies[gl_GlobalInvocationID.x].bottomCenterPx / TilePx);
         tileStore(posTi, HIGHLIGHTER);
-    }
+    }*/
 }

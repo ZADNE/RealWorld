@@ -31,7 +31,7 @@ void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
              eGeneral,                                       // New image layout
              m_tilesTex.image(),
              vk::ImageSubresourceRange{
-                 eColor, 0, 1, k_maxParallelChunks * m_genPC.storeSegment, k_maxParallelChunks}
+                 eColor, 0, 1, k_chunkGenSlots * m_genPC.storeSegment, k_chunkGenSlots}
          ),
          re::imageMemoryBarrier(
              S::eComputeShader,      // Src stage mask
@@ -41,7 +41,7 @@ void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
              eGeneral,               // Old image layout
              eGeneral,               // New image layout
              m_materialTex.image(),
-             vk::ImageSubresourceRange{eColor, 0, 1, 0, k_maxParallelChunks}
+             vk::ImageSubresourceRange{eColor, 0, 1, 0, k_chunkGenSlots}
          )}
     );
     cmdBuf->pipelineBarrier2({{}, {}, {}, barriers});
@@ -56,7 +56,7 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
         m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0, 1, ~0u, k_maxParallelChunks}
+        vk::ImageSubresourceRange{eColor, 0, 1, ~0u, k_chunkGenSlots}
     );
 
     auto pass = [&](glm::ivec2 thresholds, size_t passes) {
@@ -69,7 +69,7 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
             cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
             // Put barrier for next pass
             barrier.subresourceRange.baseArrayLayer = m_genPC.storeSegment *
-                                                      k_maxParallelChunks;
+                                                      k_chunkGenSlots;
             cmdBuf->pipelineBarrier2({{}, {}, {}, barrier});
         }
     };

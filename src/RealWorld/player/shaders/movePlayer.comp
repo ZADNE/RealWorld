@@ -3,9 +3,8 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-const uint worldImage_BINDING = 0u;
+#include <RealWorld/player/shaders/playerPll.glsl>
 #include <RealWorld/world/shaders/tileLoad.glsl>
-const uint PlayerHitboxSB_BINDING = 1u;
 #include <RealWorld/player/shaders/PlayerHitboxSB.glsl>
 #include <RealWorld/player/shaders/PlayerMovementPC.glsl>
 

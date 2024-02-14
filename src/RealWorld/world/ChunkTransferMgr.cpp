@@ -27,7 +27,7 @@ ChunkTransferMgr::ChunkTransferMgr(const re::PipelineLayout& pipelineLayout)
 }
 
 void ChunkTransferMgr::setTarget(glm::ivec2 worldTexCh) {
-    m_stage.forEach([&](auto& ts) { ts.setTarget(worldTexCh); });
+    m_worldTexCh = worldTexCh;
 }
 
 bool ChunkTransferMgr::saveChunks(
@@ -54,19 +54,37 @@ bool ChunkTransferMgr::saveChunks(
         cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
 
-    auto saveAllChunksInTileStage = [&]() {
+    auto saveAllChunksInTileStage = [&] {
         std::array<std::future<void>, k_stageSlotCount> futures{};
-        for (int i = m_stage->downloadSlotsBegin(); i < k_stageSlotCount; ++i) {
+        m_stage->forEachDownload([&](int i) {
             futures[i] = std::async(
                 std::launch::async,
-                [this, i, &m_stage = m_stage, &actMgr]() {
+                [this, i, &stage = m_stage, &actMgr]() {
+                    auto slt = stage->slot(i);
                     actMgr.saveChunk(
-                        m_stage->slot(i).targetCh, m_stage->buf->tiles[i].data(), {}
+                        slt.targetCh,
+                        stage->tiles(i),
+                        stage->branchesSerializedSpan(slt)
                     );
                 }
             );
-        }
+        });
         m_stage->reset();
+    };
+
+    auto recordAllPlannedDownload = [&] {
+        // Download tiles
+        cmdBuf->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
+            worldTex.image(),
+            vk::ImageLayout::eGeneral,
+            *m_stage->buffer(),
+            m_stage->tileDownloadRegions()});
+
+        // Download branches
+        if (m_stage->numberOfBranchDownloads()) {
+            cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
+                *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()});
+        }
     };
 
     for (int y = 0; y < worldTexCh.y; ++y) {
@@ -78,7 +96,7 @@ bool ChunkTransferMgr::saveChunks(
                 if (hasFreeTransferSpace(posAc)) { // If there is space in the stage
                     planDownload(activeChunk, chToTi(posAc), 0);
                 } else {
-                    endStep(cmdBuf, worldTex, branchBuf, worldTexCh - 1);
+                    recordAllPlannedDownload();
                     cmdBuf->end();
                     cmdBuf.submitToComputeQueue(*downloadFinishedFence);
                     downloadFinishedFence.wait();
@@ -90,8 +108,7 @@ bool ChunkTransferMgr::saveChunks(
             }
         }
     }
-
-    endStep(cmdBuf, worldTex, branchBuf, worldTexCh - 1);
+    recordAllPlannedDownload();
 
     { // Transition world texture back to original layout
         auto imageBarrier = re::imageMemoryBarrier(
@@ -116,38 +133,31 @@ bool ChunkTransferMgr::saveChunks(
 int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr) {
     glm::ivec2 worldTexSizeMask = worldTexCh - 1;
     // Finalize uploads from previous step
-    for (int i = 0; i < m_stage->uploadSlotsEnd(); ++i) {
+    m_stage->forEachUpload([&](int i) {
         auto slot  = m_stage->slot(i);
         auto posAc = chToAc(slot.targetCh, worldTexSizeMask);
         auto& activeChunk = actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
         // Signal that the chunk is active
         activeChunk = slot.targetCh;
-    }
+    });
 
     // Finalize downloads from previous step
-    const auto& stage                  = *m_stage->buf;
-    int         nextBranchDownloadByte = m_stage->nextBranchDownloadByte;
-    for (int i = m_stage->downloadSlotsBegin(); i < k_stageSlotCount; ++i) {
+    m_stage->forEachDownload([&](int i) {
         auto slot  = m_stage->slot(i);
         auto posAc = chToAc(slot.targetCh, worldTexSizeMask);
         auto& activeChunk = actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
 
         // Copy the tiles aside from the stage
-        auto branchesSerialized = std::span{
-            stage.branches.begin() + nextBranchDownloadByte,
-            stage.branches.begin() + nextBranchDownloadByte +
-                slot.branchCount * sizeof(BranchSerialized)};
         actMgr.addInactiveChunk(
             slot.targetCh,
-            Chunk{slot.targetCh, stage.tiles[i].data(), branchesSerialized}
+            Chunk{slot.targetCh, m_stage->tiles(i), m_stage->branchesSerializedSpan(slot)}
         );
-        nextBranchDownloadByte += slot.branchCount * sizeof(BranchSerialized);
 
         // Signal that there is no active chunk at the spot
         activeChunk = k_chunkNotActive;
-    }
+    });
 
-    int nTransparentChanges = m_stage->uploadSlotsEnd();
+    int nTransparentChanges = m_stage->numberOfUploads();
     m_stage->reset();
     return nTransparentChanges;
 }
@@ -162,21 +172,21 @@ void ChunkTransferMgr::planUpload(
     const std::vector<uint8_t>& tiles,
     std::span<const uint8_t>    branchesSerialized
 ) {
-    m_stage->insertUpload(posCh, posAt, tiles.data(), branchesSerialized);
+    // TODO
+    // m_stage->insertUpload(posCh, posAt, tiles.data(), branchesSerialized);
 }
 
 void ChunkTransferMgr::planDownload(
     glm::ivec2 posCh, glm::ivec2 posAt, glm::uint branchReadBuf
 ) {
-    glm::uint firstBranch = 0;
-    glm::uint branchCount = 0;
-    int       allocI      = allocIndex(tiToCh(posAt));
+    BranchRange range{};
+    int         allocI = allocIndex(tiToCh(posAt));
     if (allocI >= 0) {
         const auto& alloc = m_regBuf->allocations[allocI];
-        firstBranch       = alloc.firstBranch;
-        branchCount       = alloc.branchCount;
+        range.begin       = alloc.firstBranch;
+        range.count       = alloc.branchCount;
     }
-    m_stage->insertDownload(posCh, posAt, firstBranch, branchCount, branchReadBuf);
+    m_stage->insertDownload(posCh, posAt, range, branchReadBuf);
 }
 
 void ChunkTransferMgr::endStep(
@@ -185,7 +195,7 @@ void ChunkTransferMgr::endStep(
     const re::Buffer&        branchBuf,
     glm::ivec2               worldTexMaskCh
 ) {
-    bool uploadsPlanned = m_stage->uploadSlotsEnd() > 0;
+    bool uploadsPlanned = m_stage->numberOfUploads();
     if (uploadsPlanned) {
         // Wait for unrasterization to finish
         auto imageBarrier = re::imageMemoryBarrier(
@@ -202,13 +212,19 @@ void ChunkTransferMgr::endStep(
 
         // Upload tiles
         cmdBuf->copyBufferToImage2(vk::CopyBufferToImageInfo2{
-            m_stage->buf.buffer(),
+            *m_stage->buffer(),
             worldTex.image(),
             vk::ImageLayout::eGeneral,
             m_stage->tileUploadRegions()});
+
+        // Upload branches
+        if (m_stage->numberOfBranchUploads()) {
+            cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
+                *branchBuf, *m_stage->buffer(), m_stage->branchUploadRegions()});
+        }
     }
 
-    bool downloadsPlanned = m_stage->downloadSlotsBegin() < k_stageSlotCount;
+    bool downloadsPlanned = m_stage->numberOfDownloads();
     if (downloadsPlanned) {
         // Wait for unrasterization to finish
         auto imageBarrier = re::imageMemoryBarrier(
@@ -227,25 +243,20 @@ void ChunkTransferMgr::endStep(
         cmdBuf->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
             worldTex.image(),
             vk::ImageLayout::eGeneral,
-            m_stage->buf.buffer(),
+            *m_stage->buffer(),
             m_stage->tileDownloadRegions()});
 
-        if (m_stage->branchDownloadsPlanned()) {
-            // Download branches
+        // Download branches
+        if (m_stage->numberOfBranchDownloads()) {
             cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
-                *branchBuf, m_stage->buf.buffer(), m_stage->branchDownloadRegions()}
-            );
+                *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()});
         }
     }
 
     if (uploadsPlanned || downloadsPlanned) {
-        // Prepare (de)allocation request
-        cmdBuf->updateBuffer(
-            *m_allocReqBuf,
-            0,
-            sizeof(BranchAllocRequestUB),
-            &m_stage->branchAllocRequest()
-        );
+        // Compose (de)allocation request
+        auto allocReq = m_stage->composeBranchAllocRequest(m_worldTexCh);
+        cmdBuf->updateBuffer(*m_allocReqBuf, 0, sizeof(BranchAllocReqUB), &allocReq);
         auto barrier = re::bufferMemoryBarrier(
             S::eTransfer,      // Src stage mask
             A::eTransferWrite, // Src access mask
@@ -256,23 +267,20 @@ void ChunkTransferMgr::endStep(
         cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
 
         // Allocate and deallocate branches
-        cmdBuf.debugBarrier();
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_allocBranchesPl);
         cmdBuf->dispatch(1, 1, 1);
     }
 }
 
 void ChunkTransferMgr::downloadBranchAllocRegister(
-    const re::CommandBuffer& cmdBuf, const re::Buffer& branchBuf
+    const re::CommandBuffer& cmdBuf, const re::Buffer& branchAllocRegBuf
 ) {
-    vk::BufferCopy2 copyRegion{
-        offsetof(BranchSB, allocReg), 0ull, sizeof(BranchAllocRegister)};
-    cmdBuf->copyBuffer2({*branchBuf, m_regBuf.buffer(), copyRegion});
+    vk::BufferCopy2 copyRegion{0, 0, sizeof(*m_regBuf.mapped())};
+    cmdBuf->copyBuffer2({*branchAllocRegBuf, m_regBuf.buffer(), copyRegion});
 }
 
 int ChunkTransferMgr::allocIndex(glm::ivec2 posAc) const {
-    return m_regBuf
-        ->allocIndexOfTheChunk[posAc.y * k_maxWorldTexSizeCh.x + posAc.x];
+    return m_regBuf->allocIndexOfTheChunk[acToIndex(posAc, m_worldTexCh)];
 }
 
 int ChunkTransferMgr::branchCount(glm::ivec2 posAc) const {

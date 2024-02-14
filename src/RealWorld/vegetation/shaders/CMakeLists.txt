@@ -1,8 +1,10 @@
 ﻿target_shaders(RealWorld PRIVATE
     BodiesSB.glsl               
     Branch.glsl                 
-    BranchAllocRequestUB.glsl   
-    BranchSB.glsl               BranchSBWithAllocation.glsl
+    BranchAllocRegSB.glsl       
+    BranchAllocReqUB.glsl       
+    branchRasterizationPll.glsl 
+    BranchSB.glsl               
     duplicateBranches.geom      
     normAngles.glsl             
     rasterizeBranches.vert      rasterizeBranches.frag

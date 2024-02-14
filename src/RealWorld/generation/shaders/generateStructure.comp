@@ -3,14 +3,17 @@
  */
 #version 460
 #include <RealWorld/generation/shaders/generateStructure.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
 
 layout (local_size_x = k_genGroupSize,
         local_size_y = k_genGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = 0, rgba8ui) uniform restrict writeonly uimage2DArray u_tilesImage;
-layout (set = 0, binding = 1, rgba8ui) uniform restrict writeonly uimage2DArray u_materialImage;
+layout (set = 0, binding = k_tilesImageBinding, rgba8ui)
+uniform restrict writeonly uimage2DArray u_tilesImage;
+layout (set = 0, binding = k_materialImageBinding, rgba8ui)
+uniform restrict writeonly uimage2DArray u_materialImage;
 
 void main(){
     // Compute position

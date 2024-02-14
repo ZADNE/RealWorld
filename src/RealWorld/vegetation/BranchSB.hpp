@@ -8,29 +8,8 @@
 #include <glm/vec4.hpp>
 
 #include <RealWorld/constants/vegetation.hpp>
-#include <RealWorld/constants/world.hpp>
 
 namespace rw {
-
-/**
- * @brief All branches of a chunk are inside one allocation
- */
-struct BranchAllocation {
-    glm::uint activeBranchCount = 0;
-    glm::uint instanceCount     = 1;
-    glm::uint firstBranch       = k_maxBranchCount;
-    glm::uint firstInstance     = 0;
-
-    glm::uint branchCount = 0;
-    glm::uint capacity    = 0;
-};
-
-struct BranchAllocRegister {
-    std::array<int, k_maxWorldTexChunkCount> allocIndexOfTheChunk{-1};
-    std::array<BranchAllocation, k_maxBranchAllocCount> allocations{};
-    int                                                 nextAllocIter{};
-    int                                                 lock{}; // 0 = unlocked
-};
 
 struct BranchSB {
     // Double-buffered params
@@ -45,13 +24,11 @@ struct BranchSB {
     float     lengthTi[k_maxBranchCount];
     glm::vec2 densityStiffness[k_maxBranchCount];
     uint8_t   raster[k_maxBranchCount][k_branchRasterSpace];
-
-    BranchAllocRegister allocReg;
 };
 
 struct BranchSerialized {
     static_assert(
-        offsetof(BranchSB, allocReg) == 7602176,
+        sizeof(BranchSB) == 7602176,
         "Layout of branch members probably changed - fix me"
     );
     template<typename T>
@@ -71,8 +48,7 @@ struct BranchSerialized {
 
     static constexpr size_t memberCount() {
         static_assert(
-            offsetof(BranchSB, allocReg) == 7602176,
-            "Also fix the count of members here"
+            sizeof(BranchSB) == 7602176, "Also fix the count of members here"
         );
         return 9;
     }

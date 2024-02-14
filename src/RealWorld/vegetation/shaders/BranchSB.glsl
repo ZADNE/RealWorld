@@ -4,28 +4,9 @@
 #ifndef BRANCH_SB_GLSL
 #define BRANCH_SB_GLSL
 #extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
-#include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/vegetation.glsl>
 
-// All allocations within the list belong to one chunk
-struct BranchAllocation {
-    uint activeBranchCount;
-    uint instanceCount;
-    uint firstBranch;
-    uint firstInstance;
-
-    uint branchCount;
-    uint capacity;
-};
-
-struct BranchAllocRegister {
-    int              allocIndexOfTheChunk[k_maxWorldTexChunkCount];
-    BranchAllocation allocations[k_maxBranchAllocCount];
-    int              nextAllocIter;
-    int              lock;
-};
-
-layout (set = 0, binding = BranchSB_BINDING, std430)
+layout (set = 0, binding = k_branchBinding, std430)
 restrict buffer BranchSB {
     // Double-buffered params
     vec2    absPosTi[2][k_maxBranchCount];
@@ -39,8 +20,6 @@ restrict buffer BranchSB {
     float   lengthTi[k_maxBranchCount];
     vec2    densityStiffness[k_maxBranchCount];
     uint8_t raster[k_maxBranchCount][k_branchRasterSpace];
-
-    BranchAllocRegister allocReg;
 } b_branch;
 
 // parentOffset15wallType31[ 0..15] = negative index offset to parent

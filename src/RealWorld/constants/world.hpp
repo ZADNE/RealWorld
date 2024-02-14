@@ -28,24 +28,24 @@ constexpr uint32_t k_maxWorldTexChunkCount = k_maxWorldTexSizeCh.x *
 /**
  * @brief Is the maximum number of parallel uploads and/or downloads within a step
  */
-constexpr uint32_t k_maxParallelTransfers = 16;
+constexpr uint32_t k_chunkTransferSlots = 16;
 
 /**
  * @brief Converts a position in chunks to its active form equivalent
  */
-constexpr glm::ivec2 chToAc(glm::ivec2 posCh, glm::ivec2 worldTexSizeMask) {
-    return posCh & worldTexSizeMask;
+constexpr glm::ivec2 chToAc(glm::ivec2 posCh, glm::ivec2 worldTexMaskCh) {
+    return posCh & worldTexMaskCh;
 }
 
 /**
  * @brief Converts a position in chunks to its active form measured in tiles
  */
-constexpr glm::ivec2 chToAt(glm::ivec2 posCh, glm::ivec2 worldTexSizeMask) {
-    return chToTi(chToAc(posCh, worldTexSizeMask));
+constexpr glm::ivec2 chToAt(glm::ivec2 posCh, glm::ivec2 worldTexMaskCh) {
+    return chToTi(chToAc(posCh, worldTexMaskCh));
 }
 
-constexpr int acToIndex(glm::ivec2 posAc, glm::ivec2 activeChunks) {
-    return posAc.y * activeChunks.x + posAc.x;
+constexpr int acToIndex(glm::ivec2 posAc, glm::ivec2 worldTexCh) {
+    return posAc.y * worldTexCh.x + posAc.x;
 }
 
 } // namespace rw

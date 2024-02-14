@@ -6,13 +6,15 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
 
 layout (local_size_x = k_genGroupSize,
         local_size_y = k_genGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = 0, rgba8ui) uniform restrict uimage2DArray u_tilesImage;
+layout (set = 0, binding = k_tilesImageBinding, rgba8ui)
+uniform restrict uimage2DArray u_tilesImage;
 
 const ivec2 OFFSETS[] = {
                 {-1, +2},   {+0, +2},   {+1, +2},

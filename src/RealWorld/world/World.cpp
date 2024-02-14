@@ -14,11 +14,12 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
-constexpr uint32_t k_worldTexBinding          = 0;
-constexpr uint32_t k_activeChunksBufBinding   = 1;
-constexpr uint32_t k_tilePropertiesBufBinding = 2;
-constexpr uint32_t k_branchBufBinding         = 3;
-constexpr uint32_t k_allocRequestBufBinding   = 4;
+constexpr glm::uint k_worldTexBinding       = 0;
+constexpr glm::uint k_acChunksBinding       = 1;
+constexpr glm::uint k_tilePropertiesBinding = 2;
+constexpr glm::uint k_branchBinding         = 3;
+constexpr glm::uint k_branchAllocRegBinding = 4;
+constexpr glm::uint k_branchAllocReqBinding = 5;
 
 // Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
@@ -63,10 +64,11 @@ World::World()
           re::PipelineLayoutDescription{
               .bindings =
                   {{{k_worldTexBinding, eStorageImage, 1, eCompute},
-                    {k_activeChunksBufBinding, eStorageBuffer, 1, eCompute},
-                    {k_tilePropertiesBufBinding, eUniformBuffer, 1, eCompute},
-                    {k_branchBufBinding, eStorageBuffer, 1, eCompute},
-                    {k_allocRequestBufBinding, eUniformBuffer, 1, eCompute}}},
+                    {k_acChunksBinding, eStorageBuffer, 1, eCompute},
+                    {k_tilePropertiesBinding, eUniformBuffer, 1, eCompute},
+                    {k_branchBinding, eStorageBuffer, 1, eCompute},
+                    {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
+                    {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}}
       )
     , m_tilePropertiesBuf(re::BufferCreateInfo{
@@ -76,9 +78,7 @@ World::World()
           .initData    = re::objectToByteSpan(k_tileProperties),
           .debugName   = "rw::World::tileProperties"})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
-    m_simulationDS.write(
-        eUniformBuffer, k_tilePropertiesBufBinding, 0, m_tilePropertiesBuf, 0, vk::WholeSize
-    );
+    m_simulationDS.write(eUniformBuffer, k_tilePropertiesBinding, 0, m_tilePropertiesBuf);
 }
 
 const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTexSizeCh) {
@@ -102,23 +102,25 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
 
     // Vegetation simulator
     auto vegStorage = m_vegSimulator.adoptSave(m_worldTex, worldTexSizeCh);
+    m_simulationDS.write(eStorageBuffer, k_branchBinding, 0, vegStorage.branchBuf);
     m_simulationDS.write(
-        eStorageBuffer, k_branchBufBinding, 0, vegStorage.branchBuf, 0, vk::WholeSize
+        eStorageBuffer, k_branchAllocRegBinding, 0, vegStorage.branchAllocRegBuf
     );
 
     // Update chunk manager
     auto activationBufs = m_chunkActivationMgr.setTarget(ChunkActivationMgr::TargetInfo{
-        .seed          = m_seed,
-        .folderPath    = save.path,
-        .worldTex      = m_worldTex,
-        .worldTexCh    = worldTexSizeCh,
-        .descriptorSet = m_simulationDS,
-        .bodiesBuf     = bodiesBuf,
-        .branchBuf     = vegStorage.branchBuf});
+        .seed              = m_seed,
+        .folderPath        = save.path,
+        .worldTex          = m_worldTex,
+        .worldTexCh        = worldTexSizeCh,
+        .descriptorSet     = m_simulationDS,
+        .bodiesBuf         = bodiesBuf,
+        .branchBuf         = vegStorage.branchBuf,
+        .branchAllocRegBuf = vegStorage.branchAllocRegBuf});
 
     m_activeChunksBuf = &activationBufs.activeChunksBuf;
     m_simulationDS.write(
-        eUniformBuffer, k_allocRequestBufBinding, 0, activationBufs.allocReqBuf, 0, vk::WholeSize
+        eUniformBuffer, k_branchAllocReqBinding, 0, activationBufs.allocReqBuf
     );
 
     return m_worldTex;

@@ -32,6 +32,7 @@ public:
         re::DescriptorSet& descriptorSet;
         const re::Buffer&  bodiesBuf;
         const re::Buffer&  branchBuf;
+        const re::Buffer&  branchAllocRegBuf;
     };
 
     struct ActivationBuffers {
@@ -108,8 +109,9 @@ private:
     glm::uvec2   m_analyzeContinuityGroupCount{};
 
     std::string        m_folderPath;
-    const re::Texture* m_worldTex  = nullptr;
-    const re::Buffer*  m_branchBuf = nullptr;
+    const re::Texture* m_worldTex          = nullptr;
+    const re::Buffer*  m_branchBuf         = nullptr;
+    const re::Buffer*  m_branchAllocRegBuf = nullptr;
 
     glm::ivec2 m_worldTexMaskCh{};
 

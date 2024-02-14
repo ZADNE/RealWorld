@@ -7,6 +7,7 @@
 #include <RealWorld/constants/chunk.hpp>
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/vegetation.hpp>
+#include <RealWorld/vegetation/BranchAllocRegSB.hpp>
 #include <RealWorld/vegetation/BranchSB.hpp>
 #include <RealWorld/vegetation/VegSimulator.hpp>
 
@@ -20,6 +21,9 @@ using A2 = vk::AccessFlagBits2;
 
 namespace rw {
 
+constexpr glm::uint k_branchBinding      = 0;
+constexpr glm::uint k_worldTexAttBinding = 1;
+
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
 VegSimulator::VegSimulator()
@@ -27,8 +31,8 @@ VegSimulator::VegSimulator()
           {},
           re::PipelineLayoutDescription{
               .bindings =
-                  {{{0, D::eStorageBuffer, 1, eVertex | eFragment}, // Branch buffer
-                    {1, D::eInputAttachment, 1, eFragment}}}, // World texture
+                  {{{k_branchBinding, D::eStorageBuffer, 1, eVertex | eFragment},
+                    {k_worldTexAttBinding, D::eInputAttachment, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
                   eVertex | eTessellationControl | eTessellationEvaluation,
                   0u,
@@ -123,8 +127,8 @@ void VegSimulator::unrasterizeVegetation(const re::CommandBuffer& cmdBuf) {
     // Unrasterize branches from previous step
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
     cmdBuf->drawIndirect(
-        *m_branchBuf,
-        offsetof(BranchSB, allocReg.allocations),
+        *m_branchAllocRegBuf,
+        offsetof(BranchAllocRegSB, allocations),
         k_maxBranchAllocCount,
         sizeof(BranchAllocation)
     );
@@ -146,8 +150,8 @@ void VegSimulator::rasterizeVegetation(const re::CommandBuffer& cmdBuf) {
     // Simulate and rasterize branches
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
     cmdBuf->drawIndirect(
-        *m_branchBuf,
-        offsetof(BranchSB, allocReg.allocations),
+        *m_branchAllocRegBuf,
+        offsetof(BranchAllocRegSB, allocations),
         k_maxBranchAllocCount,
         sizeof(BranchAllocation)
     );
@@ -164,22 +168,26 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
 
     // Prepare branch buffer
-    auto allocReg = std::make_unique<BranchAllocRegister>(); // Quite big for stack...
-    allocReg->allocations[0] =
-        BranchAllocation{.firstBranch = 0, .capacity = k_maxBranchCount};
-
     m_branchBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = sizeof(BranchSB),
-        .usage = eStorageBuffer | eIndirectBuffer | eTransferSrc | eTransferDst,
-        .initData          = re::objectToByteSpan(*allocReg),
-        .initDataDstOffset = offsetof(BranchSB, allocReg),
-        .debugName         = "rw:VegSimulator::branch"}};
+        .usage       = eStorageBuffer | eTransferSrc | eTransferDst,
+        .debugName   = "rw:VegSimulator::branch"}};
+
+    // Prepare branch allocation register buffer
+    auto allocReg = std::make_unique<BranchAllocRegSB>(); // Quite big for stack...
+    allocReg->allocations[0] = BranchAllocation{.capacity = k_maxBranchCount};
+    m_branchAllocRegBuf      = re::Buffer{re::BufferCreateInfo{
+             .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+             .sizeInBytes = sizeof(BranchAllocRegSB),
+             .usage       = eStorageBuffer | eIndirectBuffer | eTransferSrc,
+             .initData    = re::objectToByteSpan(*allocReg),
+             .debugName   = "rw:VegSimulator::branchAllocReg"}};
 
     // Prepare descriptor
-    m_descriptorSet.write(D::eStorageBuffer, 0u, 0u, m_branchBuf, 0ull, vk::WholeSize);
+    m_descriptorSet.write(D::eStorageBuffer, k_branchBinding, 0u, m_branchBuf);
     m_descriptorSet.write(
-        D::eInputAttachment, 1u, 0u, worldTex, vk::ImageLayout::eGeneral
+        D::eInputAttachment, k_worldTexAttBinding, 0u, worldTex, vk::ImageLayout::eGeneral
     );
 
     { // Prepare framebuffers
@@ -196,7 +204,8 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         m_rasterizationFramebuffer   = re::Framebuffer{createInfo};
     }
 
-    return VegStorage{.branchBuf = m_branchBuf};
+    return VegStorage{
+        .branchBuf = m_branchBuf, .branchAllocRegBuf = m_branchAllocRegBuf};
 }
 
 void VegSimulator::beginWorldTextureRenderPass(

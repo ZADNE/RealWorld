@@ -6,11 +6,10 @@
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
 #include <RealWorld/world/shaders/random.glsl>
-const int BranchSB_BINDING = 5;
-#include <RealWorld/vegetation/shaders/BranchSBWithAllocation.glsl>
-const int VegPreparationSB_BINDING = 6;
-#define VegPreparationSB_ACCESS writeonly
-#include <RealWorld/generation/shaders/VegPreparationSB.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#define VegPrepSB_ACCESS writeonly
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
 
 layout (local_size_x = 64,
         local_size_y = 1,
@@ -78,8 +77,10 @@ void main(){
     // Allocate space for all vegetation of the chunk
     if (gl_LocalInvocationID.x == 0){
         if (s_branchPrepI > 0){
+            lockAllocRegister();
             s_globalFirstBranchIndex = allocateBranches(
                 s_branchPrepI, tiToCh(chunkTi), p_worldTexSizeCh);
+            unlockAllocRegister();
             // Also reserve space in the preparation buffer
             s_vegPrepI = atomicAdd(b_vegPrep.vegDispatchSize.x, s_vegPrepI);
             s_branchPrepI = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchPrepI);

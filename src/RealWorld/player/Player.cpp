@@ -11,10 +11,14 @@
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
 
+using D = vk::DescriptorType;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
 namespace rw {
+
+constexpr glm::uint k_worldTexBinding = 0;
+constexpr glm::uint k_playerBinding   = 1;
 
 Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
     : m_playerTex(std::move(playerTex))
@@ -31,9 +35,7 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
           .usage       = eTransferDst | eTransferSrc,
           .initData    = re::objectToByteSpan(initSb),
           .debugName   = "rw::Player::hitboxStage"}) {
-    m_descriptorSet.write(
-        vk::DescriptorType::eStorageBuffer, 1u, 0u, m_hitboxBuf, 0u, sizeof(PlayerHitboxSB)
-    );
+    m_descriptorSet.write(D::eStorageBuffer, k_playerBinding, 0u, m_hitboxBuf);
 }
 
 void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) {
@@ -43,7 +45,7 @@ void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) 
         .dimsPx     = m_playerTex.subimageDims(),
         .velocityPx = glm::vec2(0.0f, 0.0f)};
     m_descriptorSet.write(
-        vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral
+        D::eStorageImage, k_worldTexBinding, 0u, worldTexture, vk::ImageLayout::eGeneral
     );
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
         vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(PlayerHitboxSB)};

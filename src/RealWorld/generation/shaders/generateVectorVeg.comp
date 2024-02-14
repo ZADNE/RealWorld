@@ -6,12 +6,10 @@
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
-const int VegTemplatesUB_BINDING = 2;
+#include <RealWorld/generation/shaders/generationPll.glsl>
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
-const int BranchSB_BINDING = 5;
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
-const int VegPreparationSB_BINDING = 6;
-#include <RealWorld/generation/shaders/VegPreparationSB.glsl>
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 
 layout (local_size_x = 64,
@@ -39,8 +37,10 @@ void generateTree(){
 
         // Write the branch
         uint outputIndex = s_inst.outputIndex + gl_LocalInvocationID.x;
-        b_branch.absPosTi[p_branchWriteBuf][outputIndex] = b.absPosTi + s_inst.rootPosTi;
-        b_branch.absAngNorm[p_branchWriteBuf][outputIndex] = b.absAngleNorm;
+        b_branch.absPosTi[0][outputIndex] = b.absPosTi + s_inst.rootPosTi;
+        b_branch.absAngNorm[0][outputIndex] = b.absAngleNorm;
+        b_branch.absPosTi[1][outputIndex] = b.absPosTi + s_inst.rootPosTi;
+        b_branch.absAngNorm[1][outputIndex] = b.absAngleNorm;
         storeBranchParentOffsetWallType(outputIndex, uint(-b.parentIndexOffset), b.wallType);
         b_branch.relRestAngNorm[outputIndex] = b.relRestAngleNorm;
         b_branch.angVel[outputIndex] = b.angleVelNorm;
@@ -83,8 +83,10 @@ void generateGrass(){
 
     // Write the branch
     uint outputIndex = s_inst.outputIndex + gl_LocalInvocationID.x;
-    b_branch.absPosTi[p_branchWriteBuf][outputIndex] = pTi;
-    b_branch.absAngNorm[p_branchWriteBuf][outputIndex] = angleNorm;
+    b_branch.absPosTi[0][outputIndex] = pTi;
+    b_branch.absAngNorm[0][outputIndex] = angleNorm;
+    b_branch.absPosTi[1][outputIndex] = pTi;
+    b_branch.absAngNorm[1][outputIndex] = angleNorm;
     storeBranchParentOffsetWallType(outputIndex, gl_LocalInvocationID.x & 1, WHEAT_WL);
     b_branch.relRestAngNorm[outputIndex] = angleNorm;
     b_branch.angVel[outputIndex] = 0.0;

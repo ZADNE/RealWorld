@@ -4,29 +4,39 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/world.glsl>
-const int ActiveChunksSB_BINDING = 1;
+#include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
-const int BranchSB_BINDING = 3;
-#include <RealWorld/vegetation/shaders/BranchSBWithAllocation.glsl>
-const int BranchAllocRequestUB_BINDING = 4;
-#include <RealWorld/vegetation/shaders/BranchAllocRequestUB.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocReqUB.glsl>
 
-layout (local_size_x = k_maxParallelTransfers,
+layout (local_size_x = 1,
         local_size_y = 1,
         local_size_z = 1
 ) in;
 
 void main(){
-    if (gl_LocalInvocationID.x < u_branchAllocRequest.uploadSlotsEnd){
-        // Allocate branches
-        allocateBranches(
-            u_branchAllocRequest.branchCount[gl_LocalInvocationID.x],
-            u_branchAllocRequest.targetCh[gl_LocalInvocationID.x],
-            u_branchAllocRequest.worldTexCh);
-    } else if (gl_LocalInvocationID.x >= u_branchAllocRequest.downloadSlotsBegin){
-        // Deallocate branches
-        freeBranches(
-            u_branchAllocRequest.targetCh[gl_LocalInvocationID.x],
-            u_branchAllocRequest.worldTexCh);
+    lockAllocRegister();
+
+    // Allocate branches
+    for (int i = 0; i < u_branchAllocReq.uploadSlotsEnd; ++i) {
+        int count = u_branchAllocReq.branchCount[i];
+        if (count > 0){
+            allocateBranches(
+                count,
+                u_branchAllocReq.targetCh[i],
+                u_branchAllocReq.worldTexCh);
+        }
     }
+
+    // Deallocate branches
+    for (int i = u_branchAllocReq.downloadSlotsBegin; i < k_chunkTransferSlots; ++i) {
+        int count = u_branchAllocReq.branchCount[i];
+        if (count > 0){
+            freeBranches(
+                u_branchAllocReq.targetCh[i],
+                u_branchAllocReq.worldTexCh);
+        }
+    }
+
+    unlockAllocRegister();
 }
