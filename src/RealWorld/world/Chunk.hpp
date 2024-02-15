@@ -37,6 +37,8 @@ public:
         glm::ivec2 posCh, std::vector<uint8_t>&& tiles, std::vector<uint8_t>&& branchesSerialized
     );
 
+    glm::ivec2 posCh() const { return m_posCh; }
+
     /**
      * @brief Gets a value of a tile inside the chunk.
      *

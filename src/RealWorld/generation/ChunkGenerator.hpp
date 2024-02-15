@@ -50,8 +50,9 @@ public:
 
     /**
      * @brief Generates planned chunks
+     * @return True if any chunk generation was planned
      */
-    void generate(const re::CommandBuffer& cmdBuf);
+    bool generate(const re::CommandBuffer& cmdBuf);
 
 protected:
     void generateBasicTerrain(const re::CommandBuffer& cmdBuf);

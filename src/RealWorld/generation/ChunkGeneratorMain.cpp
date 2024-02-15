@@ -90,7 +90,7 @@ bool ChunkGenerator::planGeneration(glm::ivec2 posCh) {
     return false;
 }
 
-void ChunkGenerator::generate(const re::CommandBuffer& cmdBuf) {
+bool ChunkGenerator::generate(const re::CommandBuffer& cmdBuf) {
     if (m_chunksPlanned > 0) {
         auto&                            secCmdBuf = *m_cmdBuf;
         vk::CommandBufferInheritanceInfo inheritanceInfo{};
@@ -112,7 +112,9 @@ void ChunkGenerator::generate(const re::CommandBuffer& cmdBuf) {
         secCmdBuf->end({});
         cmdBuf->executeCommands(*secCmdBuf);
         m_chunksPlanned = 0;
+        return true;
     }
+    return false;
 }
 
 void ChunkGenerator::copyToDestination(const re::CommandBuffer& cmdBuf) {

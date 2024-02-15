@@ -140,7 +140,7 @@ void VegSimulator::rasterizeVegetation(const re::CommandBuffer& cmdBuf) {
 
     // Update push constants
     m_vegDynamicsPC.timeSec += k_stepDurationSec;
-    m_vegDynamicsPC.readBuf = 1 - m_vegDynamicsPC.readBuf;
+    m_vegDynamicsPC.readBuf = re::StepDoubleBufferingState::readIndex();
 
     // Prepare rendering to world texture
     beginWorldTextureRenderPass(

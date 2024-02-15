@@ -1,8 +1,8 @@
 /*!
  *  @author     Dubsky Tomas
  */
-#ifndef BRANCH_SB_WITH_ALLOCATION_GLSL
-#define BRANCH_SB_WITH_ALLOCATION_GLSL
+#ifndef BRANCH_ALLOC_REG_SB_GLSL
+#define BRANCH_ALLOC_REG_SB_GLSL
 #include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/vegetation.glsl>
 
@@ -97,7 +97,7 @@ int allocateBranches(
  * @brief Frees space allocated for branches of the chunk
  * @warning The calling thread must have locked the register!
  */
-void freeBranches(
+void deallocateBranches(
     ivec2 chunkCh, ivec2 worldTexSizeCh
 ) {
     int chunkIndex = chToIndex(chunkCh, worldTexSizeCh);
@@ -140,4 +140,4 @@ void freeBranches(
     }
 }
 
-#endif // !BRANCH_SB_WITH_ALLOCATION_GLSL
+#endif // !BRANCH_ALLOC_REG_SB_GLSL

@@ -3,6 +3,7 @@
  */
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 
+#include <RealWorld/constants/chunk.hpp>
 #include <RealWorld/constants/light.hpp>
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
@@ -36,9 +37,9 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
     m_botLeftPx = botLeftPx;
     m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
     return ViewEnvelope{
-        .botLeftTi  = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi),
+        .botLeftTi  = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi) - iChunkTi,
         .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) +
-                      glm::ivec2(k_lightMaxRangeTi)};
+                      glm::ivec2(k_lightMaxRangeTi) + iChunkTi};
 }
 
 void WorldDrawer::beginStep(const re::CommandBuffer& cmdBuf) {

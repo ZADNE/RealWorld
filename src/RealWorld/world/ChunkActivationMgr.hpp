@@ -67,14 +67,9 @@ public:
      * @param cmdBuf Command buffer that will record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
-     * @param branchWriteBuf Index of the double buffered part of branch buffer
-     *                      that is for writing
      */
     void activateArea(
-        const re::CommandBuffer& cmdBuf,
-        glm::ivec2               botLeftTi,
-        glm::ivec2               topRightTi,
-        glm::uint                branchWriteBuf
+        const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
 
     glm::ivec2& activeChunkAtIndex(int acIndex);
@@ -86,16 +81,9 @@ public:
     ) const;
 
 private:
-    void planTransition(glm::ivec2 posCh, glm::uint branchWriteBuf);
-
-    void planActivation(
-        glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc, glm::uint branchWriteBuf
-    );
-
-    void planDeactivation(
-        glm::ivec2& activeChunk, glm::ivec2 posAc, glm::uint branchWriteBuf
-    );
-
+    void planTransition(glm::ivec2 posCh);
+    void planActivation(glm::ivec2& activeCh, glm::ivec2 posCh, glm::ivec2 posAc);
+    void planDeactivation(glm::ivec2& activeCh, glm::ivec2 posAc);
     void analyzeAfterChanges(const re::CommandBuffer& cmdBuf);
 
     int m_transparentChunkChanges = 0; /**< Number of changes in this step */

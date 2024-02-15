@@ -48,29 +48,28 @@ public:
      */
     int beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr);
 
-    /**
-     * @brief Uploads and downloads can only be planned when there is enough space
-     */
-    [[nodiscard]] bool hasFreeTransferSpace(glm::ivec2 posAc) const;
+    enum class UploadPlan { NoUploadSpace, AllocationPlanned, UploadPlanned };
 
     /**
      * @brief Plans an upload transfer
-     * @pre  hasFreeTransferSpace() == true
      * @note Must be called between beginStep() and endStep()
+     * @return Result of the planning
      */
-    void planUpload(
+    [[nodiscard]] UploadPlan planUpload(
         glm::ivec2                  posCh,
         glm::ivec2                  posAt,
         const std::vector<uint8_t>& tiles,
         std::span<const uint8_t>    branchesSerialized
     );
 
+    enum class DownloadPlan { NoDownloadSpace, DownloadPlanned };
+
     /**
      * @brief Plans a download transfer
-     * @pre  hasFreeTransferSpace() == true
      * @note Must be called between beginStep() and endStep()
+     * @return Result of the planning
      */
-    void planDownload(glm::ivec2 posCh, glm::ivec2 posAt, glm::uint branchReadBuf);
+    [[nodiscard]] DownloadPlan planDownload(glm::ivec2 posCh, glm::ivec2 posAt);
 
     /**
      * @brief Peforms all previously planned transfers
@@ -79,11 +78,9 @@ public:
         const re::CommandBuffer& cmdBuf,
         const re::Texture&       worldTex,
         const re::Buffer&        branchBuf,
-        glm::ivec2               worldTexMaskCh
-    );
-
-    void downloadBranchAllocRegister(
-        const re::CommandBuffer& cmdBuf, const re::Buffer& branchAllocRegBuf
+        const re::Buffer&        branchAllocRegBuf,
+        glm::ivec2               worldTexMaskCh,
+        bool                     externalBranchAllocChanges
     );
 
     const re::Buffer& allocReqBuf() const { return m_allocReqBuf; }

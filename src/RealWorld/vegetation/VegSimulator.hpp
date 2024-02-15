@@ -44,18 +44,12 @@ public:
 
     VegStorage adoptSave(const re::Texture& worldTex, glm::ivec2 worldTexSizeCh);
 
-    /**
-     * @brief   Returns index to the double buffered part of the branch buffer
-     * is currently for writing (swaps each step)
-     */
-    glm::uint writeBuf() const { return 1 - m_vegDynamicsPC.readBuf; }
-
 private:
     struct VegDynamicsPC {
         glm::mat4 mvpMat;
         glm::vec2 worldTexSizeTi;
         float     timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
-        glm::uint readBuf = 0;
+        glm::uint readBuf;
     } m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;

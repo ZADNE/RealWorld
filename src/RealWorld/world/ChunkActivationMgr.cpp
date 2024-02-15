@@ -124,10 +124,7 @@ size_t ChunkActivationMgr::numberOfInactiveChunks() {
 }
 
 void ChunkActivationMgr::activateArea(
-    const re::CommandBuffer& cmdBuf,
-    glm::ivec2               botLeftTi,
-    glm::ivec2               topRightTi,
-    glm::uint                branchWriteBuf
+    const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
     auto dbg = cmdBuf.createDebugRegion("activation manager");
     // Check inactive chunks that have been inactive for too long
@@ -146,7 +143,8 @@ void ChunkActivationMgr::activateArea(
     }
 
     // Finish transfers from previous step
-    m_transparentChunkChanges =
+    // Accumulate changes since last analysis
+    m_transparentChunkChanges +=
         m_chunkTransferMgr.beginStep(m_worldTexMaskCh + 1, *this);
 
     glm::ivec2 botLeftCh  = tiToCh(botLeftTi);
@@ -155,18 +153,22 @@ void ChunkActivationMgr::activateArea(
     // Activate all chunks that at least partially overlap the area
     for (int y = botLeftCh.y; y <= topRightCh.y; ++y) {
         for (int x = botLeftCh.x; x <= topRightCh.x; ++x) {
-            planTransition(glm::ivec2(x, y), branchWriteBuf);
+            planTransition(glm::ivec2(x, y));
         }
     }
 
     // Record planned generation
-    m_chunkGen.generate(cmdBuf);
+    bool chunkGenerated = m_chunkGen.generate(cmdBuf);
 
     // Record planned uploads/downloads
-    m_chunkTransferMgr.endStep(cmdBuf, *m_worldTex, *m_branchBuf, m_worldTexMaskCh);
+    m_chunkTransferMgr.endStep(
+        cmdBuf, *m_worldTex, *m_branchBuf, *m_branchAllocRegBuf, m_worldTexMaskCh, chunkGenerated
+    );
 
     // If there have been transparent changes
-    if (m_transparentChunkChanges > 0) {
+    // And it is the 'activation' step
+    if (m_transparentChunkChanges > 0 &&
+        re::StepDoubleBufferingState::writeIndex()) {
         analyzeAfterChanges(cmdBuf);
     }
 }
@@ -183,77 +185,83 @@ void ChunkActivationMgr::addInactiveChunk(glm::ivec2 posCh, Chunk&& chunk) {
 void ChunkActivationMgr::saveChunk(
     glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized
 ) const {
-    ChunkLoader::saveChunk(m_folderPath, posCh, iChunkTi, tiles, branchesSerialized);
+    ChunkLoader::saveChunk(m_folderPath, posCh, tiles, branchesSerialized);
 }
 
-void ChunkActivationMgr::planTransition(glm::ivec2 posCh, glm::uint branchWriteBuf) {
-    auto posAc = chToAc(posCh, m_worldTexMaskCh);
-    auto& activeChunk = activeChunkAtIndex(acToIndex(posAc, m_worldTexMaskCh + 1));
-    if (activeChunk == posCh) {
+void ChunkActivationMgr::planTransition(glm::ivec2 posCh) {
+    auto  posAc    = chToAc(posCh, m_worldTexMaskCh);
+    auto& activeCh = activeChunkAtIndex(acToIndex(posAc, m_worldTexMaskCh + 1));
+    if (activeCh == posCh) {
         // Chunk has already been active
         return; // No transition is needed
-    } else if (activeChunk == k_chunkNotActive) {
+    } else if (activeCh == k_chunkNotActive) {
         // No chunk is active at the spot
-        planActivation(activeChunk, posCh, posAc, branchWriteBuf);
-    } else if (activeChunk != k_chunkBeingDownloaded && activeChunk != k_chunkBeingUploaded) {
+        planActivation(activeCh, posCh, posAc);
+    } else if (!isSpecialChunk(activeCh)) {
         // A different chunk is active at the spot
-        planDeactivation(activeChunk, posAc, branchWriteBuf);
+        planDeactivation(activeCh, posAc);
     }
 }
 
 void ChunkActivationMgr::planActivation(
-    glm::ivec2& activeChunk, glm::ivec2 posCh, glm::ivec2 posAc, glm::uint branchWriteBuf
+    glm::ivec2& activeCh, glm::ivec2 posCh, glm::ivec2 posAc
 ) {
+    using enum ChunkTransferMgr::UploadPlan;
     // Try to find the chunk among inactive chunks
-    auto it = m_inactiveChunks.find(posCh);
-    if (it != m_inactiveChunks.end()) {
+    if (auto it = m_inactiveChunks.find(posCh); it != m_inactiveChunks.end()) {
         // Query upload of the chunk
-        if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
-            m_chunkTransferMgr.planUpload(
-                posCh, chToTi(posAc), it->second.tiles(), it->second.branchesSerialized()
-            );
+        auto res = m_chunkTransferMgr.planUpload(
+            posCh, chToTi(posAc), it->second.tiles(), it->second.branchesSerialized()
+        );
+        switch (res) {
+        case UploadPlanned:
             // Remove the chunk from inactive chunks
             m_inactiveChunks.erase(it);
             // And signal that it is being uploaded
-            activeChunk = k_chunkBeingUploaded;
+            activeCh = k_chunkBeingUploaded;
+            break;
+        case AllocationPlanned:
+            // Chunk remains inactive
+            activeCh = k_chunkBeingAllocated;
+            break;
         }
     } else {
-        auto chunkData = ChunkLoader::loadChunk(m_folderPath, posCh, iChunkTi);
-        if (chunkData.tiles.size() > 0) { // If chunk has been loaded
-            if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
-                m_chunkTransferMgr.planUpload(
-                    posCh, chToTi(posAc), chunkData.tiles, chunkData.branchesSerialized
-                );
+        auto maybeChunk = ChunkLoader::loadChunk(m_folderPath, posCh);
+        if (maybeChunk.has_value()) { // If chunk has been loaded
+            auto res = m_chunkTransferMgr.planUpload(
+                posCh,
+                chToTi(posAc),
+                maybeChunk->tiles(),
+                maybeChunk->branchesSerialized()
+            );
+            switch (res) {
+            case UploadPlanned:
                 // Signal that it is being uploaded
-                activeChunk = k_chunkBeingUploaded;
-            } else {
+                activeCh = k_chunkBeingUploaded;
+                break;
+            case AllocationPlanned:
+            case NoUploadSpace:
                 // Could not upload the chunk
                 // At least store it as an inactive chunk
-                m_inactiveChunks.emplace(
-                    posCh,
-                    Chunk{
-                        posCh,
-                        std::move(chunkData.tiles),
-                        std::move(chunkData.branchesSerialized)}
-                );
+                m_inactiveChunks.emplace(posCh, std::move(*maybeChunk));
+                break;
             }
         } else {
             // Chunk is not on the disk, it has to be generated
             if (m_chunkGen.planGeneration(posCh)) { // If generation could be planned
-                activeChunk = posCh;
+                activeCh = posCh;
                 m_transparentChunkChanges++;
             }
         }
     }
 }
 
-void ChunkActivationMgr::planDeactivation(
-    glm::ivec2& activeChunk, glm::ivec2 posAc, glm::uint branchWriteBuf
-) {
+void ChunkActivationMgr::planDeactivation(glm::ivec2& activeCh, glm::ivec2 posAc) {
+    using enum ChunkTransferMgr::DownloadPlan;
     // Query download of the chunk
-    if (m_chunkTransferMgr.hasFreeTransferSpace(posAc)) {
-        m_chunkTransferMgr.planDownload(activeChunk, chToTi(posAc), 1 - branchWriteBuf);
-        activeChunk = k_chunkBeingDownloaded; // Deactivate the spot
+    if (m_chunkTransferMgr.planDownload(activeCh, chToTi(posAc)) ==
+        DownloadPlanned) {
+        activeCh = k_chunkBeingDownloaded; // Deactivate the spot
         m_transparentChunkChanges++;
     }
 }
@@ -330,8 +338,6 @@ void ChunkActivationMgr::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
         );
         cmdBuf->pipelineBarrier2({{}, {}, bufferBarriers, {}});
     }
-
-    m_chunkTransferMgr.downloadBranchAllocRegister(cmdBuf, *m_branchAllocRegBuf);
 }
 
 } // namespace rw

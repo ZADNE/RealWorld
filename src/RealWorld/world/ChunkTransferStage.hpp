@@ -18,9 +18,10 @@ template<uint32_t k_stageSlotCount, uint32_t k_branchStageCount>
 struct StageBuf {
     std::array<uint8_t, k_chunkByteSize> tiles[k_stageSlotCount];
     std::array<uint8_t, k_branchStageCount * sizeof(BranchSerialized)> branches;
+    BranchAllocReqUB branchAllocReq;
 };
 
-struct StageSlot {
+struct TransferSlot {
     glm::ivec2 targetCh{};
     int        branchCount{};
     int        branchByteOffset{};
@@ -36,13 +37,24 @@ public:
 
     ChunkTransferStage() { reset(); }
 
+    void setTarget(glm::ivec2 worldTexCh) {
+        m_buf->branchAllocReq.worldTexCh = worldTexCh;
+    }
+
     void reset() {
-        m_upSlotsEnd           = 0;
-        m_downSlotsBegin       = k_stageSlotCount;
-        m_branchUpSlotsEnd     = 0;
-        m_branchDownSlotsBegin = m_branchCopyRegions.size();
-        m_branchUpBytesEnd     = 0;
-        m_branchDownBytesBegin = sizeof(StageBuf::branches);
+        m_upSlotsEnd                            = 0;
+        m_downSlotsBegin                        = k_stageSlotCount;
+        m_buf->branchAllocReq.allocSlotsEnd     = 0;
+        m_buf->branchAllocReq.deallocSlotsBegin = k_stageSlotCount;
+        m_branchUpSlotsEnd                      = 0;
+        m_branchDownSlotsBegin                  = m_branchCopyRegions.size();
+        m_branchUpBytesEnd                      = 0;
+        m_branchDownBytesBegin                  = sizeof(StageBuf::branches);
+    }
+
+    bool allocsOrDeallocsPlanned() {
+        return m_buf->branchAllocReq.allocSlotsEnd != 0 ||
+               m_buf->branchAllocReq.deallocSlotsBegin != k_stageSlotCount;
     }
 
     int numberOfUploads() const { return m_upSlotsEnd; }
@@ -54,6 +66,11 @@ public:
         return m_branchCopyRegions.size() - m_branchDownSlotsBegin;
     }
 
+    void forEachBranchAllocation(std::invocable<glm::ivec2> auto func) const {
+        const auto& req = m_buf->branchAllocReq;
+        for (int i = 0; i < req.allocSlotsEnd; ++i) { func(req.targetCh[i]); }
+    }
+
     void forEachUpload(std::invocable<int> auto func) const {
         for (int i = 0; i < m_upSlotsEnd; ++i) { func(i); }
     }
@@ -62,33 +79,41 @@ public:
         for (int i = m_downSlotsBegin; i < k_stageSlotCount; ++i) { func(i); }
     }
 
-    StageSlot slot(int i) const { return m_slots[i]; }
+    TransferSlot slot(int i) const { return m_slots[i]; }
 
     const uint8_t* tiles(int i) const { return m_buf->tiles[i].data(); }
 
-    std::span<const uint8_t> branchesSerializedSpan(StageSlot slt) const {
+    std::span<const uint8_t> branchesSerializedSpan(TransferSlot slt) const {
         return std::span{
             m_buf->branches.begin() + slt.branchByteOffset,
             m_buf->branches.begin() + slt.branchByteOffset +
                 slt.branchCount * sizeof(BranchSerialized)};
     }
 
-    bool hasFreeTransferSpace(int branchCount) const {
-        bool slotsAvailable = m_upSlotsEnd < m_downSlotsBegin;
-        bool branchBytesAvailable =
-            m_branchUpBytesEnd + (branchCount * sizeof(BranchSerialized)) <=
-            m_branchDownBytesBegin;
-        return slotsAvailable && branchBytesAvailable;
+    [[nodiscard]] bool insertBranchAllocation(glm::ivec2 posCh, int branchCount) {
+        assert(branchCount > 0);
+        if (!hasFreeRequestSpace()) {
+            return false;
+        }
+        // Request allocation
+        auto& reqSlot = m_buf->branchAllocReq.allocSlotsEnd;
+        m_buf->branchAllocReq.targetCh[reqSlot]    = posCh;
+        m_buf->branchAllocReq.branchCount[reqSlot] = branchCount;
+        reqSlot++;
+        return true;
     }
 
-    void insertUpload(
+    [[nodiscard]] bool insertUpload(
         glm::ivec2               posCh,
         glm::ivec2               posAt,
         BranchRange              range,
-        glm::uint                branchReadBuf,
         const uint8_t*           tiles,
         std::span<const uint8_t> branchesSerialized
     ) {
+        if (!hasFreeTransferSpace(range.count)) {
+            return false;
+        }
+
         auto& upSlotsEnd = m_upSlotsEnd;
         std::memcpy(&m_buf->tiles[upSlotsEnd], tiles, k_chunkByteSize);
         m_tileCopyRegions[upSlotsEnd] = vk::BufferImageCopy2{
@@ -153,19 +178,21 @@ public:
             sizeBytes = sizeof(BranchSerialized::absAngNorm) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, absAngNorm[branchReadBuf][range.begin]),
+                offsetof(BranchSB, absAngNorm[0][range.begin]),
                 sizeBytes};
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::absPosTi) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, absPosTi[branchReadBuf][range.begin]),
+                offsetof(BranchSB, absPosTi[0][range.begin]),
                 sizeBytes};
             m_branchUpBytesEnd += sizeBytes;
         }
 
-        m_slots[upSlotsEnd] = StageSlot{.targetCh = posCh, .branchCount = range.count};
+        m_slots[upSlotsEnd] =
+            TransferSlot{.targetCh = posCh, .branchCount = range.count};
         upSlotsEnd++;
+        return true;
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferImageCopy2> tileUploadRegions() const {
@@ -178,9 +205,15 @@ public:
             m_branchCopyRegions.data()};
     }
 
-    void insertDownload(
-        glm::ivec2 posCh, glm::ivec2 posAt, BranchRange range, glm::uint branchReadBuf
+    [[nodiscard]] bool insertDownloadAndBranchDeallocation(
+        glm::ivec2 posCh, glm::ivec2 posAt, BranchRange range
     ) {
+        if (!hasFreeTransferSpace(range.count) ||
+            (range.count > 0 && !hasFreeRequestSpace())) {
+            return false;
+        }
+
+        // Plan donwload of tiles
         auto downSlotsBegin               = --m_downSlotsBegin;
         m_tileCopyRegions[downSlotsBegin] = vk::BufferImageCopy2{
             offsetof(StageBuf, tiles[downSlotsBegin]), // Buffer offset
@@ -197,13 +230,13 @@ public:
                                        range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                offsetof(BranchSB, absPosTi[branchReadBuf][range.begin]),
+                offsetof(BranchSB, absPosTi[0][range.begin]),
                 offsetof(StageBuf, branches) + m_branchDownBytesBegin,
                 sizeBytes};
             sizeBytes = sizeof(BranchSerialized::absAngNorm) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                offsetof(BranchSB, absAngNorm[branchReadBuf][range.begin]),
+                offsetof(BranchSB, absAngNorm[0][range.begin]),
                 offsetof(StageBuf, branches) + m_branchDownBytesBegin,
                 sizeBytes};
             sizeBytes = sizeof(BranchSerialized::parentOffset15wallType31) *
@@ -249,11 +282,17 @@ public:
                 offsetof(BranchSB, raster[range.begin]),
                 offsetof(StageBuf, branches) + m_branchDownBytesBegin,
                 sizeBytes};
+
+            { // Request deallocation
+                auto reqSlot = --m_buf->branchAllocReq.deallocSlotsBegin;
+                m_buf->branchAllocReq.targetCh[reqSlot] = posCh;
+            }
         }
-        m_slots[downSlotsBegin] = StageSlot{
+        m_slots[downSlotsBegin] = TransferSlot{
             .targetCh         = posCh,
             .branchCount      = range.count,
             .branchByteOffset = m_branchDownBytesBegin};
+        return true;
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferImageCopy2> tileDownloadRegions() const {
@@ -268,33 +307,32 @@ public:
             m_branchCopyRegions.data() + m_branchDownSlotsBegin};
     }
 
-    [[nodiscard]] BranchAllocReqUB composeBranchAllocRequest(glm::ivec2 worldTexCh
-    ) const {
-        BranchAllocReqUB req;
-        auto             setReq = [&](int i) {
-            auto slt           = slot(i);
-            req.targetCh[i]    = slt.targetCh;
-            req.branchCount[i] = slt.branchCount;
-        };
-        forEachUpload(setReq);
-        forEachDownload(setReq);
-        req.worldTexCh         = worldTexCh;
-        req.uploadSlotsEnd     = m_upSlotsEnd;
-        req.downloadSlotsBegin = m_downSlotsBegin;
-        return req;
-    }
-
     const re::Buffer& buffer() const { return m_buf; }
 
 private:
+    bool hasFreeTransferSpace(int branchCount) const {
+        bool slotsAvailable = m_upSlotsEnd < m_downSlotsBegin;
+        bool branchBytesAvailable =
+            m_branchUpBytesEnd + (branchCount * sizeof(BranchSerialized)) <=
+            m_branchDownBytesBegin;
+        return slotsAvailable && branchBytesAvailable;
+    }
+
+    bool hasFreeRequestSpace() const {
+        return m_buf->branchAllocReq.allocSlotsEnd <
+               m_buf->branchAllocReq.deallocSlotsBegin;
+    }
+
     int m_upSlotsEnd;
     int m_downSlotsBegin;
+    int m_allocSlotsEnd;
+    int m_deallocSlotsBegin;
     int m_branchUpSlotsEnd;
     int m_branchDownSlotsBegin;
     int m_branchUpBytesEnd;
     int m_branchDownBytesBegin;
 
-    std::array<StageSlot, k_stageSlotCount> m_slots;
+    std::array<TransferSlot, k_stageSlotCount> m_slots;
 
     /**
      * @brief Is the actually stage buffer for tile and branch transfers

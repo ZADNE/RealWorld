@@ -17,25 +17,25 @@ namespace rw {
 using PNGChunkName = std::array<char, 5>;
 constexpr PNGChunkName k_branchPNGChunkName{'b', 'r', 'N', 'c', '\0'};
 
-ChunkLoader::ChunkData ChunkLoader::loadChunk(
-    const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims
+std::optional<Chunk> ChunkLoader::loadChunk(
+    const std::string& folderPath, glm::ivec2 posCh
 ) {
     lodepng::State state{};
     state.decoder.remember_unknown_chunks = 1;
     state.info_png.color.colortype        = LCT_RGBA;
     state.decoder.color_convert           = 1;
-    ChunkData            out{};
     glm::uvec2           realDims;
     unsigned int         err;
     std::vector<uint8_t> encoded;
-    std::string          fullPath = folderPath + chunkToChunkFilename(chunkPos);
+    std::string          fullPath = folderPath + chunkToChunkFilename(posCh);
+    std::vector<uint8_t> tiles;
 
     // Load file and decode tiles
     if ((err = lodepng::load_file(encoded, fullPath)) ||
-        (err = lodepng::decode(out.tiles, realDims.x, realDims.y, state, encoded)) ||
-        chunkDims != realDims) {
+        (err = lodepng::decode(tiles, realDims.x, realDims.y, state, encoded)) ||
+        realDims != uChunkTi) {
         // Loading file or decoding tiles failed
-        return ChunkData{};
+        return {};
     }
 
     // Load branches (if present)
@@ -48,20 +48,22 @@ ChunkLoader::ChunkData ChunkLoader::loadChunk(
             PNGChunkName chunkName;
             lodepng_chunk_type(chunkName.data(), chunk);
             if (chunkName == k_branchPNGChunkName) {
+                // Successfully loaded chunk AND branches
                 const uint8_t* data = lodepng_chunk_data_const(chunk);
-                out.branchesSerialized.assign(data, data + lodepng_chunk_length(chunk));
-                return out; // Successfully loaded chunk AND branches
+                return Chunk{
+                    posCh,
+                    std::move(tiles),
+                    std::vector(data, data + lodepng_chunk_length(chunk))};
             }
         }
     }
-
-    return out; // No branches found but that is fine
+    // No branches found but that is fine
+    return Chunk{posCh, std::move(tiles), {}};
 }
 
 void ChunkLoader::saveChunk(
     const std::string&       folderPath,
-    glm::ivec2               chunkPos,
-    glm::uvec2               chunkDims,
+    glm::ivec2               posCh,
     const uint8_t*           tiles,
     std::span<const uint8_t> branchesSerialized
 ) {
@@ -73,7 +75,7 @@ void ChunkLoader::saveChunk(
         if (err = lodepng_chunk_create(
                 &state.info_png.unknown_chunks_data[0],
                 &state.info_png.unknown_chunks_size[0],
-                static_cast<unsigned int>(branchesSerialized.size_bytes()),
+                static_cast<unsigned int>(branchesSerialized.size()),
                 k_branchPNGChunkName.data(),
                 branchesSerialized.data()
             )) {
@@ -82,11 +84,11 @@ void ChunkLoader::saveChunk(
         }
 
         // Encode tiles and save file
-        std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);
+        std::string fullPath = folderPath + chunkToChunkFilename(posCh);
         state.info_png.color.colortype = LCT_RGBA;
         state.encoder.auto_convert     = 0;
         std::vector<uint8_t> png;
-        if ((err = lodepng::encode(png, tiles, chunkDims.x, chunkDims.y, state)) ||
+        if ((err = lodepng::encode(png, tiles, uChunkTi.x, uChunkTi.y, state)) ||
             (err = lodepng::save_file(png, fullPath))) {
             // Encoding or saving failed
             throw std::runtime_error{lodepng_error_text(err)};

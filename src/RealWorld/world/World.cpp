@@ -155,9 +155,7 @@ void World::step(
     cmdBuf->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );
-    m_chunkActivationMgr.activateArea(
-        cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
-    );
+    m_chunkActivationMgr.activateArea(cmdBuf, botLeftTi, topRightTi);
 
     // Bodies
     // m_bodySimulator.step(cmdBuf);

@@ -39,8 +39,6 @@ void generateTree(){
         uint outputIndex = s_inst.outputIndex + gl_LocalInvocationID.x;
         b_branch.absPosTi[0][outputIndex] = b.absPosTi + s_inst.rootPosTi;
         b_branch.absAngNorm[0][outputIndex] = b.absAngleNorm;
-        b_branch.absPosTi[1][outputIndex] = b.absPosTi + s_inst.rootPosTi;
-        b_branch.absAngNorm[1][outputIndex] = b.absAngleNorm;
         storeBranchParentOffsetWallType(outputIndex, uint(-b.parentIndexOffset), b.wallType);
         b_branch.relRestAngNorm[outputIndex] = b.relRestAngleNorm;
         b_branch.angVel[outputIndex] = b.angleVelNorm;
@@ -85,8 +83,6 @@ void generateGrass(){
     uint outputIndex = s_inst.outputIndex + gl_LocalInvocationID.x;
     b_branch.absPosTi[0][outputIndex] = pTi;
     b_branch.absAngNorm[0][outputIndex] = angleNorm;
-    b_branch.absPosTi[1][outputIndex] = pTi;
-    b_branch.absAngNorm[1][outputIndex] = angleNorm;
     storeBranchParentOffsetWallType(outputIndex, gl_LocalInvocationID.x & 1, WHEAT_WL);
     b_branch.relRestAngNorm[outputIndex] = angleNorm;
     b_branch.angVel[outputIndex] = 0.0;

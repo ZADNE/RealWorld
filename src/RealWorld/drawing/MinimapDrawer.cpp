@@ -101,9 +101,10 @@ void MinimapDrawer::drawMinimapLines(
 
         // View extended by light range
         addRectangle(
-            static_cast<glm::ivec2>(botLeftPx - tiToPx(glm::vec2{k_lightMaxRangeTi})) &
-                mask,
-            m_viewSizePx + tiToPx(glm::vec2{k_lightMaxRangeTi}) * 2.0f
+            static_cast<glm::ivec2>(
+                botLeftPx - tiToPx(glm::vec2{k_lightMaxRangeTi + iChunkTi})
+            ) & mask,
+            m_viewSizePx + tiToPx(glm::vec2{k_lightMaxRangeTi + iChunkTi}) * 2.0f
         );
     }
 

@@ -11,8 +11,8 @@ restrict uniform BranchAllocReqUB {
     ivec2   targetCh[k_chunkTransferSlots];
     int     branchCount[k_chunkTransferSlots];
     ivec2   worldTexCh;
-    int     uploadSlotsEnd;
-    int     downloadSlotsBegin;
+    int     allocSlotsEnd;
+    int     deallocSlotsBegin;
 } u_branchAllocReq;
 
 #endif // !BRANCH_ALLOC_REQ_UB_GLSL

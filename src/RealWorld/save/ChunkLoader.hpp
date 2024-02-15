@@ -2,11 +2,14 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
 
 #include <glm/vec2.hpp>
+
+#include <RealWorld/world/Chunk.hpp>
 
 namespace rw {
 
@@ -16,37 +19,26 @@ namespace rw {
  */
 class ChunkLoader {
 public:
-    struct ChunkData {
-        std::vector<uint8_t> tiles;
-        std::vector<uint8_t> branchesSerialized;
-    };
-
     /**
      * @brief Loads chunk from file in standard location.
      *
      * @param folderPath Path to the world folder, including the file separator
-     * @param chunkPos Position of the chunk, measured in chunks
-     * @param chunkDims Expected dimension of the chunk
-     * @return  Tiles and serialized branches of the chunk if successful
-     *          Empty ChunkData if the file was not found or was corrupted
+     * @param posCh Position of the chunk, measured in chunks
+     * @return The chunk if successfuly, empty optional otherwise
      */
-    static ChunkData loadChunk(
-        const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims
+    static std::optional<Chunk> loadChunk(
+        const std::string& folderPath, glm::ivec2 posCh
     );
 
     /**
      * @brief Saves chunk to file in standard location.
      *
      * @param folderPath Path to the world folder, including the file separator
-     * @param chunkPos Position of the chunk, measured in chunks
-     * @param chunkDims Dimension of the chunk
-     * @param tiles Tiles of the chunk
      * @throws std::runtime_error unable to encode bytes or save file
      */
     static void saveChunk(
         const std::string&       folderPath,
-        glm::ivec2               chunkPos,
-        glm::uvec2               chunkDims,
+        glm::ivec2               posCh,
         const uint8_t*           tiles,
         std::span<const uint8_t> branchesSerialized
     );

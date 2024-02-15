@@ -30,6 +30,21 @@ constexpr uint32_t k_maxWorldTexChunkCount = k_maxWorldTexSizeCh.x *
  */
 constexpr uint32_t k_chunkTransferSlots = 16;
 
+constexpr glm::ivec2 k_chunkNotActive{std::numeric_limits<int>::max()};
+constexpr glm::ivec2 k_chunkBeingDownloaded{k_chunkNotActive - 1};
+constexpr glm::ivec2 k_chunkBeingAllocated{k_chunkNotActive - 2};
+constexpr glm::ivec2 k_chunkBeingUploaded{k_chunkNotActive - 3};
+
+constexpr bool isSpecialChunk(glm::ivec2 posCh) {
+    switch (posCh.x) {
+    case k_chunkNotActive.x:
+    case k_chunkBeingDownloaded.x:
+    case k_chunkBeingAllocated.x:
+    case k_chunkBeingUploaded.x: return true;
+    }
+    return false;
+}
+
 /**
  * @brief Converts a position in chunks to its active form equivalent
  */

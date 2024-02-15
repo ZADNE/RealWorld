@@ -18,6 +18,9 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
+using enum ChunkTransferMgr::DownloadPlan;
+using enum ChunkTransferMgr::UploadPlan;
+
 ChunkTransferMgr::ChunkTransferMgr(const re::PipelineLayout& pipelineLayout)
     : m_allocBranchesPl(
           {.pipelineLayout = *pipelineLayout,
@@ -28,6 +31,8 @@ ChunkTransferMgr::ChunkTransferMgr(const re::PipelineLayout& pipelineLayout)
 
 void ChunkTransferMgr::setTarget(glm::ivec2 worldTexCh) {
     m_worldTexCh = worldTexCh;
+    m_stage.forEach([&](auto& st) { st.setTarget(worldTexCh); });
+    *m_regBuf = BranchAllocRegSB{};
 }
 
 bool ChunkTransferMgr::saveChunks(
@@ -89,21 +94,21 @@ bool ChunkTransferMgr::saveChunks(
 
     for (int y = 0; y < worldTexCh.y; ++y) {
         for (int x = 0; x < worldTexCh.x; ++x) {
-            auto  posAc = glm::ivec2(x, y);
-            auto& activeChunk =
-                actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
-            if (activeChunk != k_chunkNotActive) {
-                if (hasFreeTransferSpace(posAc)) { // If there is space in the stage
-                    planDownload(activeChunk, chToTi(posAc), 0);
-                } else {
+            auto posAc = glm::ivec2(x, y);
+            auto& activeCh = actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
+            if (activeCh != k_chunkNotActive) {
+                if (planDownload(activeCh, chToTi(posAc)) != DownloadPlanned) {
+                    // The stage is full
                     recordAllPlannedDownload();
                     cmdBuf->end();
-                    cmdBuf.submitToComputeQueue(*downloadFinishedFence);
+                    cmdBuf.submitToGraphicsCompQueue(*downloadFinishedFence);
                     downloadFinishedFence.wait();
                     downloadFinishedFence.reset();
                     saveAllChunksInTileStage();
                     cmdBuf->begin({eOneTimeSubmit});
-                    planDownload(activeChunk, chToTi(posAc), 0);
+                    if (planDownload(activeCh, chToTi(posAc)) != DownloadPlanned) {
+                        return false; // Shouild not happen...
+                    }
                 }
             }
         }
@@ -123,7 +128,7 @@ bool ChunkTransferMgr::saveChunks(
         cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
     cmdBuf->end();
-    cmdBuf.submitToComputeQueue(*downloadFinishedFence);
+    cmdBuf.submitToGraphicsCompQueue(*downloadFinishedFence);
     downloadFinishedFence.wait();
     downloadFinishedFence.reset();
     saveAllChunksInTileStage();
@@ -131,30 +136,38 @@ bool ChunkTransferMgr::saveChunks(
 }
 
 int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr) {
-    glm::ivec2 worldTexSizeMask = worldTexCh - 1;
+    auto chToActiveCh = [&](glm::ivec2 posCh) -> glm::ivec2& {
+        auto posAc = chToAc(posCh, worldTexCh - 1);
+        return actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
+    };
+
+    // Finalize allocations
+    m_stage->forEachBranchAllocation([&](glm::ivec2 posCh) {
+        // Signal that allocation has finished
+        auto& activeCh = chToActiveCh(posCh);
+        activeCh       = k_chunkNotActive;
+    });
+
     // Finalize uploads from previous step
     m_stage->forEachUpload([&](int i) {
-        auto slot  = m_stage->slot(i);
-        auto posAc = chToAc(slot.targetCh, worldTexSizeMask);
-        auto& activeChunk = actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
         // Signal that the chunk is active
-        activeChunk = slot.targetCh;
+        auto  slot     = m_stage->slot(i);
+        auto& activeCh = chToActiveCh(slot.targetCh);
+        activeCh       = slot.targetCh;
     });
 
     // Finalize downloads from previous step
     m_stage->forEachDownload([&](int i) {
-        auto slot  = m_stage->slot(i);
-        auto posAc = chToAc(slot.targetCh, worldTexSizeMask);
-        auto& activeChunk = actMgr.activeChunkAtIndex(acToIndex(posAc, worldTexCh));
+        // Signal that there is no active chunk at the spot
+        auto  slot     = m_stage->slot(i);
+        auto& activeCh = chToActiveCh(slot.targetCh);
+        activeCh       = k_chunkNotActive;
 
         // Copy the tiles aside from the stage
         actMgr.addInactiveChunk(
             slot.targetCh,
             Chunk{slot.targetCh, m_stage->tiles(i), m_stage->branchesSerializedSpan(slot)}
         );
-
-        // Signal that there is no active chunk at the spot
-        activeChunk = k_chunkNotActive;
     });
 
     int nTransparentChanges = m_stage->numberOfUploads();
@@ -162,41 +175,64 @@ int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMg
     return nTransparentChanges;
 }
 
-bool ChunkTransferMgr::hasFreeTransferSpace(glm::ivec2 posAc) const {
-    return m_stage->hasFreeTransferSpace(branchCount(posAc));
-}
-
-void ChunkTransferMgr::planUpload(
+ChunkTransferMgr::UploadPlan ChunkTransferMgr::planUpload(
     glm::ivec2                  posCh,
     glm::ivec2                  posAt,
     const std::vector<uint8_t>& tiles,
     std::span<const uint8_t>    branchesSerialized
 ) {
-    // TODO
-    // m_stage->insertUpload(posCh, posAt, tiles.data(), branchesSerialized);
+    int branchCount = branchesSerialized.size_bytes() / sizeof(BranchSerialized);
+    if (branchCount > 0) {
+        if (int allocI = allocIndex(tiToCh(posAt)); allocI >= 0) {
+            // Branches are already allocated for the chunk
+            const auto& alloc = m_regBuf->allocations[allocI];
+            assert(branchCount == alloc.branchCount);
+            BranchRange range{
+                .begin = static_cast<int>(alloc.firstBranch), .count = branchCount};
+            if (m_stage->insertUpload(
+                    posCh, posAt, range, tiles.data(), branchesSerialized
+                )) {
+                return UploadPlanned;
+            }
+        } else {
+            // Space for branches must be allocated first
+            if (m_stage->insertBranchAllocation(posCh, branchCount)) {
+                return AllocationPlanned;
+            }
+        }
+    } else {
+        // Allocation of branch space is not needed
+        if (m_stage->insertUpload(posCh, posAt, BranchRange{}, tiles.data(), {})) {
+            return UploadPlanned;
+        }
+    }
+    return NoUploadSpace;
 }
 
-void ChunkTransferMgr::planDownload(
-    glm::ivec2 posCh, glm::ivec2 posAt, glm::uint branchReadBuf
+ChunkTransferMgr::DownloadPlan ChunkTransferMgr::planDownload(
+    glm::ivec2 posCh, glm::ivec2 posAt
 ) {
     BranchRange range{};
-    int         allocI = allocIndex(tiToCh(posAt));
-    if (allocI >= 0) {
+    if (int allocI = allocIndex(tiToCh(posAt)); allocI >= 0) {
         const auto& alloc = m_regBuf->allocations[allocI];
         range.begin       = alloc.firstBranch;
         range.count       = alloc.branchCount;
     }
-    m_stage->insertDownload(posCh, posAt, range, branchReadBuf);
+    if (m_stage->insertDownloadAndBranchDeallocation(posCh, posAt, range)) {
+        return DownloadPlanned;
+    }
+    return NoDownloadSpace;
 }
 
 void ChunkTransferMgr::endStep(
     const re::CommandBuffer& cmdBuf,
     const re::Texture&       worldTex,
     const re::Buffer&        branchBuf,
-    glm::ivec2               worldTexMaskCh
+    const re::Buffer&        branchAllocRegBuf,
+    glm::ivec2               worldTexMaskCh,
+    bool                     externalBranchAllocChanges
 ) {
-    bool uploadsPlanned = m_stage->numberOfUploads();
-    if (uploadsPlanned) {
+    if (m_stage->numberOfUploads() > 0) {
         // Wait for unrasterization to finish
         auto imageBarrier = re::imageMemoryBarrier(
             S::eColorAttachmentOutput | S::eTransfer, // Src stage mask
@@ -218,14 +254,22 @@ void ChunkTransferMgr::endStep(
             m_stage->tileUploadRegions()});
 
         // Upload branches
-        if (m_stage->numberOfBranchUploads()) {
+        if (m_stage->numberOfBranchUploads() > 0) {
             cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
-                *branchBuf, *m_stage->buffer(), m_stage->branchUploadRegions()});
+                *m_stage->buffer(), *branchBuf, m_stage->branchUploadRegions()});
+
+            auto barrier = re::bufferMemoryBarrier(
+                S::eTransfer,                          // Src stage mask
+                A::eTransferWrite,                     // Src access mask
+                S::eVertexShader | S::eFragmentShader, // Dst stage mask
+                A::eShaderStorageRead,                 // Dst access mask
+                *branchBuf
+            );
+            cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, barrier, {}});
         }
     }
 
-    bool downloadsPlanned = m_stage->numberOfDownloads();
-    if (downloadsPlanned) {
+    if (m_stage->numberOfDownloads() > 0) {
         // Wait for unrasterization to finish
         auto imageBarrier = re::imageMemoryBarrier(
             S::eColorAttachmentOutput | S::eTransfer, // Src stage mask
@@ -247,36 +291,51 @@ void ChunkTransferMgr::endStep(
             m_stage->tileDownloadRegions()});
 
         // Download branches
-        if (m_stage->numberOfBranchDownloads()) {
+        if (m_stage->numberOfBranchDownloads() > 0) {
             cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
                 *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()});
         }
     }
 
-    if (uploadsPlanned || downloadsPlanned) {
-        // Compose (de)allocation request
-        auto allocReq = m_stage->composeBranchAllocRequest(m_worldTexCh);
-        cmdBuf->updateBuffer(*m_allocReqBuf, 0, sizeof(BranchAllocReqUB), &allocReq);
-        auto barrier = re::bufferMemoryBarrier(
-            S::eTransfer,      // Src stage mask
-            A::eTransferWrite, // Src access mask
-            S::eComputeShader, // Dst stage mask
-            A::eUniformRead,   // Dst access mask
-            *m_allocReqBuf
-        );
-        cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
+    if (m_stage->allocsOrDeallocsPlanned()) {
+        { // Copy (de)allocation request
+            vk::BufferCopy2 copyRegion{
+                offsetof(decltype(m_stage)::Type::StageBuf, branchAllocReq),
+                0,
+                sizeof(BranchAllocReqUB)};
+            cmdBuf->copyBuffer2({*m_stage->buffer(), *m_allocReqBuf, copyRegion});
+
+            auto barrier = re::bufferMemoryBarrier(
+                S::eTransfer,      // Src stage mask
+                A::eTransferWrite, // Src access mask
+                S::eComputeShader, // Dst stage mask
+                A::eUniformRead,   // Dst access mask
+                *m_allocReqBuf
+            );
+            cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
+        }
 
         // Allocate and deallocate branches
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_allocBranchesPl);
         cmdBuf->dispatch(1, 1, 1);
     }
-}
 
-void ChunkTransferMgr::downloadBranchAllocRegister(
-    const re::CommandBuffer& cmdBuf, const re::Buffer& branchAllocRegBuf
-) {
-    vk::BufferCopy2 copyRegion{0, 0, sizeof(*m_regBuf.mapped())};
-    cmdBuf->copyBuffer2({*branchAllocRegBuf, m_regBuf.buffer(), copyRegion});
+    if (m_stage->allocsOrDeallocsPlanned() || externalBranchAllocChanges) {
+        { // Wait for de/allocations to finish
+            auto barrier = re::bufferMemoryBarrier(
+                S::eComputeShader, // Src stage mask
+                A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+                S::eTransfer,     // Dst stage mask
+                A::eTransferRead, // Dst access mask
+                *branchAllocRegBuf
+            );
+            cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
+        }
+
+        // Download new state of branch allocation register
+        vk::BufferCopy2 region{0, 0, sizeof(BranchAllocRegSB)};
+        cmdBuf->copyBuffer2({*branchAllocRegBuf, m_regBuf.buffer(), region});
+    }
 }
 
 int ChunkTransferMgr::allocIndex(glm::ivec2 posAc) const {

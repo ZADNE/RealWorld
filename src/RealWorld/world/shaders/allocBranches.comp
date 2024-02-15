@@ -17,25 +17,19 @@ layout (local_size_x = 1,
 void main(){
     lockAllocRegister();
 
-    // Allocate branches
-    for (int i = 0; i < u_branchAllocReq.uploadSlotsEnd; ++i) {
-        int count = u_branchAllocReq.branchCount[i];
-        if (count > 0){
-            allocateBranches(
-                count,
-                u_branchAllocReq.targetCh[i],
-                u_branchAllocReq.worldTexCh);
-        }
+    // Deallocate branches
+    for (int i = u_branchAllocReq.deallocSlotsBegin; i < k_chunkTransferSlots; ++i) {
+        deallocateBranches(
+            u_branchAllocReq.targetCh[i],
+            u_branchAllocReq.worldTexCh);
     }
 
-    // Deallocate branches
-    for (int i = u_branchAllocReq.downloadSlotsBegin; i < k_chunkTransferSlots; ++i) {
-        int count = u_branchAllocReq.branchCount[i];
-        if (count > 0){
-            freeBranches(
-                u_branchAllocReq.targetCh[i],
-                u_branchAllocReq.worldTexCh);
-        }
+    // Allocate branches
+    for (int i = 0; i < u_branchAllocReq.allocSlotsEnd; ++i) {
+        allocateBranches(
+            u_branchAllocReq.branchCount[i],
+            u_branchAllocReq.targetCh[i],
+            u_branchAllocReq.worldTexCh);
     }
 
     unlockAllocRegister();

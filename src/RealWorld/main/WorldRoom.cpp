@@ -92,7 +92,7 @@ void WorldRoom::step() {
     vk::CommandBufferSubmitInfo comBufSubmit{*cmdBuf};
     vk::SemaphoreSubmitInfo     signalSems{
         *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eAllCommands};
-    re::CommandBuffer::submitToComputeQueue(vk::SubmitInfo2{
+    re::CommandBuffer::submitToGraphicsCompQueue(vk::SubmitInfo2{
         {}, waitSems, comBufSubmit, signalSems});
 
     // Manipulate the inventory based on user's input

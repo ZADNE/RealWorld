@@ -5,6 +5,7 @@
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
+#include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 
 #include <RealWorld/player/Player.hpp>
 
@@ -66,8 +67,8 @@ void Player::step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool au
     auto dbg = cmdBuf.createDebugRegion("player");
 
     // Store position from previous step
-    const auto newReadIndex = m_pushConstants.writeIndex;
-    m_oldBotLeftPx          = m_hitboxStageBuf->botLeftPx[newReadIndex];
+    auto readIndex = re::StepDoubleBufferingState::readIndex();
+    m_oldBotLeftPx = m_hitboxStageBuf->botLeftPx[readIndex];
 
     // Copy back results of previous step
     auto bufferBarrier = re::bufferMemoryBarrier(
@@ -79,13 +80,13 @@ void Player::step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool au
     );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
     size_t writeOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
-                         sizeof(PlayerHitboxSB::botLeftPx[0]) * newReadIndex;
+                         sizeof(PlayerHitboxSB::botLeftPx[0]) * readIndex;
     auto copyRegion = vk::BufferCopy2{writeOffset, writeOffset, sizeof(glm::vec2)};
     cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
         *m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion});
 
     // Simulate the movement
-    m_pushConstants.writeIndex    = 1 - m_pushConstants.writeIndex;
+    m_pushConstants.writeIndex    = re::StepDoubleBufferingState::writeIndex();
     m_pushConstants.walkDirection = glm::sign(dir);
     m_pushConstants.jump          = jump;
     m_pushConstants.autojump      = autojump;
