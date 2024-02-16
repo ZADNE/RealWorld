@@ -237,22 +237,18 @@ void World::fluidDynamicsStep(
 
     // Permute the orders
     uint32_t order;
-    if (m_permuteOrder) {
-        order                         = 0;
-        m_worldDynamicsPC.updateOrder = 0;
-        // 4 random orders, the threads randomly select from these
-        for (unsigned int i = 0; i < 4; i++) {
-            m_worldDynamicsPC.updateOrder |=
-                permuteOrder(m_worldDynamicsPC.timeHash) << (i * 8);
-        }
-        cmdBuf->pushConstants(
-            *m_simulationPL, eCompute, member(m_worldDynamicsPC, updateOrder)
-        );
-        // Randomize order of dispatches
-        order = permuteOrder(m_worldDynamicsPC.timeHash);
-    } else {
-        order = 0b00011011;
+    order                         = 0;
+    m_worldDynamicsPC.updateOrder = 0;
+    // 4 random orders, the threads randomly select from these
+    for (unsigned int i = 0; i < 4; i++) {
+        m_worldDynamicsPC.updateOrder |= permuteOrder(m_worldDynamicsPC.timeHash)
+                                         << (i * 8);
     }
+    cmdBuf->pushConstants(
+        *m_simulationPL, eCompute, member(m_worldDynamicsPC, updateOrder)
+    );
+    // Randomize order of dispatches
+    order = permuteOrder(m_worldDynamicsPC.timeHash);
 
     // 4 rounds, each updates one quarter of the chunks
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);

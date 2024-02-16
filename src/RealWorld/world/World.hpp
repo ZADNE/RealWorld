@@ -76,8 +76,6 @@ public:
 
     bool saveChunks();
 
-    void shouldPermuteOrder(bool should) { m_permuteOrder = should; }
-
 private:
     void fluidDynamicsStep(
         const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
@@ -121,8 +119,6 @@ private:
     const re::Buffer*  m_activeChunksBuf = nullptr;
     BodySimulator      m_bodySimulator{m_simulationPL};
     VegSimulator       m_vegSimulator{};
-
-    bool m_permuteOrder = true;
 };
 
 } // namespace rw

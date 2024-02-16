@@ -91,7 +91,6 @@ private:
     // Toggle states
     bool m_minimap = false;
     bool m_shadows = true;
-    bool m_permute = true;
 };
 
 } // namespace rw
