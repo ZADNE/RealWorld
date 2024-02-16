@@ -3,10 +3,10 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-const int BranchSB_BINDING = 0;
+#include <RealWorld/vegetation/shaders/branchRasterizationPll.glsl>
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
 
-layout(input_attachment_index = 0, set = 0, binding = 1)
+layout(input_attachment_index = 0, set = 0, binding = k_worldTexAttBinding)
 uniform usubpassInput u_worldTexSI;
 
 layout (location = 0) out uvec4    o_tile;

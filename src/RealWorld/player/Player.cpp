@@ -5,16 +5,21 @@
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
+#include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 
 #include <RealWorld/player/Player.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
 
+using D = vk::DescriptorType;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
 namespace rw {
+
+constexpr glm::uint k_worldTexBinding = 0;
+constexpr glm::uint k_playerBinding   = 1;
 
 Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
     : m_playerTex(std::move(playerTex))
@@ -31,9 +36,7 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
           .usage       = eTransferDst | eTransferSrc,
           .initData    = re::objectToByteSpan(initSb),
           .debugName   = "rw::Player::hitboxStage"}) {
-    m_descriptorSet.write(
-        vk::DescriptorType::eStorageBuffer, 1u, 0u, m_hitboxBuf, 0u, sizeof(PlayerHitboxSB)
-    );
+    m_descriptorSet.write(D::eStorageBuffer, k_playerBinding, 0u, m_hitboxBuf);
 }
 
 void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) {
@@ -43,10 +46,10 @@ void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) 
         .dimsPx     = m_playerTex.subimageDims(),
         .velocityPx = glm::vec2(0.0f, 0.0f)};
     m_descriptorSet.write(
-        vk::DescriptorType::eStorageImage, 0u, 0u, worldTexture, vk::ImageLayout::eGeneral
+        D::eStorageImage, k_worldTexBinding, 0u, worldTexture, vk::ImageLayout::eGeneral
     );
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
-        auto copyRegion = vk::BufferCopy2{0ull, 0ull, sizeof(PlayerHitboxSB)};
+        vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(PlayerHitboxSB)};
         cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
             m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion});
     });
@@ -64,8 +67,8 @@ void Player::step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool au
     auto dbg = cmdBuf.createDebugRegion("player");
 
     // Store position from previous step
-    const auto newReadIndex = m_pushConstants.writeIndex;
-    m_oldBotLeftPx          = m_hitboxStageBuf->botLeftPx[newReadIndex];
+    auto readIndex = re::StepDoubleBufferingState::readIndex();
+    m_oldBotLeftPx = m_hitboxStageBuf->botLeftPx[readIndex];
 
     // Copy back results of previous step
     auto bufferBarrier = re::bufferMemoryBarrier(
@@ -77,13 +80,13 @@ void Player::step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool au
     );
     cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, bufferBarrier, {}});
     size_t writeOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
-                         sizeof(PlayerHitboxSB::botLeftPx[0]) * newReadIndex;
+                         sizeof(PlayerHitboxSB::botLeftPx[0]) * readIndex;
     auto copyRegion = vk::BufferCopy2{writeOffset, writeOffset, sizeof(glm::vec2)};
     cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
         *m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion});
 
     // Simulate the movement
-    m_pushConstants.writeIndex    = 1 - m_pushConstants.writeIndex;
+    m_pushConstants.writeIndex    = re::StepDoubleBufferingState::writeIndex();
     m_pushConstants.walkDirection = glm::sign(dir);
     m_pushConstants.jump          = jump;
     m_pushConstants.autojump      = autojump;

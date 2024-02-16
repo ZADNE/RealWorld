@@ -1,6 +1,8 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
+#include <glm/ext/scalar_constants.hpp>
+
 #include <RealWorld/items/ItemUser.hpp>
 
 namespace rw {

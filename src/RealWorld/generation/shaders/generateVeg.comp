@@ -6,13 +6,10 @@
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
 #include <RealWorld/world/shaders/random.glsl>
-const int VegSB_BINDING = 4;
-#include <RealWorld/vegetation/shaders/VegSB.glsl>
-const int BranchSB_BINDING = 5;
-#include <RealWorld/vegetation/shaders/BranchSB.glsl>
-const int VegPreparationSB_BINDING = 6;
-#define VegPreparationSB_ACCESS writeonly
-#include <RealWorld/generation/shaders/VegPreparationSB.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#define VegPrepSB_ACCESS writeonly
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
 
 layout (local_size_x = 64,
         local_size_y = 1,
@@ -22,40 +19,45 @@ layout (local_size_x = 64,
 const int k_invocOffsetTi = iChunkTi.x / int(gl_WorkGroupSize.x);
 const int k_randomOffsetTi = k_invocOffsetTi - 1;
 
-int invocXPosTi(){
-    int basePosTi = p_chunkOffsetTi.x + int(gl_LocalInvocationID.x) * k_invocOffsetTi;
+int invocXPosTi(ivec2 chunkTi){
+    int basePosTi = chunkTi.x + int(gl_LocalInvocationID.x) * k_invocOffsetTi;
     int randomOffsetTi = int(random()) & k_randomOffsetTi;
     return basePosTi + randomOffsetTi;
 }
 
-shared uint s_vegInstanceCount;
-shared uint s_branchInstanceCount;
+shared int  s_globalFirstBranchIndex;
+shared uint s_vegPrepI;
+shared uint s_branchPrepI;
 
 void main(){
     // Init shared vars
     if (gl_LocalInvocationID.x == 0){
-        s_vegInstanceCount = 0;
-        s_branchInstanceCount = 0;
+        s_vegPrepI = 0;
+        s_branchPrepI = 0;
     }
     barrier();
 
+    ivec2 chunkTi = p_chunkTi[gl_WorkGroupID.z];
     g_randomState =
-        uint(p_chunkOffsetTi.y << 16 | p_chunkOffsetTi.x) ^
+        uint(chunkTi.y << 16 | chunkTi.x) ^
         uint(gl_LocalInvocationID.x * 2713) ^
         uint(p_seed);
-    ivec2 pTi = ivec2(invocXPosTi(), 0);
+    ivec2 pTi = ivec2(invocXPosTi(chunkTi), 0);
     float xPx = tiToPx(pTi.x);
     vec2 biomeClimate = biomeClimate(xPx, p_seed);
     Biome biome = biomeStructure(biomeClimate);
     float horizonPx = horizon(xPx, biome, p_seed).r;
     pTi.y = int(pxToTi(horizonPx));
 
-    // If on the horizon
-    if (pTi.y >= p_chunkOffsetTi.y && pTi.y < (p_chunkOffsetTi.y + iChunkTi.y)) {
+    uint templateIndex = ~0;
+    uint branchThreadOffset;
+    uint vegPrepThreadOffset;
+
+    // Gather vegetation of the chunk
+    if (pTi.y >= chunkTi.y && pTi.y < (chunkTi.y + iChunkTi.y)) {// If on the horizon
         // Select the vegetation to generate
         VegDistr distr = biomeVegDistr(biomeClimate);
         float rndTemplate = randomFloat() * float(gl_WorkGroupSize.x);
-        uint templateIndex = ~0;
         float probMin = 0.0;
         for (int i = 0; i < k_vegTemplates.length(); ++i){
             float probMax = probMin + distr.genProbability[i];
@@ -65,40 +67,42 @@ void main(){
 
         // If some vegetation succeeded the test
         if (templateIndex != ~0){
-            const uint vegBranchCount = k_vegTemplates[templateIndex].branchCount;
-            // If there is space for new branches and vegetation in correspending buffers
-            uint branchWriteIndex = atomicAdd(b_branch.vertexCount, vegBranchCount);
-            uint vegWriteIndex = atomicAdd(b_veg.vegCount, 1);
-            bool hasSpaceForBranches = (branchWriteIndex + vegBranchCount) <= k_maxBranchCount;
-            bool hasSpaceForVeg = vegWriteIndex < k_maxVegCount;
-            if (hasSpaceForBranches && hasSpaceForVeg) {
-                // Create instance to be generated
-                uint branchBaseIndex = atomicAdd(s_branchInstanceCount, vegBranchCount);
-                float greenMass = biomeClimate.x + biomeClimate.y;
-                b_vegInstances[atomicAdd(s_vegInstanceCount, 1)] = VegInstance(
-                    templateIndex,              // templateIndex
-                    branchWriteIndex,           // writeIndex
-                    random(),                   // randomSeed
-                    branchBaseIndex,            // branchBaseIndex
-                    pTi,                        // rootPosTi
-                    greenMass * 0.25 + 0.75,    // sizeFactor
-                    0.5 * randomFloat() + 0.75  // angleFactor
-                );
-
-                // Save vegetation
-                b_veg.rootPosCh[vegWriteIndex]          = tiToCh(pTi);
-                b_veg.firstIndexAndCount[vegWriteIndex] = ivec2(branchWriteIndex, branchWriteIndex);
-            } else {
-                // No space for new branches or vegetation
-                atomicAdd(b_branch.vertexCount, uint(-vegBranchCount));
-                atomicAdd(b_veg.vegCount, uint(-1));
-            }
+            vegPrepThreadOffset = atomicAdd(s_vegPrepI, 1);
+            const uint branchCount = k_vegTemplates[templateIndex].branchCount;
+            branchThreadOffset = atomicAdd(s_branchPrepI, branchCount);
         }
     }
-
     barrier();
-    if (gl_LocalInvocationIndex == 0){
-        b_vegetationDispatchSize = uvec4(s_vegInstanceCount, 1, 1, 0);
-        b_branchDispatchSize = uvec4(s_branchInstanceCount, 1, 1, 0);
+
+    // Allocate space for all vegetation of the chunk
+    if (gl_LocalInvocationID.x == 0){
+        if (s_branchPrepI > 0){
+            lockAllocRegister();
+            s_globalFirstBranchIndex = allocateBranches(
+                s_branchPrepI, tiToCh(chunkTi), p_worldTexSizeCh);
+            unlockAllocRegister();
+            // Also reserve space in the preparation buffer
+            s_vegPrepI = atomicAdd(b_vegPrep.vegDispatchSize.x, s_vegPrepI);
+            s_branchPrepI = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchPrepI);
+        } else {
+            s_globalFirstBranchIndex = -1; // There is no vegetation in the chunk
+        }
+    }
+    barrier();
+
+    // Prepare vegetation instances
+    if (s_globalFirstBranchIndex >= 0){ // If allocation succeeded
+        if (templateIndex != ~0){ // If this thread represents a vegetation
+            float greenMass = biomeClimate.x + biomeClimate.y;
+            b_vegPrep.vegInstances[s_vegPrepI + vegPrepThreadOffset] = VegInstance(
+                templateIndex,                                      // templateIndex
+                s_globalFirstBranchIndex + branchThreadOffset,      // outputIndex
+                random(),                                           // randomSeed
+                s_branchPrepI + branchThreadOffset,
+                (templateIndex != 2 /*not wheat*/) ? pTi : chunkTi, // rootPosTi
+                greenMass * 0.25 + 0.75,                            // sizeFactor
+                0.5 * randomFloat() + 0.75                          // angleFactor
+            );
+        }
     }
 }

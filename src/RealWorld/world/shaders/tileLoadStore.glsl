@@ -4,7 +4,7 @@
 #ifndef TILE_LOAD_STORE_GLSL
 #define TILE_LOAD_STORE_GLSL
 
-layout (set = 0, binding = worldImage_BINDING, rgba8ui)
+layout (set = 0, binding = k_worldTexBinding, rgba8ui)
 uniform restrict coherent uimage2D u_worldImage;
 
 //Converts world position to image position

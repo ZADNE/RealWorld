@@ -15,7 +15,7 @@ const uint HALLOWb =    1 << 4;
 const uint EDGEb =      1 << 0;
 const uint MIX_PROPSb = 1 << 1;//Mix properties with the other layer 
 
-layout (set = 0, binding = TilePropertiesUB_BINDING, std140)
+layout (set = 0, binding = k_tilePropertiesBinding, std140)
 restrict uniform TilePropertiesUB {
     //x = properties
     //yz = indices of first and last transformation rule

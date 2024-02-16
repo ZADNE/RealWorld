@@ -33,8 +33,8 @@ public:
         const re::Texture& worldTex; /**< Receives the generated tiles */
         glm::ivec2         worldTexSizeCh;
         const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
-        const re::Buffer&  vegBuf;
         const re::Buffer&  branchBuf;
+        const re::Buffer&  branchAllocRegBuf;
     };
 
     /**
@@ -42,44 +42,51 @@ public:
      */
     void setTarget(const TargetInfo& targetInfo);
 
-    struct OutputInfo {
-        glm::ivec2 posCh;          /**< Position of the chunk */
-        glm::uint  branchWriteBuf; /**< Index of the double buffered part of
-                                     branch buffer that is for writing */
-    };
+    /**
+     * @brief Plans generation a chunk - tiles and vegetation
+     * @return True if it could be planned
+     */
+    [[nodiscard]] bool planGeneration(glm::ivec2 posCh);
 
     /**
-     * @brief Generates a chunk - tiles and vegetation
+     * @brief Generates planned chunks
+     * @return True if any chunk generation was planned
      */
-    void generateChunk(const re::CommandBuffer& cmdBuf, const OutputInfo& outputInfo);
+    bool generate(const re::CommandBuffer& cmdBuf);
 
 protected:
-    void prepareToGenerate(const re::CommandBuffer& cmdBuf);
-
     void generateBasicTerrain(const re::CommandBuffer& cmdBuf);
     void consolidateEdges(const re::CommandBuffer& cmdBuf);
     void selectVariant(const re::CommandBuffer& cmdBuf);
 
     void generateVegetation(const re::CommandBuffer& cmdBuf);
 
-    void finishGeneration(const re::CommandBuffer& cmdBuf, glm::ivec2 posCh);
+    void copyToDestination(const re::CommandBuffer& cmdBuf);
 
     static re::Buffer createVegTemplatesBuffer();
 
-    const re::Texture* m_worldTex = nullptr;
-    glm::ivec2         m_worldTexSizeCh{};
+    const re::Texture* m_worldTex  = nullptr;
     const re::Buffer*  m_bodiesBuf = nullptr;
-    const re::Buffer*  m_vegBuf    = nullptr;
     const re::Buffer*  m_branchBuf = nullptr;
 
     struct GenerationPC {
-        glm::ivec2 chunkOffsetTi;
+        glm::ivec2 chunkTi[k_chunkGenSlots];
+        glm::ivec2 worldTexSizeCh;
         int        seed;
-        glm::uint  storeLayer{};
+        glm::uint  storeSegment{}; // Always 0 or 1
         glm::uint  edgeConsolidationPromote;
         glm::uint  edgeConsolidationReduce;
-        glm::uint  branchWriteBuf;
     } m_genPC;
+    static_assert(sizeof(GenerationPC) <= 128, "PC min size guarantee");
+    int m_chunksPlanned = 0; /**< Number of chunks planned to generate this step */
+
+    re::StepDoubleBuffered<re::CommandBuffer> m_cmdBuf{
+        re::CommandBuffer{
+            {.level     = vk::CommandBufferLevel::eSecondary,
+             .debugName = "rw::ChunkGenerator::cmdBuf[0]"}},
+        re::CommandBuffer{
+            {.level     = vk::CommandBufferLevel::eSecondary,
+             .debugName = "rw::ChunkGenerator::cmdBuf[1]"}}};
 
     re::PipelineLayout m_pipelineLayout;
     re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
@@ -114,7 +121,7 @@ protected:
     re::Texture m_tilesTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8B8A8Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
-        .layers = 2,
+        .layers = k_chunkGenSlots * 2,
         .usage  = vk::ImageUsageFlagBits::eStorage |
                  vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral,
@@ -122,6 +129,7 @@ protected:
     re::Texture m_materialTex{re::TextureCreateInfo{
         .format        = vk::Format::eR8G8B8A8Uint,
         .extent        = {k_genChunkSize.x, k_genChunkSize.y, 1u},
+        .layers        = k_chunkGenSlots,
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral,
         .debugName     = "rw::ChunkGenerator::material"}};

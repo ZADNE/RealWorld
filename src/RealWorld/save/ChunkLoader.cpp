@@ -1,52 +1,99 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
+#include <array>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
 
 #include <lodepng/lodepng.hpp>
 
+#include <RealEngine/utility/BuildType.hpp>
+
 #include <RealWorld/save/ChunkLoader.hpp>
 
 namespace rw {
 
-std::vector<unsigned char> ChunkLoader::loadChunk(
-    const std::string& folderPath, glm::ivec2 chunkPos, glm::uvec2 chunkDims
+using PNGChunkName = std::array<char, 5>;
+constexpr PNGChunkName k_branchPNGChunkName{'b', 'r', 'N', 'c', '\0'};
+
+std::optional<Chunk> ChunkLoader::loadChunk(
+    const std::string& folderPath, glm::ivec2 posCh
 ) {
-    std::vector<unsigned char> bytes;
+    lodepng::State state{};
+    state.decoder.remember_unknown_chunks = 1;
+    state.info_png.color.colortype        = LCT_RGBA;
+    state.decoder.color_convert           = 1;
+    glm::uvec2           realDims;
+    unsigned int         err;
+    std::vector<uint8_t> encoded;
+    std::string          fullPath = folderPath + chunkToChunkFilename(posCh);
+    std::vector<uint8_t> tiles;
 
-    glm::uvec2 realDims;
-
-    std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);
-
-    unsigned int error = lodepng::decode(
-        bytes, realDims.x, realDims.y, fullPath, LodePNGColorType::LCT_RGBA, 8u
-    );
-    if (error || chunkDims != realDims) {
-        bytes.resize(0);
-        return bytes; // Error loading the chunk
+    // Load file and decode tiles
+    if ((err = lodepng::load_file(encoded, fullPath)) ||
+        (err = lodepng::decode(tiles, realDims.x, realDims.y, state, encoded)) ||
+        realDims != uChunkTi) {
+        // Loading file or decoding tiles failed
+        return {};
     }
 
-    return bytes;
+    // Load branches (if present)
+    for (size_t unknownChunkPos = 0; unknownChunkPos < 3; unknownChunkPos++) {
+        const auto& unknownData = state.info_png.unknown_chunks_data[unknownChunkPos];
+        const auto& unknownDataEnd =
+            &unknownData[state.info_png.unknown_chunks_size[unknownChunkPos]];
+        for (auto chunk = unknownData; chunk != unknownDataEnd;
+             chunk      = lodepng_chunk_next(chunk, unknownDataEnd)) {
+            PNGChunkName chunkName;
+            lodepng_chunk_type(chunkName.data(), chunk);
+            if (chunkName == k_branchPNGChunkName) {
+                // Successfully loaded chunk AND branches
+                const uint8_t* data = lodepng_chunk_data_const(chunk);
+                return Chunk{
+                    posCh,
+                    std::move(tiles),
+                    std::vector(data, data + lodepng_chunk_length(chunk))};
+            }
+        }
+    }
+    // No branches found but that is fine
+    return Chunk{posCh, std::move(tiles), {}};
 }
 
 void ChunkLoader::saveChunk(
-    const std::string& folderPath,
-    glm::ivec2         chunkPos,
-    glm::uvec2         chunkDims,
-    const uint8_t*     tiles
+    const std::string&       folderPath,
+    glm::ivec2               posCh,
+    const uint8_t*           tiles,
+    std::span<const uint8_t> branchesSerialized
 ) {
-    std::string fullPath = folderPath + chunkToChunkFilename(chunkPos);
+    if constexpr (re::k_buildType == re::BuildType::Release) {
+        lodepng::State state{};
+        unsigned int   err;
 
-#ifndef _DEBUG
-    unsigned int error = lodepng::encode(
-        fullPath, tiles, chunkDims.x, chunkDims.y, LodePNGColorType::LCT_RGBA, 8u
-    );
+        // Create chunk with branches
+        if (err = lodepng_chunk_create(
+                &state.info_png.unknown_chunks_data[0],
+                &state.info_png.unknown_chunks_size[0],
+                static_cast<unsigned int>(branchesSerialized.size()),
+                k_branchPNGChunkName.data(),
+                branchesSerialized.data()
+            )) {
+            // Chunk creation failed
+            throw std::runtime_error{lodepng_error_text(err)};
+        }
 
-    if (error)
-        throw std::runtime_error("Error encoding or saving chunk " + fullPath);
-#endif // ! _DEBUG
+        // Encode tiles and save file
+        std::string fullPath = folderPath + chunkToChunkFilename(posCh);
+        state.info_png.color.colortype = LCT_RGBA;
+        state.encoder.auto_convert     = 0;
+        std::vector<uint8_t> png;
+        if ((err = lodepng::encode(png, tiles, uChunkTi.x, uChunkTi.y, state)) ||
+            (err = lodepng::save_file(png, fullPath))) {
+            // Encoding or saving failed
+            throw std::runtime_error{lodepng_error_text(err)};
+        }
+    }
 }
 
 std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos) {

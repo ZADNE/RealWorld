@@ -10,6 +10,8 @@
 
 #include <RealEngine/window/WindowSubsystems.hpp>
 
+#include <RealWorld/constants/world.hpp>
+
 namespace rw {
 
 constexpr std::array k_resolutions = {
@@ -26,13 +28,11 @@ constexpr std::array k_resolutions = {
     glm::ivec2{3840, 2160}};
 
 constexpr std::array k_worldTexSizes = {
-    glm::ivec2{8, 8},
-    glm::ivec2{16, 8},
-    glm::ivec2{16, 16},
+    k_minWorldTexSizeCh,
     glm::ivec2{32, 16},
     glm::ivec2{32, 32},
     glm::ivec2{64, 32},
-    glm::ivec2{64, 64}};
+    k_maxWorldTexSizeCh};
 
 inline std::string ivec2ToString(glm::ivec2 vec) {
     return std::to_string(vec.x) + "x" + std::to_string(vec.y);

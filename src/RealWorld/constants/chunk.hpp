@@ -31,33 +31,43 @@ constexpr glm::ivec2 k_chunkLowZeroBits =
 /**
  * @brief Converts a position in tiles to position in chunks
  */
-constexpr inline glm::ivec2 tiToCh(glm::ivec2 posTi) {
+constexpr glm::vec2 tiToCh(glm::vec2 posTi) {
+    glm::vec2 posChFrac = posTi / ChunkTi;
+    return {std::floor(posChFrac.x), std::floor(posChFrac.y)};
+}
+constexpr glm::ivec2 tiToCh(glm::ivec2 posTi) {
     return posTi >> k_chunkLowZeroBits;
 }
 
 /**
  * @brief Converts a position in chunks to position in tiles
  */
-constexpr inline glm::ivec2 chToTi(glm::ivec2 posCh) {
+constexpr glm::vec2 chToTi(glm::vec2 posCh) {
+    return posCh * ChunkTi;
+}
+constexpr glm::ivec2 chToTi(glm::ivec2 posCh) {
     return posCh << k_chunkLowZeroBits;
 }
 
 /**
- * @brief Converts a position in chunks to its active form equivalent
+ * @brief Converts a position in pixels to position in chunks
  */
-constexpr inline glm::ivec2 chToAc(glm::ivec2 posCh, glm::ivec2 worldTexSizeMask) {
-    return posCh & worldTexSizeMask;
+constexpr glm::vec2 pxToCh(glm::vec2 posTi) {
+    glm::vec2 posChFrac = posTi / (ChunkTi * TilePx);
+    return {std::floor(posChFrac.x), std::floor(posChFrac.y)};
+}
+constexpr glm::ivec2 pxToCh(glm::ivec2 posTi) {
+    return posTi >> (k_chunkLowZeroBits + k_tileLowZeroBits);
 }
 
 /**
- * @brief Converts a position in chunks to its active form measured in tiles
+ * @brief Converts a position in chunks to position in pixels
  */
-constexpr inline glm::ivec2 chToAt(glm::ivec2 posCh, glm::ivec2 worldTexSizeMask) {
-    return chToTi(chToAc(posCh, worldTexSizeMask));
+constexpr glm::vec2 chToPx(glm::vec2 posCh) {
+    return posCh * (ChunkTi * TilePx);
 }
-
-constexpr inline int acToIndex(glm::ivec2 posAc, glm::ivec2 activeChunks) {
-    return posAc.y * activeChunks.x + posAc.x;
+constexpr glm::ivec2 chToPx(glm::ivec2 posCh) {
+    return posCh << (k_chunkLowZeroBits + k_tileLowZeroBits);
 }
 
 } // namespace rw

@@ -15,42 +15,11 @@ namespace rw {
 constexpr int        k_groupSize    = 16;
 constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
-void ChunkGenerator::prepareToGenerate(const re::CommandBuffer& cmdBuf) {
-    cmdBuf->bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
-    );
-}
-
 void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
-    { // Barrier from previous chunk
-        std::array barriers = std::to_array(
-            {re::imageMemoryBarrier(
-                 S::eTransfer,           // Src stage mask
-                 A::eTransferRead,       // Src access mask
-                 S::eComputeShader,      // Dst stage mask
-                 A::eShaderStorageWrite, // Dst access mask
-                 eGeneral,               // Old image layout
-                 eGeneral,               // New image layout
-                 m_tilesTex.image(),
-                 vk::ImageSubresourceRange{eColor, 0, 1, m_genPC.storeLayer, 1}
-             ),
-             re::imageMemoryBarrier(
-                 S::eComputeShader,      // Src stage mask
-                 A::eShaderStorageRead,  // Src access mask
-                 S::eComputeShader,      // Dst stage mask
-                 A::eShaderStorageWrite, // Dst access mask
-                 eGeneral,               // Old image layout
-                 eGeneral,               // New image layout
-                 m_materialTex.image()
-             )}
-        );
-        cmdBuf->pipelineBarrier2({{}, {}, {}, barriers});
-    }
-
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
-    m_genPC.storeLayer = 0;
+    m_genPC.storeSegment = 0;
     cmdBuf->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
-    cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
+    cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
 
     std::array barriers = std::to_array(
         {re::imageMemoryBarrier(
@@ -60,7 +29,9 @@ void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
              A::eShaderStorageWrite | A::eShaderStorageRead, // Dst access mask
              eGeneral,                                       // Old image layout
              eGeneral,                                       // New image layout
-             m_tilesTex.image()
+             m_tilesTex.image(),
+             vk::ImageSubresourceRange{
+                 eColor, 0, 1, k_chunkGenSlots * m_genPC.storeSegment, k_chunkGenSlots}
          ),
          re::imageMemoryBarrier(
              S::eComputeShader,      // Src stage mask
@@ -69,7 +40,8 @@ void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
              A::eShaderStorageRead,  // Dst access mask
              eGeneral,               // Old image layout
              eGeneral,               // New image layout
-             m_materialTex.image()
+             m_materialTex.image(),
+             vk::ImageSubresourceRange{eColor, 0, 1, 0, k_chunkGenSlots}
          )}
     );
     cmdBuf->pipelineBarrier2({{}, {}, {}, barriers});
@@ -84,7 +56,7 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
         m_tilesTex.image(),
-        vk::ImageSubresourceRange{eColor, 0, 1, ~0u, 1}
+        vk::ImageSubresourceRange{eColor, 0, 1, ~0u, k_chunkGenSlots}
     );
 
     auto pass = [&](glm::ivec2 thresholds, size_t passes) {
@@ -92,11 +64,12 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
         m_genPC.edgeConsolidationReduce  = thresholds.y;
         for (size_t i = 0; i < passes; i++) {
             // Consolidate
-            m_genPC.storeLayer = ~m_genPC.storeLayer & 1;
+            m_genPC.storeSegment = 1 - m_genPC.storeSegment;
             cmdBuf->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
-            cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
+            cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
             // Put barrier for next pass
-            barrier.subresourceRange.baseArrayLayer = m_genPC.storeLayer;
+            barrier.subresourceRange.baseArrayLayer = m_genPC.storeSegment *
+                                                      k_chunkGenSlots;
             cmdBuf->pipelineBarrier2({{}, {}, {}, barrier});
         }
     };
@@ -114,10 +87,10 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
 
 void ChunkGenerator::selectVariant(const re::CommandBuffer& cmdBuf) {
     // Barrier to wait for the edge consolidation to finish is already there
-    m_genPC.storeLayer = ~m_genPC.storeLayer & 1;
+    m_genPC.storeSegment = 1 - m_genPC.storeSegment;
     cmdBuf->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
-    cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, 1u);
+    cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
 }
 
 } // namespace rw

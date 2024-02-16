@@ -22,4 +22,9 @@ constexpr int k_genBorderWidth = 8;
  */
 constexpr glm::ivec2 k_genChunkSize = iChunkTi + 2 * k_genBorderWidth;
 
+/**
+ * @brief Is the maximum number of chunks that can be generated in parallel
+ */
+constexpr int k_chunkGenSlots = 12;
+
 } // namespace rw

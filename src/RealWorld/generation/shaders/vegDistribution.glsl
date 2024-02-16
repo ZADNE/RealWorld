@@ -14,7 +14,7 @@ struct VegTemplate{
 const VegTemplate k_vegTemplates[] = {
     VegTemplate(0,      51, 0.325,  0.03125),   // Oak
     VegTemplate(51,     64, 0.75,   0.0625),    // Acacia
-    VegTemplate(115,    64, 0.75,   0.03125),   // Wheat
+    VegTemplate(115,    64, 0.75,   0.03125),   // Wheat (must be index 2; see generateVeg)
 };
 
 const uint k_vegTemplatesBranchCount =

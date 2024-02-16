@@ -8,11 +8,10 @@
 
 namespace rw {
 
-#ifdef _DEBUG
-constexpr unsigned int k_frameRateLimit = 300u;
-#else
-constexpr unsigned int k_frameRateLimit = re::Synchronizer::k_doNotLimitFramesPerSecond;
-#endif // _DEBUG
+constexpr unsigned int k_frameRateLimit =
+    (re::k_buildType == re::BuildType::Debug)
+        ? 300u
+        : re::Synchronizer::k_doNotLimitFramesPerSecond;
 
 constexpr vk::ClearValue k_skyBlue =
     vk::ClearColorValue{0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f};
@@ -89,13 +88,11 @@ void WorldRoom::step() {
     vk::SemaphoreSubmitInfo waitSems{
         *m_simulationFinishedSem,
         m_stepN - 1,
-        vk::PipelineStageFlagBits2::eComputeShader};
+        vk::PipelineStageFlagBits2::eAllCommands};
     vk::CommandBufferSubmitInfo comBufSubmit{*cmdBuf};
     vk::SemaphoreSubmitInfo     signalSems{
-        *m_simulationFinishedSem,
-        m_stepN,
-        vk::PipelineStageFlagBits2::eComputeShader};
-    re::CommandBuffer::submitToComputeQueue(vk::SubmitInfo2{
+        *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eAllCommands};
+    re::CommandBuffer::submitToGraphicsCompQueue(vk::SubmitInfo2{
         {}, waitSems, comBufSubmit, signalSems});
 
     // Manipulate the inventory based on user's input
@@ -240,9 +237,6 @@ void WorldRoom::updateInventoryAndUI() {
     if (keybindPressed(Shadows)) {
         m_shadows = !m_shadows;
     }
-    if (keybindPressed(Permute)) {
-        m_world.shouldPermuteOrder(m_permute = !m_permute);
-    }
 }
 
 void WorldRoom::drawGUI(const re::CommandBuffer& cmdBuf) {
@@ -271,10 +265,6 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cmdBuf) {
         ImGui::TextUnformatted("Shadows:");
         ImGui::SameLine();
         ImGui::ToggleButton("##shadows", &m_shadows);
-        ImGui::TextUnformatted("Permute:");
-        ImGui::SameLine();
-        if (ImGui::ToggleButton("##permute", &m_permute))
-            m_world.shouldPermuteOrder(m_permute);
     }
     ImGui::End();
     ImGui::PopFont();

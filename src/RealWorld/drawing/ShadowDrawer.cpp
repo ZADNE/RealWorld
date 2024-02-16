@@ -3,6 +3,8 @@
  */
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <RealEngine/utility/Math.hpp>
+
 #include <RealWorld/constants/light.hpp>
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
@@ -159,7 +161,7 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeft
             k_halfUnitOffset;
         cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
         cmdBuf->pushConstants<AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
-        cmdBuf->dispatch((m_.analysisPC.lightCount + 8u - 1u) / 8u, 1u, 1u);
+        cmdBuf->dispatch(re::ceilDiv(m_.analysisPC.lightCount, 8u), 1u, 1u);
     }
 
     { // Wait for the light and traslu texture to be written
@@ -329,7 +331,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     analysisDS.write(eStorageImage, 1u, 0u, transluTex, eGeneral);
     analysisDS.write(eCombinedImageSampler, 3u, 0u, blockLightAtlasTex, eReadOnlyOptimal);
     analysisDS.write(eCombinedImageSampler, 4u, 0u, wallLightAtlasTex, eReadOnlyOptimal);
-    analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf, 0ull, vk::WholeSize);
+    analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf);
 
     // Calculation descriptor set
     calculationDS.write(eCombinedImageSampler, 0u, 0u, lightTex, eReadOnlyOptimal);

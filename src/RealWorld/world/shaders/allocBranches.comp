@@ -1,0 +1,36 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/world.glsl>
+#include <RealWorld/world/shaders/simulationPll.glsl>
+#include <RealWorld/world/shaders/ActiveChunksSB.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocReqUB.glsl>
+
+layout (local_size_x = 1,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+void main(){
+    lockAllocRegister();
+
+    // Deallocate branches
+    for (int i = u_branchAllocReq.deallocSlotsBegin; i < k_chunkTransferSlots; ++i) {
+        deallocateBranches(
+            u_branchAllocReq.targetCh[i],
+            u_branchAllocReq.worldTexCh);
+    }
+
+    // Allocate branches
+    for (int i = 0; i < u_branchAllocReq.allocSlotsEnd; ++i) {
+        allocateBranches(
+            u_branchAllocReq.branchCount[i],
+            u_branchAllocReq.targetCh[i],
+            u_branchAllocReq.worldTexCh);
+    }
+
+    unlockAllocRegister();
+}

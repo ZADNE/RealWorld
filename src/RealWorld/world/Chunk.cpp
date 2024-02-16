@@ -2,21 +2,30 @@
  *  @author    Dubsky Tomas
  */
 #include <stdexcept>
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
+#include <RealWorld/vegetation/BranchSB.hpp>
 #include <RealWorld/world/Chunk.hpp>
 
 namespace rw {
 
-Chunk::Chunk(glm::ivec2 posCh, const uint8_t* tiles)
-    : Chunk(posCh, std::vector<uint8_t>{tiles, tiles + k_chunkByteSize}) {
+Chunk::Chunk(glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized)
+    : Chunk(
+          posCh,
+          std::vector<uint8_t>{tiles, tiles + k_chunkByteSize},
+          std::vector<uint8_t>{branchesSerialized.begin(), branchesSerialized.end()}
+      ) {
 }
 
-Chunk::Chunk(glm::ivec2 posCh, std::vector<uint8_t>&& tiles)
+Chunk::Chunk(
+    glm::ivec2 posCh, std::vector<uint8_t>&& tiles, std::vector<uint8_t>&& branchesSerialized
+)
     : m_posCh(posCh)
-    , m_tiles(std::move(tiles)) {
-    assert(m_tiles.size() >= k_chunkByteSize);
+    , m_tiles(std::move(tiles))
+    , m_branchesSerialized(std::move(branchesSerialized)) {
+    assert(m_tiles.size() == k_chunkByteSize);
+    assert((m_branchesSerialized.size() % sizeof(BranchSerialized)) == 0);
 }
 
 uint8_t Chunk::get(TileAttrib type, glm::uvec2 posTi) const {
@@ -41,10 +50,6 @@ void Chunk::setUnsafe(TileAttrib type, glm::uvec2 posTi, uint8_t value) {
 
 int Chunk::step() const {
     return ++m_stepsSinceLastOperation;
-}
-
-const std::vector<uint8_t>& Chunk::tiles() const {
-    return m_tiles;
 }
 
 void Chunk::boundsCheck(glm::uvec2 posTi) const {

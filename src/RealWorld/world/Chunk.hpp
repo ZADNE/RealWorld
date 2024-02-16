@@ -3,6 +3,7 @@
  */
 #pragma once
 #include <exception>
+#include <span>
 #include <vector>
 
 #include <glm/vec2.hpp>
@@ -12,9 +13,9 @@
 namespace rw {
 
 /**
- * @brief Represents a fixed-size square grid of tiles.
+ * @brief Represents a fixed-size square of tiles and vegetation belonging to it.
  *
- * All chunks have the size of ChunkTi constant.
+ * All chunks have the size of ChunkTi constant. Vegetation per chunk varies.
  *
  * A tile is defined by 4 values: block type, block variant, wall type and wall
  * variant.
@@ -22,23 +23,21 @@ namespace rw {
 class Chunk {
 public:
     /**
-     * @brief Constructs empty chunk.
-     */
-    Chunk() {}
-
-    /**
      * @brief Contructs chunk from raw bytes
-     *
      * @param posCh Position of the chunk, in chunk coordinates.
-     * @param tiles Tiles of the chunk, size must be k_chunkByteSize
-     * @throws std::exception If data does not hold enough bytes.
      */
-    Chunk(glm::ivec2 posCh, const uint8_t* tiles);
+    Chunk(
+        glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized
+    );
 
     /**
      * @brief Constructs chunk by moving tiles in
      */
-    Chunk(glm::ivec2 posCh, std::vector<uint8_t>&& tiles);
+    Chunk(
+        glm::ivec2 posCh, std::vector<uint8_t>&& tiles, std::vector<uint8_t>&& branchesSerialized
+    );
+
+    glm::ivec2 posCh() const { return m_posCh; }
 
     /**
      * @brief Gets a value of a tile inside the chunk.
@@ -103,11 +102,16 @@ public:
     int step() const;
 
     /**
-     * @brief Gets tiles of the chunk.
-     *
-     * @return Tiles inside a vector.
+     * @brief Gets tiles of the chunk
      */
-    const std::vector<uint8_t>& tiles() const;
+    [[nodiscard]] const std::vector<uint8_t>& tiles() const { return m_tiles; }
+
+    /**
+     * @brief Gets serialized branches of the chunk
+     */
+    [[nodiscard]] const std::vector<uint8_t>& branchesSerialized() const {
+        return m_branchesSerialized;
+    }
 
 private:
     /**
@@ -132,6 +136,7 @@ private:
     size_t calcIndexToBuffer(TileAttrib type, glm::uvec2 posTi) const;
 
     std::vector<uint8_t> m_tiles; /**< Tiles of the chunk */
+    std::vector<uint8_t> m_branchesSerialized;
     glm::ivec2           m_posCh{0, 0};
     mutable int m_stepsSinceLastOperation = 0; /**< Steps since last read/write op */
 };

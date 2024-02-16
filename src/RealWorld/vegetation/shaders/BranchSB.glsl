@@ -6,7 +6,7 @@
 #extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
 #include <RealWorld/constants/vegetation.glsl>
 
-layout (set = 0, binding = BranchSB_BINDING, std430)
+layout (set = 0, binding = k_branchBinding, std430)
 restrict buffer BranchSB {
     // Double-buffered params
     vec2    absPosTi[2][k_maxBranchCount];
@@ -20,12 +20,6 @@ restrict buffer BranchSB {
     float   lengthTi[k_maxBranchCount];
     vec2    densityStiffness[k_maxBranchCount];
     uint8_t raster[k_maxBranchCount][k_branchRasterSpace];
-
-    // Footer
-    uint    vertexCount;
-    uint    instanceCount;
-    uint    firstVertex;
-    uint    firstInstance;
 } b_branch;
 
 // parentOffset15wallType31[ 0..15] = negative index offset to parent

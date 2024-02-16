@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealWorld/constants/tile.hpp>
+#include <RealWorld/drawing/MinimapLayout.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
 
@@ -58,24 +59,11 @@ void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexS
 
 void TileDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
     m_pushConstants.viewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
-    m_pushConstants.viewSizeTi  = viewSizeTi;
-    glm::vec2 worldTexSize      = m_pushConstants.worldTexMask + 1;
-    float     worldTexSizeRatio = worldTexSize.x / worldTexSize.y;
-    if (worldTexSizeRatio > 1.0f) {
-        float longerDim = viewSizePx.x - 100.0f;
-        m_pushConstants.minimapSize =
-            glm::vec2(longerDim, longerDim / worldTexSizeRatio);
-    } else if (worldTexSizeRatio < 1.0f) {
-        float longerDim = viewSizePx.y - 100.0f;
-        m_pushConstants.minimapSize =
-            glm::vec2(longerDim * worldTexSizeRatio, longerDim);
-    } else {
-        float longerDim = glm::min(viewSizePx.x - 100.0f, viewSizePx.y - 100.0f);
-        m_pushConstants.minimapSize =
-            glm::vec2(longerDim * worldTexSizeRatio, longerDim);
-    }
-    m_pushConstants.minimapOffset = viewSizePx * 0.5f -
-                                    m_pushConstants.minimapSize * 0.5f;
+    m_pushConstants.viewSizeTi = viewSizeTi;
+
+    auto layout = minimapLayout(m_pushConstants.worldTexMask + 1, viewSizePx);
+    m_pushConstants.minimapOffset = layout.offsetPx;
+    m_pushConstants.minimapSize   = layout.sizePx;
 }
 
 void TileDrawer::drawTiles(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx) {

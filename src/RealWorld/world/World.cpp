@@ -14,11 +14,12 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
-constexpr uint32_t k_worldTexBinding          = 0;
-constexpr uint32_t k_activeChunksBufBinding   = 1;
-constexpr uint32_t k_tilePropertiesBufBinding = 2;
-constexpr uint32_t k_vegBufBinding            = 3;
-constexpr uint32_t k_branchBufBinding         = 4;
+constexpr glm::uint k_worldTexBinding       = 0;
+constexpr glm::uint k_acChunksBinding       = 1;
+constexpr glm::uint k_tilePropertiesBinding = 2;
+constexpr glm::uint k_branchBinding         = 3;
+constexpr glm::uint k_branchAllocRegBinding = 4;
+constexpr glm::uint k_branchAllocReqBinding = 5;
 
 // Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
@@ -63,10 +64,11 @@ World::World()
           re::PipelineLayoutDescription{
               .bindings =
                   {{{k_worldTexBinding, eStorageImage, 1, eCompute},
-                    {k_activeChunksBufBinding, eStorageBuffer, 1, eCompute},
-                    {k_tilePropertiesBufBinding, eUniformBuffer, 1, eCompute},
-                    {k_vegBufBinding, eStorageBuffer, 1, eCompute},
-                    {k_branchBufBinding, eStorageBuffer, 1, eCompute}}},
+                    {k_acChunksBinding, eStorageBuffer, 1, eCompute},
+                    {k_tilePropertiesBinding, eUniformBuffer, 1, eCompute},
+                    {k_branchBinding, eStorageBuffer, 1, eCompute},
+                    {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
+                    {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}}
       )
     , m_tilePropertiesBuf(re::BufferCreateInfo{
@@ -76,9 +78,7 @@ World::World()
           .initData    = re::objectToByteSpan(k_tileProperties),
           .debugName   = "rw::World::tileProperties"})
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
-    m_simulationDS.write(
-        eUniformBuffer, k_tilePropertiesBufBinding, 0, m_tilePropertiesBuf, 0, vk::WholeSize
-    );
+    m_simulationDS.write(eUniformBuffer, k_tilePropertiesBinding, 0, m_tilePropertiesBuf);
 }
 
 const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTexSizeCh) {
@@ -102,23 +102,26 @@ const re::Texture& World::adoptSave(const MetadataSave& save, glm::ivec2 worldTe
 
     // Vegetation simulator
     auto vegStorage = m_vegSimulator.adoptSave(m_worldTex, worldTexSizeCh);
+    m_simulationDS.write(eStorageBuffer, k_branchBinding, 0, vegStorage.branchBuf);
     m_simulationDS.write(
-        eStorageBuffer, k_vegBufBinding, 0, vegStorage.vegBuf, 0, vk::WholeSize
-    );
-    m_simulationDS.write(
-        eStorageBuffer, k_branchBufBinding, 0, vegStorage.branchBuf, 0, vk::WholeSize
+        eStorageBuffer, k_branchAllocRegBinding, 0, vegStorage.branchAllocRegBuf
     );
 
     // Update chunk manager
-    m_activeChunksBuf = &m_chunkManager.setTarget(ChunkManager::TargetInfo{
-        .seed           = m_seed,
-        .folderPath     = save.path,
-        .worldTex       = m_worldTex,
-        .worldTexSizeCh = worldTexSizeCh,
-        .descriptorSet  = m_simulationDS,
-        .bodiesBuf      = bodiesBuf,
-        .vegBuf         = vegStorage.vegBuf,
-        .branchBuf      = vegStorage.branchBuf});
+    auto activationBufs = m_chunkActivationMgr.setTarget(ChunkActivationMgr::TargetInfo{
+        .seed              = m_seed,
+        .folderPath        = save.path,
+        .worldTex          = m_worldTex,
+        .worldTexCh        = worldTexSizeCh,
+        .descriptorSet     = m_simulationDS,
+        .bodiesBuf         = bodiesBuf,
+        .branchBuf         = vegStorage.branchBuf,
+        .branchAllocRegBuf = vegStorage.branchAllocRegBuf});
+
+    m_activeChunksBuf = &activationBufs.activeChunksBuf;
+    m_simulationDS.write(
+        eUniformBuffer, k_branchAllocReqBinding, 0, activationBufs.allocReqBuf
+    );
 
     return m_worldTex;
 }
@@ -135,31 +138,24 @@ bool World::saveChunks() {
     });
 
     // Save the chunks
-    return m_chunkManager.saveChunks();
+    return m_chunkActivationMgr.saveChunks();
 }
 
 size_t World::numberOfInactiveChunks() {
-    return m_chunkManager.numberOfInactiveChunks();
+    return m_chunkActivationMgr.numberOfInactiveChunks();
 }
 
-int World::step(
+void World::step(
     const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
     // Unrasterize branches
     m_vegSimulator.unrasterizeVegetation(cmdBuf);
 
-    int activatedChunkCount = 0;
-    { // Chunk manager
-        auto dbg = cmdBuf.createDebugRegion("chunk manager");
-        m_chunkManager.beginStep();
-        m_chunkManager.planActivationOfChunks(
-            cmdBuf, botLeftTi, topRightTi, m_vegSimulator.writeBuf()
-        );
-        cmdBuf->bindDescriptorSets(
-            vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
-        );
-        activatedChunkCount = m_chunkManager.endStep(cmdBuf);
-    }
+    // Activation manager
+    cmdBuf->bindDescriptorSets(
+        vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
+    );
+    m_chunkActivationMgr.activateArea(cmdBuf, botLeftTi, topRightTi);
 
     // Bodies
     // m_bodySimulator.step(cmdBuf);
@@ -168,12 +164,10 @@ int World::step(
     m_vegSimulator.rasterizeVegetation(cmdBuf);
 
     // Tile transformations
-    tileTransformationsStep(cmdBuf, activatedChunkCount);
+    tileTransformationsStep(cmdBuf);
 
     // Fluid dynamics
     fluidDynamicsStep(cmdBuf, botLeftTi, topRightTi);
-
-    return activatedChunkCount;
 }
 
 void World::modify(
@@ -243,22 +237,18 @@ void World::fluidDynamicsStep(
 
     // Permute the orders
     uint32_t order;
-    if (m_permuteOrder) {
-        order                         = 0;
-        m_worldDynamicsPC.updateOrder = 0;
-        // 4 random orders, the threads randomly select from these
-        for (unsigned int i = 0; i < 4; i++) {
-            m_worldDynamicsPC.updateOrder |=
-                permuteOrder(m_worldDynamicsPC.timeHash) << (i * 8);
-        }
-        cmdBuf->pushConstants(
-            *m_simulationPL, eCompute, member(m_worldDynamicsPC, updateOrder)
-        );
-        // Randomize order of dispatches
-        order = permuteOrder(m_worldDynamicsPC.timeHash);
-    } else {
-        order = 0b00011011;
+    order                         = 0;
+    m_worldDynamicsPC.updateOrder = 0;
+    // 4 random orders, the threads randomly select from these
+    for (unsigned int i = 0; i < 4; i++) {
+        m_worldDynamicsPC.updateOrder |= permuteOrder(m_worldDynamicsPC.timeHash)
+                                         << (i * 8);
     }
+    cmdBuf->pushConstants(
+        *m_simulationPL, eCompute, member(m_worldDynamicsPC, updateOrder)
+    );
+    // Randomize order of dispatches
+    order = permuteOrder(m_worldDynamicsPC.timeHash);
 
     // 4 rounds, each updates one quarter of the chunks
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);
@@ -276,9 +266,7 @@ void World::fluidDynamicsStep(
     }
 }
 
-void World::tileTransformationsStep(
-    const re::CommandBuffer& cmdBuf, int activatedChunkCount
-) {
+void World::tileTransformationsStep(const re::CommandBuffer& cmdBuf) {
     // Set up cmdBuf state for simulation
     auto dbg = cmdBuf.createDebugRegion("tile transformations");
     xorshift32(m_worldDynamicsPC.timeHash);
@@ -301,8 +289,7 @@ void World::tileTransformationsStep(
     // Tile transformations
     cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
     cmdBuf->dispatchIndirect(
-        **m_activeChunksBuf,
-        offsetof(ChunkManager::ActiveChunksSB, dynamicsGroupSize)
+        **m_activeChunksBuf, offsetof(ActiveChunksSB, dynamicsGroupSize)
     );
 }
 

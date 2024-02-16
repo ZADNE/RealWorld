@@ -14,36 +14,10 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/vegetation/Branch.hpp>
 #include <RealWorld/vegetation/shaders/AllShaders.hpp>
 
 namespace rw {
-
-#pragma warning(push)
-#pragma warning(disable : 4200)
-struct BranchSB {
-    // Double-buffered params
-    glm::vec2 absPosTi[2][k_maxBranchCount];
-    float     absAngNorm[2][k_maxBranchCount];
-
-    // Single-buffered params
-    glm::uint parentOffset15wallType31[k_maxBranchCount];
-    float     relRestAngNorm[k_maxBranchCount];
-    float     angVel[k_maxBranchCount];
-    float     radiusTi[k_maxBranchCount];
-    float     lengthTi[k_maxBranchCount];
-    glm::vec2 densityStiffness[k_maxBranchCount];
-    uint8_t   raster[k_maxBranchCount][k_branchRasterSpace];
-
-    // Footer
-    glm::uint vertexCount;
-    glm::uint instanceCount;
-    glm::uint firstVertex;
-    glm::uint firstInstance;
-};
-#pragma warning(pop)
 
 /**
  * @brief   Simulates swaying and growth of vegetation
@@ -64,24 +38,18 @@ public:
     void rasterizeVegetation(const re::CommandBuffer& cmdBuf);
 
     struct VegStorage {
-        const re::Buffer& vegBuf;
         const re::Buffer& branchBuf;
+        const re::Buffer& branchAllocRegBuf;
     };
 
     VegStorage adoptSave(const re::Texture& worldTex, glm::ivec2 worldTexSizeCh);
-
-    /**
-     * @brief   Returns index to the double buffered part of the branch buffer
-     * is currently for writing (swaps each step)
-     */
-    glm::uint writeBuf() const { return 1 - m_vegDynamicsPC.readBuf; }
 
 private:
     struct VegDynamicsPC {
         glm::mat4 mvpMat;
         glm::vec2 worldTexSizeTi;
         float     timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
-        glm::uint readBuf = 0;
+        glm::uint readBuf;
     } m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
@@ -117,8 +85,8 @@ private:
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
         .debugName = "rw::VegSimulator::descriptorSet"}};
-    re::Buffer        m_vegBuf;
     re::Buffer        m_branchBuf;
+    re::Buffer        m_branchAllocRegBuf;
     glm::uvec2        m_worldTexSizeTi{};
 
     void beginWorldTextureRenderPass(

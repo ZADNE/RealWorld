@@ -7,8 +7,9 @@
     generateVectorVeg.comp      
     generateVeg.comp            
     GenerationPC.glsl           
+    generationPll.glsl          
     selectVariant.comp          
     vegDistribution.glsl        
-    VegPreparationSB.glsl       
+    VegPrepSB.glsl              
     VegTemplatesUB.glsl         
 )
