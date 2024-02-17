@@ -85,7 +85,7 @@ const uint k_highlighterWl =    223;
 const uint k_firstNonsolidWl =  224;//0b1110'0000
 const uint k_oakWoodWl =        224;
 const uint k_acaciaWoodWl =     225;
-const uint k_wallGrassWl =      226;
+const uint k_tallGrassWl =      226;
 const uint k_wheatWl =          227;
 const uint k_leafWl =           227;
 const uint k_airWl =            255;
@@ -119,9 +119,9 @@ const uvec2 k_smoke =           {k_smokeBl,         0};
 // Vegetation tiles (only walls)
 const uvec2 k_oakWood =         {k_oakWoodWl,       0};
 const uvec2 k_acaciaWood =      {k_acaciaWoodWl,    0};
-const uvec2 k_wallGrass =       {k_wallGrassWl,     0};
+const uvec2 k_tallGrass =       {k_tallGrassWl,     0};
 const uvec2 k_wheat =           {k_wheatWl,         0};
-const uvec2 k_leaf =            {k_leafWl,         0};
+const uvec2 k_leaf =            {k_leafWl,          0};
 
 const uvec4 k_air =             {k_airBl,           0,  k_airWl,            0};
 const uvec4 k_never =           {k_neverBl,         0,  k_neverWl,          0};

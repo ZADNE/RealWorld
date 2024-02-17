@@ -70,7 +70,8 @@ enum class Wall : uint8_t {
     HallowDirt,
     HallowGrass,
 
-    OakWood = 224,
+    Highlighter = 223,
+    OakWood     = 224,
     AcaciaWood,
     TallGrass,
     Wheat,
