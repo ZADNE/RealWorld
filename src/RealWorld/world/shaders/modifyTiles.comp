@@ -40,12 +40,12 @@ void main(){
     uvec4 tile = tileLoadIm(posIm);
     g_randomState = (posIm.x * posIm.y) ^ p_timeHash;
     if (p_modifyTarget == k_blockLayer){
-        if ((p_modifySetValue.x == AIR.BL_T) == (tile.BL_T == AIR.BL_T)){
+        if ((p_modifySetValue.x == k_air.BL_T) == (tile.BL_T == k_air.BL_T)){
             return;
         }
         tile.BL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
     } else {
-        if ((p_modifySetValue.x == AIR.WL_T) == (tile.WL_T == AIR.WL_T) == isNonsolidBlock(tile.BL_T)){
+        if ((p_modifySetValue.x == k_air.WL_T) == (tile.WL_T == k_air.WL_T) == isNonsolidBlock(tile.BL_T)){
             return;
         }
         tile.WL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);

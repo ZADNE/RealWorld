@@ -37,7 +37,7 @@ void main() {
     }
 
     // Determine new tile
-    if (tile.BL_T == AIR_BL){
+    if (tile.BL_T == k_airBl){
         if (neighborsN > p_edgeConsolidationPromote){
             // Surrounded air -> promote to material
             tile = uvec4(imageLoad(u_materialImage, ivec3(pTi, gl_WorkGroupID.z)).BL_T, tile.gba);
@@ -45,7 +45,7 @@ void main() {
     } else {
         if (neighborsN < p_edgeConsolidationReduce){
             // Lonely solid -> reduce to air
-            tile = uvec4(AIR.BL_T, tile.gba);
+            tile = uvec4(k_air.BL_T, tile.gba);
         }
     }
 

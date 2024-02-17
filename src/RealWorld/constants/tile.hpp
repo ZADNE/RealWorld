@@ -74,6 +74,7 @@ enum class Wall : uint8_t {
     AcaciaWood,
     TallGrass,
     Wheat,
+    Leaf,
 
     Air = 255
 };

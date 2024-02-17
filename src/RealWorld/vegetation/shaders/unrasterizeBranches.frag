@@ -20,7 +20,7 @@ void main(){
     if (prevTile.WL_T == wallType){
         uint branchIndex = i_branchIndex15wallType31 & 0xffff;
         storeBranchTexel(branchIndex, ivec2(round(i_uv)), prevTile.WL_V);
-        o_tile = uvec4(prevTile.BL, AIR.WL);
+        o_tile = uvec4(prevTile.BL, k_air.WL);
     } else {
         o_tile = prevTile;
     }

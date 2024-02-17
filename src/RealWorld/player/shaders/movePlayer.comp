@@ -14,7 +14,7 @@ layout (local_size_x = 1,
 ) in;
 
 uint ground(vec2 posPx, vec2 dimsPx) {
-    uint grnd = AIR.BLOCK_TYPE;
+    uint grnd = k_air.BLOCK_TYPE;
     int  yTi  = int(pxToTi(posPx.y - 1.0));
     for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi) {
         grnd = min(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);

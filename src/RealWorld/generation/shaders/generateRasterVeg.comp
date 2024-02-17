@@ -20,7 +20,7 @@ void main(){
     g_randomState = instance.randomSeed ^ gl_LocalInvocationIndex * 2713;
     uint val;
     switch (instance.wallType){
-    case WHEAT_WL:
+    case k_wheatWl:
         val = random() & 127 + uint(gl_LocalInvocationID.y >= 24) * 128;
         break;
     default:

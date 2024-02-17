@@ -84,8 +84,8 @@ uvec2 stoneTile(vec2 posPx, float age, float baseSolidity, float seed){
     float depthFactor = smoothstep(-32768.0, -8192.0, posPx.y);
     float lavaFactor = snoise(posPx * (1.0 / 400.0), -seed) + depthFactor;
     float dither = hash13(vec3(posPx, seed)) * 0.3 - 0.15;
-    uvec2 stoneTile = STONE_TILES[int(clamp(age + dither, 0.0, 0.9999) * STONE_TILES.length())].TILE_TYPE;
-    return (lavaFactor <= 0.0 && baseSolidity > 0.45) ? uvec2(LAVA.BLOCK_TYPE, stoneTile.y) : stoneTile;
+    uvec2 stoneTile = k_stoneTiles[int(clamp(age + dither, 0.0, 0.9999) * k_stoneTiles.length())].TILE_TYPE;
+    return (lavaFactor <= 0.0 && baseSolidity > 0.45) ? uvec2(k_lava.BLOCK_TYPE, stoneTile.y) : stoneTile;
 }
 
 uvec2 surfaceTile(vec2 posPx, float seed){
@@ -115,10 +115,10 @@ void basicTerrain(in vec2 pPx, out uvec4 tile, out uvec4 material){
     float solidityShifter = belowHorizon ? horizonProximityFactor(horizon.x, pPx.y, 400.0, 0.0, 0.2) : -10.0;
     bool occupied = (solidity + solidityShifter) > 0.5;
     
-    material.TL_T = belowHorizon ? (belowSoil ? stoneTile : surfaceTile) : AIR.TILE_TYPE;//RB = block & wall type
+    material.TL_T = belowHorizon ? (belowSoil ? stoneTile : surfaceTile) : k_air.TILE_TYPE;//RB = block & wall type
     material.TL_V = uvec2(255, 255);
     
-    tile = occupied ? material : uvec4(AIR.BL_T, material.BL_V, material.WL);
+    tile = occupied ? material : uvec4(k_air.BL_T, material.BL_V, material.WL);
 }
 
 #endif // !GENERATE_STRUCTURE_GLSL

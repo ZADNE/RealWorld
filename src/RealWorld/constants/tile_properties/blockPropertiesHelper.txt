@@ -15,19 +15,19 @@
 
 
 
-STONE
-DIRT
-GRASS
-COLD_STONE
-SAND
-COLD_DIRT
-COLD_GRASS
-MUD
-MUD_GRASS
-DRY_GRASS
-HALLOW_STONE
-HALLOW_DIRT
-HALLOW_GRASS
+k_stone
+k_dirt
+k_grass
+k_coldStone
+k_sand
+k_coldDirt
+k_coldGrass
+k_mud
+k_mudGrass
+k_dryGrass
+k_hallowStone
+k_hallowDirt
+k_hallowGrass
 
 
 
@@ -239,11 +239,11 @@ HALLOW_GRASS
 
 
 
-WATER
-LAVA
-STEAM
-FIRE
-SMOKE
+k_water
+k_lava
+k_steam
+k_fire
+k_smoke
 
 
 
@@ -269,5 +269,5 @@ SMOKE
 
 
 
-ACID
-AIR
+k_acid
+k_air

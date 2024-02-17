@@ -83,7 +83,7 @@ void generateGrass(){
     uint outputIndex = s_inst.outputIndex + gl_LocalInvocationID.x;
     b_branch.absPosTi[0][outputIndex] = pTi;
     b_branch.absAngNorm[0][outputIndex] = angleNorm;
-    storeBranchParentOffsetWallType(outputIndex, gl_LocalInvocationID.x & 1, WHEAT_WL);
+    storeBranchParentOffsetWallType(outputIndex, gl_LocalInvocationID.x & 1, k_wheatWl);
     b_branch.relRestAngNorm[outputIndex] = angleNorm;
     b_branch.angVel[outputIndex] = 0.0;
     b_branch.radiusTi[outputIndex] = sizeTi.x;
@@ -94,7 +94,7 @@ void generateGrass(){
     b_vegPrep.branchInstances[s_inst.branchPrepInstIndex + gl_LocalInvocationID.x] = BranchInstance(
         vec2(0),        // offsetTi
         uvec2(sizeTi),  // sizeTi
-        WHEAT_WL,       // wallType
+        k_wheatWl,      // wallType
         outputIndex,    // outputIndex
         g_randomState   // randomSeed
     );

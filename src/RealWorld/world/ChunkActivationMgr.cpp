@@ -170,6 +170,7 @@ void ChunkActivationMgr::activateArea(
     if (m_transparentChunkChanges > 0 &&
         re::StepDoubleBufferingState::writeIndex()) {
         analyzeAfterChanges(cmdBuf);
+        m_transparentChunkChanges = 0;
     }
 }
 
