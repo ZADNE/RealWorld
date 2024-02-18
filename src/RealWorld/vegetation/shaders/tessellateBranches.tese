@@ -2,8 +2,9 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-layout (location = 0) out vec2 o_uv;
-layout (location = 1) out uint o_branchIndex15wallType31;
+layout (location = 0) out vec2  o_uv;
+layout (location = 1) out float o_angleNorm;
+layout (location = 2) out uint  o_branchIndex15wallType31;
 
 layout (quads, fractional_even_spacing) in;
 layout (location = 0) patch in vec2  i_p0Ti; // Start
@@ -13,6 +14,8 @@ layout (location = 3) patch in vec2  i_sizeTi;
 layout (location = 4) patch in uint  i_branchIndex15wallType31;
 
 #include <RealWorld/vegetation/shaders/VegDynamicsPC.glsl>
+
+const float k_1Over2Pi = 0.15915494309;
 
 void main(){
     // Helper vars
@@ -34,4 +37,5 @@ void main(){
     // Other attributes
     o_uv = gl_TessCoord.xy * (i_sizeTi - 1.0);
     o_branchIndex15wallType31 = i_branchIndex15wallType31;
+    o_angleNorm = fract(k_1Over2Pi * atan(tTi.y, tTi.x));
 }

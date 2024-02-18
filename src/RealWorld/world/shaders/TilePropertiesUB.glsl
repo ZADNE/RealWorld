@@ -10,6 +10,7 @@ const uint DIRTb =      1 << 1;
 const uint GRASSb =     1 << 2;
 const uint BURNINGb =   1 << 3;
 const uint HALLOWb =    1 << 4;
+const uint WOODb =      1 << 5;
 
 // Wall properties
 const uint EDGEb =      1 << 0;

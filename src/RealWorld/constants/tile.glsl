@@ -87,7 +87,7 @@ const uint k_oakWoodWl =        224;
 const uint k_acaciaWoodWl =     225;
 const uint k_tallGrassWl =      226;
 const uint k_wheatWl =          227;
-const uint k_leafWl =           227;
+const uint k_leafWl =           228;
 const uint k_airWl =            255;
 const uint k_neverWl =          256;
 

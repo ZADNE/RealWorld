@@ -7,13 +7,12 @@
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
+#include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 #include <RealWorld/constants/tile_properties/fluidProperties.glsl>
 
-const int DYN_GROUP_SIZE = 16;
-
-layout (local_size_x = DYN_GROUP_SIZE,
-        local_size_y = DYN_GROUP_SIZE,
+layout (local_size_x = 16,
+        local_size_y = 16,
         local_size_z = 1
 ) in;
 
@@ -123,6 +122,34 @@ void velocityFluidDynamics(uvec4 water, ivec2 posIm){
     }
 }
 
+const ivec2 k_neighborhood[] = {
+    {-1, +1},     {+0, +1},     {+1, +1},
+    {-1, +0},                   {+1, +0},
+    {-1, -1},     {+0, -1},     {+1, -1}
+};
+
+void leafGrowth(uvec4 tile, uint strength, ivec2 posIm){
+    /*for (int i = 0; i < k_neighborhood.length(); i++){
+        ivec2 nPosIm = imPos(posIm + k_neighborhood[i]);
+        uvec4 n = tileLoad(nPosIm);
+        if (n.WL_T == k_air.WL_T){
+            tileStoreIm(nPosIm, uvec4(n.BL, k_leafWl, strength - 1));
+        }
+    }*/
+    tileStoreIm(posIm, uvec4(tile.BL, k_leafWl, strength - 1));
+}
+
+const float k_2piOver127 = 0.04947390005;
+
+void branchSpawn(uvec4 tile, ivec2 posIm){
+    float angle = float(tile.WL_V & 127) * k_2piOver127;
+    vec2 dir = vec2(cos(angle), sin(angle));
+    ivec2 offset = ivec2(dir * 5.0);
+    posIm = imPos(posIm + offset);
+    tile = tileLoadIm(posIm);
+    tileStoreIm(posIm + offset, uvec4(tile.BL, k_leafWl, 2));
+}
+
 void main(){
     g_randomState = invocHash();
     const ivec2 invocOffset = p_globalPosTi
@@ -135,10 +162,19 @@ void main(){
         for (uint inCore = 0; inCore < 4; inCore++){
             ivec2 posIm = imPos(invocOffset + inGroupOffset + updateOrderOffset(inCore + inCoreOrderOffset));
             uvec4 tile = tileLoadIm(posIm);
-            if (tile.BL_T >= k_waterBl && tile.BL_T <= k_smokeBl){
+            /*if (tile.BL_T >= k_waterBl && tile.BL_T <= k_smokeBl){
                 leaningFluidDynamics(tile, posIm);
             } else if (tile.BL_T == k_acidBl){
                 velocityFluidDynamics(tile, posIm);
+            }*/
+            if (bool(u_wallProperties[tile.WL_T] & WOODb) && bool(tile.WL_V & 128)){
+                branchSpawn(tile, posIm);
+            } else if (tile.WL_T == k_leafWl){
+                if (tile.WL_V > 0) {
+                    leafGrowth(tile, tile.WL_V, posIm);
+                } else {
+                    tileStoreIm(posIm, uvec4(tile.BL, k_air.WL));
+                }
             }
         }
         groupMemoryBarrier();

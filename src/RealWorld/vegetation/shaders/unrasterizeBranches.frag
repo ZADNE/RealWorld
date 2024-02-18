@@ -12,7 +12,7 @@ uniform usubpassInput u_worldTexSI;
 layout (location = 0) out uvec4    o_tile;
 
 layout (location = 0) in vec2      i_uv;
-layout (location = 1) in flat uint i_branchIndex15wallType31;
+layout (location = 2) in flat uint i_branchIndex15wallType31;
 
 void main(){
     uvec4 prevTile = subpassLoad(u_worldTexSI);

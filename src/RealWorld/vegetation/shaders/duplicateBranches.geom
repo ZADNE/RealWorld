@@ -3,20 +3,23 @@
  */
 #version 460
 layout (triangle_strip, max_vertices = 12) out;
-layout (location = 0) out vec2 o_uv;
-layout (location = 1) out uint o_branchIndex15wallType31;
+layout (location = 0) out vec2  o_uv;
+layout (location = 1) out float o_angleNorm;
+layout (location = 2) out uint  o_branchIndex15wallType31;
 
 layout (triangles) in;
-layout (location = 0) in vec2 i_uv[];
-layout (location = 1) in uint i_branchIndex15wallType31[];
+layout (location = 0) in vec2  i_uv[];
+layout (location = 1) in float i_angleNorm[];
+layout (location = 2) in uint  i_branchIndex15wallType31[];
 
 void duplicationPass(vec2 offset){
     for (int i = 0; i < 3; ++i){
         vec4 pos = gl_in[i].gl_Position;
         pos.xy += offset;
         gl_Position = pos;
-        o_branchIndex15wallType31 = i_branchIndex15wallType31[0];
         o_uv = i_uv[i];
+        o_angleNorm = i_angleNorm[i];
+        o_branchIndex15wallType31 = i_branchIndex15wallType31[0];
         EmitVertex();
     }
     EndPrimitive();
@@ -33,6 +36,7 @@ void main() {
             equal(offset, vec2(0.0))
         );
         gl_Position = pos;
+        o_angleNorm = i_angleNorm[i];
         o_branchIndex15wallType31 = i_branchIndex15wallType31[0];
         o_uv = i_uv[i];
         EmitVertex();
