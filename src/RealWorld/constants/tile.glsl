@@ -108,25 +108,10 @@ const uvec4 k_hallowDirt =      {k_hallowDirtBl,    0,  k_hallowDirtWl,     0};
 const uvec4 k_hallowGrass =     {k_hallowGrassBl,   0,  k_hallowGrassWl,    0};
 const uvec4 k_highlighter =     {k_highlighterBl,   0,  k_highlighterWl,    0};
 
-// Fluid tiles (only blocks)
-const uvec2 k_water =           {k_waterBl,         0};
-const uvec2 k_lava =            {k_lavaBl,          0};
-const uvec2 k_acid =            {k_acidBl,          0};
-const uvec2 k_steam =           {k_steamBl,         0};
-const uvec2 k_fire =            {k_fireBl,          0};
-const uvec2 k_smoke =           {k_smokeBl,         0};
-
-// Vegetation tiles (only walls)
-const uvec2 k_oakWood =         {k_oakWoodWl,       0};
-const uvec2 k_acaciaWood =      {k_acaciaWoodWl,    0};
-const uvec2 k_tallGrass =       {k_tallGrassWl,     0};
-const uvec2 k_wheat =           {k_wheatWl,         0};
-const uvec2 k_leaf =            {k_leafWl,          0};
+const uvec4 k_firstNonsolid =   {k_firstNonsolidBl, 0,  k_firstNonsolidWl,  0};
 
 const uvec4 k_air =             {k_airBl,           0,  k_airWl,            0};
 const uvec4 k_never =           {k_neverBl,         0,  k_neverWl,          0};
-
-const uvec4 k_firstNonsolid =   {k_firstNonsolidBl, 0,  k_firstNonsolidWl,  0};
 
 
 bool isSolidBlock(uint block_type){ return block_type < k_firstNonsolidBl; }

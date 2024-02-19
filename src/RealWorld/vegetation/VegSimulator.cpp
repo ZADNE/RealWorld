@@ -23,6 +23,7 @@ namespace rw {
 
 constexpr glm::uint k_branchBinding      = 0;
 constexpr glm::uint k_worldTexAttBinding = 1;
+constexpr glm::uint k_worldTexBinding    = 2;
 
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
@@ -32,7 +33,8 @@ VegSimulator::VegSimulator()
           re::PipelineLayoutDescription{
               .bindings =
                   {{{k_branchBinding, D::eStorageBuffer, 1, eVertex | eFragment},
-                    {k_worldTexAttBinding, D::eInputAttachment, 1, eFragment}}},
+                    {k_worldTexAttBinding, D::eInputAttachment, 1, eFragment},
+                    {k_worldTexBinding, D::eStorageImage, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
                   eVertex | eTessellationControl | eTessellationEvaluation,
                   0u,
@@ -188,6 +190,9 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     m_descriptorSet.write(D::eStorageBuffer, k_branchBinding, 0u, m_branchBuf);
     m_descriptorSet.write(
         D::eInputAttachment, k_worldTexAttBinding, 0u, worldTex, vk::ImageLayout::eGeneral
+    );
+    m_descriptorSet.write(
+        D::eStorageImage, k_worldTexBinding, 0u, worldTex, vk::ImageLayout::eGeneral
     );
 
     { // Prepare framebuffers

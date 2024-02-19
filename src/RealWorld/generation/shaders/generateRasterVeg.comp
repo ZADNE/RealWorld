@@ -21,12 +21,14 @@ void main(){
     uint val;
     switch (instance.wallType){
     case k_wheatWl:
-        val = random() & 127 + uint(gl_LocalInvocationID.y >= 24) * 128;
+        val = random() & 124 + uint(gl_LocalInvocationID.y >= 24) * 128;
         break;
     default:
-        float dist = length(instance.offsetTi + vec2(gl_LocalInvocationID.xy));
-        float distFactor = clamp(dist * (1.0 / 128.0) + randomFloat() * 0.125, 0.0, 1.0);
-        val = uint(distFactor * 255.0);
+        uint distToRoot = uint(length(instance.offsetTi + vec2(gl_LocalInvocationID.xy)));
+        uint bud = uint(((random() & 127) + 30) < distToRoot);
+        bud += uint(((random() & 127) + 40) < distToRoot);
+        bud += uint(((random() & 127) + 50) < distToRoot);
+        val = bud;
         break;
     }
     storeBranchTexel(instance.outputIndex, ivec2(gl_LocalInvocationID.xy), val);

@@ -5,6 +5,7 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/vegetation/shaders/branchRasterizationPll.glsl>
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
+#include <RealWorld/world/shaders/tileLoadStore.glsl>
 
 layout(input_attachment_index = 0, set = 0, binding = k_worldTexAttBinding)
 uniform usubpassInput u_worldTexSI;
@@ -12,7 +13,7 @@ uniform usubpassInput u_worldTexSI;
 layout (location = 0) out uvec4     o_tile;
 
 layout (location = 0) in vec2       i_uv;
-layout (location = 1) in float      i_angleNorm;
+layout (location = 1) in vec2       i_normal;
 layout (location = 2) in flat uint  i_branchIndex15wallType31;
 
 void main(){
@@ -21,8 +22,15 @@ void main(){
         uint branchIndex = i_branchIndex15wallType31 & 0xffff;
         uint variant = loadBranchTexel(branchIndex, ivec2(round(i_uv)));
         uint wallType = (i_branchIndex15wallType31 >> 16) & 0xff;
-        uint bud = (variant & 1) << 7;
-        o_tile = uvec4(prevTile.BL, wallType, bud | uint(i_angleNorm * 127.0));
+        o_tile = uvec4(prevTile.BL, wallType, variant);
+        uint bud = (variant & 3);
+        if (bud > 0){ // If should spawn root leaf
+            ivec2 leafPosIm = imPos(ivec2(gl_FragCoord.xy + i_normal * float(bud * 4)));
+            uvec4 leaf = tileLoadIm(leafPosIm);
+            if (isNonsolidWall(leaf.WL_T)){
+                tileStoreIm(leafPosIm, uvec4(leaf.BL, k_leafWl, 2));
+            }
+        }
     } else {
         o_tile = prevTile;
     }

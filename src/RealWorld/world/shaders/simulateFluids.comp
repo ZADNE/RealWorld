@@ -110,7 +110,7 @@ void velocityFluidDynamics(uvec4 water, ivec2 posIm){
         if (neighbor.BL_T == k_air.BL_T){//Can move
             tileStoreIm(posIm, uvec4(k_air.BL, water.WL));
             tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
-        } else if (neighbor.BL_T == k_water.BL_T){//Collision with another water particle
+        } else if (neighbor.BL_T == k_waterBl){//Collision with another water particle
             tileStoreIm(posIm, uvec4(neighbor.BL_T, neighbor.y, water.WL));//Swap velocities
             tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
         } else {//Collision with solid block
@@ -162,12 +162,12 @@ void main(){
         for (uint inCore = 0; inCore < 4; inCore++){
             ivec2 posIm = imPos(invocOffset + inGroupOffset + updateOrderOffset(inCore + inCoreOrderOffset));
             uvec4 tile = tileLoadIm(posIm);
-            /*if (tile.BL_T >= k_waterBl && tile.BL_T <= k_smokeBl){
+            if (tile.BL_T >= k_waterBl && tile.BL_T <= k_smokeBl){
                 leaningFluidDynamics(tile, posIm);
             } else if (tile.BL_T == k_acidBl){
                 velocityFluidDynamics(tile, posIm);
-            }*/
-            if (bool(u_wallProperties[tile.WL_T] & WOODb) && bool(tile.WL_V & 128)){
+            }
+            /*if (bool(u_wallProperties[tile.WL_T] & WOODb) && bool(tile.WL_V & 128)){
                 branchSpawn(tile, posIm);
             } else if (tile.WL_T == k_leafWl){
                 if (tile.WL_V > 0) {
@@ -175,7 +175,7 @@ void main(){
                 } else {
                     tileStoreIm(posIm, uvec4(tile.BL, k_air.WL));
                 }
-            }
+            }*/
         }
         groupMemoryBarrier();
         barrier();

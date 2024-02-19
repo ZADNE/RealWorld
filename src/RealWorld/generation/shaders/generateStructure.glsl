@@ -85,7 +85,7 @@ uvec2 stoneTile(vec2 posPx, float age, float baseSolidity, float seed){
     float lavaFactor = snoise(posPx * (1.0 / 400.0), -seed) + depthFactor;
     float dither = hash13(vec3(posPx, seed)) * 0.3 - 0.15;
     uvec2 stoneTile = k_stoneTiles[int(clamp(age + dither, 0.0, 0.9999) * k_stoneTiles.length())].TILE_TYPE;
-    return (lavaFactor <= 0.0 && baseSolidity > 0.45) ? uvec2(k_lava.BLOCK_TYPE, stoneTile.y) : stoneTile;
+    return (lavaFactor <= 0.0 && baseSolidity > 0.45) ? uvec2(k_lavaBl, stoneTile.y) : stoneTile;
 }
 
 uvec2 surfaceTile(vec2 posPx, float seed){

@@ -9,6 +9,7 @@
 #include <RealWorld/generation/shaders/generationPll.glsl>
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
+#define VegPrepSB_ACCESS
 #include <RealWorld/generation/shaders/VegPrepSB.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 

@@ -23,10 +23,6 @@ struct BranchInstance{
     uint  randomSeed;
 };
 
-#ifndef VegPrepSB_ACCESS
-#define VegPrepSB_ACCESS
-#endif
-
 layout (binding = k_vegPrepBinding, std430)
 VegPrepSB_ACCESS restrict buffer VegPrepSB {
     uvec4           vegDispatchSize;

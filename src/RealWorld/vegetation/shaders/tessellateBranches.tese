@@ -2,9 +2,9 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-layout (location = 0) out vec2  o_uv;
-layout (location = 1) out float o_angleNorm;
-layout (location = 2) out uint  o_branchIndex15wallType31;
+layout (location = 0) out vec2 o_uv;
+layout (location = 1) out vec2 o_normal;
+layout (location = 2) out uint o_branchIndex15wallType31;
 
 layout (quads, fractional_even_spacing) in;
 layout (location = 0) patch in vec2  i_p0Ti; // Start
@@ -28,8 +28,8 @@ void main(){
 
     // Diameter offset
     vec2 tTi = ti * (i_p1Ti - i_p0Ti) + t * p2_1;
-    vec2 normal = normalize(vec2(tTi.y, -tTi.x));
-    vec2 diaOffsetTi = normal * i_sizeTi.x * (gl_TessCoord.x - 0.5);
+    o_normal = normalize(vec2(tTi.y, -tTi.x));
+    vec2 diaOffsetTi = o_normal * i_sizeTi.x * (gl_TessCoord.x - 0.5);
 
     // Final position
     gl_Position = p_mvpMat * vec4(pTi + diaOffsetTi, 0.0, 1.0);
@@ -37,5 +37,4 @@ void main(){
     // Other attributes
     o_uv = gl_TessCoord.xy * (i_sizeTi - 1.0);
     o_branchIndex15wallType31 = i_branchIndex15wallType31;
-    o_angleNorm = fract(k_1Over2Pi * atan(tTi.y, tTi.x));
 }
