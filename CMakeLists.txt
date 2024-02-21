@@ -5,8 +5,9 @@ project(RealWorld)
 add_library_with_shaders(RealWorld STATIC)
 target_include_directories(RealWorld PRIVATE src)
 set_target_properties(RealWorld PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 23
     REALSHADERS_CXX_NAMESPACE "rw"
+    INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 target_link_libraries(RealWorld PUBLIC RealEngine)
 
@@ -14,7 +15,7 @@ target_link_libraries(RealWorld PUBLIC RealEngine)
 add_executable(RealWorld_Game)
 target_include_directories(RealWorld_Game PRIVATE src)
 set_target_properties(RealWorld_Game PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 23
     INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 target_link_libraries(RealWorld_Game PUBLIC RealWorld)
