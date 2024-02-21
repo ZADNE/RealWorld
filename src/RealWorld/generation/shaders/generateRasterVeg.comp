@@ -21,13 +21,14 @@ void main(){
     uint val;
     switch (instance.wallType){
     case k_wheatWl:
-        val = random() & 124 + uint(gl_LocalInvocationID.y >= 24) * 128;
+        val = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
         break;
     default:
         uint distToRoot = uint(length(instance.offsetTi + vec2(gl_LocalInvocationID.xy)));
         uint bud = uint(((random() & 127) + 30) < distToRoot);
-        bud += uint(((random() & 127) + 40) < distToRoot);
-        bud += uint(((random() & 127) + 50) < distToRoot);
+        bud += uint(((random() & 127) + 40) < distToRoot) * 2;
+        bud += uint(((random() & 127) + 50) < distToRoot) * 2;
+        bud += uint(((random() & 127) + 60) < distToRoot) * 2;
         val = bud;
         break;
     }

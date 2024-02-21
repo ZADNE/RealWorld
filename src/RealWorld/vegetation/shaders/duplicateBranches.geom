@@ -4,13 +4,15 @@
 #version 460
 layout (triangle_strip, max_vertices = 12) out;
 layout (location = 0) out vec2 o_uv;
-layout (location = 1) out vec2 o_normal;
-layout (location = 2) out uint o_branchIndex15wallType31;
+layout (location = 1) out vec2 o_tipDir;
+layout (location = 2) out vec2 o_sizeTi;
+layout (location = 3) out uint o_branchIndex15wallType31;
 
 layout (triangles) in;
 layout (location = 0) in vec2 i_uv[];
-layout (location = 1) in vec2 i_normal[];
-layout (location = 2) in uint i_branchIndex15wallType31[];
+layout (location = 1) in vec2 i_tipDir[];
+layout (location = 2) in vec2 i_sizeTi[];
+layout (location = 3) in uint i_branchIndex15wallType31[];
 
 void duplicationPass(vec2 offset){
     for (int i = 0; i < 3; ++i){
@@ -18,7 +20,8 @@ void duplicationPass(vec2 offset){
         pos.xy += offset;
         gl_Position = pos;
         o_uv = i_uv[i];
-        o_normal = i_normal[i];
+        o_tipDir = i_tipDir[i];
+        o_sizeTi = i_sizeTi[i];
         o_branchIndex15wallType31 = i_branchIndex15wallType31[0];
         EmitVertex();
     }
@@ -36,7 +39,8 @@ void main() {
             equal(offset, vec2(0.0))
         );
         gl_Position = pos;
-        o_normal = i_normal[i];
+        o_tipDir = i_tipDir[i];
+        o_sizeTi = i_sizeTi[i];
         o_branchIndex15wallType31 = i_branchIndex15wallType31[0];
         o_uv = i_uv[i];
         EmitVertex();

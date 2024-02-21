@@ -16,7 +16,7 @@ layout (local_size_x = k_genGroupSize,
 layout (set = 0, binding = k_tilesImageBinding, rgba8ui)
 uniform restrict uimage2DArray u_tilesImage;
 
-const ivec2 OFFSETS[] = {
+const ivec2 k_offsets[] = {
                 {-1, +2},   {+0, +2},   {+1, +2},
     {-2, +1},   {-1, +1},   {+0, +1},   {+1, +1},   {+2, +1},
     {-2, +0},   {-1, +0},               {+1, +0},   {+2, +0},
@@ -32,8 +32,8 @@ void main() {
 
     // Examine neighbors
     uvec2 inner = {0u, 0u};
-    for (int i = 0; i < OFFSETS.length(); i++){
-        uvec2 neighbor = imageLoad(u_tilesImage, ivec3(pTi + OFFSETS[i], loadLayer)).TILE_TYPE;
+    for (int i = 0; i < k_offsets.length(); i++){
+        uvec2 neighbor = imageLoad(u_tilesImage, ivec3(pTi + k_offsets[i], loadLayer)).TILE_TYPE;
         inner |= uvec2(isNonsolidTile(neighbor));
     }
 
