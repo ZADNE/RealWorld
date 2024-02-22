@@ -38,37 +38,8 @@ VegSimulator::VegSimulator()
                   0u,
                   sizeof(VegDynamicsPC)}}}
       )
-    , m_unrasterizationRenderPass([]() {
-        constexpr static auto attachmentDesc = vk::AttachmentDescription2{
-            // The world texture attachment
-            {},
-            vk::Format::eR8G8B8A8Uint,
-            vk::SampleCountFlagBits::e1,
-            vk::AttachmentLoadOp::eLoad,      // Color
-            vk::AttachmentStoreOp::eStore,    // Color
-            vk::AttachmentLoadOp::eDontCare,  // Stencil
-            vk::AttachmentStoreOp::eDontCare, // Stencil
-            vk::ImageLayout::eGeneral,        // Initial
-            vk::ImageLayout::eGeneral         // Final
-        };
-        constexpr static auto worldTexAttachmentRef = vk::AttachmentReference2{
-            0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor};
-        static std::array subpassDescriptions =
-            std::to_array<vk::SubpassDescription2>({vk::SubpassDescription2{
-                {},
-                vk::PipelineBindPoint::eGraphics,
-                0,
-                worldTexAttachmentRef, // Input attachments
-                worldTexAttachmentRef  // Color attachments
-            }});
-
-        return re::RenderPassCreateInfo{
-            .attachments = attachmentDesc,
-            .subpasses   = subpassDescriptions,
-            .debugName   = "rw::VegSimulator::unrasterization"};
-    }())
     , m_rasterizationRenderPass([]() {
-        constexpr static auto attachmentDesc = vk::AttachmentDescription2{
+        constexpr static auto k_attachmentDesc = vk::AttachmentDescription2{
             // The world texture attachment
             {},
             vk::Format::eR8G8B8A8Uint,
@@ -80,19 +51,19 @@ VegSimulator::VegSimulator()
             vk::ImageLayout::eGeneral,        // Initial
             vk::ImageLayout::eGeneral         // Final
         };
-        constexpr static auto worldTexAttachmentRef = vk::AttachmentReference2{
+        constexpr static auto k_worldTexAttachmentRef = vk::AttachmentReference2{
             0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor};
         static std::array subpassDescriptions =
             std::to_array<vk::SubpassDescription2>({vk::SubpassDescription2{
                 {},
                 vk::PipelineBindPoint::eGraphics,
                 0,
-                worldTexAttachmentRef, // Input attachments
-                worldTexAttachmentRef  // Color attachments
+                k_worldTexAttachmentRef, // Input attachments
+                k_worldTexAttachmentRef  // Color attachments
             }});
 
         return re::RenderPassCreateInfo{
-            .attachments = attachmentDesc,
+            .attachments = k_attachmentDesc,
             .subpasses   = subpassDescriptions,
             .debugName   = "rw::VegSimulator::rasterization"};
     }()) {
@@ -103,9 +74,7 @@ void VegSimulator::unrasterizeVegetation(const ActionCmdBuf& acb) {
     acb.action(
         [&](const re::CommandBuffer& cb) {
             // Prepare rendering to world texture
-            beginWorldTextureRenderPass(
-                cb, *m_unrasterizationRenderPass, *m_unrasterizationFramebuffer
-            );
+            beginWorldTextureRenderPass(cb);
 
             // Unrasterize branches from previous step
             cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
@@ -141,9 +110,7 @@ void VegSimulator::rasterizeVegetation(const ActionCmdBuf& acb) {
             m_vegDynamicsPC.readBuf = re::StepDoubleBufferingState::readIndex();
 
             // Prepare rendering to world texture
-            beginWorldTextureRenderPass(
-                cb, *m_rasterizationRenderPass, *m_rasterizationFramebuffer
-            );
+            beginWorldTextureRenderPass(cb);
 
             // Simulate and rasterize branches
             cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
@@ -206,33 +173,24 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         D::eStorageImage, k_worldTexBinding, 0u, worldTex, vk::ImageLayout::eGeneral
     );
 
-    { // Prepare framebuffers
-        vk::FramebufferCreateInfo createInfo{
-            {},
-            nullptr,
-            worldTex.imageView(),
-            m_worldTexSizeTi.x,
-            m_worldTexSizeTi.y,
-            1u};
-        createInfo.renderPass        = *m_unrasterizationRenderPass;
-        m_unrasterizationFramebuffer = re::Framebuffer{createInfo};
-        createInfo.renderPass        = *m_rasterizationRenderPass;
-        m_rasterizationFramebuffer   = re::Framebuffer{createInfo};
-    }
+    // Prepare framebuffers
+    m_rasterizationFramebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
+        {},
+        *m_rasterizationRenderPass,
+        worldTex.imageView(),
+        m_worldTexSizeTi.x,
+        m_worldTexSizeTi.y,
+        1u}};
 
     return VegStorage{
         .branchBuf = m_branchBuf, .branchAllocRegBuf = m_branchAllocRegBuf};
 }
 
-void VegSimulator::beginWorldTextureRenderPass(
-    const re::CommandBuffer& cb,
-    const vk::RenderPass&    renderPass,
-    const vk::Framebuffer&   framebuffer
-) const {
+void VegSimulator::beginWorldTextureRenderPass(const re::CommandBuffer& cb) const {
     cb->beginRenderPass2(
         vk::RenderPassBeginInfo{
-            renderPass,
-            framebuffer,
+            *m_rasterizationRenderPass,
+            *m_rasterizationFramebuffer,
             vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}},
             {}},
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}

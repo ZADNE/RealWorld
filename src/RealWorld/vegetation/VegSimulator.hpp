@@ -54,8 +54,6 @@ private:
     } m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
-    re::RenderPass     m_unrasterizationRenderPass;
-    re::Framebuffer    m_unrasterizationFramebuffer;
     re::RenderPass     m_rasterizationRenderPass;
     re::Framebuffer    m_rasterizationFramebuffer;
 
@@ -64,7 +62,7 @@ private:
          .patchControlPoints = 1,
          .enableBlend        = false,
          .pipelineLayout     = *m_pipelineLayout,
-         .renderPass         = *m_unrasterizationRenderPass,
+         .renderPass         = *m_rasterizationRenderPass,
          .debugName          = "rw::VegSimulator::unrasterizeBranches"},
         {.vert = unrasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
@@ -90,11 +88,7 @@ private:
     re::Buffer        m_branchAllocRegBuf;
     glm::uvec2        m_worldTexSizeTi{};
 
-    void beginWorldTextureRenderPass(
-        const re::CommandBuffer& cb,
-        const vk::RenderPass&    renderPass,
-        const vk::Framebuffer&   framebuffer
-    ) const;
+    void beginWorldTextureRenderPass(const re::CommandBuffer& cb) const;
 };
 
 } // namespace rw
