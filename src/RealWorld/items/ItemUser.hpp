@@ -7,6 +7,7 @@
 #include <RealEngine/graphics/batches/GeometryBatch.hpp>
 
 #include <RealWorld/items/Inventory.hpp>
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/world/World.hpp>
 
 namespace rw {
@@ -29,10 +30,7 @@ public:
     void selectSlot(int slot);
 
     void step(
-        const re::CommandBuffer& cmdBuf,
-        bool                     usePrimary,
-        bool                     useSecondary,
-        glm::ivec2               relCursorPosPx
+        const ActionCmdBuf& acb, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
     );
 
     void render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb);

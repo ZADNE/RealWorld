@@ -31,7 +31,7 @@ public:
     /**
      * @brief Analyzes the world texture
      */
-    void analyze(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi);
+    void analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi);
 
     /**
      * @brief Adds external light
@@ -42,12 +42,12 @@ public:
     /**
      * @brief Calculates the shadows
      */
-    void calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftPx);
+    void calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx);
 
     /**
      * @brief Renders calculated shadow to the framebuffer
      */
-    void draw(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi);
+    void draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi);
 
 private:
     re::TextureShaped m_blockLightAtlasTex{re::TextureSeed{"blockLightAtlas"}};

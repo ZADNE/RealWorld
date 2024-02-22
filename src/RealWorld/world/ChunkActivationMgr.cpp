@@ -70,10 +70,10 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
     for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         m_activeChunksStageBuf->offsets[i] = k_chunkNotActive;
     }
-    re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cmdBuf) {
+    re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cb) {
         // Copy whole buffer
         vk::BufferCopy2 bufferCopy{0ull, 0ull, bufSize};
-        cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
+        cb->copyBuffer2(vk::CopyBufferInfo2{
             m_activeChunksStageBuf.buffer(), // Src buffer
             m_activeChunksBuf.buffer(),      // Dst buffer
             bufferCopy                       // Region
@@ -124,9 +124,9 @@ size_t ChunkActivationMgr::numberOfInactiveChunks() {
 }
 
 void ChunkActivationMgr::activateArea(
-    const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
+    const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
 ) {
-    auto dbg = cmdBuf.createDebugRegion("activation manager");
+    auto dbg = acb->createDebugRegion("activation manager");
     // Check inactive chunks that have been inactive for too long
     for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {
         // If the inactive chunk has not been used for a minute
@@ -158,18 +158,18 @@ void ChunkActivationMgr::activateArea(
     }
 
     // Record planned generation
-    bool chunkGenerated = m_chunkGen.generate(cmdBuf);
+    bool anyGenerated = m_chunkGen.generate(acb);
 
     // Record planned uploads/downloads
     m_chunkTransferMgr.endStep(
-        cmdBuf, *m_worldTex, *m_branchBuf, *m_branchAllocRegBuf, m_worldTexMaskCh, chunkGenerated
+        acb, *m_worldTex, *m_branchBuf, *m_branchAllocRegBuf, m_worldTexMaskCh, anyGenerated
     );
 
     // If there have been transparent changes
     // And it is the 'activation' step
     if (m_transparentChunkChanges > 0 &&
         re::StepDoubleBufferingState::writeIndex()) {
-        analyzeAfterChanges(cmdBuf);
+        analyzeAfterChanges(acb);
         m_transparentChunkChanges = 0;
     }
 }
@@ -267,78 +267,57 @@ void ChunkActivationMgr::planDeactivation(glm::ivec2& activeCh, glm::ivec2 posAc
     }
 }
 
-void ChunkActivationMgr::analyzeAfterChanges(const re::CommandBuffer& cmdBuf) {
-    // Reset the number of update chunks to zero
-    m_activeChunksStageBuf->dynamicsGroupSize.x = 0;
+void ChunkActivationMgr::analyzeAfterChanges(const ActionCmdBuf& acb) {
+    acb.action(
+        [&](const re::CommandBuffer& cb) {
+            // Reset the number of update chunks to zero
+            m_activeChunksStageBuf->dynamicsGroupSize.x = 0;
 
-    // Copy the update to active chunks buffer
-    auto texSizeCh   = m_worldTexMaskCh + 1;
-    auto copyRegions = std::to_array<vk::BufferCopy2>(
-        {vk::BufferCopy2{
-             offsetof(ActiveChunksSB, dynamicsGroupSize),
-             offsetof(ActiveChunksSB, dynamicsGroupSize),
-             sizeof(m_activeChunksStageBuf->dynamicsGroupSize.x)},
-         vk::BufferCopy2{
-             offsetof(ActiveChunksSB, offsets[0]) +
-                 sizeof(ActiveChunksSB::offsets[0]) * m_worldTexMaskCh.x *
-                     m_worldTexMaskCh.y,
-             offsetof(ActiveChunksSB, offsets[0]) +
-                 sizeof(ActiveChunksSB::offsets[0]) * m_worldTexMaskCh.x *
-                     m_worldTexMaskCh.y,
-             sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)}}
-    );
-    cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
-        m_activeChunksStageBuf.buffer(), // Src buffer
-        m_activeChunksBuf.buffer(),      // Dst buffer
-        copyRegions                      // Regions
-    });
-
-    { // Wait for the copy and branch allocations to finish
-        auto bufferBarrier = std::to_array(
-            {re::bufferMemoryBarrier(
-                 S::eTransfer,      // Src stage mask
-                 A::eTransferWrite, // Src access mask
-                 S::eComputeShader, // Dst stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-                 m_activeChunksBuf.buffer(),
-                 offsetof(ActiveChunksSB, dynamicsGroupSize) // Offset
-             ),
-             re::bufferMemoryBarrier(
-                 S::eComputeShader, // Src stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-                 S::eComputeShader, // Dst stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-                 m_branchAllocRegBuf->buffer()
-             )}
-        );
-        cmdBuf->pipelineBarrier2({{}, {}, bufferBarrier, {}});
-    }
-
-    // Analyze the world texture
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
-    cmdBuf->dispatch(
-        m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1
+            // Copy the update to active chunks buffer
+            auto texSizeCh   = m_worldTexMaskCh + 1;
+            auto copyRegions = std::to_array<vk::BufferCopy2>(
+                {vk::BufferCopy2{
+                     offsetof(ActiveChunksSB, dynamicsGroupSize),
+                     offsetof(ActiveChunksSB, dynamicsGroupSize),
+                     sizeof(m_activeChunksStageBuf->dynamicsGroupSize.x)},
+                 vk::BufferCopy2{
+                     offsetof(ActiveChunksSB, offsets[0]) +
+                         sizeof(ActiveChunksSB::offsets[0]) *
+                             m_worldTexMaskCh.x * m_worldTexMaskCh.y,
+                     offsetof(ActiveChunksSB, offsets[0]) +
+                         sizeof(ActiveChunksSB::offsets[0]) *
+                             m_worldTexMaskCh.x * m_worldTexMaskCh.y,
+                     sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)}}
+            );
+            cb->copyBuffer2(vk::CopyBufferInfo2{
+                m_activeChunksStageBuf.buffer(), // Src buffer
+                m_activeChunksBuf.buffer(),      // Dst buffer
+                copyRegions                      // Regions
+            });
+        },
+        BufferAccess{
+            .name   = BufferTrackName::ActiveChunks,
+            .stage  = S::eTransfer,
+            .access = A::eTransferWrite}
     );
 
-    { // Barrier analysis output from tile transformations and rasterization
-        auto bufferBarriers = std::to_array(
-            {re::bufferMemoryBarrier(
-                 S::eComputeShader,       // Src stage mask
-                 A::eShaderStorageWrite,  // Src access mask
-                 S::eDrawIndirect,        // Dst stage mask
-                 A::eIndirectCommandRead, // Dst access mask
-                 m_activeChunksBuf.buffer()
-             ),
-             re::bufferMemoryBarrier(
-                 S::eComputeShader, // Src stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-                 S::eDrawIndirect | S::eTransfer,            // Dst stage mask
-                 A::eIndirectCommandRead | A::eTransferRead, // Dst access mask
-                 m_branchAllocRegBuf->buffer()
-             )}
-        );
-        cmdBuf->pipelineBarrier2({{}, {}, bufferBarriers, {}});
-    }
+    acb.action(
+        [&](const re::CommandBuffer& cb) {
+            // Analyze continuity of the world texture
+            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeContinuityPl);
+            cb->dispatch(
+                m_analyzeContinuityGroupCount.x, m_analyzeContinuityGroupCount.y, 1
+            );
+        },
+        BufferAccess{
+            .name   = BufferTrackName::ActiveChunks,
+            .stage  = S::eComputeShader,
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite},
+        BufferAccess{
+            .name   = BufferTrackName::AllocReg,
+            .stage  = S::eComputeShader,
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite}
+    );
 }
 
 } // namespace rw

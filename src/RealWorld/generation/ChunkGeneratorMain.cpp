@@ -90,80 +90,78 @@ bool ChunkGenerator::planGeneration(glm::ivec2 posCh) {
     return false;
 }
 
-bool ChunkGenerator::generate(const re::CommandBuffer& cmdBuf) {
+bool ChunkGenerator::generate(const ActionCmdBuf& acb) {
     if (m_chunksPlanned > 0) {
-        auto&                            secCmdBuf = *m_cmdBuf;
+        auto&                            secCb = *m_cb;
         vk::CommandBufferInheritanceInfo inheritanceInfo{};
-        secCmdBuf->begin({eOneTimeSubmit, &inheritanceInfo});
-        secCmdBuf->bindDescriptorSets(
+        secCb->begin({eOneTimeSubmit, &inheritanceInfo});
+        secCb->bindDescriptorSets(
             vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
         );
 
         // Terrain generation
-        generateBasicTerrain(secCmdBuf);
-        consolidateEdges(secCmdBuf);
-        selectVariant(secCmdBuf);
+        generateBasicTerrain(secCb);
+        consolidateEdges(secCb);
+        selectVariant(secCb);
 
         // Vegetation generation
-        generateVegetation(secCmdBuf);
+        generateVegetation(secCb);
 
-        copyToDestination(secCmdBuf);
+        secCb->end({});
+        (*acb)->executeCommands(*secCb);
 
-        secCmdBuf->end({});
-        cmdBuf->executeCommands(*secCmdBuf);
+        copyToDestination(acb);
+
         m_chunksPlanned = 0;
         return true;
     }
     return false;
 }
 
-void ChunkGenerator::copyToDestination(const re::CommandBuffer& cmdBuf) {
-    // Wait for the generation to finish
-    auto barriers = std::to_array(
-        {re::imageMemoryBarrier(
-             S::eComputeShader,                              // Src stage mask
-             A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
-             S::eTransfer,                                   // Dst stage mask
-             A::eTransferRead,                               // Dst access mask
-             eGeneral,                                       // Old image layout
-             eGeneral,                                       // New image layout
-             m_tilesTex.image(),
-             vk::ImageSubresourceRange{
-                 eColor, 0, 1, k_chunkGenSlots * m_genPC.storeSegment, k_chunkGenSlots}
-         ),
-         re::imageMemoryBarrier(
-             S::eColorAttachmentOutput, // Src stage mask
-             A::eColorAttachmentWrite,  // Src access mask
-             S::eTransfer,              // Dst stage mask
-             A::eTransferWrite,         // Dst access mask
-             eGeneral,                  // Old image layout
-             eGeneral,                  // New image layout
-             m_worldTex->image()
-         )}
-    );
-    cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, barriers});
+void ChunkGenerator::copyToDestination(const ActionCmdBuf& acb) {
+    acb.action(
+        [&](const re::CommandBuffer& cb) {
+            // Wait for the generation to finish (untracked in action accesses)
+            auto barriers = std::to_array({re::imageMemoryBarrier(
+                S::eComputeShader, // Src stage mask
+                A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
+                S::eTransfer,     // Dst stage mask
+                A::eTransferRead, // Dst access mask
+                eGeneral,         // Old image layout
+                eGeneral,         // New image layout
+                m_tilesTex.image(),
+                vk::ImageSubresourceRange{
+                    eColor, 0, 1, k_chunkGenSlots * m_genPC.storeSegment, k_chunkGenSlots}
+            )});
+            cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, barriers});
 
-    // Copy the generated chunk to the world texture
-    std::array<vk::ImageCopy, k_chunkGenSlots> regions;
-    for (int i = 0; i < m_chunksPlanned; ++i) {
-        auto dstOffsetTi =
-            chToAt(tiToCh(m_genPC.chunkTi[i]), m_genPC.worldTexSizeCh - 1);
-        regions[i] = vk::ImageCopy{
-            vk::ImageSubresourceLayers{
-                eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1}, // Src subresource
-            vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
-            vk::ImageSubresourceLayers{eColor, 0, 0, 1},   // Dst subresource
-            vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
-            vk::Extent3D{iChunkTi.x, iChunkTi.y, 1}        // Copy Extent
-        };
-    }
-    std::span spanOfRegions{regions.begin(), regions.begin() + m_chunksPlanned};
-    cmdBuf->copyImage(
-        m_tilesTex.image(),
-        eGeneral, // Src image
-        m_worldTex->image(),
-        eGeneral, // Dst image
-        spanOfRegions
+            // Copy the generated chunk to the world texture
+            std::array<vk::ImageCopy, k_chunkGenSlots> regions;
+            for (int i = 0; i < m_chunksPlanned; ++i) {
+                auto dstOffsetTi =
+                    chToAt(tiToCh(m_genPC.chunkTi[i]), m_genPC.worldTexSizeCh - 1);
+                regions[i] = vk::ImageCopy{
+                    vk::ImageSubresourceLayers{
+                        eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1}, // Src subresource
+                    vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
+                    vk::ImageSubresourceLayers{eColor, 0, 0, 1}, // Dst subresource
+                    vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
+                    vk::Extent3D{iChunkTi.x, iChunkTi.y, 1} // Copy Extent
+                };
+            }
+            std::span spanOfRegions{regions.begin(), regions.begin() + m_chunksPlanned};
+            cb->copyImage(
+                m_tilesTex.image(),
+                eGeneral, // Src image
+                m_worldTex->image(),
+                eGeneral, // Dst image
+                spanOfRegions
+            );
+        },
+        ImageAccess{
+            .name   = ImageTrackName::World,
+            .stage  = S::eTransfer,
+            .access = A::eTransferWrite}
     );
 }
 

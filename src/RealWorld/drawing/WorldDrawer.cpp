@@ -42,29 +42,29 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
                       glm::ivec2(k_lightMaxRangeTi) + iChunkTi};
 }
 
-void WorldDrawer::beginStep(const re::CommandBuffer& cmdBuf) {
-    m_shadowDrawer.analyze(cmdBuf, m_botLeftTi);
+void WorldDrawer::beginStep(const re::CommandBuffer& cb) {
+    m_shadowDrawer.analyze(cb, m_botLeftTi);
 }
 
 void WorldDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
     m_shadowDrawer.addExternalLight(posPx, col);
 }
 
-void WorldDrawer::endStep(const re::CommandBuffer& cmdBuf) {
-    m_shadowDrawer.calculate(cmdBuf, m_botLeftPx);
+void WorldDrawer::endStep(const re::CommandBuffer& cb) {
+    m_shadowDrawer.calculate(cb, m_botLeftPx);
 }
 
-void WorldDrawer::drawTiles(const re::CommandBuffer& cmdBuf) {
-    m_tileDrawer.drawTiles(cmdBuf, m_botLeftPx);
+void WorldDrawer::drawTiles(const re::CommandBuffer& cb) {
+    m_tileDrawer.drawTiles(cb, m_botLeftPx);
 }
 
-void WorldDrawer::drawShadows(const re::CommandBuffer& cmdBuf) {
-    m_shadowDrawer.draw(cmdBuf, m_botLeftPx, m_viewSizeTi);
+void WorldDrawer::drawShadows(const re::CommandBuffer& cb) {
+    m_shadowDrawer.draw(cb, m_botLeftPx, m_viewSizeTi);
 }
 
-void WorldDrawer::drawMinimap(const re::CommandBuffer& cmdBuf) {
-    m_tileDrawer.drawMinimap(cmdBuf);
-    m_minimapDawer.drawMinimapLines(cmdBuf, m_botLeftPx);
+void WorldDrawer::drawMinimap(const re::CommandBuffer& cb) {
+    m_tileDrawer.drawMinimap(cb);
+    m_minimapDawer.drawMinimapLines(cb, m_botLeftPx);
 }
 
 glm::uvec2 WorldDrawer::viewSizeTi(glm::vec2 viewSizePx) const {

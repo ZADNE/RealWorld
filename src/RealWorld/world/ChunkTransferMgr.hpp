@@ -10,6 +10,7 @@
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/constants/world.hpp>
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/vegetation/BranchAllocRegSB.hpp>
 #include <RealWorld/world/ChunkTransferStage.hpp>
 
@@ -75,12 +76,12 @@ public:
      * @brief Peforms all previously planned transfers
      */
     void endStep(
-        const re::CommandBuffer& cmdBuf,
-        const re::Texture&       worldTex,
-        const re::Buffer&        branchBuf,
-        const re::Buffer&        branchAllocRegBuf,
-        glm::ivec2               worldTexMaskCh,
-        bool                     externalBranchAllocChanges
+        const ActionCmdBuf& acb,
+        const re::Texture&  worldTex,
+        const re::Buffer&   branchBuf,
+        const re::Buffer&   branchAllocRegBuf,
+        glm::ivec2          worldTexMaskCh,
+        bool                externalBranchAllocChanges
     );
 
     const re::Buffer& allocReqBuf() const { return m_allocReqBuf; }

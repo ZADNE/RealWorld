@@ -66,30 +66,30 @@ void TileDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
     m_pushConstants.minimapSize   = layout.sizePx;
 }
 
-void TileDrawer::drawTiles(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx) {
+void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
     m_pushConstants.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
     m_pushConstants.botLeftTi          = glm::ivec2(pxToTi(botLeftPx));
-    cmdBuf->bindDescriptorSets(
+    cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
-    cmdBuf->pushConstants<PushConstants>(
+    cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
+    cb->pushConstants<PushConstants>(
         *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
     );
-    cmdBuf->draw(
+    cb->draw(
         4u, m_pushConstants.viewSizeTi.x * m_pushConstants.viewSizeTi.y, 0u, 0u
     );
 }
 
-void TileDrawer::drawMinimap(const re::CommandBuffer& cmdBuf) {
-    cmdBuf->bindDescriptorSets(
+void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {
+    cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
-    cmdBuf->pushConstants<PushConstants>(
+    cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
+    cb->pushConstants<PushConstants>(
         *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
     );
-    cmdBuf->draw(4u, 1u, 0u, 0u);
+    cb->draw(4u, 1u, 0u, 0u);
 }
 
 } // namespace rw

@@ -35,7 +35,7 @@ void MinimapDrawer::resizeView(glm::vec2 viewSizePx, glm::vec2 viewSizeTi) {
 }
 
 void MinimapDrawer::drawMinimapLines(
-    const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx
+    const re::CommandBuffer& cb, glm::vec2 botLeftPx
 ) {
     m_geometryBatch.begin();
     std::array<re::VertexPoCo, 2> v = std::to_array(
@@ -109,7 +109,7 @@ void MinimapDrawer::drawMinimapLines(
     }
 
     m_geometryBatch.end();
-    cmdBuf->setScissor(
+    cb->setScissor(
         0,
         vk::Rect2D{
             vk::Offset2D{
@@ -119,8 +119,8 @@ void MinimapDrawer::drawMinimapLines(
                 static_cast<uint32_t>(m_layout.sizePx.x + 1),
                 static_cast<uint32_t>(m_layout.sizePx.y + 1)}}
     );
-    m_geometryBatch.draw(cmdBuf, m_viewMat);
-    cmdBuf->setScissor(
+    m_geometryBatch.draw(cb, m_viewMat);
+    cb->setScissor(
         0,
         vk::Rect2D{
             vk::Offset2D{},

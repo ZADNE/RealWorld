@@ -64,12 +64,12 @@ public:
 
     /**
      * @brief Activates chunks that overlap given rectangular area
-     * @param cmdBuf Command buffer that will record the commands
+     * @param acb Command buffer that will record the commands
      * @param botLeftTi Bottom left corner of the rectangular area
      * @param topRightTi Top right corner of the rectangular area
      */
     void activateArea(
-        const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
+        const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
 
     glm::ivec2& activeChunkAtIndex(int acIndex);
@@ -84,7 +84,7 @@ private:
     void planTransition(glm::ivec2 posCh);
     void planActivation(glm::ivec2& activeCh, glm::ivec2 posCh, glm::ivec2 posAc);
     void planDeactivation(glm::ivec2& activeCh, glm::ivec2 posAc);
-    void analyzeAfterChanges(const re::CommandBuffer& cmdBuf);
+    void analyzeAfterChanges(const ActionCmdBuf& acb);
 
     int m_transparentChunkChanges = 0; /**< Number of changes in this step */
 

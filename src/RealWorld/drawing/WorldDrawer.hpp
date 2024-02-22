@@ -29,7 +29,7 @@ public:
     /**
      * @brief External lights have to be added between beginStep() and endStep()
      */
-    void beginStep(const re::CommandBuffer& cmdBuf);
+    void beginStep(const re::CommandBuffer& cb);
 
     /**
      * @brief Adds an external light into the world. Must be used between
@@ -40,13 +40,13 @@ public:
     /**
      * @brief External lights have to be added between beginStep() and endStep()
      */
-    void endStep(const re::CommandBuffer& cmdBuf);
+    void endStep(const re::CommandBuffer& cb);
 
-    void drawTiles(const re::CommandBuffer& cmdBuf);
+    void drawTiles(const re::CommandBuffer& cb);
 
-    void drawShadows(const re::CommandBuffer& cmdBuf);
+    void drawShadows(const re::CommandBuffer& cb);
 
-    void drawMinimap(const re::CommandBuffer& cmdBuf);
+    void drawMinimap(const re::CommandBuffer& cb);
 
 private:
     glm::vec2  m_botLeftPx; // Bottom-left corner of the view

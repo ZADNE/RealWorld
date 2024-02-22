@@ -19,7 +19,7 @@ public:
 
     void resizeView(glm::vec2 viewSizePx, glm::vec2 viewSizeTi);
 
-    void drawMinimapLines(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx);
+    void drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
 private:
     glm::mat4 m_viewMat;

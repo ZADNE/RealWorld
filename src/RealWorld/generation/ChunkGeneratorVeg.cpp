@@ -151,15 +151,15 @@ void interpret(
 
 } // namespace
 
-void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
+void ChunkGenerator::generateVegetation(const re::CommandBuffer& cb) {
     { // Clear dispatch counts
-        cmdBuf->fillBuffer(
+        cb->fillBuffer(
             *m_vegPreparationBuf,
             offsetof(VegPreparationSB, vegDispatchSize.x),
             sizeof(VegPreparationSB::vegDispatchSize.x),
             0
         );
-        cmdBuf->fillBuffer(
+        cb->fillBuffer(
             *m_vegPreparationBuf,
             offsetof(VegPreparationSB, branchDispatchSize.x),
             sizeof(VegPreparationSB::branchDispatchSize.x),
@@ -172,12 +172,12 @@ void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
             A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
             *m_vegPreparationBuf
         );
-        cmdBuf->pipelineBarrier2({{}, {}, clearCountsBarrier, {}});
+        cb->pipelineBarrier2({{}, {}, clearCountsBarrier, {}});
     }
 
     // Dispatch preparation
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
-    cmdBuf->dispatch(1u, 1u, m_chunksPlanned);
+    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
+    cb->dispatch(1u, 1u, m_chunksPlanned);
 
     { // Add barriers between preparation and vector generation
         auto preparationBarrier = re::bufferMemoryBarrier(
@@ -188,12 +188,12 @@ void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
                 A::eShaderStorageWrite, // Dst access mask
             *m_vegPreparationBuf
         );
-        cmdBuf->pipelineBarrier2({{}, {}, preparationBarrier, {}});
+        cb->pipelineBarrier2({{}, {}, preparationBarrier, {}});
     }
 
     // Dispatch branch vector generation
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVectorVegPl);
-    cmdBuf->dispatchIndirect(
+    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVectorVegPl);
+    cb->dispatchIndirect(
         *m_vegPreparationBuf, offsetof(VegPreparationSB, vegDispatchSize)
     );
 
@@ -206,12 +206,12 @@ void ChunkGenerator::generateVegetation(const re::CommandBuffer& cmdBuf) {
             *m_vegPreparationBuf,
             offsetof(VegPreparationSB, branchInstances)
         );
-        cmdBuf->pipelineBarrier2({{}, {}, vectorBarrier, {}});
+        cb->pipelineBarrier2({{}, {}, vectorBarrier, {}});
     }
 
     // Dispatch branch raster generation
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateRasterVegPl);
-    cmdBuf->dispatchIndirect(
+    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateRasterVegPl);
+    cb->dispatchIndirect(
         *m_vegPreparationBuf, offsetof(VegPreparationSB, branchDispatchSize)
     );
 }

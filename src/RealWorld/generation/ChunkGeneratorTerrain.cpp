@@ -15,11 +15,11 @@ namespace rw {
 constexpr int        k_groupSize    = 16;
 constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
-void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
+void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cb) {
+    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
     m_genPC.storeSegment = 0;
-    cmdBuf->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
-    cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
+    cb->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+    cb->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
 
     std::array barriers = std::to_array(
         {re::imageMemoryBarrier(
@@ -44,10 +44,10 @@ void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cmdBuf) {
              vk::ImageSubresourceRange{eColor, 0, 1, 0, k_chunkGenSlots}
          )}
     );
-    cmdBuf->pipelineBarrier2({{}, {}, {}, barriers});
+    cb->pipelineBarrier2({{}, {}, {}, barriers});
 }
 
-void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
+void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cb) {
     auto barrier = re::imageMemoryBarrier(
         S::eComputeShader,                              // Src stage mask
         A::eShaderStorageWrite | A::eShaderStorageRead, // Src access mask
@@ -65,12 +65,12 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
         for (size_t i = 0; i < passes; i++) {
             // Consolidate
             m_genPC.storeSegment = 1 - m_genPC.storeSegment;
-            cmdBuf->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
-            cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
+            cb->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+            cb->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
             // Put barrier for next pass
             barrier.subresourceRange.baseArrayLayer = m_genPC.storeSegment *
                                                       k_chunkGenSlots;
-            cmdBuf->pipelineBarrier2({{}, {}, {}, barrier});
+            cb->pipelineBarrier2({{}, {}, {}, barrier});
         }
     };
     auto doublePass =
@@ -81,16 +81,16 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cmdBuf) {
             }
         };
 
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
+    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
     doublePass({3, 4}, {4, 5}, 4);
 }
 
-void ChunkGenerator::selectVariant(const re::CommandBuffer& cmdBuf) {
+void ChunkGenerator::selectVariant(const re::CommandBuffer& cb) {
     // Barrier to wait for the edge consolidation to finish is already there
     m_genPC.storeSegment = 1 - m_genPC.storeSegment;
-    cmdBuf->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
-    cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
-    cmdBuf->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
+    cb->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
+    cb->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
 }
 
 } // namespace rw

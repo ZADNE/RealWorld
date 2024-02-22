@@ -7,6 +7,7 @@
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/player/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
@@ -33,7 +34,7 @@ public:
      * @param autojump Tells whether the player should automatically jump
      * over obstacles
      */
-    void step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool autojump);
+    void step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump);
 
     void draw(re::SpriteBatch& spriteBatch);
 

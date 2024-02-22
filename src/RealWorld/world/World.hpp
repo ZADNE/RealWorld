@@ -39,48 +39,50 @@ public:
     size_t numberOfInactiveChunks();
 
     /**
-     * @brief                   Performs a simulation step of the world.
-     * @param cmdBuf     Command buffer that will be used to record
-     * computation commands
-     * @param botLeftTi         The most bottom-left tile that has to be active
-     * @param topRightTi        The most top-right tile that has to be active
+     * @brief Performs a simulation step of the world
+     * @param cb         Command buffer that will be used to record the commands
+     * @param botLeftTi  The most bottom-left tile that has to be active
+     * @param topRightTi The most top-right tile that has to be active
      */
-    void step(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
+    void step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
 
     /**
      * @brief Modifies tiles in the world
      */
     void modify(
-        const re::CommandBuffer& cmdBuf,
-        TileLayer                layer,
-        ModificationShape        shape,
-        float                    radius,
-        glm::ivec2               posTi,
-        glm::uvec2               tile
+        const ActionCmdBuf& acb,
+        TileLayer           layer,
+        ModificationShape   shape,
+        float               radius,
+        glm::ivec2          posTi,
+        glm::uvec2          tile
     );
 
     /**
      * @brief Performs layout transitions necessary to draw the world
      */
-    void prepareWorldForDrawing(const re::CommandBuffer& cmdBuf);
+    void prepareWorldForDrawing(const ActionCmdBuf& acb);
 
     /**
-     * @brief   Sets this world class to simulate the world inside the given save
+     * @brief Sets this world class to simulate the world inside the given save
      * @param save          Save of the world to run
      * @param worldTexSize  Must be multiples of 8
      * @returns             The new world texture
      */
-    const re::Texture& adoptSave(const MetadataSave& save, glm::ivec2 worldTexSizeCh);
+    const re::Texture& adoptSave(
+        ActionCmdBuf& acb, const MetadataSave& save, glm::ivec2 worldTexSizeCh
+    );
 
     void gatherSave(MetadataSave& save) const;
 
-    bool saveChunks();
+    bool saveChunks(const ActionCmdBuf& acb);
 
 private:
+    void tileTransformationsStep(const ActionCmdBuf& acb);
+
     void fluidDynamicsStep(
-        const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
+        const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
     );
-    void tileTransformationsStep(const re::CommandBuffer& cmdBuf);
 
     re::Texture m_worldTex;
     int         m_seed = 0;

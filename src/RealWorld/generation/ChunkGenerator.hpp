@@ -11,6 +11,7 @@
 
 #include <RealWorld/constants/generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/vegetation/Branch.hpp>
 
 namespace rw {
@@ -52,16 +53,16 @@ public:
      * @brief Generates planned chunks
      * @return True if any chunk generation was planned
      */
-    bool generate(const re::CommandBuffer& cmdBuf);
+    bool generate(const ActionCmdBuf& acb);
 
 protected:
-    void generateBasicTerrain(const re::CommandBuffer& cmdBuf);
-    void consolidateEdges(const re::CommandBuffer& cmdBuf);
-    void selectVariant(const re::CommandBuffer& cmdBuf);
+    void generateBasicTerrain(const re::CommandBuffer& cb);
+    void consolidateEdges(const re::CommandBuffer& cb);
+    void selectVariant(const re::CommandBuffer& cb);
 
-    void generateVegetation(const re::CommandBuffer& cmdBuf);
+    void generateVegetation(const re::CommandBuffer& cb);
 
-    void copyToDestination(const re::CommandBuffer& cmdBuf);
+    void copyToDestination(const ActionCmdBuf& acb);
 
     static re::Buffer createVegTemplatesBuffer();
 
@@ -80,13 +81,13 @@ protected:
     static_assert(sizeof(GenerationPC) <= 128, "PC min size guarantee");
     int m_chunksPlanned = 0; /**< Number of chunks planned to generate this step */
 
-    re::StepDoubleBuffered<re::CommandBuffer> m_cmdBuf{
+    re::StepDoubleBuffered<re::CommandBuffer> m_cb{
         re::CommandBuffer{
             {.level     = vk::CommandBufferLevel::eSecondary,
-             .debugName = "rw::ChunkGenerator::cmdBuf[0]"}},
+             .debugName = "rw::ChunkGenerator::cb[0]"}},
         re::CommandBuffer{
             {.level     = vk::CommandBufferLevel::eSecondary,
-             .debugName = "rw::ChunkGenerator::cmdBuf[1]"}}};
+             .debugName = "rw::ChunkGenerator::cb[1]"}}};
 
     re::PipelineLayout m_pipelineLayout;
     re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{

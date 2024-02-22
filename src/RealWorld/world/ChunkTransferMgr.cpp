@@ -42,9 +42,9 @@ bool ChunkTransferMgr::saveChunks(
     ChunkActivationMgr& actMgr
 ) {
     // Save all active chunks (they have to be downloaded)
-    re::CommandBuffer cmdBuf{{.debugName = "rw::ChunkTransferMgr::saveChunks"}};
+    re::CommandBuffer cb{{.debugName = "rw::ChunkTransferMgr::saveChunks"}};
     re::Fence         downloadFinishedFence{{}};
-    cmdBuf->begin({eOneTimeSubmit});
+    cb->begin({eOneTimeSubmit});
 
     { // Wait for unrasterization to finish
         auto imageBarrier = re::imageMemoryBarrier(
@@ -56,7 +56,7 @@ bool ChunkTransferMgr::saveChunks(
             vk::ImageLayout::eGeneral,       // New image layout
             worldTex.image()
         );
-        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+        cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
 
     auto saveAllChunksInTileStage = [&] {
@@ -79,7 +79,7 @@ bool ChunkTransferMgr::saveChunks(
 
     auto recordAllPlannedDownload = [&] {
         // Download tiles
-        cmdBuf->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
+        cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
             worldTex.image(),
             vk::ImageLayout::eGeneral,
             *m_stage->buffer(),
@@ -87,7 +87,7 @@ bool ChunkTransferMgr::saveChunks(
 
         // Download branches
         if (m_stage->numberOfBranchDownloads()) {
-            cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
+            cb->copyBuffer2(vk::CopyBufferInfo2{
                 *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()});
         }
     };
@@ -100,12 +100,12 @@ bool ChunkTransferMgr::saveChunks(
                 if (planDownload(activeCh, chToTi(posAc)) != DownloadPlanned) {
                     // The stage is full
                     recordAllPlannedDownload();
-                    cmdBuf->end();
-                    cmdBuf.submitToGraphicsCompQueue(*downloadFinishedFence);
+                    cb->end();
+                    cb.submitToGraphicsCompQueue(*downloadFinishedFence);
                     downloadFinishedFence.wait();
                     downloadFinishedFence.reset();
                     saveAllChunksInTileStage();
-                    cmdBuf->begin({eOneTimeSubmit});
+                    cb->begin({eOneTimeSubmit});
                     if (planDownload(activeCh, chToTi(posAc)) != DownloadPlanned) {
                         return false; // Shouild not happen...
                     }
@@ -125,10 +125,10 @@ bool ChunkTransferMgr::saveChunks(
             vk::ImageLayout::eReadOnlyOptimal, // New image layout
             worldTex.image()
         );
-        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
+        cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
-    cmdBuf->end();
-    cmdBuf.submitToGraphicsCompQueue(*downloadFinishedFence);
+    cb->end();
+    cb.submitToGraphicsCompQueue(*downloadFinishedFence);
     downloadFinishedFence.wait();
     downloadFinishedFence.reset();
     saveAllChunksInTileStage();
@@ -225,116 +225,120 @@ ChunkTransferMgr::DownloadPlan ChunkTransferMgr::planDownload(
 }
 
 void ChunkTransferMgr::endStep(
-    const re::CommandBuffer& cmdBuf,
-    const re::Texture&       worldTex,
-    const re::Buffer&        branchBuf,
-    const re::Buffer&        branchAllocRegBuf,
-    glm::ivec2               worldTexMaskCh,
-    bool                     externalBranchAllocChanges
+    const ActionCmdBuf& acb,
+    const re::Texture&  worldTex,
+    const re::Buffer&   branchBuf,
+    const re::Buffer&   branchAllocRegBuf,
+    glm::ivec2          worldTexMaskCh,
+    bool                externalBranchAllocChanges
 ) {
     if (m_stage->numberOfUploads() > 0) {
-        // Wait for unrasterization to finish
-        auto imageBarrier = re::imageMemoryBarrier(
-            S::eColorAttachmentOutput | S::eTransfer, // Src stage mask
-            A::eColorAttachmentRead | A::eColorAttachmentWrite |
-                A::eTransferRead | A::eTransferWrite, // Src access mask
-            S::eTransfer,                             // Dst stage mask
-            A::eTransferWrite,                        // Dst access mask
-            vk::ImageLayout::eGeneral,                // Old image layout
-            vk::ImageLayout::eGeneral,                // New image layout
-            worldTex.image()
+        acb.action(
+            [&](const re::CommandBuffer& cb) {
+                // Upload tiles
+                cb->copyBufferToImage2(vk::CopyBufferToImageInfo2{
+                    *m_stage->buffer(),
+                    worldTex.image(),
+                    vk::ImageLayout::eGeneral,
+                    m_stage->tileUploadRegions()});
+            },
+            ImageAccess{
+                .name   = ImageTrackName::World,
+                .stage  = S::eTransfer,
+                .access = A::eTransferWrite}
         );
-        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
-        // Upload tiles
-        cmdBuf->copyBufferToImage2(vk::CopyBufferToImageInfo2{
-            *m_stage->buffer(),
-            worldTex.image(),
-            vk::ImageLayout::eGeneral,
-            m_stage->tileUploadRegions()});
-
-        // Upload branches
         if (m_stage->numberOfBranchUploads() > 0) {
-            cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
-                *m_stage->buffer(), *branchBuf, m_stage->branchUploadRegions()});
-
-            auto barrier = re::bufferMemoryBarrier(
-                S::eTransfer,                          // Src stage mask
-                A::eTransferWrite,                     // Src access mask
-                S::eVertexShader | S::eFragmentShader, // Dst stage mask
-                A::eShaderStorageRead,                 // Dst access mask
-                *branchBuf
+            acb.action(
+                [&](const re::CommandBuffer& cb) {
+                    // Upload branches
+                    cb->copyBuffer2(vk::CopyBufferInfo2{
+                        *m_stage->buffer(),
+                        *branchBuf,
+                        m_stage->branchUploadRegions()});
+                },
+                BufferAccess{
+                    .name   = BufferTrackName::Branch,
+                    .stage  = S::eTransfer,
+                    .access = A::eTransferWrite}
             );
-            cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, barrier, {}});
         }
     }
 
     if (m_stage->numberOfDownloads() > 0) {
-        // Wait for unrasterization to finish
-        auto imageBarrier = re::imageMemoryBarrier(
-            S::eColorAttachmentOutput | S::eTransfer, // Src stage mask
-            A::eColorAttachmentRead | A::eColorAttachmentWrite |
-                A::eTransferRead | A::eTransferWrite, // Src access mask
-            S::eTransfer,                             // Dst stage mask
-            A::eTransferRead,                         // Dst access mask
-            vk::ImageLayout::eGeneral,                // Old image layout
-            vk::ImageLayout::eGeneral,                // New image layout
-            worldTex.image()
+        acb.action(
+            [&](const re::CommandBuffer& cb) {
+                // Download tiles
+                cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
+                    worldTex.image(),
+                    vk::ImageLayout::eGeneral,
+                    *m_stage->buffer(),
+                    m_stage->tileDownloadRegions()});
+            },
+            ImageAccess{
+                .name   = ImageTrackName::World,
+                .stage  = S::eTransfer,
+                .access = A::eTransferRead}
         );
-        cmdBuf->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
-        // Download tiles
-        cmdBuf->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
-            worldTex.image(),
-            vk::ImageLayout::eGeneral,
-            *m_stage->buffer(),
-            m_stage->tileDownloadRegions()});
-
-        // Download branches
         if (m_stage->numberOfBranchDownloads() > 0) {
-            cmdBuf->copyBuffer2(vk::CopyBufferInfo2{
-                *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()});
+            acb.action(
+                [&](const re::CommandBuffer& cb) {
+                    // Download branches
+                    cb->copyBuffer2(vk::CopyBufferInfo2{
+                        *branchBuf,
+                        *m_stage->buffer(),
+                        m_stage->branchDownloadRegions()});
+                },
+                BufferAccess{
+                    .name   = BufferTrackName::Branch,
+                    .stage  = S::eTransfer,
+                    .access = A::eTransferRead}
+            );
         }
     }
 
     if (m_stage->allocsOrDeallocsPlanned()) {
-        { // Copy (de)allocation request
-            vk::BufferCopy2 copyRegion{
-                offsetof(decltype(m_stage)::Type::StageBuf, branchAllocReq),
-                0,
-                sizeof(BranchAllocReqUB)};
-            cmdBuf->copyBuffer2({*m_stage->buffer(), *m_allocReqBuf, copyRegion});
+        acb.action(
+            [&](const re::CommandBuffer& cb) {
+                // Copy (de)allocation request
+                vk::BufferCopy2 copyRegion{
+                    offsetof(decltype(m_stage)::Type::StageBuf, branchAllocReq),
+                    0,
+                    sizeof(BranchAllocReqUB)};
+                cb->copyBuffer2({*m_stage->buffer(), *m_allocReqBuf, copyRegion});
+                auto barrier = re::bufferMemoryBarrier(
+                    S::eTransfer,      // Src stage mask
+                    A::eTransferWrite, // Src access mask
+                    S::eComputeShader, // Dst stage mask
+                    A::eUniformRead,   // Dst access mask
+                    *m_allocReqBuf
+                );
+                cb->pipelineBarrier2({{}, {}, barrier, {}});
 
-            auto barrier = re::bufferMemoryBarrier(
-                S::eTransfer,      // Src stage mask
-                A::eTransferWrite, // Src access mask
-                S::eComputeShader, // Dst stage mask
-                A::eUniformRead,   // Dst access mask
-                *m_allocReqBuf
-            );
-            cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
-        }
-
-        // Allocate and deallocate branches
-        cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, *m_allocBranchesPl);
-        cmdBuf->dispatch(1, 1, 1);
+                // Allocate and deallocate branches
+                cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_allocBranchesPl);
+                cb->dispatch(1, 1, 1);
+            },
+            BufferAccess{
+                .name   = BufferTrackName::AllocReg,
+                .stage  = S::eComputeShader,
+                .access = A::eShaderStorageRead | A::eShaderStorageWrite}
+        );
     }
 
     if (m_stage->allocsOrDeallocsPlanned() || externalBranchAllocChanges) {
-        { // Wait for de/allocations to finish
-            auto barrier = re::bufferMemoryBarrier(
-                S::eComputeShader, // Src stage mask
-                A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-                S::eTransfer,     // Dst stage mask
-                A::eTransferRead, // Dst access mask
-                *branchAllocRegBuf
-            );
-            cmdBuf->pipelineBarrier2({{}, {}, barrier, {}});
-        }
-
-        // Download new state of branch allocation register
-        vk::BufferCopy2 region{0, 0, sizeof(BranchAllocRegSB)};
-        cmdBuf->copyBuffer2({*branchAllocRegBuf, m_regBuf.buffer(), region});
+        acb.action(
+            [&](const re::CommandBuffer& cb) {
+                // Download new state of branch allocation register
+                vk::BufferCopy2 region{0, 0, sizeof(BranchAllocRegSB)};
+                cb->copyBuffer2({*branchAllocRegBuf, m_regBuf.buffer(), region});
+            },
+            BufferAccess{
+                .name   = BufferTrackName::AllocReg,
+                .stage  = S::eTransfer,
+                .access = A::eTransferRead}
+        );
     }
 }
 

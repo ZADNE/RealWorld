@@ -12,6 +12,7 @@
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 #include <RealWorld/items/ItemUser.hpp>
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/main/Room.hpp>
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/player/Player.hpp>
@@ -29,22 +30,20 @@ public:
     void sessionStart(const re::RoomTransitionArguments& args) override;
     void sessionEnd() override;
     void step() override;
-    void render(const re::CommandBuffer& cmdBuf, double interpolationFactor) override;
+    void render(const re::CommandBuffer& cb, double interpolationFactor) override;
 
     void windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) override;
 
 private:
     using enum RealWorldKeyBindings;
 
-    void performWorldSimulationStep(
-        const re::CommandBuffer& cmdBuf, const WorldDrawer::ViewEnvelope& viewEnvelope
-    );
+    void performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope);
 
-    void analyzeWorldForDrawing(const re::CommandBuffer& cmdBuf);
+    void analyzeWorldForDrawing();
 
     void updateInventoryAndUI();
 
-    void drawGUI(const re::CommandBuffer& cmdBuf);
+    void drawGUI(const re::CommandBuffer& cb);
 
     /**
      * @brief Loads a world. Previously loaded world is flushed without saving.
@@ -71,6 +70,7 @@ private:
     re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[1]"}}};
+    ActionCmdBuf    m_acb;
     uint64_t        m_stepN = 1;
     re::Semaphore   m_simulationFinishedSem{m_stepN};
     re::SpriteBatch m_spriteBatch{256, 32};

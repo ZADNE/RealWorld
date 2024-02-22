@@ -14,6 +14,7 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/vegetation/shaders/AllShaders.hpp>
 
@@ -30,12 +31,12 @@ public:
     /**
      * @brief   Removes branches from the world texture
      */
-    void unrasterizeVegetation(const re::CommandBuffer& cmdBuf);
+    void unrasterizeVegetation(const ActionCmdBuf& acb);
 
     /**
      * @brief   Adds simulated branches to the world texture
      */
-    void rasterizeVegetation(const re::CommandBuffer& cmdBuf);
+    void rasterizeVegetation(const ActionCmdBuf& acb);
 
     struct VegStorage {
         const re::Buffer& branchBuf;
@@ -90,7 +91,7 @@ private:
     glm::uvec2        m_worldTexSizeTi{};
 
     void beginWorldTextureRenderPass(
-        const re::CommandBuffer& cmdBuf,
+        const re::CommandBuffer& cb,
         const vk::RenderPass&    renderPass,
         const vk::Framebuffer&   framebuffer
     ) const;
