@@ -5,9 +5,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <SDL2/SDL_timer.h>
-#include <lodepng/lodepng.hpp>
-
 #include <RealEngine/utility/Error.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
@@ -17,12 +14,12 @@
 
 namespace rw {
 
-template<class T>
+template<typename T>
 void writeBinary(std::ofstream& file, const T& x) {
     file.write(reinterpret_cast<const char*>(&x), sizeof(x));
 }
 
-template<class T>
+template<typename T>
 void readBinary(std::ifstream& file, T& x) {
     file.read(reinterpret_cast<char*>(&x), sizeof(x));
 }
@@ -53,18 +50,14 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
 }
 
 bool WorldSaveLoader::loadWorld(WorldSave& save, const std::string& worldName) {
-    unsigned int ticks        = SDL_GetTicks();
-    std::string  pathToFolder = s_saveFolder + '/' + worldName + '/';
-    save.metadata.path        = pathToFolder;
+    std::string pathToFolder = s_saveFolder + '/' + worldName + '/';
+    save.metadata.path       = pathToFolder;
 
     try {
         loadMetadata(save.metadata, pathToFolder);
         loadPlayer(save.player, pathToFolder);
         loadInventory(save.inventory, pathToFolder);
     } catch (...) { return false; }
-
-    std::cout << "Successfully loaded world " << worldName << " in "
-              << SDL_GetTicks() - ticks << " ms.\n";
     return true;
 }
 
@@ -73,7 +66,6 @@ bool WorldSaveLoader::saveWorld(
 ) {
     if (worldName == "")
         return false;
-    unsigned int ticks = SDL_GetTicks();
     std::string pathToFolder = s_saveFolder + '/' + save.metadata.worldName + '/';
     bool alreadyExists = std::filesystem::exists(pathToFolder);
     if (alreadyExists && creatingNew)
@@ -88,9 +80,6 @@ bool WorldSaveLoader::saveWorld(
         savePlayer(save.player, pathToFolder);
         saveInventory(save.inventory, pathToFolder);
     } catch (...) { return false; }
-
-    std::cout << "Successfully saved world " << worldName << " in "
-              << SDL_GetTicks() - ticks << " ms.\n";
     return true;
 }
 
