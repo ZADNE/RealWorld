@@ -32,8 +32,11 @@ void main(){
             vec2 dir = (uv.x - 0.5) * normal + (uv.y * 0.5) * i_tipDir;
             ivec2 leafPosIm = imPos(ivec2(gl_FragCoord.xy + dir * float(bud * 3)));
             uvec4 leaf = tileLoadIm(leafPosIm);
-            if (isNonsolidWall(leaf.WL_T)){
-                tileStoreIm(leafPosIm, uvec4(leaf.BL, k_leafWl, 8 + bud * 6));
+            if (leaf.WL_T == k_airWl){
+                tileStoreIm(leafPosIm, uvec4(leaf.BL, k_leafWl, 8));
+            } else if (leaf.WL_T == k_leafWl){
+                uint var = min(leaf.WL_V + 6, 8 + bud * 6);
+                tileStoreIm(leafPosIm, uvec4(leaf.BL, k_leafWl, var));
             }
         }
     } else {
