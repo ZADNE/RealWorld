@@ -21,8 +21,9 @@ std::optional<Chunk> ChunkLoader::loadChunk(
     const std::string& folderPath, glm::ivec2 posCh
 ) {
     lodepng::State state{};
+    state.info_raw.colortype              = LCT_GREY_ALPHA;
+    state.info_raw.bitdepth               = 8;
     state.decoder.remember_unknown_chunks = 1;
-    state.info_png.color.colortype        = LCT_RGBA;
     state.decoder.color_convert           = 1;
     glm::uvec2           realDims;
     unsigned int         err;
@@ -33,7 +34,7 @@ std::optional<Chunk> ChunkLoader::loadChunk(
     // Load file and decode tiles
     if ((err = lodepng::load_file(encoded, fullPath)) ||
         (err = lodepng::decode(tiles, realDims.x, realDims.y, state, encoded)) ||
-        realDims != uChunkTi) {
+        realDims != glm::uvec2{uChunkTi.x, uChunkTi.y * k_tileLayerCount}) {
         // Loading file or decoding tiles failed
         return {};
     }
@@ -84,11 +85,14 @@ void ChunkLoader::saveChunk(
         }
 
         // Encode tiles and save file
-        std::string fullPath = folderPath + chunkToChunkFilename(posCh);
-        state.info_png.color.colortype = LCT_RGBA;
-        state.encoder.auto_convert     = 0;
+        std::string fullPath       = folderPath + chunkToChunkFilename(posCh);
+        state.info_raw.colortype   = LCT_GREY_ALPHA;
+        state.info_raw.bitdepth    = 8;
+        state.encoder.auto_convert = 0;
         std::vector<uint8_t> png;
-        if ((err = lodepng::encode(png, tiles, uChunkTi.x, uChunkTi.y, state)) ||
+        if ((err = lodepng::encode(
+                 png, tiles, uChunkTi.x, uChunkTi.y * k_tileLayerCount, state
+             )) ||
             (err = lodepng::save_file(png, fullPath))) {
             // Encoding or saving failed
             throw std::runtime_error{lodepng_error_text(err)};

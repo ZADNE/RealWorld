@@ -7,6 +7,7 @@
 #extension GL_EXT_scalar_block_layout : require
 layout (push_constant, std430)
 uniform PlayerMovementPC {
+    ivec2   p_worldTexMaskTi;
     float   p_acceleration;
     float   p_maxWalkVelocity;
     float   p_jumpVelocity;

@@ -60,7 +60,7 @@ protected:
     void consolidateEdges(const re::CommandBuffer& cb);
     void selectVariant(const re::CommandBuffer& cb);
 
-    void generateVegetation(const re::CommandBuffer& cb);
+    void generateVegetation(const ActionCmdBuf& acb);
 
     void copyToDestination(const ActionCmdBuf& acb);
 
@@ -119,16 +119,16 @@ protected:
          .debugName      = "rw::ChunkGenerator::generateRasterVeg"},
         {.comp = generateRasterVeg_comp}};
 
-    re::Texture m_tilesTex{re::TextureCreateInfo{
-        .format = vk::Format::eR8G8B8A8Uint,
+    re::Texture m_layerTex{re::TextureCreateInfo{
+        .format = vk::Format::eR8G8Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
-        .layers = k_chunkGenSlots * 2,
+        .layers = k_chunkGenSlots * 3, // 2 segments for blocks, 1 for walls
         .usage  = vk::ImageUsageFlagBits::eStorage |
                  vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral,
-        .debugName     = "rw::ChunkGenerator::tiles"}};
+        .debugName     = "rw::ChunkGenerator::layer"}};
     re::Texture m_materialTex{re::TextureCreateInfo{
-        .format        = vk::Format::eR8G8B8A8Uint,
+        .format        = vk::Format::eR8Uint,
         .extent        = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .layers        = k_chunkGenSlots,
         .usage         = vk::ImageUsageFlagBits::eStorage,

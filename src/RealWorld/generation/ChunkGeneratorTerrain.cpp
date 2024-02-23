@@ -29,9 +29,8 @@ void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cb) {
              A::eShaderStorageWrite | A::eShaderStorageRead, // Dst access mask
              eGeneral,                                       // Old image layout
              eGeneral,                                       // New image layout
-             m_tilesTex.image(),
-             vk::ImageSubresourceRange{
-                 eColor, 0, 1, k_chunkGenSlots * m_genPC.storeSegment, k_chunkGenSlots}
+             m_layerTex.image(),
+             vk::ImageSubresourceRange{eColor, 0, 1, 0, k_chunkGenSlots * 3}
          ),
          re::imageMemoryBarrier(
              S::eComputeShader,      // Src stage mask
@@ -55,7 +54,7 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cb) {
         A::eShaderStorageWrite | A::eShaderStorageRead, // Dst access mask
         eGeneral,                                       // Old image layout
         eGeneral,                                       // New image layout
-        m_tilesTex.image(),
+        m_layerTex.image(),
         vk::ImageSubresourceRange{eColor, 0, 1, ~0u, k_chunkGenSlots}
     );
 

@@ -88,17 +88,20 @@ const re::Texture& World::adoptSave(
     m_worldName = save.worldName;
 
     // Resize the world texture
-    glm::uvec2 texSize = chToTi(worldTexSizeCh);
+    glm::ivec2 texSizeTi             = chToTi(worldTexSizeCh);
+    m_worldDynamicsPC.worldTexMaskTi = texSizeTi - 1;
     using enum vk::ImageUsageFlagBits;
     m_worldTex = re::Texture{re::TextureCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eDedicatedMemory,
-        .format     = vk::Format::eR8G8B8A8Uint,
-        .extent     = {texSize, 1},
+        .format     = vk::Format::eR8G8Uint,
+        .extent     = {texSizeTi, 1},
+        .layers     = k_tileLayerCount,
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
                  eColorAttachment | eInputAttachment,
-        .debugName = "rw::World::world"}};
+        .initialLayout = eReadOnlyOptimal,
+        .debugName     = "rw::World::world"}};
     m_simulationDS.write(eStorageImage, k_worldTexBinding, 0, m_worldTex, eGeneral);
-    acb.track(ImageTrackName::World, m_worldTex, vk::ImageLayout::eReadOnlyOptimal);
+    acb.track(ImageTrackName::World, m_worldTex, eReadOnlyOptimal, k_tileLayerCount);
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
@@ -187,8 +190,8 @@ void World::modify(
     acb.action(
         [&](const re::CommandBuffer& cb) {
             m_worldDynamicsPC.globalPosTi    = posTi;
-            m_worldDynamicsPC.modifyTarget   = static_cast<glm::uint>(layer);
-            m_worldDynamicsPC.modifyShape    = static_cast<glm::uint>(shape);
+            m_worldDynamicsPC.modifyLayer    = std::to_underlying(layer);
+            m_worldDynamicsPC.modifyShape    = std::to_underlying(shape);
             m_worldDynamicsPC.modifyRadius   = radius;
             m_worldDynamicsPC.modifySetValue = tile;
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
@@ -222,8 +225,8 @@ void World::tileTransformationsStep(const ActionCmdBuf& acb) {
     acb.action(
         [&](const re::CommandBuffer& cb) {
             xorshift32(m_worldDynamicsPC.timeHash);
-            cb->pushConstants(
-                *m_simulationPL, eCompute, member(m_worldDynamicsPC, timeHash)
+            cb->pushConstants<WorldDynamicsPC>(
+                *m_simulationPL, eCompute, 0, m_worldDynamicsPC
             );
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
             cb->dispatchIndirect(

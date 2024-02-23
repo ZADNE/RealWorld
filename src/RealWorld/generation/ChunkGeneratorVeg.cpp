@@ -151,15 +151,15 @@ void interpret(
 
 } // namespace
 
-void ChunkGenerator::generateVegetation(const re::CommandBuffer& cb) {
+void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
     { // Clear dispatch counts
-        cb->fillBuffer(
+        (*acb)->fillBuffer(
             *m_vegPreparationBuf,
             offsetof(VegPreparationSB, vegDispatchSize.x),
             sizeof(VegPreparationSB::vegDispatchSize.x),
             0
         );
-        cb->fillBuffer(
+        (*acb)->fillBuffer(
             *m_vegPreparationBuf,
             offsetof(VegPreparationSB, branchDispatchSize.x),
             sizeof(VegPreparationSB::branchDispatchSize.x),
@@ -172,47 +172,60 @@ void ChunkGenerator::generateVegetation(const re::CommandBuffer& cb) {
             A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
             *m_vegPreparationBuf
         );
-        cb->pipelineBarrier2({{}, {}, clearCountsBarrier, {}});
+        (*acb)->pipelineBarrier2({{}, {}, clearCountsBarrier, {}});
     }
 
-    // Dispatch preparation
-    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
-    cb->dispatch(1u, 1u, m_chunksPlanned);
+    acb.action(
+        [&](const re::CommandBuffer& cb) {
+            // Dispatch preparation
+            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
+            cb->dispatch(1u, 1u, m_chunksPlanned);
 
-    { // Add barriers between preparation and vector generation
-        auto preparationBarrier = re::bufferMemoryBarrier(
-            S::eComputeShader,                              // Src stage mask
-            A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-            S::eDrawIndirect | S::eComputeShader,           // Dst stage mask
-            A::eIndirectCommandRead | A::eShaderStorageRead |
-                A::eShaderStorageWrite, // Dst access mask
-            *m_vegPreparationBuf
-        );
-        cb->pipelineBarrier2({{}, {}, preparationBarrier, {}});
-    }
+            { // Add barriers between preparation and vector generation
+                auto preparationBarrier = re::bufferMemoryBarrier(
+                    S::eComputeShader, // Src stage mask
+                    A::eShaderStorageRead |
+                        A::eShaderStorageWrite,           // Src access mask
+                    S::eDrawIndirect | S::eComputeShader, // Dst stage mask
+                    A::eIndirectCommandRead | A::eShaderStorageRead |
+                        A::eShaderStorageWrite, // Dst access mask
+                    *m_vegPreparationBuf
+                );
+                cb->pipelineBarrier2({{}, {}, preparationBarrier, {}});
+            }
 
-    // Dispatch branch vector generation
-    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVectorVegPl);
-    cb->dispatchIndirect(
-        *m_vegPreparationBuf, offsetof(VegPreparationSB, vegDispatchSize)
-    );
+            // Dispatch branch vector generation
+            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVectorVegPl);
+            cb->dispatchIndirect(
+                *m_vegPreparationBuf, offsetof(VegPreparationSB, vegDispatchSize)
+            );
 
-    { // Add barriers between vector generation and raster generation
-        auto vectorBarrier = re::bufferMemoryBarrier(
-            S::eComputeShader,      // Src stage mask
-            A::eShaderStorageWrite, // Src access mask
-            S::eComputeShader,      // Dst stage mask
-            A::eShaderStorageRead,  // Dst access mask
-            *m_vegPreparationBuf,
-            offsetof(VegPreparationSB, branchInstances)
-        );
-        cb->pipelineBarrier2({{}, {}, vectorBarrier, {}});
-    }
+            { // Add barriers between vector generation and raster generation
+                auto vectorBarrier = re::bufferMemoryBarrier(
+                    S::eComputeShader,      // Src stage mask
+                    A::eShaderStorageWrite, // Src access mask
+                    S::eComputeShader,      // Dst stage mask
+                    A::eShaderStorageRead,  // Dst access mask
+                    *m_vegPreparationBuf,
+                    offsetof(VegPreparationSB, branchInstances)
+                );
+                cb->pipelineBarrier2({{}, {}, vectorBarrier, {}});
+            }
 
-    // Dispatch branch raster generation
-    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateRasterVegPl);
-    cb->dispatchIndirect(
-        *m_vegPreparationBuf, offsetof(VegPreparationSB, branchDispatchSize)
+            // Dispatch branch raster generation
+            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateRasterVegPl);
+            cb->dispatchIndirect(
+                *m_vegPreparationBuf, offsetof(VegPreparationSB, branchDispatchSize)
+            );
+        },
+        BufferAccess{
+            .name   = BufferTrackName::Branch,
+            .stage  = S::eComputeShader,
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite},
+        BufferAccess{
+            .name   = BufferTrackName::AllocReg,
+            .stage  = S::eComputeShader,
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite}
     );
 }
 

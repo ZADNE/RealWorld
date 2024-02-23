@@ -19,25 +19,11 @@ float tiToPx(float posTi) { return posTi * TilePx.x; }
 ivec2 tiToPx(ivec2 posTi) { return posTi << k_tileLowZeroBits; }
 int   tiToPx(int posTi)   { return posTi << k_tileLowZeroBits.x; }
 
-#define TILE xyzw
-#define TILE_TYPE xz
-#define TILE_VAR yw
-#define BLOCK xy
-#define BLOCK_TYPE x
-#define BLOCK_VAR y
-#define WALL zw
-#define WALL_TYPE z
-#define WALL_VAR w
+#define LAYER_TYPE x
+#define LAYER_VARIANT y
 
-#define TL TILE
-#define TL_T TILE_TYPE
-#define TL_V TILE_VAR
-#define BL BLOCK
-#define BL_T BLOCK_TYPE
-#define BL_V BLOCK_VAR
-#define WL WALL
-#define WL_T WALL_TYPE
-#define WL_V WALL_VAR
+#define L_T LAYER_TYPE
+#define L_V LAYER_VARIANT
 
 // Blocks
 const uint k_stoneBl =          0;
@@ -93,37 +79,37 @@ const uint k_neverWl =          256;
 
 
 // Dual tiles (both block and wall)
-const uvec4 k_stone =           {k_stoneBl,         0,  k_stoneWl,          0};
-const uvec4 k_dirt =            {k_dirtBl,          0,  k_dirtWl,           0};
-const uvec4 k_grass =           {k_grassBl,         0,  k_grassWl,          0};
-const uvec4 k_coldStone =       {k_coldStoneBl,     0,  k_coldStoneWl,      0};
-const uvec4 k_sand =            {k_sandBl,          0,  k_sandWl,           0};
-const uvec4 k_coldDirt =        {k_coldDirtBl,      0,  k_coldDirtWl,       0};
-const uvec4 k_coldGrass =       {k_coldGrassBl,     0,  k_coldGrassWl,      0};
-const uvec4 k_mud =             {k_mudBl,           0,  k_mudWl,            0};
-const uvec4 k_mudGrass =        {k_mudGrassBl,      0,  k_mudGrassWl,       0};
-const uvec4 k_dryGrass =        {k_dryGrassBl,      0,  k_dryGrassWl,       0};
-const uvec4 k_hallowStone =     {k_hallowStoneBl,   0,  k_hallowStoneWl,    0};
-const uvec4 k_hallowDirt =      {k_hallowDirtBl,    0,  k_hallowDirtWl,     0};
-const uvec4 k_hallowGrass =     {k_hallowGrassBl,   0,  k_hallowGrassWl,    0};
-const uvec4 k_highlighter =     {k_highlighterBl,   0,  k_highlighterWl,    0};
+const uvec2 k_stone =           {k_stoneBl,         k_stoneWl};
+const uvec2 k_dirt =            {k_dirtBl,          k_dirtWl};
+const uvec2 k_grass =           {k_grassBl,         k_grassWl};
+const uvec2 k_coldStone =       {k_coldStoneBl,     k_coldStoneWl};
+const uvec2 k_sand =            {k_sandBl,          k_sandWl};
+const uvec2 k_coldDirt =        {k_coldDirtBl,      k_coldDirtWl};
+const uvec2 k_coldGrass =       {k_coldGrassBl,     k_coldGrassWl};
+const uvec2 k_mud =             {k_mudBl,           k_mudWl};
+const uvec2 k_mudGrass =        {k_mudGrassBl,      k_mudGrassWl};
+const uvec2 k_dryGrass =        {k_dryGrassBl,      k_dryGrassWl};
+const uvec2 k_hallowStone =     {k_hallowStoneBl,   k_hallowStoneWl};
+const uvec2 k_hallowDirt =      {k_hallowDirtBl,    k_hallowDirtWl};
+const uvec2 k_hallowGrass =     {k_hallowGrassBl,   k_hallowGrassWl};
+const uvec2 k_highlighter =     {k_highlighterBl,   k_highlighterWl};
 
-const uvec4 k_firstNonsolid =   {k_firstNonsolidBl, 0,  k_firstNonsolidWl,  0};
+const uvec2 k_firstNonsolid =   {k_firstNonsolidBl, k_firstNonsolidWl};
 
-const uvec4 k_air =             {k_airBl,           0,  k_airWl,            0};
-const uvec4 k_never =           {k_neverBl,         0,  k_neverWl,          0};
+const uvec2 k_air =             {k_airBl,           k_airWl};
+const uvec2 k_never =           {k_neverBl,         k_neverWl};
 
 
-bool isSolidBlock(uint block_type){ return block_type < k_firstNonsolidBl; }
-bool isNonsolidBlock(uint block_type){ return block_type >= k_firstNonsolidBl; }
-bool isAirBlock(uint block_type){ return block_type == k_airBl; }
+bool isSolidBlock(uint blockType){ return blockType < k_firstNonsolidBl; }
+bool isNonsolidBlock(uint blockType){ return blockType >= k_firstNonsolidBl; }
+bool isAirBlock(uint blockType){ return blockType == k_airBl; }
 
-bool isSolidWall(uint wall_type){ return wall_type < k_firstNonsolidWl; }
-bool isNonsolidWall(uint wall_type){ return wall_type >= k_firstNonsolidWl; }
-bool isAirWall(uint wall_type){ return wall_type == k_airWl; }
+bool isSolidWall(uint wallType){ return wallType < k_firstNonsolidWl; }
+bool isNonsolidWall(uint wallType){ return wallType >= k_firstNonsolidWl; }
+bool isAirWall(uint wallType){ return wallType == k_airWl; }
 
-bvec2 isSolidTile(uvec2 tile_type){ return lessThan(tile_type, k_firstNonsolid.TL_T); }
-bvec2 isNonsolidTile(uvec2 tile_type){ return greaterThanEqual(tile_type, k_firstNonsolid.TL_T); }
-bvec2 isAirTile(uvec2 tile_type){ return equal(tile_type, k_air.TL_T); }
+bvec2 isSolidTile(uvec2 tileType){ return lessThan(tileType, k_firstNonsolid); }
+bvec2 isNonsolidTile(uvec2 tileType){ return greaterThanEqual(tileType, k_firstNonsolid); }
+bvec2 isAirTile(uvec2 tileType){ return equal(tileType, k_air); }
 
 #endif // !TILE_GLSL

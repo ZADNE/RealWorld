@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/world.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
@@ -12,9 +13,6 @@ layout (local_size_x = 16,
         local_size_y = 16,
         local_size_z = 1
 ) in;
-
-const uint k_blockLayer = 0;
-const uint k_wallLayer = 2;
 
 const uint k_square = 0;
 const uint k_disk = 1;
@@ -35,22 +33,19 @@ void main(){
         break;
     }
 
+    // Load the tile
+    ivec2 posAt = tiToAt(p_globalPosTi + offset, p_worldTexMaskTi);
+    uvec2 typeVar = loadLayer(posAt, p_modifyLayer);
+    uint  blockType = loadBlock(posAt).L_T;
+
     // Modify the tile
-    ivec2 posIm = imPos(p_globalPosTi + offset);
-    uvec4 tile = tileLoadIm(posIm);
-    g_randomState = (posIm.x * posIm.y) ^ p_timeHash;
-    if (p_modifyTarget == k_blockLayer){
-        if ((p_modifySetValue.x == k_air.BL_T) == (tile.BL_T == k_air.BL_T)){
-            return;
-        }
-        tile.BL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
-    } else {
-        if ((p_modifySetValue.x == k_air.WL_T) == (tile.WL_T == k_air.WL_T) == isNonsolidBlock(tile.BL_T)){
-            return;
-        }
-        tile.WL = p_modifySetValue.y != 256 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
+    bool airInAboveLayer = p_modifyLayer == k_blockLayer ? true : isNonsolidBlock(blockType);
+    if ((p_modifySetValue.x == k_airBl) == (typeVar.L_T == k_airBl) == airInAboveLayer){
+        return;
     }
+    g_randomState = (posAt.x * posAt.y) ^ p_timeHash;
+    typeVar = p_modifySetValue.y <= 255 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
 
     // Store the modified tile
-    tileStoreIm(posIm, tile);
+    storeLayer(posAt, p_modifyLayer, typeVar);
 }

@@ -13,15 +13,16 @@
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;
+using enum vk::ImageAspectFlagBits;
 using D = vk::DescriptorType;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
 namespace rw {
 
-constexpr glm::uint k_branchBinding      = 0;
-constexpr glm::uint k_worldTexAttBinding = 1;
-constexpr glm::uint k_worldTexBinding    = 2;
+constexpr glm::uint k_branchBinding       = 0;
+constexpr glm::uint k_wallLayerAttBinding = 1;
+constexpr glm::uint k_worldTexBinding     = 2;
 
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
@@ -31,18 +32,17 @@ VegSimulator::VegSimulator()
           re::PipelineLayoutDescription{
               .bindings =
                   {{{k_branchBinding, D::eStorageBuffer, 1, eVertex | eFragment},
-                    {k_worldTexAttBinding, D::eInputAttachment, 1, eFragment},
+                    {k_wallLayerAttBinding, D::eInputAttachment, 1, eFragment},
                     {k_worldTexBinding, D::eStorageImage, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
-                  eVertex | eTessellationControl | eTessellationEvaluation,
+                  eVertex | eTessellationControl | eTessellationEvaluation | eFragment,
                   0u,
                   sizeof(VegDynamicsPC)}}}
       )
     , m_rasterizationRenderPass([]() {
-        constexpr static auto k_attachmentDesc = vk::AttachmentDescription2{
-            // The world texture attachment
+        constexpr static vk::AttachmentDescription2 k_attachments{
             {},
-            vk::Format::eR8G8B8A8Uint,
+            vk::Format::eR8G8Uint,
             vk::SampleCountFlagBits::e1,
             vk::AttachmentLoadOp::eLoad,      // Color
             vk::AttachmentStoreOp::eStore,    // Color
@@ -51,20 +51,21 @@ VegSimulator::VegSimulator()
             vk::ImageLayout::eGeneral,        // Initial
             vk::ImageLayout::eGeneral         // Final
         };
-        constexpr static auto k_worldTexAttachmentRef = vk::AttachmentReference2{
+        constexpr static vk::AttachmentReference2 k_wallLayerAttRef{
             0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor};
-        static std::array subpassDescriptions =
-            std::to_array<vk::SubpassDescription2>({vk::SubpassDescription2{
-                {},
-                vk::PipelineBindPoint::eGraphics,
-                0,
-                k_worldTexAttachmentRef, // Input attachments
-                k_worldTexAttachmentRef  // Color attachments
-            }});
+        constexpr static auto k_subpasses = std::to_array({vk::SubpassDescription2{
+            vk::SubpassDescriptionFlags{},
+            vk::PipelineBindPoint::eGraphics,
+            0u, // View mask
+            1u,
+            &k_wallLayerAttRef, // Input attachments
+            1u,
+            &k_wallLayerAttRef, // Color attachments
+        }});
 
         return re::RenderPassCreateInfo{
-            .attachments = k_attachmentDesc,
-            .subpasses   = subpassDescriptions,
+            .attachments = k_attachments,
+            .subpasses   = k_subpasses,
             .debugName   = "rw::VegSimulator::rasterization"};
     }()) {
 }
@@ -97,7 +98,8 @@ void VegSimulator::unrasterizeVegetation(const ActionCmdBuf& acb) {
         ImageAccess{
             .name   = ImageTrackName::World,
             .stage  = S::eFragmentShader | S::eColorAttachmentOutput,
-            .access = A::eColorAttachmentRead | A::eColorAttachmentWrite}
+            .access = A::eInputAttachmentRead | A::eColorAttachmentRead |
+                      A::eColorAttachmentWrite}
     );
 }
 
@@ -133,8 +135,9 @@ void VegSimulator::rasterizeVegetation(const ActionCmdBuf& acb) {
         ImageAccess{
             .name   = ImageTrackName::World,
             .stage  = S::eFragmentShader | S::eColorAttachmentOutput,
-            .access = A::eColorAttachmentRead | A::eColorAttachmentWrite |
-                      A::eShaderStorageRead | A::eShaderStorageWrite}
+            .access = A::eInputAttachmentRead | A::eColorAttachmentRead |
+                      A::eColorAttachmentWrite | A::eShaderStorageRead |
+                      A::eShaderStorageWrite}
     );
 }
 
@@ -144,6 +147,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     // Prepare push constants
     m_worldTexSizeTi               = chToTi(worldTexSizeCh);
     m_vegDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
+    m_vegDynamicsPC.worldTexMaskTi = m_worldTexSizeTi - 1u;
     m_vegDynamicsPC.mvpMat =
         glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
 
@@ -164,23 +168,34 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
              .initData    = re::objectToByteSpan(*allocReg),
              .debugName   = "rw:VegSimulator::branchAllocReg"}};
 
+    // Prepare framebuffers
+    m_wallLayerImageView = re::ImageView{vk::ImageViewCreateInfo{
+        {},
+        worldTex.image(),
+        vk::ImageViewType::e2D,
+        vk::Format::eR8G8Uint,
+        {},
+        {eColor, 0, 1, std::to_underlying(TileLayer::Wall), 1}}};
+
+    m_rasterizationFramebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
+        {},
+        *m_rasterizationRenderPass,
+        *m_wallLayerImageView,
+        m_worldTexSizeTi.x,
+        m_worldTexSizeTi.y,
+        1u}};
+
     // Prepare descriptor
     m_descriptorSet.write(D::eStorageBuffer, k_branchBinding, 0u, m_branchBuf);
     m_descriptorSet.write(
-        D::eInputAttachment, k_worldTexAttBinding, 0u, worldTex, vk::ImageLayout::eGeneral
+        D::eInputAttachment,
+        k_wallLayerAttBinding,
+        0u,
+        vk::DescriptorImageInfo{nullptr, *m_wallLayerImageView, vk::ImageLayout::eGeneral}
     );
     m_descriptorSet.write(
         D::eStorageImage, k_worldTexBinding, 0u, worldTex, vk::ImageLayout::eGeneral
     );
-
-    // Prepare framebuffers
-    m_rasterizationFramebuffer = re::Framebuffer{vk::FramebufferCreateInfo{
-        {},
-        *m_rasterizationRenderPass,
-        worldTex.imageView(),
-        m_worldTexSizeTi.x,
-        m_worldTexSizeTi.y,
-        1u}};
 
     return VegStorage{
         .branchBuf = m_branchBuf, .branchAllocRegBuf = m_branchAllocRegBuf};
@@ -203,7 +218,7 @@ void VegSimulator::beginWorldTextureRenderPass(const re::CommandBuffer& cb) cons
     cb->setScissor(0u, vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}});
     cb->pushConstants<VegDynamicsPC>(
         *m_pipelineLayout,
-        eVertex | eTessellationControl | eTessellationEvaluation,
+        eVertex | eTessellationControl | eTessellationEvaluation | eFragment,
         0u,
         m_vegDynamicsPC
     );

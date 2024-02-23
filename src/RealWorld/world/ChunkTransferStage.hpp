@@ -119,10 +119,10 @@ public:
         m_tileCopyRegions[upSlotsEnd] = vk::BufferImageCopy2{
             offsetof(StageBuf, tiles[upSlotsEnd]), // Buffer offset
             0u,
-            0u,                                            // Tightly packed
-            {vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u}, // Subresource
-            {posAt.x, posAt.y, 0u},                        // Offset
-            {iChunkTi.x, iChunkTi.y, 1u}                   // Extent
+            0u, // Tightly packed
+            {vk::ImageAspectFlagBits::eColor, 0u, 0u, k_tileLayerCount}, // Subresource
+            {posAt.x, posAt.y, 0u},      // Offset
+            {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
 
         if (range.count > 0) {
@@ -218,10 +218,10 @@ public:
         m_tileCopyRegions[downSlotsBegin] = vk::BufferImageCopy2{
             offsetof(StageBuf, tiles[downSlotsBegin]), // Buffer offset
             0u,
-            0u,                                            // Tightly packed
-            {vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u}, // Subresource
-            {posAt.x, posAt.y, 0u},                        // Offset
-            {iChunkTi.x, iChunkTi.y, 1u}                   // Extent
+            0u, // Tightly packed
+            {vk::ImageAspectFlagBits::eColor, 0u, 0u, k_tileLayerCount}, // Subresource
+            {posAt.x, posAt.y, 0u},      // Offset
+            {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
 
         if (range.count > 0) {

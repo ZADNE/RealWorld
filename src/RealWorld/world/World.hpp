@@ -93,7 +93,8 @@ private:
 
     struct WorldDynamicsPC {
         glm::ivec2 globalPosTi;
-        glm::uint  modifyTarget;
+        glm::ivec2 worldTexMaskTi;
+        glm::uint  modifyLayer;
         glm::uint  modifyShape;
         glm::uvec2 modifySetValue;
         float      modifyRadius;

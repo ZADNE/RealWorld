@@ -76,9 +76,7 @@ void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
     cb->pushConstants<PushConstants>(
         *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
     );
-    cb->draw(
-        4u, m_pushConstants.viewSizeTi.x * m_pushConstants.viewSizeTi.y, 0u, 0u
-    );
+    cb->draw(4u, m_pushConstants.viewSizeTi.x * m_pushConstants.viewSizeTi.y, 0u, 0u);
 }
 
 void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {

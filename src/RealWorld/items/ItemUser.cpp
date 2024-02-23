@@ -51,7 +51,7 @@ void ItemUser::step(
         case ItemType::Pickaxe:
             m_world.modify(
                 acb,
-                TileLayer::BlockLayer,
+                TileLayer::Block,
                 m_shape,
                 m_radiusTi,
                 pxToTi(relCursorPosPx),
@@ -61,7 +61,7 @@ void ItemUser::step(
         case ItemType::Hammer:
             m_world.modify(
                 acb,
-                TileLayer::WallLayer,
+                TileLayer::Wall,
                 m_shape,
                 m_radiusTi,
                 pxToTi(relCursorPosPx),
@@ -70,14 +70,14 @@ void ItemUser::step(
             break;
         }
     }
-    // ALTERNATIVE
+    // Alternative
     if (m_using[k_secondaryUse] > 0) {
         switch (md.type) {
         case ItemType::Empty: break;
         case ItemType::Block:
             m_world.modify(
                 acb,
-                TileLayer::BlockLayer,
+                TileLayer::Block,
                 m_shape,
                 m_radiusTi,
                 pxToTi(relCursorPosPx),
@@ -87,7 +87,7 @@ void ItemUser::step(
         case ItemType::Wall:
             m_world.modify(
                 acb,
-                TileLayer::WallLayer,
+                TileLayer::Wall,
                 m_shape,
                 m_radiusTi,
                 pxToTi(relCursorPosPx),

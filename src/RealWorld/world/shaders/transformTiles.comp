@@ -3,13 +3,18 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
-#include <RealWorld/constants/chunk.glsl>
+#include <RealWorld/constants/world.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 #include <RealWorld/world/shaders/ActiveChunksSB.glsl>
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
+
+#define TL_T xz
+#define BL_T x
+#define WL_T z
+#define TL_V yw
 
 const int k_transformGroupSize = 4;
 
@@ -46,15 +51,18 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
 void main(){
     g_randomState = invocHash();
     random();
-    ivec2 centerTi = b_acChunks.offsets[gl_WorkGroupID.x]
-                     + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
-                     + (ivec2(random(), random()) & (k_invocDisplacement - 1));
+    const ivec2 centerAt = tiToAt(
+        b_acChunks.offsets[gl_WorkGroupID.x]
+            + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
+            + (ivec2(random(), random()) & (k_invocDisplacement - 1)),
+        p_worldTexMaskTi);
 
-    uvec4 tile = tileLoad(centerTi);
+    uvec4 tile = loadTile(centerAt);
     uvec2 edgeTile = uvec2(0);
     uvec2 nearbyProperties = uvec2(0);
-    for(int i = 0; i < k_nearbyOffsets.length(); ++i){// Check all neighbors
-        uvec4 neighbor = tileLoad(centerTi + k_nearbyOffsets[i]);
+    for(int i = 0; i < k_nearbyOffsets.length(); ++i){ // Check all neighbors
+        ivec2 nPosAt = tiToAt(centerAt + k_nearbyOffsets[i], p_worldTexMaskTi);
+        uvec4 neighbor = loadTile(nPosAt);
         // Analyze the neighbor
         nearbyProperties |= uvec2(u_blockProperties[neighbor.BL_T].x, u_wallProperties[neighbor.WL_T].x);
         edgeTile |= uvec2(isNonsolidTile(neighbor.TL_T));
@@ -77,15 +85,15 @@ void main(){
     }
 
     // Select variant
-    uvec2 currentlyInner = uvec2(lessThan(tile.TILE_VAR, uvec2(12)));
-    uvec2 isSolid = uvec2(isSolidTile(tile.TILE_TYPE));
+    uvec2 currentlyInner = uvec2(lessThan(tile.TL_V, uvec2(12)));
+    uvec2 isSolid = uvec2(isSolidTile(tile.TL_T));
     uvec2 switchToInner = (~edgeTile & ~currentlyInner) & isSolid;
     uvec2 switchToOuter = (edgeTile & currentlyInner) & isSolid;
-    tile.TILE_VAR =
-        mix(tile.TILE_VAR, uvec2(0), bvec2(switchToInner | switchToOuter))
+    tile.TL_V =
+        mix(tile.TL_V, uvec2(0), bvec2(switchToInner | switchToOuter))
         + mix(uvec2(0), random2() % 12, bvec2(switchToInner))
         + mix(uvec2(0), random2() % 4 + 12, bvec2(switchToOuter));
 
     // Store the transformed tile
-    tileStore(centerTi, tile);
+    storeTile(centerAt, tile);
 }

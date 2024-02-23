@@ -61,7 +61,7 @@ ChunkGenerator::ChunkGenerator()
           .usage     = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
           .initData  = re::objectToByteSpan(k_vegPreparationSBInitHelper),
           .debugName = "rw::ChunkGenerator::vegPreparation"}) {
-    m_descriptorSet.write(eStorageImage, k_tilesImageBinding, 0, m_tilesTex, eGeneral);
+    m_descriptorSet.write(eStorageImage, k_tilesImageBinding, 0, m_layerTex, eGeneral);
     m_descriptorSet.write(
         eStorageImage, k_materialImageBinding, 0, m_materialTex, eGeneral
     );
@@ -98,6 +98,7 @@ bool ChunkGenerator::generate(const ActionCmdBuf& acb) {
         secCb->bindDescriptorSets(
             vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
         );
+        acb.useSecondaryCommandBuffer(secCb);
 
         // Terrain generation
         generateBasicTerrain(secCb);
@@ -105,12 +106,13 @@ bool ChunkGenerator::generate(const ActionCmdBuf& acb) {
         selectVariant(secCb);
 
         // Vegetation generation
-        generateVegetation(secCb);
-
-        secCb->end({});
-        (*acb)->executeCommands(*secCb);
+        generateVegetation(acb);
 
         copyToDestination(acb);
+
+        acb.stopSecondaryCommandBuffer();
+        secCb->end({});
+        (*acb)->executeCommands(*secCb);
 
         m_chunksPlanned = 0;
         return true;
@@ -129,29 +131,40 @@ void ChunkGenerator::copyToDestination(const ActionCmdBuf& acb) {
                 A::eTransferRead, // Dst access mask
                 eGeneral,         // Old image layout
                 eGeneral,         // New image layout
-                m_tilesTex.image(),
-                vk::ImageSubresourceRange{
-                    eColor, 0, 1, k_chunkGenSlots * m_genPC.storeSegment, k_chunkGenSlots}
+                m_layerTex.image(),
+                vk::ImageSubresourceRange{eColor, 0, 1, 0, k_chunkGenSlots * 3}
             )});
             cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, barriers});
 
             // Copy the generated chunk to the world texture
-            std::array<vk::ImageCopy, k_chunkGenSlots> regions;
+            std::array<vk::ImageCopy, k_chunkGenSlots * k_tileLayerCount> regions;
             for (int i = 0; i < m_chunksPlanned; ++i) {
                 auto dstOffsetTi =
                     chToAt(tiToCh(m_genPC.chunkTi[i]), m_genPC.worldTexSizeCh - 1);
-                regions[i] = vk::ImageCopy{
-                    vk::ImageSubresourceLayers{
-                        eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1}, // Src subresource
+                // Block layer region
+                auto layer = std::to_underlying(TileLayer::Block);
+                regions[i * k_tileLayerCount + layer] = vk::ImageCopy{
+                    {eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1}, // Src subresource
                     vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
-                    vk::ImageSubresourceLayers{eColor, 0, 0, 1}, // Dst subresource
+                    {eColor, 0, layer, 1}, // Dst subresource
+                    vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
+                    vk::Extent3D{iChunkTi.x, iChunkTi.y, 1} // Copy Extent
+                };
+                // Wall layer region
+                layer = std::to_underlying(TileLayer::Wall);
+                regions[i * k_tileLayerCount + layer] = vk::ImageCopy{
+                    {eColor, 0, k_chunkGenSlots * 2u + i, 1}, // Src subresource
+                    vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
+                    {eColor, 0, layer, 1}, // Dst subresource
                     vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
                     vk::Extent3D{iChunkTi.x, iChunkTi.y, 1} // Copy Extent
                 };
             }
-            std::span spanOfRegions{regions.begin(), regions.begin() + m_chunksPlanned};
+            std::span spanOfRegions{
+                regions.begin(),
+                regions.begin() + (m_chunksPlanned * k_tileLayerCount)};
             cb->copyImage(
-                m_tilesTex.image(),
+                m_layerTex.image(),
                 eGeneral, // Src image
                 m_worldTex->image(),
                 eGeneral, // Dst image

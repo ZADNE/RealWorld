@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/world.glsl>
 #include <RealWorld/player/shaders/playerPll.glsl>
 #include <RealWorld/world/shaders/tileLoad.glsl>
 #include <RealWorld/player/shaders/PlayerHitboxSB.glsl>
@@ -14,10 +15,11 @@ layout (local_size_x = 1,
 ) in;
 
 uint ground(vec2 posPx, vec2 dimsPx) {
-    uint grnd = k_air.BLOCK_TYPE;
+    uint grnd = k_airBl;
     int  yTi  = int(pxToTi(posPx.y - 1.0));
     for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi) {
-        grnd = min(grnd, tileLoad(ivec2(xTi, yTi)).BLOCK_TYPE);
+        ivec2 posAt = tiToAt(ivec2(xTi, yTi), p_worldTexMaskTi);
+        grnd = min(grnd, loadBlock(posAt).L_T);
     }
     return grnd;
 }
@@ -25,7 +27,8 @@ uint ground(vec2 posPx, vec2 dimsPx) {
 bool overlapsBlocks(vec2 posPx, vec2 dimsPx) {
     for (int yTi = int(pxToTi(posPx.y)); yTi <= pxToTi(posPx.y + dimsPx.y); ++yTi) {
         for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi) {
-            if (isSolidBlock(tileLoad(ivec2(xTi, yTi)).BL_T)) {
+            ivec2 posAt = tiToAt(ivec2(xTi, yTi), p_worldTexMaskTi);
+            if (isSolidBlock(loadBlock(posAt).L_T)) {
                 return true;
             }
         }

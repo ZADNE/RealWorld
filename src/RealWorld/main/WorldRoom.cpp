@@ -276,7 +276,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
     const auto& worldTex =
         m_world.adoptSave(m_acb, save.metadata, m_gameSettings.worldTexSize());
-    m_player.adoptSave(save.player, worldTex);
+    m_player.adoptSave(save.player, worldTex, m_gameSettings.worldTexSize());
     m_playerInv.adoptInventoryData(save.inventory);
 
     m_worldDrawer.setTarget(worldTex, m_gameSettings.worldTexSize() * iChunkTi);

@@ -10,10 +10,10 @@ layout (local_size_x = k_genGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = k_tilesImageBinding, rgba8ui)
-uniform restrict writeonly uimage2DArray u_tilesImage;
-layout (set = 0, binding = k_materialImageBinding, rgba8ui)
-uniform restrict writeonly uimage2DArray u_materialImage;
+layout (set = 0, binding = k_tilesImageBinding, rg8ui)
+    uniform restrict writeonly uimage2DArray u_layerImage;
+layout (set = 0, binding = k_materialImageBinding, r8ui)
+    uniform restrict writeonly uimage2DArray u_materialImage;
 
 void main(){
     // Compute position
@@ -26,6 +26,16 @@ void main(){
     basicTerrain(pPx, tile, material);
 
     // Store the terrain
-    imageStore(u_tilesImage, ivec3(gl_GlobalInvocationID), tile);
-    imageStore(u_materialImage, ivec3(gl_GlobalInvocationID), material);
+    imageStore(u_layerImage,
+        ivec3(gl_GlobalInvocationID),
+        tile.xyxy // Block
+    );
+    imageStore(u_layerImage,
+        ivec3(gl_GlobalInvocationID.xy, gl_GlobalInvocationID.z + 2 * k_chunkGenSlots),
+        tile.zwzw // Wall
+    );
+    imageStore(u_materialImage,
+        ivec3(gl_GlobalInvocationID),
+        material.rrrr // Material
+    );
 }

@@ -80,16 +80,14 @@ enum class Wall : uint8_t {
     Air = 255
 };
 
+enum class TileLayer : uint32_t { Block = 0, Wall = 1 };
+constexpr uint32_t k_tileLayerCount = 2;
+
 enum class TileAttrib : uint32_t {
     BlockType = 0,
     BlockVar  = 1,
-    WallType  = 2,
-    WallVar   = 3
-};
-
-enum class TileLayer : uint32_t {
-    BlockLayer = static_cast<uint32_t>(TileAttrib::BlockType),
-    WallLayer  = static_cast<uint32_t>(TileAttrib::WallType)
+    WallType  = 0,
+    WallVar   = 1
 };
 
 /**

@@ -13,8 +13,8 @@ layout (local_size_x = k_genGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = k_tilesImageBinding, rgba8ui)
-uniform restrict uimage2DArray u_tilesImage;
+layout (set = 0, binding = k_tilesImageBinding, rg8ui)
+uniform restrict uimage2DArray u_layerImage;
 
 const ivec2 k_offsets[] = {
                 {-1, +2},   {+0, +2},   {+1, +2},
@@ -26,26 +26,40 @@ const ivec2 k_offsets[] = {
 
 void main() {
     // Load previous value of the tile
-    const uint loadLayer = tileImgLoadLayer();
+    const uint blockLoadLayer = blockImgLoadLayer();
+    const uint wallLayer = wallImgLayer();
     const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-    uvec2 block_wall = imageLoad(u_tilesImage, ivec3(pTi, loadLayer)).TILE_TYPE;
+    uvec2 blockWall = uvec2(
+        imageLoad(u_layerImage, ivec3(pTi, blockLoadLayer)).L_T,
+        imageLoad(u_layerImage, ivec3(pTi, wallLayer)).L_T
+    );
 
     // Examine neighbors
     uvec2 inner = {0u, 0u};
     for (int i = 0; i < k_offsets.length(); i++){
-        uvec2 neighbor = imageLoad(u_tilesImage, ivec3(pTi + k_offsets[i], loadLayer)).TILE_TYPE;
+        ivec2 posTi = pTi + k_offsets[i];
+        uvec2 neighbor = uvec2(
+            imageLoad(u_layerImage, ivec3(posTi, blockLoadLayer)).L_T,
+            imageLoad(u_layerImage, ivec3(posTi, wallLayer)).L_T
+        );
         inner |= uvec2(isNonsolidTile(neighbor));
     }
 
-    // Determine the variation
-    vec2 variationRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
-    uvec2 variationOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
-    uvec2 variation = uvec2(hash22(vec2(p_chunkTi[gl_WorkGroupID.z] + pTi)) * variationRange) + variationOffset;
+    // Determine the variant
+    vec2 variantRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
+    uvec2 variantOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
+    uvec2 variant = uvec2(hash22(vec2(p_chunkTi[gl_WorkGroupID.z] + pTi)) * variantRange)
+                    + variantOffset;
 
     // Store the new tile
     imageStore(
-        u_tilesImage,
-        ivec3(pTi, tileImgStoreLayer()),
-        uvec4(block_wall.x, variation.x, block_wall.y, variation.y)
+        u_layerImage,
+        ivec3(pTi, blockImgStoreLayer()),
+        uvec4(blockWall.x, variant.x, 0, 0)
+    );
+    imageStore(
+        u_layerImage,
+        ivec3(pTi, wallLayer),
+        uvec4(blockWall.y, variant.y, 0, 0)
     );
 }

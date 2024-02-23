@@ -12,6 +12,7 @@
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
+#include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/main/ActionCmdBuf.hpp>
@@ -47,14 +48,16 @@ public:
 
 private:
     struct VegDynamicsPC {
-        glm::mat4 mvpMat;
-        glm::vec2 worldTexSizeTi;
-        float     timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
-        glm::uint readBuf;
+        glm::mat4  mvpMat;
+        glm::vec2  worldTexSizeTi;
+        glm::ivec2 worldTexMaskTi;
+        float      timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
+        glm::uint  readBuf;
     } m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
     re::RenderPass     m_rasterizationRenderPass;
+    re::ImageView      m_wallLayerImageView;
     re::Framebuffer    m_rasterizationFramebuffer;
 
     re::Pipeline m_unrasterizeBranchesPl{

@@ -27,6 +27,7 @@ uint invocHash(){
 
 bool probTest1023(uint probability){ return (random() & 1023) < probability; }
 bool probTest65535(uint probability){ return (random() & 65535) < probability; }
+
 uvec2 blockRandomVariant(uint blockType){
     return uvec2(blockType, isNonsolidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
 }
@@ -53,72 +54,72 @@ int randomStateToDirection1D(){
 
 uint fluidIndex(uint fluid){ return fluid & ~k_firstNonsolidBl; }
 
-void leaningFluidDynamics(uvec4 fluid, ivec2 posIm){
-    uvec4 surroundings[3];
-    int leaningSide = bool(fluid.BL_V & 1) ? 1 : -1;
-    uint fi = fluidIndex(fluid.BL_T);
-    //Compute surroundings positions
-    ivec2 surrPosIm[3] = {
-        imPos(posIm + ivec2(+0, k_primMoveDir[fi])),
-        imPos(posIm + ivec2(leaningSide, k_primMoveDir[fi])),
-        imPos(posIm + ivec2(leaningSide, 0))
+void leaningFluidDynamics(uvec2 fluid, ivec2 posAt){
+    uvec2 surroundings[3];
+    int leaningSide = bool(fluid.L_V & 1) ? 1 : -1;
+    uint fi = fluidIndex(fluid.L_T);
+    // Compute surroundings positions
+    ivec2 surrPosAt[3] = {
+        tiToAt(posAt + ivec2(+0, k_primMoveDir[fi]), p_worldTexMaskTi),
+        tiToAt(posAt + ivec2(leaningSide, k_primMoveDir[fi]), p_worldTexMaskTi),
+        tiToAt(posAt + ivec2(leaningSide, 0), p_worldTexMaskTi)
     };
     int first_move = probTest1023(k_primMoveProb[fi]) ? 0 : 2;
     int last_move = probTest1023(k_fluidity[fi]) ? 2 : 0;
-    //Fetch surroundings
+    // Fetch surroundings
     for(int i = first_move; i <= last_move; ++i){
-        surroundings[i] = tileLoadIm(surrPosIm[i]);
+        surroundings[i] = loadBlock(surrPosAt[i]);
     }
-    //Look for a swap
+    // Look for a swap
     for(int i = first_move; i <= last_move; ++i){
-        const uvec4 n = surroundings[i];//The neighbor
-        //If touched the trigger tile and passed probability test
-        if (n.BL_T == k_triggerConv[fi].z && probTest1023(k_triggerConv[fi].x)){
-            tileStoreIm(posIm, uvec4(blockRandomVariant(k_triggerConv[fi].y), fluid.WL));
+        const uvec2 n = surroundings[i]; // The neighbor
+        // If touched the trigger tile and passed probability test
+        if (n.L_T == k_triggerConv[fi].z && probTest1023(k_triggerConv[fi].x)){
+            storeBlock(posAt, blockRandomVariant(k_triggerConv[fi].y));
             return;
-        } else if (isNonsolidBlock(n.BL_T) && n.BL_T != fluid.BL_T){//If can swap
-            tileStoreIm(surrPosIm[i], uvec4(fluid.BL, n.WL));
-            tileStoreIm(posIm, uvec4(n.BL, fluid.WL));
+        } else if (isNonsolidBlock(n.L_T) && n.L_T != fluid.L_T){ // If can swap
+            storeBlock(surrPosAt[i], fluid);
+            storeBlock(posAt, n);
             return;
         }
     }
-    
-    if (probTest65535(k_randomConv[fi].x)){//Random conversion 1
-        fluid.BL = blockRandomVariant(k_randomConv[fi].y);
-    } else if (probTest65535(k_randomConv[fi].z)) {//Random conversion 2
-        fluid.BL = blockRandomVariant(k_randomConv[fi].w);
-    } else if (last_move == 2) {//If could not move horizontally
-        fluid.BL_V ^= 1;//Invert the leaning side
+
+    if (probTest65535(k_randomConv[fi].x)){ // Random conversion 1
+        fluid = blockRandomVariant(k_randomConv[fi].y);
+    } else if (probTest65535(k_randomConv[fi].z)) { // Random conversion 2
+        fluid = blockRandomVariant(k_randomConv[fi].w);
+    } else if (last_move == 2) { // If could not move horizontally
+        fluid.L_V ^= 1; // Invert the leaning side
     }
-    tileStoreIm(posIm, fluid);
+    storeBlock(posAt, fluid);
 }
 
-void velocityFluidDynamics(uvec4 water, ivec2 posIm){
-    ivec2 velocity = extractVelocity(water.y);
-    uvec4 tileBelow = tileLoadIm(posIm + ivec2(+0, -1));
-    if (tileBelow.BL_T == k_air.BL_T){
-        velocity.y -= 1;//bool(random() & 3) ? 0 : 1;
-        velocity.x -= sign(velocity.x);//bool(random() & 3) ? 0 : sign(velocity.x);
+void velocityFluidDynamics(uvec2 fluid, ivec2 posAt){
+    ivec2 velocity = extractVelocity(fluid.y);
+    uvec2 blockBelow = loadBlock(tiToAt(posAt + ivec2(+0, -1), p_worldTexMaskTi));
+    if (blockBelow.L_T == k_airBl){
+        velocity.y -= 1;// bool(random() & 3) ? 0 : 1;
+        velocity.x -= sign(velocity.x);// bool(random() & 3) ? 0 : sign(velocity.x);
     } else {
-        velocity.x += int(velocity.x == 0) * randomStateToDirection1D() * 5;//Shake my direction
+        velocity.x += int(velocity.x == 0) * randomStateToDirection1D() * 5;// Shake my direction
     }
     ivec2 shift = ivec2(greaterThan(abs(velocity), ivec2(random() % 7, random() % 7))) * sign(velocity);
     
-    if (shift != ivec2(0, 0)){//If the particle should shift
-        ivec2 neighborIm = imPos(posIm + shift);
-        uvec4 neighbor = tileLoadIm(neighborIm);
-        if (neighbor.BL_T == k_air.BL_T){//Can move
-            tileStoreIm(posIm, uvec4(k_air.BL, water.WL));
-            tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
-        } else if (neighbor.BL_T == k_waterBl){//Collision with another water particle
-            tileStoreIm(posIm, uvec4(neighbor.BL_T, neighbor.y, water.WL));//Swap velocities
-            tileStoreIm(neighborIm, uvec4(water.BL_T, constructVelocity(velocity), neighbor.WL));
-        } else {//Collision with solid block
+    if (shift != ivec2(0, 0)){// If the particle should shift
+        ivec2 nPosAt = tiToAt(posAt + shift, p_worldTexMaskTi);
+        uvec2 neighbor = loadBlock(nPosAt);
+        if (neighbor.L_T == k_airBl){// Can move
+            storeBlock(posAt, uvec2(k_airBl, 0));
+            storeBlock(nPosAt, uvec2(fluid.L_T, constructVelocity(velocity)));
+        } else if (neighbor.L_T == k_waterBl){// Collision with another fluid particle
+            storeBlock(posAt, uvec2(neighbor));// Swap velocities
+            storeBlock(nPosAt, uvec2(fluid.L_T, constructVelocity(velocity)));
+        } else {// Collision with solid block
             ivec2 newVelocity = abs(velocity.yx) * ivec2(equal(shift, ivec2(0, 0))) * randomStateToDirection1D();
-            tileStoreIm(posIm, uvec4(water.BL_T, constructVelocity(newVelocity), water.WL));
+            storeBlock(posAt, uvec2(fluid.L_T, constructVelocity(newVelocity)));
         }
-    } else {//Do not shift the particle, only add gravity
-        tileStoreIm(posIm, uvec4(water.BL_T, constructVelocity(velocity), water.WL));
+    } else {// Do not shift the particle, only add gravity
+        storeBlock(posAt, uvec2(fluid.L_T, constructVelocity(velocity)));
     }
 }
 
@@ -132,19 +133,19 @@ const ivec2 k_neighborhood[] = {
     {-1, -1},                   {+1, -1}
 };
 
-void leafGrowth(uvec4 leaf, ivec2 posIm){
-    uint strength = leaf.WL_V - 5;
+void leafGrowth(uvec2 leaf, ivec2 posAt){
+    uint strength = leaf.L_V - 5;
     uint neighborhood = bool(strength & 3) ? 4 : 8;
     for (int i = 0; i < neighborhood; i++){
-        ivec2 nPosIm = imPos(posIm + k_neighborhood[i]);
-        uvec4 n = tileLoad(nPosIm);
-        if (n.WL_T == k_airWl){
-            tileStoreIm(nPosIm, uvec4(n.BL, k_leafWl, strength));
-        } else if (n.WL_T == k_leafWl){
-            tileStoreIm(nPosIm, uvec4(n.BL, k_leafWl, max(strength, n.WL_V)));
+        ivec2 nPosAt = tiToAt(posAt + k_neighborhood[i], p_worldTexMaskTi);
+        uvec2 n = loadWall(nPosAt);
+        if (n.L_T == k_airWl){
+            storeWall(nPosAt, uvec2(leaf.L_T, strength));
+        } else if (n.L_T == leaf.L_T){
+            storeWall(nPosAt, uvec2(leaf.L_T, max(strength, n.L_V)));
         }
     }
-    tileStoreIm(posIm, uvec4(leaf.BL, leaf.WL_T, strength));
+    storeWall(posAt, uvec2(leaf.L_T, strength));
 }
 
 void main(){
@@ -157,24 +158,25 @@ void main(){
         ivec2 inGroupOffset = updateOrderOffset(inGroup) * 2;
         uint inCoreOrderOffset = (random() & 3) * 4;
         for (uint inCore = 0; inCore < 4; inCore++){
-            ivec2 posIm = imPos(invocOffset + inGroupOffset + updateOrderOffset(inCore + inCoreOrderOffset));
+            ivec2 posTi = invocOffset + inGroupOffset + updateOrderOffset(inCore + inCoreOrderOffset);
+            ivec2 posAt = tiToAt(posTi, p_worldTexMaskTi);
             { // Block layer simulation
-                uvec4 tile = tileLoadIm(posIm);
-                if (tile.BL_T >= k_waterBl && tile.BL_T <= k_smokeBl){
-                    leaningFluidDynamics(tile, posIm);
-                } else if (tile.BL_T == k_acidBl){
-                    velocityFluidDynamics(tile, posIm);
+                uvec2 block = loadBlock(posAt);
+                if (block.L_T >= k_waterBl && block.L_T <= k_smokeBl){
+                    leaningFluidDynamics(block, posAt);
+                } else if (block.L_T == k_acidBl){
+                    velocityFluidDynamics(block, posAt);
                 }
             }
             { // Wall layer simulation
-                uvec4 tile = tileLoadIm(posIm);
-                if (tile.WL_T == k_leafWl){
-                    if (tile.WL_V > 8) {
-                        leafGrowth(tile, posIm);
-                    } else if (tile.WL_V > 0){
-                        tileStoreIm(posIm, uvec4(tile.BL, k_leafWl, tile.WL_V - 1));
+                uvec2 wall = loadWall(posAt);
+                if (wall.L_T == k_leafWl){
+                    if (wall.L_V > 8) {
+                        leafGrowth(wall, posAt);
+                    } else if (wall.L_V > 0){
+                        storeWall(posAt, uvec2(k_leafWl, wall.L_V - 1));
                     } else {
-                        tileStoreIm(posIm, uvec4(tile.BL, k_air.WL));
+                        storeWall(posAt, uvec2(k_airWl, 0));
                     }
                 }
             }

@@ -14,12 +14,16 @@ uniform GenerationPC {
     uint  p_edgeConsolidationReduce;
 };
 
-uint tileImgLoadLayer(){
+uint blockImgLoadLayer(){
     return (1 - p_storeSegment) * k_chunkGenSlots + gl_WorkGroupID.z;
 }
 
-uint tileImgStoreLayer(){
+uint blockImgStoreLayer(){
     return p_storeSegment * k_chunkGenSlots + gl_WorkGroupID.z;
+}
+
+uint wallImgLayer(){
+    return 2 * k_chunkGenSlots + gl_WorkGroupID.z;
 }
 
 #endif // !GENERATION_PC_GLSL

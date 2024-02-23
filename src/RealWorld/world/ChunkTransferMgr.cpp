@@ -12,6 +12,7 @@
 #include <RealWorld/world/shaders/AllShaders.hpp>
 
 using enum vk::CommandBufferUsageFlagBits;
+using enum vk::ImageAspectFlagBits;
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
@@ -54,7 +55,8 @@ bool ChunkTransferMgr::saveChunks(
             A::eTransferRead,                // Dst access mask
             vk::ImageLayout::eGeneral,       // Old image layout
             vk::ImageLayout::eGeneral,       // New image layout
-            worldTex.image()
+            worldTex.image(),
+            {eColor, 0, 1, 0, k_tileLayerCount}
         );
         cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
@@ -123,7 +125,8 @@ bool ChunkTransferMgr::saveChunks(
             {},                                // Dst access mask
             vk::ImageLayout::eGeneral,         // Old image layout
             vk::ImageLayout::eReadOnlyOptimal, // New image layout
-            worldTex.image()
+            worldTex.image(),
+            {eColor, 0, 1, 0, k_tileLayerCount}
         );
         cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }

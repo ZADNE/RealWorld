@@ -21,7 +21,9 @@ public:
     Player()
         : Player(re::TextureShaped{re::TextureSeed{"player"}}) {}
 
-    void adoptSave(const PlayerSave& save, const re::Texture& worldTexture);
+    void adoptSave(
+        const PlayerSave& save, const re::Texture& worldTexture, glm::ivec2 worldTexCh
+    );
     void gatherSave(PlayerSave& save) const;
 
     glm::vec2 center() const;
@@ -58,12 +60,13 @@ private:
     re::TextureShaped m_playerTex;
 
     struct PlayerMovementPC {
-        float acceleration    = 0.5f;
-        float maxWalkVelocity = 6.0f;
-        float jumpVelocity    = 7.0f;
-        float walkDirection;
-        float jump;
-        float autojump;
+        glm::ivec2 worldTexMaskTi;
+        float      acceleration    = 0.5f;
+        float      maxWalkVelocity = 6.0f;
+        float      jumpVelocity    = 7.0f;
+        float      walkDirection;
+        float      jump;
+        float      autojump;
         int writeIndex = 1; // Selects PlayerHitboxSB::botLeftPx, swings every step
     } m_pushConstants;
 

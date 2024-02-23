@@ -7,6 +7,7 @@
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 
+#include <RealWorld/constants/chunk.hpp>
 #include <RealWorld/player/Player.hpp>
 
 using enum vk::BufferUsageFlagBits;
@@ -39,7 +40,11 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
     m_descriptorSet.write(D::eStorageBuffer, k_playerBinding, 0u, m_hitboxBuf);
 }
 
-void Player::adoptSave(const PlayerSave& save, const re::Texture& worldTexture) {
+void Player::adoptSave(
+    const PlayerSave& save, const re::Texture& worldTexture, glm::ivec2 worldTexCh
+) {
+    m_pushConstants.worldTexMaskTi = chToTi(worldTexCh) - 1;
+
     m_oldBotLeftPx    = save.pos;
     *m_hitboxStageBuf = PlayerHitboxSB{
         .botLeftPx  = {save.pos, save.pos},
