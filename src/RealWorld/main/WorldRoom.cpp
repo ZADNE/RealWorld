@@ -62,6 +62,7 @@ void WorldRoom::step() {
     // Get the command buffer of the current step
     auto& cb = m_stepCmdBufs.write();
     m_acb.useCommandBuffer(cb);
+    m_acb.assumeActionsFinished();
 
     // Wait for the command buffer to be consumed.
     // It should already be consumed thanks to RealEngine's step() timing
@@ -82,12 +83,10 @@ void WorldRoom::step() {
 
     // Submit the compute work to GPU
     vk::SemaphoreSubmitInfo waitSems{
-        *m_simulationFinishedSem,
-        m_stepN - 1,
-        vk::PipelineStageFlagBits2::eAllCommands};
+        *m_simulationFinishedSem, m_stepN - 1, vk::PipelineStageFlagBits2::eNone};
     vk::CommandBufferSubmitInfo comBufSubmit{*cb};
     vk::SemaphoreSubmitInfo     signalSems{
-        *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eAllCommands};
+        *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eNone};
     re::CommandBuffer::submitToGraphicsCompQueue(vk::SubmitInfo2{
         {}, waitSems, comBufSubmit, signalSems});
 
