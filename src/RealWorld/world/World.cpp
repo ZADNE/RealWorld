@@ -214,7 +214,7 @@ void World::prepareWorldForDrawing(const ActionCmdBuf& acb) {
         },
         ImageAccess{
             .name   = ImageTrackName::World,
-            .stage  = S::eComputeShader | S::eVertexShader,
+            .stage  = S::eComputeShader | S::eFragmentShader,
             .access = A::eShaderSampledRead,
             .layout = eReadOnlyOptimal}
     );

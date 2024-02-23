@@ -8,10 +8,10 @@
 layout (push_constant, std430)
 uniform TileDrawerPC {
     mat4    p_viewMat;
-    ivec2   p_worldTexMask;
-    ivec2   p_viewSizeTi;
+    vec2    p_viewSizePx;
     vec2    p_botLeftPxModTilePx;
     ivec2   p_botLeftTi;
+    ivec2   p_worldTexMask;
     vec2    p_minimapOffset;
     vec2    p_minimapSize;
 };

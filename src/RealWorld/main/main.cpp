@@ -24,8 +24,39 @@ int main(int argc, char* argv[]) {
             .setDescriptorBindingPartiallyBound(true)
             .setTimelineSemaphore(true),
         vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)};
-    re::VulkanInitInfo initInfo{.deviceCreateInfoChain = &chain.get<>()};
-    re::MainProgram::initialize(initInfo);
+
+    vk::AttachmentDescription2 attachmentDescription{
+        {},
+        re::k_surfaceFormat.format,
+        vk::SampleCountFlagBits::e1,
+        vk::AttachmentLoadOp::eDontCare,  // Color
+        vk::AttachmentStoreOp::eStore,    // Color
+        vk::AttachmentLoadOp::eDontCare,  // Stencil
+        vk::AttachmentStoreOp::eDontCare, // Stencil
+        vk::ImageLayout::eUndefined,      // Initial
+        vk::ImageLayout::ePresentSrcKHR   // Final
+    };
+    vk::AttachmentReference2 attachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
+    vk::SubpassDescription2 subpassDescription{
+        {},
+        vk::PipelineBindPoint::eGraphics,
+        0u,
+        {},           // Input attachments
+        attachmentRef // Color attachments
+    };
+    vk::SubpassDependency2 subpassDependency{
+        vk::SubpassExternal,                                 // Src subpass
+        0u,                                                  // Dst subpass
+        {vk::PipelineStageFlagBits::eColorAttachmentOutput}, // Src stage mask
+        {vk::PipelineStageFlagBits::eColorAttachmentOutput}, // Dst stage mask
+        vk::AccessFlags{},                                   // Src access mask
+        {vk::AccessFlagBits::eColorAttachmentWrite}          // Dst access mask
+    };
+    vk::RenderPassCreateInfo2 rpci{
+        {}, attachmentDescription, subpassDescription, subpassDependency};
+
+    re::MainProgram::initialize(re::VulkanInitInfo{
+        .deviceCreateInfoChain = &chain.get<>(), .mainRenderPass = &rpci});
 
     rw::GameSettings gameSettings{};
 

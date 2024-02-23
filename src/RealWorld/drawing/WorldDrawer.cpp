@@ -15,7 +15,7 @@ namespace rw {
 
 WorldDrawer::WorldDrawer(glm::uvec2 viewSizePx, glm::uint maxNumberOfExternalLights)
     : m_viewSizeTi(viewSizeTi(viewSizePx))
-    , m_tileDrawer(viewSizePx, m_viewSizeTi)
+    , m_tileDrawer(viewSizePx)
     , m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights)
     , m_minimapDawer(viewSizePx, m_viewSizeTi) {
 }
@@ -28,7 +28,7 @@ void WorldDrawer::setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSize
 
 void WorldDrawer::resizeView(glm::uvec2 viewSizePx) {
     m_viewSizeTi = viewSizeTi(viewSizePx);
-    m_tileDrawer.resizeView(viewSizePx, m_viewSizeTi);
+    m_tileDrawer.resizeView(viewSizePx);
     m_shadowDrawer.resizeView(viewSizePx, m_viewSizeTi);
     m_minimapDawer.resizeView(viewSizePx, m_viewSizeTi);
 }

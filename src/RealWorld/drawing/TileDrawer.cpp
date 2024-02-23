@@ -14,7 +14,7 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
-TileDrawer::TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi)
+TileDrawer::TileDrawer(glm::vec2 viewSizePx)
     : m_pipelineLayout(
           {},
           re::PipelineLayoutDescription{
@@ -29,9 +29,10 @@ TileDrawer::TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi)
     , m_drawTilesPl(
           re::PipelineGraphicsCreateInfo{
               .topology       = vk::PrimitiveTopology::eTriangleStrip,
+              .enableBlend    = false,
               .pipelineLayout = *m_pipelineLayout,
               .debugName      = "rw::TileDrawer::drawTiles"},
-          re::PipelineGraphicsSources{.vert = drawTiles_vert, .frag = drawColor_frag}
+          re::PipelineGraphicsSources{.vert = drawTiles_vert, .frag = drawTiles_frag}
       )
     , m_drawMinimapPl(
           re::PipelineGraphicsCreateInfo{
@@ -45,7 +46,7 @@ TileDrawer::TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi)
     );
     m_descriptorSet.write(eCombinedImageSampler, 2u, 0u, m_wallAtlasTex, eReadOnlyOptimal);
 
-    resizeView(viewSizePx, viewSizeTi);
+    resizeView(viewSizePx);
 }
 
 void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
@@ -54,12 +55,12 @@ void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexS
     glm::vec2 viewSizePx =
         glm::vec2(2.0f, 2.0f) /
         glm::vec2(m_pushConstants.viewMat[0][0], m_pushConstants.viewMat[1][1]);
-    resizeView(viewSizePx, m_pushConstants.viewSizeTi);
+    resizeView(viewSizePx);
 }
 
-void TileDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
+void TileDrawer::resizeView(glm::vec2 viewSizePx) {
     m_pushConstants.viewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
-    m_pushConstants.viewSizeTi = viewSizeTi;
+    m_pushConstants.viewSizePx = viewSizePx;
 
     auto layout = minimapLayout(m_pushConstants.worldTexMask + 1, viewSizePx);
     m_pushConstants.minimapOffset = layout.offsetPx;
@@ -76,7 +77,7 @@ void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
     cb->pushConstants<PushConstants>(
         *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
     );
-    cb->draw(4u, m_pushConstants.viewSizeTi.x * m_pushConstants.viewSizeTi.y, 0u, 0u);
+    cb->draw(4u, 1u, 0u, 0u);
 }
 
 void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {

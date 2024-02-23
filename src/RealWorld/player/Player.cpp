@@ -48,7 +48,7 @@ void Player::adoptSave(
     m_oldBotLeftPx    = save.pos;
     *m_hitboxStageBuf = PlayerHitboxSB{
         .botLeftPx  = {save.pos, save.pos},
-        .dimsPx     = m_playerTex.subimageDims(),
+        .dimsPx     = m_playerTex.subimageDims() - 1.0f,
         .velocityPx = glm::vec2(0.0f, 0.0f)};
     m_descriptorSet.write(
         D::eStorageImage, k_worldTexBinding, 0u, worldTexture, vk::ImageLayout::eGeneral

@@ -13,13 +13,10 @@ constexpr unsigned int k_frameRateLimit =
         ? 300u
         : re::Synchronizer::k_doNotLimitFramesPerSecond;
 
-constexpr vk::ClearValue k_skyBlue =
-    vk::ClearColorValue{0.25411764705f, 0.7025490196f, 0.90470588235f, 1.0f};
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
     : Room(
           1,
           re::RoomDisplaySettings{
-              .clearValues          = {&k_skyBlue, 1},
               .stepsPerSecond       = k_physicsStepsPerSecond,
               .framesPerSecondLimit = k_frameRateLimit,
               .usingImGui           = true}

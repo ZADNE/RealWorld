@@ -16,11 +16,11 @@ namespace rw {
  */
 class TileDrawer {
 public:
-    TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
+    explicit TileDrawer(glm::vec2 viewSizePx);
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
 
-    void resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
+    void resizeView(glm::vec2 viewSizePx);
 
     void drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
@@ -32,10 +32,10 @@ private:
 
     struct PushConstants {
         glm::mat4  viewMat;
-        glm::ivec2 worldTexMask = glm::ivec2(1, 1);
-        glm::ivec2 viewSizeTi;
+        glm::vec2  viewSizePx;
         glm::vec2  botLeftPxModTilePx;
         glm::ivec2 botLeftTi;
+        glm::ivec2 worldTexMask;
         glm::vec2  minimapOffset;
         glm::vec2  minimapSize;
     } m_pushConstants;
