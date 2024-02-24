@@ -12,6 +12,7 @@
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
 #include <RealWorld/drawing/ExternalLight.hpp>
+#include <RealWorld/drawing/WorldDrawingPC.hpp>
 
 namespace rw {
 
@@ -24,7 +25,8 @@ public:
         re::RenderPassSubpass renderPassSubpass,
         glm::vec2             viewSizePx,
         glm::ivec2            viewSizeTi,
-        glm::uint             maxNumberOfExternalLights
+        glm::uint             maxNumberOfExternalLights,
+        WorldDrawingPC&       pc
     );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
@@ -50,11 +52,13 @@ public:
     /**
      * @brief Renders calculated shadow to the framebuffer
      */
-    void draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi);
+    void draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
 private:
     re::TextureShaped m_blockLightAtlasTex{re::TextureSeed{"blockLightAtlas"}};
     re::TextureShaped m_wallLightAtlasTex{re::TextureSeed{"wallLightAtlas"}};
+
+    WorldDrawingPC& m_pc;
 
     re::PipelineLayout m_analysisPll;
     re::Pipeline       m_analyzeTilesPl;
@@ -75,13 +79,6 @@ private:
         glm::uint  lightCount;
     };
 
-    struct ShadowDrawingPC {
-        glm::mat4  viewMat;
-        glm::ivec2 viewSizeTi;
-        glm::vec2  botLeftPxModTilePx;
-        glm::ivec2 readOffsetTi;
-    };
-
     struct ViewSizeDependent {
         ViewSizeDependent(
             glm::vec2                 viewSizePx,
@@ -94,6 +91,7 @@ private:
             const re::Buffer&         lightsBuf
         );
 
+        glm::vec2  viewSizePx;
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
         re::Texture lightTex; /**< RGB = color of the light, A = intensity of the light */
@@ -101,10 +99,10 @@ private:
         re::Texture       transluTex; /**< R = translucency of the unit */
         re::Texture       shadowsTex;
         AnalysisPC        analysisPC;
-        ShadowDrawingPC   shadowDrawingPC;
         re::DescriptorSet analysisDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;
+        glm::vec2 shadowAreaPxInv; // 1 over the area where shadows are calculated
     };
 
     ViewSizeDependent m_;

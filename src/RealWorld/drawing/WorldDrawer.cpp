@@ -19,8 +19,10 @@ WorldDrawer::WorldDrawer(
     glm::uint             maxNumberOfExternalLights
 )
     : m_viewSizeTi(viewSizeTi(viewSizePx))
-    , m_tileDrawer(renderPassSubpass, viewSizePx)
-    , m_shadowDrawer(renderPassSubpass, viewSizePx, m_viewSizeTi, maxNumberOfExternalLights)
+    , m_tileDrawer(renderPassSubpass, viewSizePx, m_pc)
+    , m_shadowDrawer(
+          renderPassSubpass, viewSizePx, m_viewSizeTi, maxNumberOfExternalLights, m_pc
+      )
     , m_minimapDawer(renderPassSubpass, viewSizePx, m_viewSizeTi) {
 }
 
@@ -64,7 +66,7 @@ void WorldDrawer::drawTiles(const re::CommandBuffer& cb) {
 }
 
 void WorldDrawer::drawShadows(const re::CommandBuffer& cb) {
-    m_shadowDrawer.draw(cb, m_botLeftPx, m_viewSizeTi);
+    m_shadowDrawer.draw(cb, m_botLeftPx);
 }
 
 void WorldDrawer::drawMinimap(const re::CommandBuffer& cb) {

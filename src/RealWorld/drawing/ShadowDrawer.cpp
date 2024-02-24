@@ -46,9 +46,11 @@ ShadowDrawer::ShadowDrawer(
     re::RenderPassSubpass renderPassSubpass,
     glm::vec2             viewSizePx,
     glm::ivec2            viewSizeTi,
-    glm::uint             maxNumberOfExternalLights
+    glm::uint             maxNumberOfExternalLights,
+    WorldDrawingPC&       pc
 )
-    : m_analysisPll(
+    : m_pc(pc)
+    , m_analysisPll(
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
@@ -87,7 +89,7 @@ ShadowDrawer::ShadowDrawer(
            .debugName      = "rw::ShadowDrawer::calculateShadows"},
           {.comp = calculateShadows_comp}
       )
-    , m_shadowDrawingPll({}, {.vert = drawShadows_vert, .frag = drawColor_frag})
+    , m_shadowDrawingPll({}, {.vert = drawFullscreen_vert, .frag = drawShadows_frag})
     , m_drawShadowsPl(
           re::PipelineGraphicsCreateInfo{
               .topology          = vk::PrimitiveTopology::eTriangleStrip,
@@ -95,7 +97,7 @@ ShadowDrawer::ShadowDrawer(
               .renderPassSubpass = renderPassSubpass,
               .debugName         = "rw::ShadowDrawer::drawShadows"
           },
-          {.vert = drawShadows_vert, .frag = drawColor_frag}
+          {.vert = drawFullscreen_vert, .frag = drawShadows_frag}
       )
     , m_lightsBuf(re::BufferCreateInfo{
           .allocFlags  = eMapped | eHostAccessSequentialWrite,
@@ -241,7 +243,7 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
              re::imageMemoryBarrier(
                  S::eComputeShader,      // Src stage mask
                  A::eShaderStorageWrite, // Src access mask
-                 S::eVertexShader,       // Dst stage mask
+                 S::eFragmentShader,     // Dst stage mask
                  A::eShaderSampledRead,  // Dst access mask
                  eGeneral,               // Old image layout
                  eShaderReadOnlyOptimal, // New image layout
@@ -252,20 +254,17 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
     }
 }
 
-void ShadowDrawer::draw(
-    const re::CommandBuffer& cb, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi
-) {
-    m_.shadowDrawingPC.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
-    m_.shadowDrawingPC.readOffsetTi       = glm::ivec2(pxToTi(botLeftPx)) &
-                                      k_lightScaleBits;
+void ShadowDrawer::draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
+    m_pc.uvRectSize   = m_.viewSizePx * m_.shadowAreaPxInv;
+    m_pc.uvRectOffset = (glm::mod(botLeftPx, TilePx * k_lightScale) +
+                         TilePx * static_cast<float>(k_iLightScale)) *
+                        m_.shadowAreaPxInv;
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawShadowsPl);
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_shadowDrawingPll, 0u, *m_.shadowDrawingDS, {}
     );
-    cb->pushConstants<ShadowDrawingPC>(
-        *m_shadowDrawingPll, eVertex, 0u, m_.shadowDrawingPC
-    );
-    cb->draw(4u, viewSizeTi.x * viewSizeTi.y, 0u, 0u);
+    cb->pushConstants<WorldDrawingPC>(*m_shadowDrawingPll, eVertex, 0u, m_pc);
+    cb->draw(3u, 1u, 0u, 0u);
 }
 
 ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
@@ -278,7 +277,8 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     const re::Texture&        wallLightAtlasTex,
     const re::Buffer&         lightsBuf
 )
-    : analysisGroupCount(getAnalysisGroupCount(viewSizeTi))
+    : viewSizePx(viewSizePx)
+    , analysisGroupCount(getAnalysisGroupCount(viewSizeTi))
     , calculationGroupCount(getShadowsCalculationGroupCount(viewSizeTi))
     , lightTex(re::TextureCreateInfo{
           .flags  = vk::ImageCreateFlagBits::eMutableFormat,
@@ -321,10 +321,6 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
           .magFilter = vk::Filter::eLinear,
           .debugName = "rw::ShadowDrawer::shadows"
       })
-    , shadowDrawingPC(
-          {.viewMat    = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y),
-           .viewSizeTi = viewSizeTi}
-      )
     , analysisDS(re::DescriptorSetCreateInfo{
           .layout    = analysisPll.descriptorSetLayout(0),
           .debugName = "rw::ShadowDrawer::analysis"
@@ -336,7 +332,11 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     , shadowDrawingDS(re::DescriptorSetCreateInfo{
           .layout    = shadowDrawingPll.descriptorSetLayout(0),
           .debugName = "rw::ShadowDrawer::shadowDrawing"
-      }) {
+      })
+    , shadowAreaPxInv(
+          glm::vec2{1.0f} /
+          tiToPx(glm::vec2{calculationGroupCount} * k_calcGroupSize * k_lightScale)
+      ) {
     using enum vk::DescriptorType;
 
     // Analysis descriptor set

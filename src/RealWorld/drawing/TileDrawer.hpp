@@ -9,6 +9,8 @@
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
+#include <RealWorld/drawing/WorldDrawingPC.hpp>
+
 namespace rw {
 
 /**
@@ -16,7 +18,11 @@ namespace rw {
  */
 class TileDrawer {
 public:
-    TileDrawer(re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx);
+    TileDrawer(
+        re::RenderPassSubpass renderPassSubpass,
+        glm::vec2             viewSizePx,
+        WorldDrawingPC&       pc
+    );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
 
@@ -30,15 +36,9 @@ private:
     re::TextureShaped m_blockAtlasTex{re::TextureSeed{"blockAtlas"}};
     re::TextureShaped m_wallAtlasTex{re::TextureSeed{"wallAtlas"}};
 
-    struct PushConstants {
-        glm::mat4  viewMat;
-        glm::vec2  viewSizePx;
-        glm::vec2  botLeftPxModTilePx;
-        glm::ivec2 botLeftTi;
-        glm::ivec2 worldTexMask;
-        glm::vec2  minimapOffset;
-        glm::vec2  minimapSize;
-    } m_pushConstants;
+    glm::vec2 m_viewSizePx;
+
+    WorldDrawingPC& m_pc;
 
     re::PipelineLayout m_pipelineLayout;
     re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{

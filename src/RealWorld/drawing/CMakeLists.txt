@@ -7,4 +7,5 @@ target_sources(RealWorld PRIVATE
     ShadowDrawer.hpp            ShadowDrawer.cpp
     TileDrawer.hpp              TileDrawer.cpp
     WorldDrawer.hpp             WorldDrawer.cpp
+    WorldDrawingPC.hpp          
 )

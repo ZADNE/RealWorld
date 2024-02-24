@@ -4,7 +4,7 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/world.glsl>
-#include <RealWorld/drawing/shaders/TileDrawerPC.glsl>
+#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout (location = 0) out vec4  o_color;
 
@@ -12,7 +12,7 @@ layout (set = 0, binding = 0) uniform usampler2DArray u_worldTex;
 layout (set = 0, binding = 1) uniform sampler2D       u_blockAtlas;
 layout (set = 0, binding = 2) uniform sampler2D       u_wallAtlas;
 
-layout (location = 1) in vec2   i_offsetPx;
+layout (location = 0) in vec2   i_offsetPx;
 
 const vec3 k_skyBlue = vec3(0.25411764705, 0.7025490196, 0.90470588235);
 

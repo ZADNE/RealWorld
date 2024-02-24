@@ -14,16 +14,21 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
-TileDrawer::TileDrawer(re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx)
-    : m_pipelineLayout(
+TileDrawer::TileDrawer(
+    re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx, WorldDrawingPC& pc
+)
+    : m_pc(pc)
+    , m_pipelineLayout(
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
-                  {0u, eCombinedImageSampler, 1u, eVertex | eFragment}, // worldTexture
-                  {1u, eCombinedImageSampler, 1u, eVertex | eFragment}, // blockAtlas
-                  {2u, eCombinedImageSampler, 1u, eVertex | eFragment} // wallAtlas
+                  {0u, eCombinedImageSampler, 1u, eFragment}, // worldTexture
+                  {1u, eCombinedImageSampler, 1u, eFragment}, // blockAtlas
+                  {2u, eCombinedImageSampler, 1u, eFragment}  // wallAtlas
               }},
-              .ranges = {vk::PushConstantRange{eVertex | eFragment, 0u, sizeof(PushConstants)}}
+              .ranges   = {vk::PushConstantRange{
+                  eVertex | eFragment, 0u, sizeof(WorldDrawingPC)
+              }}
           }
       )
     , m_drawTilesPl(
@@ -34,7 +39,7 @@ TileDrawer::TileDrawer(re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSi
               .renderPassSubpass = renderPassSubpass,
               .debugName         = "rw::TileDrawer::drawTiles"
           },
-          re::PipelineGraphicsSources{.vert = drawTiles_vert, .frag = drawTiles_frag}
+          re::PipelineGraphicsSources{.vert = drawFullscreen_vert, .frag = drawTiles_frag}
       )
     , m_drawMinimapPl(
           re::PipelineGraphicsCreateInfo{
@@ -55,33 +60,32 @@ TileDrawer::TileDrawer(re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSi
 
 void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
     m_descriptorSet.write(eCombinedImageSampler, 0u, 0u, worldTexture, eReadOnlyOptimal);
-    m_pushConstants.worldTexMask = worldTexSize - 1;
+    m_pc.worldTexMask = worldTexSize - 1;
     glm::vec2 viewSizePx =
         glm::vec2(2.0f, 2.0f) /
-        glm::vec2(m_pushConstants.viewMat[0][0], m_pushConstants.viewMat[1][1]);
+        glm::vec2(m_pc.minimapViewMat[0][0], m_pc.minimapViewMat[1][1]);
     resizeView(viewSizePx);
 }
 
 void TileDrawer::resizeView(glm::vec2 viewSizePx) {
-    m_pushConstants.viewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
-    m_pushConstants.viewSizePx = viewSizePx;
+    m_pc.minimapViewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
+    m_viewSizePx        = viewSizePx;
 
-    auto layout = minimapLayout(m_pushConstants.worldTexMask + 1, viewSizePx);
-    m_pushConstants.minimapOffset = layout.offsetPx;
-    m_pushConstants.minimapSize   = layout.sizePx;
+    auto layout        = minimapLayout(m_pc.worldTexMask + 1, viewSizePx);
+    m_pc.minimapOffset = layout.offsetPx;
+    m_pc.minimapSize   = layout.sizePx;
 }
 
 void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
-    m_pushConstants.botLeftPxModTilePx = glm::mod(botLeftPx, TilePx);
-    m_pushConstants.botLeftTi          = glm::ivec2(pxToTi(botLeftPx));
+    m_pc.uvRectSize   = m_viewSizePx;
+    m_pc.uvRectOffset = glm::mod(botLeftPx, TilePx);
+    m_pc.botLeftTi    = glm::ivec2(pxToTi(botLeftPx));
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
-    cb->pushConstants<PushConstants>(
-        *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
-    );
-    cb->draw(4u, 1u, 0u, 0u);
+    cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);
+    cb->draw(3u, 1u, 0u, 0u);
 }
 
 void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {
@@ -89,9 +93,7 @@ void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
-    cb->pushConstants<PushConstants>(
-        *m_pipelineLayout, eVertex | eFragment, 0u, m_pushConstants
-    );
+    cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);
     cb->draw(4u, 1u, 0u, 0u);
 }
 

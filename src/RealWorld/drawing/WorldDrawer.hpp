@@ -7,6 +7,7 @@
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
+#include <RealWorld/drawing/WorldDrawingPC.hpp>
 
 namespace rw {
 
@@ -58,6 +59,8 @@ private:
 
     glm::uvec2 m_viewSizeTi;
     glm::uvec2 viewSizeTi(glm::vec2 viewSizePx) const;
+
+    WorldDrawingPC m_pc{};
 
     TileDrawer    m_tileDrawer;
     ShadowDrawer  m_shadowDrawer;
