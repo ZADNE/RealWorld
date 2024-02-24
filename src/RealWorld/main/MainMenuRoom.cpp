@@ -39,7 +39,8 @@ void controlsCategoryHeader(const char* header) {
 }
 
 static constexpr re::RoomDisplaySettings k_initialSettings{
-    .framesPerSecondLimit = 144, .usingImGui = true};
+    .framesPerSecondLimit = 144, .imGuiSubpassIndex = 0
+};
 
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings)
     : Room(0, k_initialSettings)

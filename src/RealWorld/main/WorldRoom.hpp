@@ -69,12 +69,21 @@ private:
 
     re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},
-        re::CommandBuffer{{.debugName = "rw::WorldRoom::step[1]"}}};
-    ActionCmdBuf    m_acb;
-    uint64_t        m_stepN = 1;
-    re::Semaphore   m_simulationFinishedSem{m_stepN};
-    re::SpriteBatch m_spriteBatch{256, 32};
-    re::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 1024u, 1.0f};
+        re::CommandBuffer{{.debugName = "rw::WorldRoom::step[1]"}}
+    };
+    ActionCmdBuf      m_acb;
+    uint64_t          m_stepN = 1;
+    re::Semaphore     m_simulationFinishedSem{m_stepN};
+    re::SpriteBatch   m_spriteBatch{re::SpriteBatchCreateInfo{
+          .renderPassSubpass = mainRenderPass().subpass(0),
+          .maxSprites        = 256,
+          .maxTextures       = 32
+    }};
+    re::GeometryBatch m_geometryBatch{re::GeometryBatchCreateInfo{
+        .topology          = vk::PrimitiveTopology::eLineList,
+        .renderPassSubpass = mainRenderPass().subpass(0),
+        .maxVertices       = 1024
+    }};
 
     // View
     re::View2D m_worldView{engine().windowDims()};

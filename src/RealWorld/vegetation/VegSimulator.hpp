@@ -65,28 +65,31 @@ private:
          .patchControlPoints = 1,
          .enableBlend        = false,
          .pipelineLayout     = *m_pipelineLayout,
-         .renderPass         = *m_rasterizationRenderPass,
+         .renderPassSubpass  = m_rasterizationRenderPass.subpass(0),
          .debugName          = "rw::VegSimulator::unrasterizeBranches"},
         {.vert = unrasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
          .geom = duplicateBranches_geom,
-         .frag = unrasterizeBranches_frag}};
+         .frag = unrasterizeBranches_frag}
+    };
     re::Pipeline m_rasterizeBranchesPl{
         {.topology           = vk::PrimitiveTopology::ePatchList,
          .patchControlPoints = 1,
          .enableBlend        = false,
          .pipelineLayout     = *m_pipelineLayout,
-         .renderPass         = *m_rasterizationRenderPass,
+         .renderPassSubpass  = m_rasterizationRenderPass.subpass(0),
          .debugName          = "rw::VegSimulator::rasterizeBranches"},
         {.vert = rasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
          .geom = duplicateBranches_geom,
-         .frag = rasterizeBranches_frag}};
+         .frag = rasterizeBranches_frag}
+    };
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
-        .debugName = "rw::VegSimulator::descriptorSet"}};
+        .debugName = "rw::VegSimulator::descriptorSet"
+    }};
     re::Buffer        m_branchBuf;
     re::Buffer        m_branchAllocRegBuf;
     glm::uvec2        m_worldTexSizeTi{};

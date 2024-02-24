@@ -13,11 +13,15 @@ using enum vk::ShaderStageFlagBits;
 
 namespace rw {
 
-WorldDrawer::WorldDrawer(glm::uvec2 viewSizePx, glm::uint maxNumberOfExternalLights)
+WorldDrawer::WorldDrawer(
+    re::RenderPassSubpass renderPassSubpass,
+    glm::uvec2            viewSizePx,
+    glm::uint             maxNumberOfExternalLights
+)
     : m_viewSizeTi(viewSizeTi(viewSizePx))
-    , m_tileDrawer(viewSizePx)
-    , m_shadowDrawer(viewSizePx, m_viewSizeTi, maxNumberOfExternalLights)
-    , m_minimapDawer(viewSizePx, m_viewSizeTi) {
+    , m_tileDrawer(renderPassSubpass, viewSizePx)
+    , m_shadowDrawer(renderPassSubpass, viewSizePx, m_viewSizeTi, maxNumberOfExternalLights)
+    , m_minimapDawer(renderPassSubpass, viewSizePx, m_viewSizeTi) {
 }
 
 void WorldDrawer::setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi) {
@@ -39,7 +43,8 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
     return ViewEnvelope{
         .botLeftTi  = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi) - iChunkTi,
         .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) +
-                      glm::ivec2(k_lightMaxRangeTi) + iChunkTi};
+                      glm::ivec2(k_lightMaxRangeTi) + iChunkTi
+    };
 }
 
 void WorldDrawer::beginStep(const re::CommandBuffer& cb) {

@@ -13,16 +13,37 @@ constexpr unsigned int k_frameRateLimit =
         ? 300u
         : re::Synchronizer::k_doNotLimitFramesPerSecond;
 
+constexpr vk::AttachmentDescription2 k_attachmentDescription{
+    {},
+    re::k_surfaceFormat.format,
+    vk::SampleCountFlagBits::e1,
+    vk::AttachmentLoadOp::eDontCare,  // Color
+    vk::AttachmentStoreOp::eStore,    // Color
+    vk::AttachmentLoadOp::eDontCare,  // Stencil
+    vk::AttachmentStoreOp::eDontCare, // Stencil
+    vk::ImageLayout::eUndefined,      // Initial
+    vk::ImageLayout::ePresentSrcKHR   // Final
+};
+
+constexpr re::RenderPassCreateInfo k_renderPassCreateInfo{
+    .attachments  = {&k_attachmentDescription, 1},
+    .subpasses    = {&re::default_renderpass::k_subpassDescription, 1},
+    .dependencies = {&re::default_renderpass::k_subpassDependency, 1},
+    .debugName    = "rw::WorldRoom::mainRenderpass"
+};
+
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
     : Room(
           1,
           re::RoomDisplaySettings{
               .stepsPerSecond       = k_physicsStepsPerSecond,
               .framesPerSecondLimit = k_frameRateLimit,
-              .usingImGui           = true}
+              .mainRenderPass       = &k_renderPassCreateInfo,
+              .imGuiSubpassIndex    = 0
+          }
       )
     , m_gameSettings(gameSettings)
-    , m_worldDrawer(engine().windowDims(), 32u)
+    , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
     , m_player()
     , m_playerInv({10, 4})
     , m_itemUser(m_world, m_playerInv)
@@ -80,12 +101,15 @@ void WorldRoom::step() {
 
     // Submit the compute work to GPU
     vk::SemaphoreSubmitInfo waitSems{
-        *m_simulationFinishedSem, m_stepN - 1, vk::PipelineStageFlagBits2::eNone};
+        *m_simulationFinishedSem, m_stepN - 1, vk::PipelineStageFlagBits2::eNone
+    };
     vk::CommandBufferSubmitInfo comBufSubmit{*cb};
     vk::SemaphoreSubmitInfo     signalSems{
-        *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eNone};
-    re::CommandBuffer::submitToGraphicsCompQueue(vk::SubmitInfo2{
-        {}, waitSems, comBufSubmit, signalSems});
+        *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eNone
+    };
+    re::CommandBuffer::submitToGraphicsCompQueue(
+        vk::SubmitInfo2{{}, waitSems, comBufSubmit, signalSems}
+    );
 
     // Manipulate the inventory based on user's input
     updateInventoryAndUI();
@@ -93,7 +117,7 @@ void WorldRoom::step() {
 
 void WorldRoom::render(const re::CommandBuffer& cb, double interpolationFactor) {
     auto dbg = cb.createDebugRegion("render", {0.0, 0.0, 1.0, 1.0});
-    engine().mainRenderPassBegin();
+    engine().mainRenderPassBegin({});
 
     m_worldDrawer.drawTiles(cb);
 

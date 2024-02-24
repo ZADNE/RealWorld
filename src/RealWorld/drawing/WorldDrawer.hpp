@@ -15,7 +15,11 @@ namespace rw {
  */
 class WorldDrawer {
 public:
-    WorldDrawer(glm::uvec2 viewSizePx, glm::uint maxNumberOfExternalLights);
+    WorldDrawer(
+        re::RenderPassSubpass renderPassSubpass,
+        glm::uvec2            viewSizePx,
+        glm::uint             maxNumberOfExternalLights
+    );
 
     void setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi);
     void resizeView(glm::uvec2 viewSizePx);

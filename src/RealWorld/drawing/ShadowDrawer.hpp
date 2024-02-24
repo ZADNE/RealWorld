@@ -21,7 +21,10 @@ namespace rw {
 class ShadowDrawer {
 public:
     ShadowDrawer(
-        glm::vec2 viewSizePx, glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights
+        re::RenderPassSubpass renderPassSubpass,
+        glm::vec2             viewSizePx,
+        glm::ivec2            viewSizeTi,
+        glm::uint             maxNumberOfExternalLights
     );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);

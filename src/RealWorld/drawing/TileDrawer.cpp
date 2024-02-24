@@ -14,7 +14,7 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
-TileDrawer::TileDrawer(glm::vec2 viewSizePx)
+TileDrawer::TileDrawer(re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx)
     : m_pipelineLayout(
           {},
           re::PipelineLayoutDescription{
@@ -23,22 +23,26 @@ TileDrawer::TileDrawer(glm::vec2 viewSizePx)
                   {1u, eCombinedImageSampler, 1u, eVertex | eFragment}, // blockAtlas
                   {2u, eCombinedImageSampler, 1u, eVertex | eFragment} // wallAtlas
               }},
-              .ranges   = {vk::PushConstantRange{
-                  eVertex | eFragment, 0u, sizeof(PushConstants)}}}
+              .ranges = {vk::PushConstantRange{eVertex | eFragment, 0u, sizeof(PushConstants)}}
+          }
       )
     , m_drawTilesPl(
           re::PipelineGraphicsCreateInfo{
-              .topology       = vk::PrimitiveTopology::eTriangleStrip,
-              .enableBlend    = false,
-              .pipelineLayout = *m_pipelineLayout,
-              .debugName      = "rw::TileDrawer::drawTiles"},
+              .topology          = vk::PrimitiveTopology::eTriangleStrip,
+              .enableBlend       = false,
+              .pipelineLayout    = *m_pipelineLayout,
+              .renderPassSubpass = renderPassSubpass,
+              .debugName         = "rw::TileDrawer::drawTiles"
+          },
           re::PipelineGraphicsSources{.vert = drawTiles_vert, .frag = drawTiles_frag}
       )
     , m_drawMinimapPl(
           re::PipelineGraphicsCreateInfo{
-              .topology       = vk::PrimitiveTopology::eTriangleStrip,
-              .pipelineLayout = *m_pipelineLayout,
-              .debugName      = "rw::TileDrawer::drawMinimap"},
+              .topology          = vk::PrimitiveTopology::eTriangleStrip,
+              .pipelineLayout    = *m_pipelineLayout,
+              .renderPassSubpass = renderPassSubpass,
+              .debugName         = "rw::TileDrawer::drawMinimap"
+          },
           re::PipelineGraphicsSources{.vert = drawMinimap_vert, .frag = drawMinimap_frag}
       ) {
     m_descriptorSet.write(
