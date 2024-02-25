@@ -14,6 +14,61 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
+float hash12(glm::vec2 p) {
+    glm::vec3 p3 = fract(glm::vec3(p.x, p.y, p.x) * .1031f);
+    p3 += glm::dot(p3, glm::vec3(p3.y, p3.z, p3.x) + 33.33f);
+    return glm::fract((p3.x + p3.y) * p3.z);
+}
+
+// x = left val, y = right val, z = 0 to 1 interp. factor between the two
+glm::vec3 columnValues(float x, float seed) {
+    float columnX     = floor(x);
+    float columnFract = glm::fract(x);
+    float a           = hash12(glm::vec2(columnX, seed));
+    float b           = hash12(glm::vec2(columnX + 1.0, seed));
+    return glm::vec3(a, b, columnFract);
+}
+
+float linColumnValue(float x, float seed) {
+    glm::vec3 vals = columnValues(x, seed);
+    return glm::mix(vals.x, vals.y, vals.z);
+}
+
+float biomeTemp(float xPx, float seed) {
+    float res = 0.0f;
+    float x   = xPx * (1.0 / 8192.0);
+    float amp = 0.5;
+
+    for (int i = 0; i < 3; ++i) {
+        res += linColumnValue(x, seed + 11.0) * amp;
+        x *= 2.0;
+        amp *= 0.5;
+    }
+
+    return res;
+}
+
+constexpr glm::vec3 k_cold{0.271, 1.0, 1.0};
+constexpr glm::vec3 k_normal{0.25411764705, 0.7025490196, 0.90470588235};
+constexpr glm::vec3 k_hot{0.325, 0.694, 0.612};
+
+constexpr glm::vec3 k_color[3] = {k_cold, k_normal, k_hot};
+
+glm::vec3 bcColor(float biomeTemp) {
+    // Calculate coords
+    biomeTemp = glm::fract(biomeTemp);
+    biomeTemp *= 2.0f;
+    int   ll   = biomeTemp;
+    float frac = glm::fract(biomeTemp);
+
+    // Gather
+    glm::vec3 b00 = k_color[ll];
+    glm::vec3 b01 = k_color[ll + 1];
+
+    // Interpolate
+    return glm::mix(b00, b01, frac);
+}
+
 TileDrawer::TileDrawer(
     re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx, WorldDrawingPC& pc
 )
@@ -84,6 +139,9 @@ void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
     m_pc.uvRectSize   = m_viewSizePx;
     m_pc.uvRectOffset = glm::mod(botLeftPx, TilePx);
     m_pc.botLeftTi    = glm::ivec2(pxToTi(botLeftPx));
+    m_pc.skyColor     = glm::vec4(
+        bcColor(biomeTemp(botLeftPx.x + m_viewSizePx.x * 0.5f, 1.0f)), 1.0
+    );
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
     );

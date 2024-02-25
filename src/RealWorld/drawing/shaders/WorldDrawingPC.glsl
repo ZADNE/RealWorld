@@ -14,6 +14,7 @@ uniform WorldDrawingPC {
     ivec2   p_worldTexMask;
     vec2    p_minimapOffset;
     vec2    p_minimapSize;
+    vec4    p_skyColor;
 };
 
 #endif // !WORLD_DRAWING_PC_GLSL
