@@ -25,9 +25,12 @@ void main() {
     uvec2 block = texelFetch(u_worldTex, ivec3(posAt, k_blockLayer), 0).xy;
     uvec2 wall = texelFetch(u_worldTex, ivec3(posAt, k_wallLayer), 0).xy;
 
-    // Calculate color of this tile based on its block and wall
+    // Fetch color of the block and wall
     vec4 blockColor = texelFetch(u_blockAtlas, ivec2(block.yx), 0);
     vec4 wallColor = texelFetch(u_wallAtlas, ivec2(wall.yx), 0);
-    vec3 temp = mix(k_skyBlue.rgb, wallColor.rgb, wallColor.a);
+
+    // Blend all the colors
+    vec3 background = k_skyBlue;
+    vec3 temp = mix(background, wallColor.rgb, wallColor.a);
     o_color = vec4(mix(temp, blockColor.rgb, blockColor.a), 1.0);
 }

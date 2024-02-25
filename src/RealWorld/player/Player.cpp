@@ -29,14 +29,16 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
           .sizeInBytes = sizeof(PlayerHitboxSB),
           .usage       = eStorageBuffer | eTransferDst | eTransferSrc,
           .initData    = re::objectToByteSpan(initSb),
-          .debugName   = "rw::Player::hitbox"})
+          .debugName   = "rw::Player::hitbox"
+      })
     , m_hitboxStageBuf(re::BufferCreateInfo{
           .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                         vma::AllocationCreateFlagBits::eHostAccessRandom,
           .sizeInBytes = sizeof(PlayerHitboxSB),
           .usage       = eTransferDst | eTransferSrc,
           .initData    = re::objectToByteSpan(initSb),
-          .debugName   = "rw::Player::hitboxStage"}) {
+          .debugName   = "rw::Player::hitboxStage"
+      }) {
     m_descriptorSet.write(D::eStorageBuffer, k_playerBinding, 0u, m_hitboxBuf);
 }
 
@@ -49,14 +51,16 @@ void Player::adoptSave(
     *m_hitboxStageBuf = PlayerHitboxSB{
         .botLeftPx  = {save.pos, save.pos},
         .dimsPx     = m_playerTex.subimageDims() - 1.0f,
-        .velocityPx = glm::vec2(0.0f, 0.0f)};
+        .velocityPx = glm::vec2(0.0f, 0.0f)
+    };
     m_descriptorSet.write(
         D::eStorageImage, k_worldTexBinding, 0u, worldTexture, vk::ImageLayout::eGeneral
     );
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cb) {
         vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(PlayerHitboxSB)};
         cb->copyBuffer2(vk::CopyBufferInfo2{
-            m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion});
+            m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion
+        });
     });
 }
 
@@ -79,8 +83,9 @@ void Player::step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump) 
     size_t bufOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
                        sizeof(PlayerHitboxSB::botLeftPx[0]) * readIndex;
     auto copyRegion = vk::BufferCopy2{bufOffset, bufOffset, sizeof(glm::vec2)};
-    (*acb)->copyBuffer2(vk::CopyBufferInfo2{
-        *m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion});
+    (*acb)->copyBuffer2(
+        vk::CopyBufferInfo2{*m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion}
+    );
 
     // Simulate the movement
     acb.action(
@@ -105,7 +110,9 @@ void Player::step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump) 
         ImageAccess{
             .name   = ImageTrackName::World,
             .stage  = S::eComputeShader,
-            .access = A::eShaderStorageRead}
+            .access = A::eShaderStorageRead,
+            .layout = vk::ImageLayout::eGeneral
+        }
     );
 }
 

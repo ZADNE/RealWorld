@@ -117,7 +117,9 @@ ShadowDrawer::ShadowDrawer(
 
 void ShadowDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
     m_.analysisPC.worldTexMask = worldTexSize - 1;
-    m_.analysisDS.write(eCombinedImageSampler, 2u, 0u, worldTexture, eReadOnlyOptimal);
+    m_.analysisDS.write(
+        eCombinedImageSampler, 2u, 0u, worldTexture, eShaderReadOnlyOptimal
+    );
 }
 
 void ShadowDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
@@ -347,17 +349,23 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
         vk::DescriptorImageInfo{lightTex.sampler(), *lightTexR32ImageView, eGeneral}
     );
     analysisDS.write(eStorageImage, 1u, 0u, transluTex, eGeneral);
-    analysisDS.write(eCombinedImageSampler, 3u, 0u, blockLightAtlasTex, eReadOnlyOptimal);
-    analysisDS.write(eCombinedImageSampler, 4u, 0u, wallLightAtlasTex, eReadOnlyOptimal);
+    analysisDS.write(
+        eCombinedImageSampler, 3u, 0u, blockLightAtlasTex, eShaderReadOnlyOptimal
+    );
+    analysisDS.write(
+        eCombinedImageSampler, 4u, 0u, wallLightAtlasTex, eShaderReadOnlyOptimal
+    );
     analysisDS.write(eStorageBuffer, 5u, 0u, lightsBuf);
 
     // Calculation descriptor set
-    calculationDS.write(eCombinedImageSampler, 0u, 0u, lightTex, eReadOnlyOptimal);
-    calculationDS.write(eCombinedImageSampler, 1u, 0u, transluTex, eReadOnlyOptimal);
+    calculationDS.write(eCombinedImageSampler, 0u, 0u, lightTex, eShaderReadOnlyOptimal);
+    calculationDS.write(eCombinedImageSampler, 1u, 0u, transluTex, eShaderReadOnlyOptimal);
     calculationDS.write(eStorageImage, 2u, 0u, shadowsTex, eGeneral);
 
     // Shadow drawing descriptor set
-    shadowDrawingDS.write(eCombinedImageSampler, 0u, 0u, shadowsTex, eReadOnlyOptimal);
+    shadowDrawingDS.write(
+        eCombinedImageSampler, 0u, 0u, shadowsTex, eShaderReadOnlyOptimal
+    );
 }
 
 } // namespace rw

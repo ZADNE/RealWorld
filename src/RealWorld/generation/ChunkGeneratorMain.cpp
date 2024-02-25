@@ -53,14 +53,16 @@ ChunkGenerator::ChunkGenerator()
                     {k_branchBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
                     {k_vegPrepBinding, eStorageBuffer, 1, eCompute}}},
-              .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}}
+              .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}
+          }
       )
     , m_vegPreparationBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(VegPreparationSB),
           .usage     = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
           .initData  = re::objectToByteSpan(k_vegPreparationSBInitHelper),
-          .debugName = "rw::ChunkGenerator::vegPreparation"}) {
+          .debugName = "rw::ChunkGenerator::vegPreparation"
+      }) {
     m_descriptorSet.write(eStorageImage, k_tilesImageBinding, 0, m_layerTex, eGeneral);
     m_descriptorSet.write(
         eStorageImage, k_materialImageBinding, 0, m_materialTex, eGeneral
@@ -144,7 +146,8 @@ void ChunkGenerator::copyToDestination(const ActionCmdBuf& acb) {
                 // Block layer region
                 auto layer = std::to_underlying(TileLayer::Block);
                 regions[i * k_tileLayerCount + layer] = vk::ImageCopy{
-                    {eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1}, // Src subresource
+                    {eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1
+                    }, // Src subresource
                     vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
                     {eColor, 0, layer, 1}, // Dst subresource
                     vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset
@@ -162,19 +165,22 @@ void ChunkGenerator::copyToDestination(const ActionCmdBuf& acb) {
             }
             std::span spanOfRegions{
                 regions.begin(),
-                regions.begin() + (m_chunksPlanned * k_tileLayerCount)};
+                regions.begin() + (m_chunksPlanned * k_tileLayerCount)
+            };
             cb->copyImage(
                 m_layerTex.image(),
                 eGeneral, // Src image
                 m_worldTex->image(),
-                eGeneral, // Dst image
+                eTransferDstOptimal, // Dst image
                 spanOfRegions
             );
         },
         ImageAccess{
             .name   = ImageTrackName::World,
             .stage  = S::eTransfer,
-            .access = A::eTransferWrite}
+            .access = A::eTransferWrite,
+            .layout = eTransferDstOptimal
+        }
     );
 }
 

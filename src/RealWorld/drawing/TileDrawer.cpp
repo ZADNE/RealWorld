@@ -51,15 +51,19 @@ TileDrawer::TileDrawer(
           re::PipelineGraphicsSources{.vert = drawMinimap_vert, .frag = drawMinimap_frag}
       ) {
     m_descriptorSet.write(
-        eCombinedImageSampler, 1u, 0u, m_blockAtlasTex, eReadOnlyOptimal
+        eCombinedImageSampler, 1u, 0u, m_blockAtlasTex, eShaderReadOnlyOptimal
     );
-    m_descriptorSet.write(eCombinedImageSampler, 2u, 0u, m_wallAtlasTex, eReadOnlyOptimal);
+    m_descriptorSet.write(
+        eCombinedImageSampler, 2u, 0u, m_wallAtlasTex, eShaderReadOnlyOptimal
+    );
 
     resizeView(viewSizePx);
 }
 
 void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
-    m_descriptorSet.write(eCombinedImageSampler, 0u, 0u, worldTexture, eReadOnlyOptimal);
+    m_descriptorSet.write(
+        eCombinedImageSampler, 0u, 0u, worldTexture, eShaderReadOnlyOptimal
+    );
     m_pc.worldTexMask = worldTexSize - 1;
     glm::vec2 viewSizePx =
         glm::vec2(2.0f, 2.0f) /

@@ -69,14 +69,16 @@ World::World()
                     {k_branchBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute}}},
-              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}}
+              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}
+          }
       )
     , m_tilePropertiesBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(TilePropertiesUIB),
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties),
-          .debugName   = "rw::World::tileProperties"})
+          .debugName   = "rw::World::tileProperties"
+      })
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
     m_simulationDS.write(eUniformBuffer, k_tilePropertiesBinding, 0, m_tilePropertiesBuf);
 }
@@ -98,10 +100,11 @@ const re::Texture& World::adoptSave(
         .layers     = k_tileLayerCount,
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
                  eColorAttachment | eInputAttachment,
-        .initialLayout = eReadOnlyOptimal,
-        .debugName     = "rw::World::world"}};
+        .initialLayout = eShaderReadOnlyOptimal,
+        .debugName     = "rw::World::world"
+    }};
     m_simulationDS.write(eStorageImage, k_worldTexBinding, 0, m_worldTex, eGeneral);
-    acb.track(ImageTrackName::World, m_worldTex, eReadOnlyOptimal, k_tileLayerCount);
+    acb.track(ImageTrackName::World, m_worldTex, eShaderReadOnlyOptimal, k_tileLayerCount);
 
     // Body simulator
     const auto& bodiesBuf = m_bodySimulator.adoptSave(worldTexSizeCh);
@@ -124,7 +127,8 @@ const re::Texture& World::adoptSave(
         .descriptorSet     = m_simulationDS,
         .bodiesBuf         = bodiesBuf,
         .branchBuf         = vegStorage.branchBuf,
-        .branchAllocRegBuf = vegStorage.branchAllocRegBuf});
+        .branchAllocRegBuf = vegStorage.branchAllocRegBuf
+    });
     acb.track(BufferTrackName::ActiveChunks, activationBufs.activeChunksBuf);
 
     m_activeChunksBuf = &activationBufs.activeChunksBuf;
@@ -203,7 +207,8 @@ void World::modify(
         ImageAccess{
             .name   = ImageTrackName::World,
             .stage  = S::eComputeShader,
-            .access = A::eShaderStorageRead | A::eShaderStorageWrite}
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite
+        }
     );
 }
 
@@ -216,7 +221,8 @@ void World::prepareWorldForDrawing(const ActionCmdBuf& acb) {
             .name   = ImageTrackName::World,
             .stage  = S::eComputeShader | S::eFragmentShader,
             .access = A::eShaderSampledRead,
-            .layout = eReadOnlyOptimal}
+            .layout = eShaderReadOnlyOptimal
+        }
     );
 }
 
@@ -236,11 +242,13 @@ void World::tileTransformationsStep(const ActionCmdBuf& acb) {
         ImageAccess{
             .name   = ImageTrackName::World,
             .stage  = S::eComputeShader,
-            .access = A::eShaderStorageRead | A::eShaderStorageWrite},
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite
+        },
         BufferAccess{
             .name   = BufferTrackName::ActiveChunks,
             .stage  = S::eDrawIndirect,
-            .access = A::eIndirectCommandRead}
+            .access = A::eIndirectCommandRead
+        }
     );
 }
 
@@ -285,7 +293,8 @@ void World::fluidDynamicsStep(
             ImageAccess{
                 .name   = ImageTrackName::World,
                 .stage  = S::eComputeShader,
-                .access = A::eShaderStorageRead | A::eShaderStorageWrite}
+                .access = A::eShaderStorageRead | A::eShaderStorageWrite
+            }
         );
     }
 }

@@ -49,12 +49,12 @@ bool ChunkTransferMgr::saveChunks(
 
     { // Wait for unrasterization to finish
         auto imageBarrier = re::imageMemoryBarrier(
-            S::eAllCommands,                 // Src stage mask
-            A::eMemoryRead | A::eMemoryRead, // Src access mask
-            S::eTransfer,                    // Dst stage mask
-            A::eTransferRead,                // Dst access mask
-            vk::ImageLayout::eGeneral,       // Old image layout
-            vk::ImageLayout::eGeneral,       // New image layout
+            S::eAllCommands,                      // Src stage mask
+            A::eMemoryRead | A::eMemoryRead,      // Src access mask
+            S::eTransfer,                         // Dst stage mask
+            A::eTransferRead,                     // Dst access mask
+            vk::ImageLayout::eGeneral,            // Old image layout
+            vk::ImageLayout::eTransferSrcOptimal, // New image layout
             worldTex.image(),
             {eColor, 0, 1, 0, k_tileLayerCount}
         );
@@ -83,14 +83,16 @@ bool ChunkTransferMgr::saveChunks(
         // Download tiles
         cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
             worldTex.image(),
-            vk::ImageLayout::eGeneral,
+            vk::ImageLayout::eTransferSrcOptimal,
             *m_stage->buffer(),
-            m_stage->tileDownloadRegions()});
+            m_stage->tileDownloadRegions()
+        });
 
         // Download branches
         if (m_stage->numberOfBranchDownloads()) {
             cb->copyBuffer2(vk::CopyBufferInfo2{
-                *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()});
+                *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()
+            });
         }
     };
 
@@ -119,12 +121,12 @@ bool ChunkTransferMgr::saveChunks(
 
     { // Transition world texture back to original layout
         auto imageBarrier = re::imageMemoryBarrier(
-            S::eTransfer,                      // Src stage mask
-            A::eTransferRead,                  // Src access mask
-            S::eAllCommands,                   // Dst stage mask
-            {},                                // Dst access mask
-            vk::ImageLayout::eGeneral,         // Old image layout
-            vk::ImageLayout::eReadOnlyOptimal, // New image layout
+            S::eTransfer,                            // Src stage mask
+            A::eTransferRead,                        // Src access mask
+            S::eAllCommands,                         // Dst stage mask
+            {},                                      // Dst access mask
+            vk::ImageLayout::eTransferSrcOptimal,    // Old image layout
+            vk::ImageLayout::eShaderReadOnlyOptimal, // New image layout
             worldTex.image(),
             {eColor, 0, 1, 0, k_tileLayerCount}
         );
@@ -191,7 +193,8 @@ ChunkTransferMgr::UploadPlan ChunkTransferMgr::planUpload(
             const auto& alloc = m_regBuf->allocations[allocI];
             assert(branchCount == alloc.branchCount);
             BranchRange range{
-                .begin = static_cast<int>(alloc.firstBranch), .count = branchCount};
+                .begin = static_cast<int>(alloc.firstBranch), .count = branchCount
+            };
             if (m_stage->insertUpload(
                     posCh, posAt, range, tiles.data(), branchesSerialized
                 )) {
@@ -242,13 +245,16 @@ void ChunkTransferMgr::endStep(
                 cb->copyBufferToImage2(vk::CopyBufferToImageInfo2{
                     *m_stage->buffer(),
                     worldTex.image(),
-                    vk::ImageLayout::eGeneral,
-                    m_stage->tileUploadRegions()});
+                    vk::ImageLayout::eTransferDstOptimal,
+                    m_stage->tileUploadRegions()
+                });
             },
             ImageAccess{
                 .name   = ImageTrackName::World,
                 .stage  = S::eTransfer,
-                .access = A::eTransferWrite}
+                .access = A::eTransferWrite,
+                .layout = vk::ImageLayout::eTransferDstOptimal
+            }
         );
 
         if (m_stage->numberOfBranchUploads() > 0) {
@@ -256,14 +262,14 @@ void ChunkTransferMgr::endStep(
                 [&](const re::CommandBuffer& cb) {
                     // Upload branches
                     cb->copyBuffer2(vk::CopyBufferInfo2{
-                        *m_stage->buffer(),
-                        *branchBuf,
-                        m_stage->branchUploadRegions()});
+                        *m_stage->buffer(), *branchBuf, m_stage->branchUploadRegions()
+                    });
                 },
                 BufferAccess{
                     .name   = BufferTrackName::Branch,
                     .stage  = S::eTransfer,
-                    .access = A::eTransferWrite}
+                    .access = A::eTransferWrite
+                }
             );
         }
     }
@@ -274,14 +280,17 @@ void ChunkTransferMgr::endStep(
                 // Download tiles
                 cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
                     worldTex.image(),
-                    vk::ImageLayout::eGeneral,
+                    vk::ImageLayout::eTransferSrcOptimal,
                     *m_stage->buffer(),
-                    m_stage->tileDownloadRegions()});
+                    m_stage->tileDownloadRegions()
+                });
             },
             ImageAccess{
                 .name   = ImageTrackName::World,
                 .stage  = S::eTransfer,
-                .access = A::eTransferRead}
+                .access = A::eTransferRead,
+                .layout = vk::ImageLayout::eTransferSrcOptimal
+            }
         );
 
         if (m_stage->numberOfBranchDownloads() > 0) {
@@ -289,14 +298,14 @@ void ChunkTransferMgr::endStep(
                 [&](const re::CommandBuffer& cb) {
                     // Download branches
                     cb->copyBuffer2(vk::CopyBufferInfo2{
-                        *branchBuf,
-                        *m_stage->buffer(),
-                        m_stage->branchDownloadRegions()});
+                        *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()
+                    });
                 },
                 BufferAccess{
                     .name   = BufferTrackName::Branch,
                     .stage  = S::eTransfer,
-                    .access = A::eTransferRead}
+                    .access = A::eTransferRead
+                }
             );
         }
     }
@@ -308,7 +317,8 @@ void ChunkTransferMgr::endStep(
                 vk::BufferCopy2 copyRegion{
                     offsetof(decltype(m_stage)::Type::StageBuf, branchAllocReq),
                     0,
-                    sizeof(BranchAllocReqUB)};
+                    sizeof(BranchAllocReqUB)
+                };
                 cb->copyBuffer2({*m_stage->buffer(), *m_allocReqBuf, copyRegion});
                 auto barrier = re::bufferMemoryBarrier(
                     S::eTransfer,      // Src stage mask
@@ -326,7 +336,8 @@ void ChunkTransferMgr::endStep(
             BufferAccess{
                 .name   = BufferTrackName::AllocReg,
                 .stage  = S::eComputeShader,
-                .access = A::eShaderStorageRead | A::eShaderStorageWrite}
+                .access = A::eShaderStorageRead | A::eShaderStorageWrite
+            }
         );
     }
 
@@ -340,7 +351,8 @@ void ChunkTransferMgr::endStep(
             BufferAccess{
                 .name   = BufferTrackName::AllocReg,
                 .stage  = S::eTransfer,
-                .access = A::eTransferRead}
+                .access = A::eTransferRead
+            }
         );
     }
 }
