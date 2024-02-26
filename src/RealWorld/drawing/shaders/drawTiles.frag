@@ -29,7 +29,8 @@ void main() {
 
     // Calculate background color
     float t = float(pTi.y - 1024) * 0.001;
-    vec3 background = p_skyColor.rgb * clamp(1.0 - t, 0.0, 1.0);
+    t = clamp(1.0 - t, 0.0, 1.0);
+    vec3 background = p_skyColor.rgb * t * t;
 
     // Blend all the colors
     vec3 temp = mix(background, wallColor.rgb, wallColor.a);

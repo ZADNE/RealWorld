@@ -48,9 +48,9 @@ float biomeTemp(float xPx, float seed) {
     return res;
 }
 
-constexpr glm::vec3 k_cold{0.271, 1.0, 1.0};
+constexpr glm::vec3 k_cold{0.2625, 0.851, 0.952};
 constexpr glm::vec3 k_normal{0.25411764705, 0.7025490196, 0.90470588235};
-constexpr glm::vec3 k_hot{0.325, 0.694, 0.612};
+constexpr glm::vec3 k_hot{0.2895, 0.698, 0.7583};
 
 constexpr glm::vec3 k_color[3] = {k_cold, k_normal, k_hot};
 
