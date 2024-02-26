@@ -22,11 +22,9 @@ namespace rw {
 class ShadowDrawer {
 public:
     ShadowDrawer(
-        re::RenderPassSubpass renderPassSubpass,
-        glm::vec2             viewSizePx,
-        glm::ivec2            viewSizeTi,
-        glm::uint             maxNumberOfExternalLights,
-        WorldDrawingPC&       pc
+        re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
+        glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights,
+        WorldDrawingPC& pc
     );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
@@ -61,14 +59,14 @@ private:
     WorldDrawingPC& m_pc;
 
     re::PipelineLayout m_analysisPll;
-    re::Pipeline       m_analyzeTilesPl;
-    re::Pipeline       m_addLightsPl;
+    re::Pipeline m_analyzeTilesPl;
+    re::Pipeline m_addLightsPl;
 
     re::PipelineLayout m_calculationPll;
-    re::Pipeline       m_calculateShadowsPl;
+    re::Pipeline m_calculateShadowsPl;
 
     re::PipelineLayout m_shadowDrawingPll;
-    re::Pipeline       m_drawShadowsPl;
+    re::Pipeline m_drawShadowsPl;
 
     re::BufferMapped<ExternalLight> m_lightsBuf;
 
@@ -76,29 +74,27 @@ private:
         glm::ivec2 worldTexMask;
         glm::ivec2 analysisOffsetTi;
         glm::ivec2 addLightOffsetPx;
-        glm::uint  lightCount;
+        glm::uint lightCount;
     };
 
     struct ViewSizeDependent {
         ViewSizeDependent(
-            glm::vec2                 viewSizePx,
-            glm::ivec2                viewSizeTi,
+            glm::vec2 viewSizePx, glm::ivec2 viewSizeTi,
             const re::PipelineLayout& analysisPll,
             const re::PipelineLayout& calculationPll,
             const re::PipelineLayout& shadowDrawingPll,
-            const re::Texture&        blockLightAtlasTex,
-            const re::Texture&        wallLightAtlasTex,
-            const re::Buffer&         lightsBuf
+            const re::Texture& blockLightAtlasTex,
+            const re::Texture& wallLightAtlasTex, const re::Buffer& lightsBuf
         );
 
-        glm::vec2  viewSizePx;
+        glm::vec2 viewSizePx;
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
         re::Texture lightTex; /**< RGB = color of the light, A = intensity of the light */
-        re::ImageView     lightTexR32ImageView;
-        re::Texture       transluTex; /**< R = translucency of the unit */
-        re::Texture       shadowsTex;
-        AnalysisPC        analysisPC;
+        re::ImageView lightTexR32ImageView;
+        re::Texture transluTex; /**< R = translucency of the unit */
+        re::Texture shadowsTex;
+        AnalysisPC analysisPC;
         re::DescriptorSet analysisDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;

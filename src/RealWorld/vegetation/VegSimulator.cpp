@@ -36,8 +36,7 @@ VegSimulator::VegSimulator()
                     {k_worldTexBinding, D::eStorageImage, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
                   eVertex | eTessellationControl | eTessellationEvaluation | eFragment,
-                  0u,
-                  sizeof(VegDynamicsPC)
+                  0u, sizeof(VegDynamicsPC)
               }}
           }
       )
@@ -57,9 +56,8 @@ VegSimulator::VegSimulator()
             0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor
         };
         constexpr static auto k_subpasses = std::to_array({vk::SubpassDescription2{
-            vk::SubpassDescriptionFlags{},
-            vk::PipelineBindPoint::eGraphics,
-            0u, // View mask
+            vk::SubpassDescriptionFlags{}, vk::PipelineBindPoint::eGraphics,
+            0u,                 // View mask
             1u,
             &k_wallLayerAttRef, // Input attachments
             1u,
@@ -84,10 +82,8 @@ void VegSimulator::unrasterizeVegetation(const ActionCmdBuf& acb) {
             // Unrasterize branches from previous step
             cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
             cb->drawIndirect(
-                *m_branchAllocRegBuf,
-                offsetof(BranchAllocRegSB, allocations),
-                k_maxBranchAllocCount,
-                sizeof(BranchAllocation)
+                *m_branchAllocRegBuf, offsetof(BranchAllocRegSB, allocations),
+                k_maxBranchAllocCount, sizeof(BranchAllocation)
             );
             cb->endRenderPass2(vk::SubpassEndInfo{});
         },
@@ -124,10 +120,8 @@ void VegSimulator::rasterizeVegetation(const ActionCmdBuf& acb) {
             // Simulate and rasterize branches
             cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
             cb->drawIndirect(
-                *m_branchAllocRegBuf,
-                offsetof(BranchAllocRegSB, allocations),
-                k_maxBranchAllocCount,
-                sizeof(BranchAllocation)
+                *m_branchAllocRegBuf, offsetof(BranchAllocRegSB, allocations),
+                k_maxBranchAllocCount, sizeof(BranchAllocation)
             );
             cb->endRenderPass2(vk::SubpassEndInfo{});
         },
@@ -202,9 +196,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     // Prepare descriptor
     m_descriptorSet.write(D::eStorageBuffer, k_branchBinding, 0u, m_branchBuf);
     m_descriptorSet.write(
-        D::eInputAttachment,
-        k_wallLayerAttBinding,
-        0u,
+        D::eInputAttachment, k_wallLayerAttBinding, 0u,
         vk::DescriptorImageInfo{nullptr, *m_wallLayerImageView, vk::ImageLayout::eGeneral}
     );
     m_descriptorSet.write(
@@ -225,7 +217,8 @@ void VegSimulator::beginWorldTextureRenderPass(const re::CommandBuffer& cb) cons
         vk::SubpassBeginInfo{vk::SubpassContents::eInline}
     );
     cb->bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
+        vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u,
+        *m_descriptorSet, {}
     );
     glm::vec2 viewport{m_worldTexSizeTi};
     cb->setViewport(0u, vk::Viewport{0.0f, 0.0, viewport.x, viewport.y, 0.0f, 1.0f});
@@ -233,8 +226,7 @@ void VegSimulator::beginWorldTextureRenderPass(const re::CommandBuffer& cb) cons
     cb->pushConstants<VegDynamicsPC>(
         *m_pipelineLayout,
         eVertex | eTessellationControl | eTessellationEvaluation | eFragment,
-        0u,
-        m_vegDynamicsPC
+        0u, m_vegDynamicsPC
     );
 }
 

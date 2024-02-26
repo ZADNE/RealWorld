@@ -30,27 +30,28 @@ public:
     void selectSlot(int slot);
 
     void step(
-        const ActionCmdBuf& acb, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
+        const ActionCmdBuf& acb, bool usePrimary, bool useSecondary,
+        glm::ivec2 relCursorPosPx
     );
 
     void render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb);
 
 private:
-    World&     m_world;
+    World& m_world;
     Inventory& m_inv;
 
     int m_chosenSlot = 0;
 
-    World::ModificationShape m_shape    = World::ModificationShape::Disk;
-    float                    m_radiusTi = 1.5f;
+    World::ModificationShape m_shape = World::ModificationShape::Disk;
+    float m_radiusTi                 = 1.5f;
 
     // <  -1: steps not using
     // == -1: just stopped using
     // == +0: invalid state
     // >  +1: steps using
     // == +1: just started using
-    int   m_using[2] = {-1, -1};
-    Item* m_item     = nullptr;
+    int m_using[2] = {-1, -1};
+    Item* m_item   = nullptr;
 };
 
 } // namespace rw

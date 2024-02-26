@@ -54,13 +54,15 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
              .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
              .sizeInBytes = bufSize,
              .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
-             .debugName   = "rw::ChunkActivationMgr::activeChunks"}};
+             .debugName   = "rw::ChunkActivationMgr::activeChunks"
+    }};
     m_activeChunksStageBuf = re::BufferMapped<ActiveChunksSB>{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = bufSize,
         .usage       = eTransferSrc,
-        .debugName   = "rw::ChunkActivationMgr::activeChunksStage"}};
+        .debugName   = "rw::ChunkActivationMgr::activeChunksStage"
+    }};
     m_activeChunksStageBuf->activeChunksMask  = m_worldTexMaskCh;
     m_activeChunksStageBuf->worldTexSizeCh    = targetInfo.worldTexCh;
     m_activeChunksStageBuf->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
@@ -89,7 +91,8 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
         .worldTexSizeCh    = targetInfo.worldTexCh,
         .bodiesBuf         = targetInfo.bodiesBuf,
         .branchBuf         = targetInfo.branchBuf,
-        .branchAllocRegBuf = targetInfo.branchAllocRegBuf});
+        .branchAllocRegBuf = targetInfo.branchAllocRegBuf
+    });
 
     m_chunkTransferMgr.setTarget(targetInfo.worldTexCh);
 
@@ -99,13 +102,11 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
 bool ChunkActivationMgr::saveChunks() {
     // Save all inactive chunks
     std::for_each(
-        std::execution::par_unseq,
-        m_inactiveChunks.begin(),
+        std::execution::par_unseq, m_inactiveChunks.begin(),
         m_inactiveChunks.end(),
         [&](const auto& pair) {
             saveChunk(
-                pair.first,
-                pair.second.tiles().data(),
+                pair.first, pair.second.tiles().data(),
                 pair.second.branchesSerialized()
             );
         }
@@ -133,7 +134,8 @@ void ChunkActivationMgr::activateArea(
         if (it->second.step() >= k_physicsStepsPerSecond * 60) {
             // Save the chunk to disk
             saveChunk(
-                it->first, it->second.tiles().data(), it->second.branchesSerialized()
+                it->first, it->second.tiles().data(),
+                it->second.branchesSerialized()
             );
             // And remove it from the collection
             it = m_inactiveChunks.erase(it);
@@ -162,7 +164,8 @@ void ChunkActivationMgr::activateArea(
 
     // Record planned uploads/downloads
     m_chunkTransferMgr.endStep(
-        acb, *m_worldTex, *m_branchBuf, *m_branchAllocRegBuf, m_worldTexMaskCh, anyGenerated
+        acb, *m_worldTex, *m_branchBuf, *m_branchAllocRegBuf, m_worldTexMaskCh,
+        anyGenerated
     );
 
     // If there have been transparent changes
@@ -190,7 +193,7 @@ void ChunkActivationMgr::saveChunk(
 }
 
 void ChunkActivationMgr::planTransition(glm::ivec2 posCh) {
-    auto  posAc    = chToAc(posCh, m_worldTexMaskCh);
+    auto posAc     = chToAc(posCh, m_worldTexMaskCh);
     auto& activeCh = activeChunkAtIndex(acToIndex(posAc, m_worldTexMaskCh + 1));
     if (activeCh == posCh) {
         // Chunk has already been active
@@ -212,7 +215,8 @@ void ChunkActivationMgr::planActivation(
     if (auto it = m_inactiveChunks.find(posCh); it != m_inactiveChunks.end()) {
         // Query upload of the chunk
         auto res = m_chunkTransferMgr.planUpload(
-            posCh, chToTi(posAc), it->second.tiles(), it->second.branchesSerialized()
+            posCh, chToTi(posAc), it->second.tiles(),
+            it->second.branchesSerialized()
         );
         switch (res) {
         case UploadPlanned:
@@ -230,9 +234,7 @@ void ChunkActivationMgr::planActivation(
         auto maybeChunk = ChunkLoader::loadChunk(m_folderPath, posCh);
         if (maybeChunk.has_value()) { // If chunk has been loaded
             auto res = m_chunkTransferMgr.planUpload(
-                posCh,
-                chToTi(posAc),
-                maybeChunk->tiles(),
+                posCh, chToTi(posAc), maybeChunk->tiles(),
                 maybeChunk->branchesSerialized()
             );
             switch (res) {
@@ -279,7 +281,8 @@ void ChunkActivationMgr::analyzeAfterChanges(const ActionCmdBuf& acb) {
                 {vk::BufferCopy2{
                      offsetof(ActiveChunksSB, dynamicsGroupSize),
                      offsetof(ActiveChunksSB, dynamicsGroupSize),
-                     sizeof(m_activeChunksStageBuf->dynamicsGroupSize.x)},
+                     sizeof(m_activeChunksStageBuf->dynamicsGroupSize.x)
+                 },
                  vk::BufferCopy2{
                      offsetof(ActiveChunksSB, offsets[0]) +
                          sizeof(ActiveChunksSB::offsets[0]) *
@@ -287,7 +290,8 @@ void ChunkActivationMgr::analyzeAfterChanges(const ActionCmdBuf& acb) {
                      offsetof(ActiveChunksSB, offsets[0]) +
                          sizeof(ActiveChunksSB::offsets[0]) *
                              m_worldTexMaskCh.x * m_worldTexMaskCh.y,
-                     sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)}}
+                     sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)
+                 }}
             );
             cb->copyBuffer2(vk::CopyBufferInfo2{
                 m_activeChunksStageBuf.buffer(), // Src buffer
@@ -298,7 +302,8 @@ void ChunkActivationMgr::analyzeAfterChanges(const ActionCmdBuf& acb) {
         BufferAccess{
             .name   = BufferTrackName::ActiveChunks,
             .stage  = S::eTransfer,
-            .access = A::eTransferWrite}
+            .access = A::eTransferWrite
+        }
     );
 
     acb.action(
@@ -312,11 +317,13 @@ void ChunkActivationMgr::analyzeAfterChanges(const ActionCmdBuf& acb) {
         BufferAccess{
             .name   = BufferTrackName::ActiveChunks,
             .stage  = S::eComputeShader,
-            .access = A::eShaderStorageRead | A::eShaderStorageWrite},
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite
+        },
         BufferAccess{
             .name   = BufferTrackName::AllocReg,
             .stage  = S::eComputeShader,
-            .access = A::eShaderStorageRead | A::eShaderStorageWrite}
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite
+        }
     );
 }
 

@@ -13,15 +13,17 @@ ItemSprite::ItemSprite()
 }
 
 ItemSprite::ItemSprite(ItemId id)
-    : m_tex(re::RM::texture(re::TextureSeed{k_atlasPrefix + ItemDatabase::md(id).textureAtlas}
-      ))
+    : m_tex(re::RM::texture(re::TextureSeed{
+          k_atlasPrefix + ItemDatabase::md(id).textureAtlas
+      }))
     , m_sprite{
           *m_tex,
           ItemDatabase::md(id).spriteIndex,
           0.0f,
           1.0f,
           re::Color{255u, 255u, 255u, 255u},
-          glm::vec2(ItemDatabase::md(id).drawScale)} {
+          glm::vec2(ItemDatabase::md(id).drawScale)
+      } {
 }
 
 ItemSprite::ItemSprite(ItemSample item)

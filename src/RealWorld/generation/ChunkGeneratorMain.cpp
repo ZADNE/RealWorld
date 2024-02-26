@@ -20,7 +20,7 @@ namespace rw {
 namespace {
 using SB = VegPreparationSB;
 struct VegPreparationSBInitHelper {
-    decltype(SB::vegDispatchSize)    vegDispatchSize{0, 1, 1, 0};
+    decltype(SB::vegDispatchSize) vegDispatchSize{0, 1, 1, 0};
     decltype(SB::branchDispatchSize) branchDispatchSize{0, 1, 1, 0};
 };
 using SBInitHelper = VegPreparationSBInitHelper;
@@ -94,11 +94,12 @@ bool ChunkGenerator::planGeneration(glm::ivec2 posCh) {
 
 bool ChunkGenerator::generate(const ActionCmdBuf& acb) {
     if (m_chunksPlanned > 0) {
-        auto&                            secCb = *m_cb;
+        auto& secCb = *m_cb;
         vk::CommandBufferInheritanceInfo inheritanceInfo{};
         secCb->begin({eOneTimeSubmit, &inheritanceInfo});
         secCb->bindDescriptorSets(
-            vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u, *m_descriptorSet, {}
+            vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u,
+            *m_descriptorSet, {}
         );
         acb.useSecondaryCommandBuffer(secCb);
 
@@ -169,7 +170,7 @@ void ChunkGenerator::copyToDestination(const ActionCmdBuf& acb) {
             };
             cb->copyImage(
                 m_layerTex.image(),
-                eGeneral, // Src image
+                eGeneral,            // Src image
                 m_worldTex->image(),
                 eTransferDstOptimal, // Dst image
                 spanOfRegions

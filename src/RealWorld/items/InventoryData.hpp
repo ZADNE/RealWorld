@@ -43,7 +43,7 @@ public:
 
     private:
         InventoryData& m_inv;
-        int            m_x;
+        int m_x;
     };
 
     Proxy operator[](int x) { return Proxy(*this, x); }
@@ -53,7 +53,7 @@ public:
     const Item& operator()(int i) const { return m_items[i]; }
 
 protected:
-    glm::ivec2        m_dims = glm::ivec2(0, 0);
+    glm::ivec2 m_dims = glm::ivec2(0, 0);
     std::vector<Item> m_items;
 };
 

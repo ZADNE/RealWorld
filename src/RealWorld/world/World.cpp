@@ -30,8 +30,8 @@ uint32_t xorshift32(uint32_t& state) {
 }
 
 uint32_t permuteOrder(uint32_t& state) {
-    uint32_t                permutationIndex = xorshift32(state) % 24;
-    uint32_t                order            = 0;
+    uint32_t permutationIndex = xorshift32(state) % 24;
+    uint32_t order            = 0;
     std::array<uint32_t, 4> offsets{0b00, 0b01, 0b10, 0b11};
     for (uint32_t i = 4; i > 0; i--) {
         uint32_t index = permutationIndex % i;
@@ -184,12 +184,8 @@ void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRi
 }
 
 void World::modify(
-    const ActionCmdBuf& acb,
-    TileLayer           layer,
-    ModificationShape   shape,
-    float               radius,
-    glm::ivec2          posTi,
-    glm::uvec2          tile
+    const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
+    float radius, glm::ivec2 posTi, glm::uvec2 tile
 ) {
     acb.action(
         [&](const re::CommandBuffer& cb) {

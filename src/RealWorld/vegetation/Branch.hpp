@@ -18,15 +18,15 @@ namespace rw {
  */
 struct Branch {
     glm::vec2 absPosTi; // Position of the end that is connected to parent
-    int       parentIndexOffset;
+    int parentIndexOffset;
     glm::uint wallType;
-    float     absAngleNorm; // Current absolute angle of the branch
+    float absAngleNorm;     // Current absolute angle of the branch
     float relRestAngleNorm; // Branch tries to stay in this relative angle to parent
-    float     angleVelNorm;
-    float     radiusTi;
-    float     lengthTi;
-    float     density;
-    float     stiffness; // Resistance to bending
+    float angleVelNorm;
+    float radiusTi;
+    float lengthTi;
+    float density;
+    float stiffness; // Resistance to bending
     glm::uint padding;
 };
 

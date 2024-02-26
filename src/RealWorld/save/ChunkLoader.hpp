@@ -37,9 +37,7 @@ public:
      * @throws std::runtime_error unable to encode bytes or save file
      */
     static void saveChunk(
-        const std::string&       folderPath,
-        glm::ivec2               posCh,
-        const uint8_t*           tiles,
+        const std::string& folderPath, glm::ivec2 posCh, const uint8_t* tiles,
         std::span<const uint8_t> branchesSerialized
     );
 

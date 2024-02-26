@@ -15,8 +15,8 @@ struct ExternalLight {
         , col(col) {}
 
     glm::ivec2 posPx; /**< Position of the center of the light in pixels */
-    re::Color  col; /**< RGB = color of the light, A = intensity of the light */
-    glm::uint  padding;
+    re::Color col; /**< RGB = color of the light, A = intensity of the light */
+    glm::uint padding;
 };
 
 } // namespace rw

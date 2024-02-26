@@ -12,7 +12,7 @@ using A = vk::AccessFlagBits2;
 
 namespace rw {
 
-constexpr int        k_groupSize    = 16;
+constexpr int k_groupSize           = 16;
 constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 
 void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cb) {

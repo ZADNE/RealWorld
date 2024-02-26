@@ -48,17 +48,17 @@ public:
 
 private:
     struct VegDynamicsPC {
-        glm::mat4  mvpMat;
-        glm::vec2  worldTexSizeTi;
+        glm::mat4 mvpMat;
+        glm::vec2 worldTexSizeTi;
         glm::ivec2 worldTexMaskTi;
-        float      timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
-        glm::uint  readBuf;
+        float timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
+        glm::uint readBuf;
     } m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
-    re::RenderPass     m_rasterizationRenderPass;
-    re::ImageView      m_wallLayerImageView;
-    re::Framebuffer    m_rasterizationFramebuffer;
+    re::RenderPass m_rasterizationRenderPass;
+    re::ImageView m_wallLayerImageView;
+    re::Framebuffer m_rasterizationFramebuffer;
 
     re::Pipeline m_unrasterizeBranchesPl{
         {.topology           = vk::PrimitiveTopology::ePatchList,
@@ -90,9 +90,9 @@ private:
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
         .debugName = "rw::VegSimulator::descriptorSet"
     }};
-    re::Buffer        m_branchBuf;
-    re::Buffer        m_branchAllocRegBuf;
-    glm::uvec2        m_worldTexSizeTi{};
+    re::Buffer m_branchBuf;
+    re::Buffer m_branchAllocRegBuf;
+    glm::uvec2 m_worldTexSizeTi{};
 
     void beginWorldTextureRenderPass(const re::CommandBuffer& cb) const;
 };

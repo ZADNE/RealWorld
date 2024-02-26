@@ -26,7 +26,11 @@ namespace rw {
  */
 class World {
 public:
-    enum class ModificationShape : uint32_t { Square, Disk, Fill };
+    enum class ModificationShape : uint32_t {
+        Square,
+        Disk,
+        Fill
+    };
 
     /**
      * @brief Initializes the world
@@ -50,12 +54,8 @@ public:
      * @brief Modifies tiles in the world
      */
     void modify(
-        const ActionCmdBuf& acb,
-        TileLayer           layer,
-        ModificationShape   shape,
-        float               radius,
-        glm::ivec2          posTi,
-        glm::uvec2          tile
+        const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
+        float radius, glm::ivec2 posTi, glm::uvec2 tile
     );
 
     /**
@@ -85,7 +85,7 @@ private:
     );
 
     re::Texture m_worldTex;
-    int         m_seed = 0;
+    int m_seed = 0;
 
     std::string m_worldName;
 
@@ -94,34 +94,37 @@ private:
     struct WorldDynamicsPC {
         glm::ivec2 globalPosTi;
         glm::ivec2 worldTexMaskTi;
-        glm::uint  modifyLayer;
-        glm::uint  modifyShape;
+        glm::uint modifyLayer;
+        glm::uint modifyShape;
         glm::uvec2 modifySetValue;
-        float      modifyRadius;
-        glm::uint  timeHash;
-        glm::uint  updateOrder = 0b00011011'00011011'00011011'00011011;
+        float modifyRadius;
+        glm::uint timeHash;
+        glm::uint updateOrder = 0b00011011'00011011'00011011'00011011;
     } m_worldDynamicsPC;
 
     re::PipelineLayout m_simulationPL;
-    re::DescriptorSet  m_simulationDS{re::DescriptorSetCreateInfo{
-         .layout    = m_simulationPL.descriptorSetLayout(0),
-         .debugName = "rw::World::simulation"}};
-    re::Pipeline       m_simulateFluidsPl{
-              {.pipelineLayout = *m_simulationPL,
-               .debugName      = "rw::World::simulateFluids"},
-              {.comp = simulateFluids_comp}};
+    re::DescriptorSet m_simulationDS{re::DescriptorSetCreateInfo{
+        .layout = m_simulationPL.descriptorSetLayout(0), .debugName = "rw::World::simulation"
+    }};
+    re::Pipeline m_simulateFluidsPl{
+        {.pipelineLayout = *m_simulationPL,
+         .debugName      = "rw::World::simulateFluids"},
+        {.comp = simulateFluids_comp}
+    };
     re::Pipeline m_transformTilesPl{
         {.pipelineLayout = *m_simulationPL,
          .debugName      = "rw::World::transformTiles"},
-        {.comp = transformTiles_comp}};
+        {.comp = transformTiles_comp}
+    };
     re::Pipeline m_modifyTilesPl{
         {.pipelineLayout = *m_simulationPL, .debugName = "rw::World::modifyTiles"},
-        {.comp = modifyTiles_comp}};
+        {.comp = modifyTiles_comp}
+    };
 
     ChunkActivationMgr m_chunkActivationMgr{m_simulationPL};
-    const re::Buffer*  m_activeChunksBuf = nullptr;
-    BodySimulator      m_bodySimulator{m_simulationPL};
-    VegSimulator       m_vegSimulator{};
+    const re::Buffer* m_activeChunksBuf = nullptr;
+    BodySimulator m_bodySimulator{m_simulationPL};
+    VegSimulator m_vegSimulator{};
 };
 
 } // namespace rw

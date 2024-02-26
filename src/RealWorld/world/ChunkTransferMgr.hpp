@@ -37,10 +37,8 @@ public:
      * @return True if successful, false otherwise.
      */
     bool saveChunks(
-        const re::Texture&  worldTex,
-        const re::Buffer&   branchBuf,
-        glm::ivec2          worldTexCh,
-        ChunkActivationMgr& actMgr
+        const re::Texture& worldTex, const re::Buffer& branchBuf,
+        glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr
     );
 
     /**
@@ -49,7 +47,11 @@ public:
      */
     int beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr);
 
-    enum class UploadPlan { NoUploadSpace, AllocationPlanned, UploadPlanned };
+    enum class UploadPlan {
+        NoUploadSpace,
+        AllocationPlanned,
+        UploadPlanned
+    };
 
     /**
      * @brief Plans an upload transfer
@@ -57,13 +59,14 @@ public:
      * @return Result of the planning
      */
     [[nodiscard]] UploadPlan planUpload(
-        glm::ivec2                  posCh,
-        glm::ivec2                  posAt,
-        const std::vector<uint8_t>& tiles,
-        std::span<const uint8_t>    branchesSerialized
+        glm::ivec2 posCh, glm::ivec2 posAt, const std::vector<uint8_t>& tiles,
+        std::span<const uint8_t> branchesSerialized
     );
 
-    enum class DownloadPlan { NoDownloadSpace, DownloadPlanned };
+    enum class DownloadPlan {
+        NoDownloadSpace,
+        DownloadPlanned
+    };
 
     /**
      * @brief Plans a download transfer
@@ -76,12 +79,9 @@ public:
      * @brief Peforms all previously planned transfers
      */
     void endStep(
-        const ActionCmdBuf& acb,
-        const re::Texture&  worldTex,
-        const re::Buffer&   branchBuf,
-        const re::Buffer&   branchAllocRegBuf,
-        glm::ivec2          worldTexMaskCh,
-        bool                externalBranchAllocChanges
+        const ActionCmdBuf& acb, const re::Texture& worldTex,
+        const re::Buffer& branchBuf, const re::Buffer& branchAllocRegBuf,
+        glm::ivec2 worldTexMaskCh, bool externalBranchAllocChanges
     );
 
     const re::Buffer& allocReqBuf() const { return m_allocReqBuf; }
@@ -95,19 +95,21 @@ private:
 
     glm::ivec2 m_worldTexCh{};
 
-    re::Pipeline                       m_allocBranchesPl;
+    re::Pipeline m_allocBranchesPl;
     re::BufferMapped<BranchAllocRegSB> m_regBuf{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = sizeof(BranchAllocRegSB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst,
-        .debugName   = "rw::ChunkTransferMgr::reg"}};
+        .debugName   = "rw::ChunkTransferMgr::reg"
+    }};
 
     re::Buffer m_allocReqBuf{re::BufferCreateInfo{
         .sizeInBytes = sizeof(BranchAllocReqUB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst |
                  vk::BufferUsageFlagBits::eUniformBuffer,
-        .debugName = "rw::ChunkTransferMgr::allocReq"}};
+        .debugName = "rw::ChunkTransferMgr::allocReq"
+    }};
 };
 
 } // namespace rw

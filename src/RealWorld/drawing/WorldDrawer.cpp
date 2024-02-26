@@ -14,9 +14,8 @@ using enum vk::ShaderStageFlagBits;
 namespace rw {
 
 WorldDrawer::WorldDrawer(
-    re::RenderPassSubpass renderPassSubpass,
-    glm::uvec2            viewSizePx,
-    glm::uint             maxNumberOfExternalLights
+    re::RenderPassSubpass renderPassSubpass, glm::uvec2 viewSizePx,
+    glm::uint maxNumberOfExternalLights
 )
     : m_viewSizeTi(viewSizeTi(viewSizePx))
     , m_tileDrawer(renderPassSubpass, viewSizePx, m_pc)

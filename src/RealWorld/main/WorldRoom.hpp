@@ -64,20 +64,20 @@ private:
     glm::mat4 calculateWindowViewMat(glm::vec2 windowDims) const;
 
     const GameSettings& m_gameSettings;
-    ImFont*             m_arial =
+    ImFont* m_arial =
         ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 20.0f);
 
     re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[1]"}}
     };
-    ActionCmdBuf      m_acb;
-    uint64_t          m_stepN = 1;
-    re::Semaphore     m_simulationFinishedSem{m_stepN};
-    re::SpriteBatch   m_spriteBatch{re::SpriteBatchCreateInfo{
-          .renderPassSubpass = mainRenderPass().subpass(0),
-          .maxSprites        = 256,
-          .maxTextures       = 32
+    ActionCmdBuf m_acb;
+    uint64_t m_stepN = 1;
+    re::Semaphore m_simulationFinishedSem{m_stepN};
+    re::SpriteBatch m_spriteBatch{re::SpriteBatchCreateInfo{
+        .renderPassSubpass = mainRenderPass().subpass(0),
+        .maxSprites        = 256,
+        .maxTextures       = 32
     }};
     re::GeometryBatch m_geometryBatch{re::GeometryBatchCreateInfo{
         .topology          = vk::PrimitiveTopology::eLineList,
@@ -87,14 +87,14 @@ private:
 
     // View
     re::View2D m_worldView{engine().windowDims()};
-    glm::mat4  m_windowViewMat = calculateWindowViewMat(engine().windowDims());
+    glm::mat4 m_windowViewMat = calculateWindowViewMat(engine().windowDims());
 
     // Gameplay
-    World       m_world;
+    World m_world;
     WorldDrawer m_worldDrawer;
-    Player      m_player;
-    Inventory   m_playerInv;
-    ItemUser    m_itemUser;
+    Player m_player;
+    Inventory m_playerInv;
+    ItemUser m_itemUser;
     InventoryUI m_invUI;
 
     // Toggle states

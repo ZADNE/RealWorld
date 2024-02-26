@@ -25,10 +25,10 @@ std::optional<Chunk> ChunkLoader::loadChunk(
     state.info_raw.bitdepth               = 8;
     state.decoder.remember_unknown_chunks = 1;
     state.decoder.color_convert           = 1;
-    glm::uvec2           realDims;
-    unsigned int         err;
+    glm::uvec2 realDims;
+    unsigned int err;
     std::vector<uint8_t> encoded;
-    std::string          fullPath = folderPath + chunkToChunkFilename(posCh);
+    std::string fullPath = folderPath + chunkToChunkFilename(posCh);
     std::vector<uint8_t> tiles;
 
     // Load file and decode tiles
@@ -52,9 +52,9 @@ std::optional<Chunk> ChunkLoader::loadChunk(
                 // Successfully loaded chunk AND branches
                 const uint8_t* data = lodepng_chunk_data_const(chunk);
                 return Chunk{
-                    posCh,
-                    std::move(tiles),
-                    std::vector(data, data + lodepng_chunk_length(chunk))};
+                    posCh, std::move(tiles),
+                    std::vector(data, data + lodepng_chunk_length(chunk))
+                };
             }
         }
     }
@@ -63,22 +63,19 @@ std::optional<Chunk> ChunkLoader::loadChunk(
 }
 
 void ChunkLoader::saveChunk(
-    const std::string&       folderPath,
-    glm::ivec2               posCh,
-    const uint8_t*           tiles,
+    const std::string& folderPath, glm::ivec2 posCh, const uint8_t* tiles,
     std::span<const uint8_t> branchesSerialized
 ) {
     if constexpr (re::k_buildType == re::BuildType::Release) {
         lodepng::State state{};
-        unsigned int   err;
+        unsigned int err;
 
         // Create chunk with branches
         if (err = lodepng_chunk_create(
                 &state.info_png.unknown_chunks_data[0],
                 &state.info_png.unknown_chunks_size[0],
                 static_cast<unsigned int>(branchesSerialized.size()),
-                k_branchPNGChunkName.data(),
-                branchesSerialized.data()
+                k_branchPNGChunkName.data(), branchesSerialized.data()
             )) {
             // Chunk creation failed
             throw std::runtime_error{lodepng_error_text(err)};

@@ -37,26 +37,23 @@ void ChunkTransferMgr::setTarget(glm::ivec2 worldTexCh) {
 }
 
 bool ChunkTransferMgr::saveChunks(
-    const re::Texture&  worldTex,
-    const re::Buffer&   branchBuf,
-    glm::ivec2          worldTexCh,
-    ChunkActivationMgr& actMgr
+    const re::Texture& worldTex, const re::Buffer& branchBuf,
+    glm::ivec2 worldTexCh, ChunkActivationMgr& actMgr
 ) {
     // Save all active chunks (they have to be downloaded)
     re::CommandBuffer cb{{.debugName = "rw::ChunkTransferMgr::saveChunks"}};
-    re::Fence         downloadFinishedFence{{}};
+    re::Fence downloadFinishedFence{{}};
     cb->begin({eOneTimeSubmit});
 
-    { // Wait for unrasterization to finish
+    {                        // Wait for unrasterization to finish
         auto imageBarrier = re::imageMemoryBarrier(
-            S::eAllCommands,                      // Src stage mask
+            S::eAllCommands, // Src stage mask
             A::eMemoryRead | A::eMemoryRead,      // Src access mask
             S::eTransfer,                         // Dst stage mask
             A::eTransferRead,                     // Dst access mask
             vk::ImageLayout::eGeneral,            // Old image layout
             vk::ImageLayout::eTransferSrcOptimal, // New image layout
-            worldTex.image(),
-            {eColor, 0, 1, 0, k_tileLayerCount}
+            worldTex.image(), {eColor, 0, 1, 0, k_tileLayerCount}
         );
         cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
@@ -69,8 +66,7 @@ bool ChunkTransferMgr::saveChunks(
                 [this, i, &stage = m_stage, &actMgr]() {
                     auto slt = stage->slot(i);
                     actMgr.saveChunk(
-                        slt.targetCh,
-                        stage->tiles(i),
+                        slt.targetCh, stage->tiles(i),
                         stage->branchesSerializedSpan(slt)
                     );
                 }
@@ -82,10 +78,8 @@ bool ChunkTransferMgr::saveChunks(
     auto recordAllPlannedDownload = [&] {
         // Download tiles
         cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
-            worldTex.image(),
-            vk::ImageLayout::eTransferSrcOptimal,
-            *m_stage->buffer(),
-            m_stage->tileDownloadRegions()
+            worldTex.image(), vk::ImageLayout::eTransferSrcOptimal,
+            *m_stage->buffer(), m_stage->tileDownloadRegions()
         });
 
         // Download branches
@@ -119,16 +113,15 @@ bool ChunkTransferMgr::saveChunks(
     }
     recordAllPlannedDownload();
 
-    { // Transition world texture back to original layout
+    {                     // Transition world texture back to original layout
         auto imageBarrier = re::imageMemoryBarrier(
-            S::eTransfer,                            // Src stage mask
+            S::eTransfer, // Src stage mask
             A::eTransferRead,                        // Src access mask
             S::eAllCommands,                         // Dst stage mask
             {},                                      // Dst access mask
             vk::ImageLayout::eTransferSrcOptimal,    // Old image layout
             vk::ImageLayout::eShaderReadOnlyOptimal, // New image layout
-            worldTex.image(),
-            {eColor, 0, 1, 0, k_tileLayerCount}
+            worldTex.image(), {eColor, 0, 1, 0, k_tileLayerCount}
         );
         cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
     }
@@ -156,7 +149,7 @@ int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMg
     // Finalize uploads from previous step
     m_stage->forEachUpload([&](int i) {
         // Signal that the chunk is active
-        auto  slot     = m_stage->slot(i);
+        auto slot      = m_stage->slot(i);
         auto& activeCh = chToActiveCh(slot.targetCh);
         activeCh       = slot.targetCh;
     });
@@ -164,7 +157,7 @@ int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMg
     // Finalize downloads from previous step
     m_stage->forEachDownload([&](int i) {
         // Signal that there is no active chunk at the spot
-        auto  slot     = m_stage->slot(i);
+        auto slot      = m_stage->slot(i);
         auto& activeCh = chToActiveCh(slot.targetCh);
         activeCh       = k_chunkNotActive;
 
@@ -181,10 +174,8 @@ int ChunkTransferMgr::beginStep(glm::ivec2 worldTexCh, ChunkActivationMgr& actMg
 }
 
 ChunkTransferMgr::UploadPlan ChunkTransferMgr::planUpload(
-    glm::ivec2                  posCh,
-    glm::ivec2                  posAt,
-    const std::vector<uint8_t>& tiles,
-    std::span<const uint8_t>    branchesSerialized
+    glm::ivec2 posCh, glm::ivec2 posAt, const std::vector<uint8_t>& tiles,
+    std::span<const uint8_t> branchesSerialized
 ) {
     int branchCount = branchesSerialized.size_bytes() / sizeof(BranchSerialized);
     if (branchCount > 0) {
@@ -231,20 +222,16 @@ ChunkTransferMgr::DownloadPlan ChunkTransferMgr::planDownload(
 }
 
 void ChunkTransferMgr::endStep(
-    const ActionCmdBuf& acb,
-    const re::Texture&  worldTex,
-    const re::Buffer&   branchBuf,
-    const re::Buffer&   branchAllocRegBuf,
-    glm::ivec2          worldTexMaskCh,
-    bool                externalBranchAllocChanges
+    const ActionCmdBuf& acb, const re::Texture& worldTex,
+    const re::Buffer& branchBuf, const re::Buffer& branchAllocRegBuf,
+    glm::ivec2 worldTexMaskCh, bool externalBranchAllocChanges
 ) {
     if (m_stage->numberOfUploads() > 0) {
         acb.action(
             [&](const re::CommandBuffer& cb) {
                 // Upload tiles
                 cb->copyBufferToImage2(vk::CopyBufferToImageInfo2{
-                    *m_stage->buffer(),
-                    worldTex.image(),
+                    *m_stage->buffer(), worldTex.image(),
                     vk::ImageLayout::eTransferDstOptimal,
                     m_stage->tileUploadRegions()
                 });
@@ -262,7 +249,8 @@ void ChunkTransferMgr::endStep(
                 [&](const re::CommandBuffer& cb) {
                     // Upload branches
                     cb->copyBuffer2(vk::CopyBufferInfo2{
-                        *m_stage->buffer(), *branchBuf, m_stage->branchUploadRegions()
+                        *m_stage->buffer(), *branchBuf,
+                        m_stage->branchUploadRegions()
                     });
                 },
                 BufferAccess{
@@ -279,10 +267,8 @@ void ChunkTransferMgr::endStep(
             [&](const re::CommandBuffer& cb) {
                 // Download tiles
                 cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
-                    worldTex.image(),
-                    vk::ImageLayout::eTransferSrcOptimal,
-                    *m_stage->buffer(),
-                    m_stage->tileDownloadRegions()
+                    worldTex.image(), vk::ImageLayout::eTransferSrcOptimal,
+                    *m_stage->buffer(), m_stage->tileDownloadRegions()
                 });
             },
             ImageAccess{
@@ -298,7 +284,8 @@ void ChunkTransferMgr::endStep(
                 [&](const re::CommandBuffer& cb) {
                     // Download branches
                     cb->copyBuffer2(vk::CopyBufferInfo2{
-                        *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()
+                        *branchBuf, *m_stage->buffer(),
+                        m_stage->branchDownloadRegions()
                     });
                 },
                 BufferAccess{
@@ -316,8 +303,7 @@ void ChunkTransferMgr::endStep(
                 // Copy (de)allocation request
                 vk::BufferCopy2 copyRegion{
                     offsetof(decltype(m_stage)::Type::StageBuf, branchAllocReq),
-                    0,
-                    sizeof(BranchAllocReqUB)
+                    0, sizeof(BranchAllocReqUB)
                 };
                 cb->copyBuffer2({*m_stage->buffer(), *m_allocReqBuf, copyRegion});
                 auto barrier = re::bufferMemoryBarrier(

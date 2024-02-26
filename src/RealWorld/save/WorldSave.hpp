@@ -12,7 +12,7 @@ namespace rw {
 
 struct MetadataSave {
     std::string path; // Includes ending slash
-    int         seed;
+    int seed;
     std::string worldName;
 };
 
@@ -21,8 +21,8 @@ struct PlayerSave {
 };
 
 struct WorldSave {
-    MetadataSave  metadata;
-    PlayerSave    player;
+    MetadataSave metadata;
+    PlayerSave player;
     InventoryData inventory;
 };
 

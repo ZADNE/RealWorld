@@ -12,7 +12,8 @@ namespace rw {
 
 BodySimulator::BodySimulator(const re::PipelineLayout& simulationPL)
     : m_simulateBodiesPl{
-          {.pipelineLayout = *simulationPL}, {.comp = simulateBodies_comp}} {
+          {.pipelineLayout = *simulationPL}, {.comp = simulateBodies_comp}
+      } {
 }
 
 void BodySimulator::step(const re::CommandBuffer& cb) {
@@ -29,13 +30,15 @@ const re::Buffer& BodySimulator::adoptSave(glm::ivec2 worldTexSizeCh) {
         .dispatchY        = 1,
         .dispatchZ        = 1,
         .currentBodyCount = 0,
-        .maxBodyCount     = maxBodyCount};
+        .maxBodyCount     = maxBodyCount
+    };
 
     m_bodiesBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = sizeof(BodiesSBHeader) + sizeof(Body) * maxBodyCount,
         .usage       = eStorageBuffer | eIndirectBuffer,
-        .initData    = re::objectToByteSpan(initHeader)}};
+        .initData    = re::objectToByteSpan(initHeader)
+    }};
 
     return m_bodiesBuf;
 }

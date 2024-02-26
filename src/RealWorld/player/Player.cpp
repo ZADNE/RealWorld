@@ -96,11 +96,8 @@ void Player::step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump) 
             m_pushConstants.autojump      = autojump;
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
             cb->bindDescriptorSets(
-                vk::PipelineBindPoint::eCompute,
-                *m_pipelineLayout,
-                0u,
-                *m_descriptorSet,
-                {}
+                vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u,
+                *m_descriptorSet, {}
             );
             cb->pushConstants<PlayerMovementPC>(
                 *m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants
@@ -118,8 +115,7 @@ void Player::step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump) 
 
 void Player::draw(re::SpriteBatch& spriteBatch) {
     spriteBatch.add(
-        m_playerTex,
-        glm::vec4{botLeftPx(), m_hitboxStageBuf->dimsPx},
+        m_playerTex, glm::vec4{botLeftPx(), m_hitboxStageBuf->dimsPx},
         glm::vec4{0.0f, 0.0f, 1.0f, 1.0f}
     );
 }

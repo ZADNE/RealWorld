@@ -16,7 +16,7 @@ namespace rw {
  */
 constexpr glm::uvec2 uChunkTi = glm::uvec2(128u, 128u);
 constexpr glm::ivec2 iChunkTi = uChunkTi;
-constexpr glm::vec2  ChunkTi  = uChunkTi;
+constexpr glm::vec2 ChunkTi   = uChunkTi;
 
 static_assert(std::has_single_bit(uChunkTi.x) && std::has_single_bit(uChunkTi.y));
 

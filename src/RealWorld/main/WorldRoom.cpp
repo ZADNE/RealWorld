@@ -104,7 +104,7 @@ void WorldRoom::step() {
         *m_simulationFinishedSem, m_stepN - 1, vk::PipelineStageFlagBits2::eNone
     };
     vk::CommandBufferSubmitInfo comBufSubmit{*cb};
-    vk::SemaphoreSubmitInfo     signalSems{
+    vk::SemaphoreSubmitInfo signalSems{
         *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eNone
     };
     re::CommandBuffer::submitToGraphicsCompQueue(
@@ -155,8 +155,7 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
 
     // Modify the world with player's tools
     m_itemUser.step(
-        m_acb,
-        keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
+        m_acb, keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
         keybindDown(ItemuserUseSecondary) && !m_invUI.isOpen(),
         m_worldView.cursorRel()
     );
@@ -166,8 +165,7 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
         m_acb,
         (keybindDown(PlayerLeft) ? -1.0f : 0.0f) +
             (keybindDown(PlayerRight) ? +1.0f : 0.0f),
-        keybindDown(PlayerJump),
-        keybindDown(PlayerAutojump)
+        keybindDown(PlayerJump), keybindDown(PlayerAutojump)
     );
 
     // Finish the simulation step (transit image layouts back)
@@ -272,8 +270,7 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
     if (ImGui::Begin("##topLeftMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
         using namespace std::chrono;
         ImGui::Text(
-            "FPS: %u\nMax FT: %i us",
-            engine().framesPerSecond(),
+            "FPS: %u\nMax FT: %i us", engine().framesPerSecond(),
             (int)duration_cast<microseconds>(engine().maxFrameTime()).count()
         );
         ImGui::Separator();

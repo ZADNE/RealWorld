@@ -27,11 +27,17 @@ public:
     void keybindCallback(re::Key newKey);
 
 private:
-    enum class Menu { Main, NewWorld, LoadWorld, DisplaySettings, Controls };
+    enum class Menu {
+        Main,
+        NewWorld,
+        LoadWorld,
+        DisplaySettings,
+        Controls
+    };
     using enum Menu;
 
     GameSettings& m_gameSettings;
-    Menu          m_menu = Main;       /**< The currently open menu */
+    Menu m_menu = Main;                /**< The currently open menu */
     std::vector<std::string> m_worlds; /**< Names of all worlds that can be loaded */
     ImFont* m_arial16 =
         ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/arial.ttf", 28.0f);
@@ -41,12 +47,12 @@ private:
     bool m_fullscreen = engine().isWindowFullscreen();
     bool m_borderless = engine().isWindowBorderless();
     bool m_vSync      = engine().isWindowVSynced();
-    decltype(k_resolutions)::const_iterator   m_resolution;
+    decltype(k_resolutions)::const_iterator m_resolution;
     decltype(k_worldTexSizes)::const_iterator m_worldTexSize;
 
     bool m_drawKeybindListeningPopup = false; /**< True if currently listening */
 
-    void mainMenu();            /**< Builds main menu */
+    void mainMenu();                          /**< Builds main menu */
     void newWorldMenu();        /**< Builds menu that creates new worlds */
     void loadWorldMenu();       /**< Builds menu that loads worlds */
     void displaySettingsMenu(); /**< Builds menu that changes settings */

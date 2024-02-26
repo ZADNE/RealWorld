@@ -52,7 +52,8 @@ private:
               std::move(playerTex),
               PlayerHitboxSB{
                   .dimsPx = glm::ivec2(playerTex.subimageDims()) - glm::ivec2(1),
-                  .velocityPx = glm::vec2(0.0f, 0.0f)}
+                  .velocityPx = glm::vec2(0.0f, 0.0f)
+              }
           ) {}
 
     Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
@@ -61,26 +62,28 @@ private:
 
     struct PlayerMovementPC {
         glm::ivec2 worldTexMaskTi;
-        float      acceleration    = 0.5f;
-        float      maxWalkVelocity = 6.0f;
-        float      jumpVelocity    = 7.0f;
-        float      walkDirection;
-        float      jump;
-        float      autojump;
+        float acceleration    = 0.5f;
+        float maxWalkVelocity = 6.0f;
+        float jumpVelocity    = 7.0f;
+        float walkDirection;
+        float jump;
+        float autojump;
         int writeIndex = 1; // Selects PlayerHitboxSB::botLeftPx, swings every step
     } m_pushConstants;
 
-    re::Buffer                       m_hitboxBuf;
+    re::Buffer m_hitboxBuf;
     re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
-    glm::vec2                        m_oldBotLeftPx{};
+    glm::vec2 m_oldBotLeftPx{};
 
     re::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
-    re::Pipeline       m_movePlayerPl{
-              {.pipelineLayout = *m_pipelineLayout, .debugName = "rw::Player::movePlayer"},
-              {.comp = movePlayer_comp}};
+    re::Pipeline m_movePlayerPl{
+        {.pipelineLayout = *m_pipelineLayout, .debugName = "rw::Player::movePlayer"},
+        {.comp = movePlayer_comp}
+    };
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
-        .debugName = "rw::Player::descriptorSet"}};
+        .debugName = "rw::Player::descriptorSet"
+    }};
 
     glm::vec2 botLeftPx() const;
 };

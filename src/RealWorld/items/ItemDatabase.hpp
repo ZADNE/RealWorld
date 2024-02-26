@@ -62,13 +62,8 @@ enum class ItemType : uint32_t {
 
 struct ItemMetadata {
     ItemMetadata(
-        int                maxStack,
-        char               textureAtlas,
-        float              spriteIndex,
-        float              drawScale,
-        ItemType           type,
-        int                typeIndex,
-        const std::string& name
+        int maxStack, char textureAtlas, float spriteIndex, float drawScale,
+        ItemType type, int typeIndex, const std::string& name
     )
         : name(name)
         , maxStack(maxStack)
@@ -81,14 +76,14 @@ struct ItemMetadata {
           };
 
     std::string name;
-    int         maxStack;
+    int maxStack;
 
     char textureAtlas; // Determines which texture atlas should be used to draw this item
     float spriteIndex; // Determines which sprite in the texture atlas should be used
     float drawScale; // Both X and Y scaling used when drawing the item inside slot
 
     ItemType type;
-    int      typeIndex; // ID of the block with block types
+    int typeIndex; // ID of the block with block types
 };
 
 /**

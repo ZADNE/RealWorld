@@ -41,8 +41,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.inventory(slot++) = Item{ItemId::CreativeHammer, 1};
 
     for (size_t i = static_cast<size_t>(ItemId::FWater);
-         i <= static_cast<size_t>(ItemId::WDryGrass);
-         ++i) {
+         i <= static_cast<size_t>(ItemId::WDryGrass); ++i) {
         save.inventory(slot++) = Item{static_cast<ItemId>(i), 1};
     }
 
@@ -99,7 +98,7 @@ void WorldSaveLoader::searchSavedWorlds(std::vector<std::string>& names) {
 }
 
 void WorldSaveLoader::loadMetadata(MetadataSave& metadata, const std::string& path) {
-    std::ifstream  i(path + k_worldInfoFilename);
+    std::ifstream i(path + k_worldInfoFilename);
     nlohmann::json j;
     i >> j;
     metadata.worldName = j["world"]["name"].get<std::string>();
@@ -155,7 +154,8 @@ void WorldSaveLoader::saveMetadata(
     const MetadataSave& metadata, const std::string& path
 ) {
     nlohmann::json j = {
-        {"world", {{"name", metadata.worldName}, {"seed", metadata.seed}}}};
+        {"world", {{"name", metadata.worldName}, {"seed", metadata.seed}}}
+    };
 
     std::ofstream o(path + k_worldInfoFilename, std::ofstream::trunc);
     o << j.dump(2);

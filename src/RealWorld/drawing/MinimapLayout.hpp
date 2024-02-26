@@ -19,7 +19,7 @@ constexpr MinimapLayout minimapLayout(
     glm::vec2 worldTexSize, glm::vec2 viewSizePx, float padding = 100.0f
 ) {
     MinimapLayout layout;
-    float         worldTexSizeRatio = worldTexSize.x / worldTexSize.y;
+    float worldTexSizeRatio = worldTexSize.x / worldTexSize.y;
     if (worldTexSizeRatio > 1.0f) {
         float longerDim = viewSizePx.x - padding;
         layout.sizePx   = glm::vec2(longerDim, longerDim / worldTexSizeRatio);

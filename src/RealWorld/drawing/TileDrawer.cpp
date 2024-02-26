@@ -58,7 +58,7 @@ glm::vec3 bcColor(float biomeTemp) {
     // Calculate coords
     biomeTemp = glm::fract(biomeTemp);
     biomeTemp *= 2.0f;
-    int   ll   = biomeTemp;
+    int ll     = biomeTemp;
     float frac = glm::fract(biomeTemp);
 
     // Gather
@@ -143,7 +143,8 @@ void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
         bcColor(biomeTemp(botLeftPx.x + m_viewSizePx.x * 0.5f, 1.0f)), 1.0
     );
     cb->bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
+        vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u,
+        *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
     cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);
@@ -152,7 +153,8 @@ void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
 
 void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {
     cb->bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u, *m_descriptorSet, {}
+        vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u,
+        *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
     cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);

@@ -17,9 +17,8 @@ namespace rw {
 class WorldDrawer {
 public:
     WorldDrawer(
-        re::RenderPassSubpass renderPassSubpass,
-        glm::uvec2            viewSizePx,
-        glm::uint             maxNumberOfExternalLights
+        re::RenderPassSubpass renderPassSubpass, glm::uvec2 viewSizePx,
+        glm::uint maxNumberOfExternalLights
     );
 
     void setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi);
@@ -54,7 +53,7 @@ public:
     void drawMinimap(const re::CommandBuffer& cb);
 
 private:
-    glm::vec2  m_botLeftPx; // Bottom-left corner of the view
+    glm::vec2 m_botLeftPx;  // Bottom-left corner of the view
     glm::ivec2 m_botLeftTi; // Bottom-left corner of the view in tiles
 
     glm::uvec2 m_viewSizeTi;
@@ -62,8 +61,8 @@ private:
 
     WorldDrawingPC m_pc{};
 
-    TileDrawer    m_tileDrawer;
-    ShadowDrawer  m_shadowDrawer;
+    TileDrawer m_tileDrawer;
+    ShadowDrawer m_shadowDrawer;
     MinimapDrawer m_minimapDawer;
 };
 

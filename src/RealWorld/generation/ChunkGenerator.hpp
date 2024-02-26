@@ -30,12 +30,12 @@ public:
     ChunkGenerator();
 
     struct TargetInfo {
-        int                seed;     /**< Controls how generated chunks look */
+        int seed;                    /**< Controls how generated chunks look */
         const re::Texture& worldTex; /**< Receives the generated tiles */
-        glm::ivec2         worldTexSizeCh;
-        const re::Buffer&  bodiesBuf; /**< Receives the generated bodies */
-        const re::Buffer&  branchBuf;
-        const re::Buffer&  branchAllocRegBuf;
+        glm::ivec2 worldTexSizeCh;
+        const re::Buffer& bodiesBuf; /**< Receives the generated bodies */
+        const re::Buffer& branchBuf;
+        const re::Buffer& branchAllocRegBuf;
     };
 
     /**
@@ -66,17 +66,17 @@ protected:
 
     static re::Buffer createVegTemplatesBuffer();
 
-    const re::Texture* m_worldTex  = nullptr;
-    const re::Buffer*  m_bodiesBuf = nullptr;
-    const re::Buffer*  m_branchBuf = nullptr;
+    const re::Texture* m_worldTex = nullptr;
+    const re::Buffer* m_bodiesBuf = nullptr;
+    const re::Buffer* m_branchBuf = nullptr;
 
     struct GenerationPC {
         glm::ivec2 chunkTi[k_chunkGenSlots];
         glm::ivec2 worldTexSizeCh;
-        int        seed;
-        glm::uint  storeSegment{}; // Always 0 or 1
-        glm::uint  edgeConsolidationPromote;
-        glm::uint  edgeConsolidationReduce;
+        int seed;
+        glm::uint storeSegment{}; // Always 0 or 1
+        glm::uint edgeConsolidationPromote;
+        glm::uint edgeConsolidationReduce;
     } m_genPC;
     static_assert(sizeof(GenerationPC) <= 128, "PC min size guarantee");
     int m_chunksPlanned = 0; /**< Number of chunks planned to generate this step */
@@ -84,40 +84,50 @@ protected:
     re::StepDoubleBuffered<re::CommandBuffer> m_cb{
         re::CommandBuffer{
             {.level     = vk::CommandBufferLevel::eSecondary,
-             .debugName = "rw::ChunkGenerator::cb[0]"}},
+             .debugName = "rw::ChunkGenerator::cb[0]"}
+        },
         re::CommandBuffer{
             {.level     = vk::CommandBufferLevel::eSecondary,
-             .debugName = "rw::ChunkGenerator::cb[1]"}}};
+             .debugName = "rw::ChunkGenerator::cb[1]"}
+        }
+    };
 
     re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
-         .layout    = m_pipelineLayout.descriptorSetLayout(0),
-         .debugName = "rw::ChunkGenerator::descriptorSet"}};
+    re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
+        .layout    = m_pipelineLayout.descriptorSetLayout(0),
+        .debugName = "rw::ChunkGenerator::descriptorSet"
+    }};
 
     re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::generateStructure"},
-        {.comp = generateStructure_comp}};
+        {.comp = generateStructure_comp}
+    };
     re::Pipeline m_consolidateEdgesPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::consolidateEdges"},
-        {.comp = consolidateEdges_comp}};
+        {.comp = consolidateEdges_comp}
+    };
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::selectVariant"},
-        {.comp = selectVariant_comp}};
+        {.comp = selectVariant_comp}
+    };
     re::Pipeline m_generateVegPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::generateVeg"},
-        {.comp = generateVeg_comp}};
+        {.comp = generateVeg_comp}
+    };
     re::Pipeline m_generateVectorVegPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::generateVectorVeg"},
-        {.comp = generateVectorVeg_comp}};
+        {.comp = generateVectorVeg_comp}
+    };
     re::Pipeline m_generateRasterVegPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::generateRasterVeg"},
-        {.comp = generateRasterVeg_comp}};
+        {.comp = generateRasterVeg_comp}
+    };
 
     re::Texture m_layerTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8Uint,
@@ -126,14 +136,16 @@ protected:
         .usage  = vk::ImageUsageFlagBits::eStorage |
                  vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral,
-        .debugName     = "rw::ChunkGenerator::layer"}};
+        .debugName     = "rw::ChunkGenerator::layer"
+    }};
     re::Texture m_materialTex{re::TextureCreateInfo{
         .format        = vk::Format::eR8Uint,
         .extent        = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .layers        = k_chunkGenSlots,
         .usage         = vk::ImageUsageFlagBits::eStorage,
         .initialLayout = vk::ImageLayout::eGeneral,
-        .debugName     = "rw::ChunkGenerator::material"}};
+        .debugName     = "rw::ChunkGenerator::material"
+    }};
 
     re::Buffer m_vegTemplatesBuf = createVegTemplatesBuffer();
     re::Buffer m_vegPreparationBuf;

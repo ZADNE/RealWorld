@@ -21,7 +21,7 @@ constexpr int k_physicsStepsPerSecond = 100;
  */
 constexpr glm::uvec2 uTilePx = glm::uvec2(4u, 4u);
 constexpr glm::ivec2 iTilePx = uTilePx;
-constexpr glm::vec2  TilePx  = uTilePx;
+constexpr glm::vec2 TilePx   = uTilePx;
 
 static_assert(std::has_single_bit(uTilePx.x) && std::has_single_bit(uTilePx.y));
 
@@ -80,7 +80,10 @@ enum class Wall : uint8_t {
     Air = 255
 };
 
-enum class TileLayer : uint32_t { Block = 0, Wall = 1 };
+enum class TileLayer : uint32_t {
+    Block = 0,
+    Wall  = 1
+};
 constexpr uint32_t k_tileLayerCount = 2;
 
 enum class TileAttrib : uint32_t {

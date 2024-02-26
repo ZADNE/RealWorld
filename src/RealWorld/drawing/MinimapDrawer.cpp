@@ -70,11 +70,11 @@ void MinimapDrawer::drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botL
     }
 
     { // View
-        v[0].color        = k_green;
-        v[1].color        = k_green;
-        glm::vec2  scale  = m_layout.sizePx / chToPx(m_worldTexCh);
-        glm::ivec2 mask   = chToPx(m_worldTexCh) - 1.0f;
-        auto       toView = [&](glm::vec2 worldPx) -> glm::vec2 {
+        v[0].color      = k_green;
+        v[1].color      = k_green;
+        glm::vec2 scale = m_layout.sizePx / chToPx(m_worldTexCh);
+        glm::ivec2 mask = chToPx(m_worldTexCh) - 1.0f;
+        auto toView     = [&](glm::vec2 worldPx) -> glm::vec2 {
             return worldPx * scale + m_layout.offsetPx;
         };
         auto addRectangle = [&](glm::vec2 bl, glm::vec2 size) {

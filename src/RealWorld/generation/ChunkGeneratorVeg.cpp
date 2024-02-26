@@ -41,8 +41,7 @@ std::string derive(
         for (char c : sentence) {
             // Find the rule that can be applied
             auto it = std::find_if(
-                rewriteRules.begin(),
-                rewriteRules.end(),
+                rewriteRules.begin(), rewriteRules.end(),
                 [&](const RewriteRule& rule) { return c == rule.first; }
             );
             // Apply the rule (if found) or just copy the character
@@ -60,32 +59,27 @@ std::string derive(
 struct InterpretationParameters {
     glm::vec2 initSizeTi; // x = radius, y = length
     glm::vec2 sizeChange;
-    float     density;
-    float     stiffness;
-    float     angleChange;
-    Wall      wallType;
+    float density;
+    float stiffness;
+    float angleChange;
+    Wall wallType;
 };
 
 void interpret(
-    std::vector<Branch>&            branches,
-    std::string_view                sentence,
+    std::vector<Branch>& branches, std::string_view sentence,
     const InterpretationParameters& params
 ) {
-    const auto offset    = branches.size();
-    auto       addBranch = [&](float lengthTi,
-                         float radiusTi,
-                         float density,
-                         float stiffness,
-                         float angleNorm,
-                         int   myIndex,
-                         int   parentIndex) {
+    const auto offset = branches.size();
+    auto addBranch    = [&](float lengthTi, float radiusTi, float density,
+                         float stiffness, float angleNorm, int myIndex,
+                         int parentIndex) {
         glm::vec2 absPosTi{0.0};
-        float     absAngleNorm;
-        float     relRestAngleNorm;
+        float absAngleNorm;
+        float relRestAngleNorm;
         if (myIndex != parentIndex) { // If it is child branch
             const Branch& parent = branches[parentIndex];
-            absAngleNorm = glm::fract(parent.absAngleNorm + angleNorm);
-            relRestAngleNorm = glm::fract(angleNorm);
+            absAngleNorm         = glm::fract(parent.absAngleNorm + angleNorm);
+            relRestAngleNorm     = glm::fract(angleNorm);
             absPosTi = parent.absPosTi + toCartesian(lengthTi, absAngleNorm);
         } else { // If it is root branch
             absAngleNorm     = glm::fract(angleNorm);
@@ -93,32 +87,25 @@ void interpret(
         }
 
         branches.emplace_back(
-            absPosTi,
-            parentIndex - myIndex,
-            static_cast<glm::uint>(params.wallType),
-            absAngleNorm,
-            relRestAngleNorm,
-            0.0f,
-            radiusTi,
-            lengthTi,
-            density,
-            stiffness,
-            0u
+            absPosTi, parentIndex - myIndex,
+            static_cast<glm::uint>(params.wallType), absAngleNorm,
+            relRestAngleNorm, 0.0f, radiusTi, lengthTi, density, stiffness, 0u
         );
     };
 
     addBranch(0.0, 0.0, 0.0, 0.1, 0.25, 0, 0);
     struct TurtleState {
         glm::vec2 sizeTi;
-        float     density;
-        float     stiffness;
-        float     angleChange;
-        float     angleNorm;
-        int       parentIndex;
+        float density;
+        float stiffness;
+        float angleChange;
+        float angleNorm;
+        int parentIndex;
     };
     std::stack<TurtleState> stack;
     stack.emplace(
-        params.initSizeTi, params.density, params.stiffness, params.angleChange, 0.0f, 0
+        params.initSizeTi, params.density, params.stiffness, params.angleChange,
+        0.0f, 0
     );
     for (char c : sentence) {
         TurtleState& state = stack.top();
@@ -126,12 +113,8 @@ void interpret(
         case 'B':
         case 'S':
             addBranch(
-                state.sizeTi.y,
-                state.sizeTi.x,
-                state.density,
-                state.stiffness,
-                state.angleNorm,
-                static_cast<int>(branches.size() - offset),
+                state.sizeTi.y, state.sizeTi.x, state.density, state.stiffness,
+                state.angleNorm, static_cast<int>(branches.size() - offset),
                 state.parentIndex
             );
             state.angleNorm   = 0.0;
@@ -144,7 +127,7 @@ void interpret(
         case '-': state.angleNorm -= state.angleChange; break;
         case '[': stack.emplace(stack.top()); break;
         case ']': stack.pop(); break;
-        default: break;
+        default:  break;
         }
     }
 }
@@ -154,16 +137,12 @@ void interpret(
 void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
     { // Clear dispatch counts
         (*acb)->fillBuffer(
-            *m_vegPreparationBuf,
-            offsetof(VegPreparationSB, vegDispatchSize.x),
-            sizeof(VegPreparationSB::vegDispatchSize.x),
-            0
+            *m_vegPreparationBuf, offsetof(VegPreparationSB, vegDispatchSize.x),
+            sizeof(VegPreparationSB::vegDispatchSize.x), 0
         );
         (*acb)->fillBuffer(
-            *m_vegPreparationBuf,
-            offsetof(VegPreparationSB, branchDispatchSize.x),
-            sizeof(VegPreparationSB::branchDispatchSize.x),
-            0
+            *m_vegPreparationBuf, offsetof(VegPreparationSB, branchDispatchSize.x),
+            sizeof(VegPreparationSB::branchDispatchSize.x), 0
         );
         auto clearCountsBarrier = re::bufferMemoryBarrier(
             S::eTransfer,                                   // Src stage mask
@@ -183,12 +162,12 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
 
             { // Add barriers between preparation and vector generation
                 auto preparationBarrier = re::bufferMemoryBarrier(
-                    S::eComputeShader, // Src stage mask
+                    S::eComputeShader,                    // Src stage mask
                     A::eShaderStorageRead |
                         A::eShaderStorageWrite,           // Src access mask
                     S::eDrawIndirect | S::eComputeShader, // Dst stage mask
                     A::eIndirectCommandRead | A::eShaderStorageRead |
-                        A::eShaderStorageWrite, // Dst access mask
+                        A::eShaderStorageWrite,           // Dst access mask
                     *m_vegPreparationBuf
                 );
                 cb->pipelineBarrier2({{}, {}, preparationBarrier, {}});
@@ -221,11 +200,13 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
         BufferAccess{
             .name   = BufferTrackName::Branch,
             .stage  = S::eComputeShader,
-            .access = A::eShaderStorageRead | A::eShaderStorageWrite},
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite
+        },
         BufferAccess{
             .name   = BufferTrackName::AllocReg,
             .stage  = S::eComputeShader,
-            .access = A::eShaderStorageRead | A::eShaderStorageWrite}
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite
+        }
     );
 }
 
@@ -243,21 +224,22 @@ re::Buffer ChunkGenerator::createVegTemplatesBuffer() {
             .density     = 4.0,
             .stiffness   = 1.0,
             .angleChange = 0.05,
-            .wallType    = Wall::OakWood}
+            .wallType    = Wall::OakWood
+        }
     );
     auto oakEnd = branches.size();
 
     // Acacia
     interpret(
-        branches,
-        derive("B", std::to_array<RewriteRule>({{'B', "S[+B][-B]"}}), 5),
+        branches, derive("B", std::to_array<RewriteRule>({{'B', "S[+B][-B]"}}), 5),
         InterpretationParameters{
             .initSizeTi  = glm::vec2(1.75, 30.0),
             .sizeChange  = glm::vec2(0.75, 0.75),
             .density     = 4.0,
             .stiffness   = 0.5,
             .angleChange = 0.08,
-            .wallType    = Wall::AcaciaWood}
+            .wallType    = Wall::AcaciaWood
+        }
     );
     auto acaciaSize = branches.size() - oakEnd;
 
@@ -268,7 +250,8 @@ re::Buffer ChunkGenerator::createVegTemplatesBuffer() {
         .sizeInBytes = sizeof(Branch) * branches.size(),
         .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
         .initData    = std::as_bytes(std::span{branches}),
-        .debugName   = "rw::ChunkGeneratorVeg::vegTemplates"}};
+        .debugName   = "rw::ChunkGeneratorVeg::vegTemplates"
+    }};
 }
 
 } // namespace rw

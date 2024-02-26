@@ -49,7 +49,8 @@ MainMenuRoom::MainMenuRoom(GameSettings& gameSettings)
           k_resolutions.begin(), k_resolutions.end(), engine().windowDims()
       ))
     , m_worldTexSize(std::find(
-          k_worldTexSizes.begin(), k_worldTexSizes.end(), m_gameSettings.worldTexSize()
+          k_worldTexSizes.begin(), k_worldTexSizes.end(),
+          m_gameSettings.worldTexSize()
       )) {
 }
 
@@ -79,11 +80,11 @@ void MainMenuRoom::render(const re::CommandBuffer& cb, double interpolationFacto
         Indent();
         SetCursorPosY(GetFrameHeight());
         switch (m_menu) {
-        case Main: mainMenu(); break;
-        case NewWorld: newWorldMenu(); break;
-        case LoadWorld: loadWorldMenu(); break;
+        case Main:            mainMenu(); break;
+        case NewWorld:        newWorldMenu(); break;
+        case LoadWorld:       loadWorldMenu(); break;
         case DisplaySettings: displaySettingsMenu(); break;
-        case Controls: controlsMenu(); break;
+        case Controls:        controlsMenu(); break;
         }
 
         if (m_menu != Main) {
@@ -205,18 +206,16 @@ void MainMenuRoom::controlsMenu() {
     Separator();
 
     BeginTable(
-        "##controlsTable",
-        3,
-        ImGuiTableFlags_ScrollY,
+        "##controlsTable", 3, ImGuiTableFlags_ScrollY,
         {0.0f, engine().windowDims().y - GetFrameHeight() * 4.125f}
     );
     for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::Count); i++) {
         PushID(static_cast<int>(i));
         switch (static_cast<RealWorldKeyBindings>(i)) {
-        case InvOpenClose: controlsCategoryHeader("Inventory"); break;
+        case InvOpenClose:       controlsCategoryHeader("Inventory"); break;
         case ItemuserUsePrimary: controlsCategoryHeader("Item usage"); break;
-        case PlayerLeft: controlsCategoryHeader("Player movement"); break;
-        case Quit: controlsCategoryHeader("Other"); break;
+        case PlayerLeft:         controlsCategoryHeader("Player movement"); break;
+        case Quit:               controlsCategoryHeader("Other"); break;
         }
 
         TableNextRow();

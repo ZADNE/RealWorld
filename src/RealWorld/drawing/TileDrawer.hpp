@@ -19,9 +19,8 @@ namespace rw {
 class TileDrawer {
 public:
     TileDrawer(
-        re::RenderPassSubpass renderPassSubpass,
-        glm::vec2             viewSizePx,
-        WorldDrawingPC&       pc
+        re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
+        WorldDrawingPC& pc
     );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
@@ -41,11 +40,11 @@ private:
     WorldDrawingPC& m_pc;
 
     re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
-         .layout    = m_pipelineLayout.descriptorSetLayout(0),
-         .debugName = "rw::TileDrawer::descriptorSet"
+    re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
+        .layout    = m_pipelineLayout.descriptorSetLayout(0),
+        .debugName = "rw::TileDrawer::descriptorSet"
     }};
-    re::Pipeline       m_drawTilesPl;
+    re::Pipeline m_drawTilesPl;
 
     // Minimap
     re::Pipeline m_drawMinimapPl;

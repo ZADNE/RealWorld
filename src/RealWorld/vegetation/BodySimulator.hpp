@@ -25,23 +25,23 @@ private:
         glm::ivec2 bottomCenterPx;
         glm::ivec2 sizePx;
         glm::ivec2 velocityPx;
-        glm::vec2  rotationRad; /**< y component is unused */
+        glm::vec2 rotationRad; /**< y component is unused */
     };
 
     struct BodiesSBHeader {
         glm::uint dispatchX;
         glm::uint dispatchY;
         glm::uint dispatchZ;
-        int       currentBodyCount;
-        int       maxBodyCount;
-        int       padding[3];
+        int currentBodyCount;
+        int maxBodyCount;
+        int padding[3];
     };
 
 #pragma warning(push)
 #pragma warning(disable : 4200)
     struct BodiesSB {
         BodiesSBHeader header;
-        Body           bodies[];
+        Body bodies[];
     };
 #pragma warning(pop)
 
@@ -51,7 +51,7 @@ private:
     static constexpr int k_bodyHeaderSize = sizeof(BodiesSBHeader) / sizeof(Body);
     static_assert(k_bodyHeaderSize * sizeof(Body) == sizeof(BodiesSBHeader));
 
-    re::Buffer   m_bodiesBuf;
+    re::Buffer m_bodiesBuf;
     re::Pipeline m_simulateBodiesPl;
 };
 

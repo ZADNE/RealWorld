@@ -30,9 +30,9 @@ public:
         const re::Texture& worldTex; /**< The world texture that will be managed */
         glm::ivec2 worldTexCh; /**< Must be a multiple of k_minWorldTexSizeCh */
         re::DescriptorSet& descriptorSet;
-        const re::Buffer&  bodiesBuf;
-        const re::Buffer&  branchBuf;
-        const re::Buffer&  branchAllocRegBuf;
+        const re::Buffer& bodiesBuf;
+        const re::Buffer& branchBuf;
+        const re::Buffer& branchAllocRegBuf;
     };
 
     struct ActivationBuffers {
@@ -77,7 +77,8 @@ public:
     void addInactiveChunk(glm::ivec2 posCh, Chunk&& chunk);
 
     void saveChunk(
-        glm::ivec2 posCh, const uint8_t* tiles, std::span<const uint8_t> branchesSerialized
+        glm::ivec2 posCh, const uint8_t* tiles,
+        std::span<const uint8_t> branchesSerialized
     ) const;
 
 private:
@@ -94,19 +95,19 @@ private:
     std::unordered_map<glm::ivec2, Chunk> m_inactiveChunks;
 
     re::Pipeline m_analyzeContinuityPl;
-    glm::uvec2   m_analyzeContinuityGroupCount{};
+    glm::uvec2 m_analyzeContinuityGroupCount{};
 
-    std::string        m_folderPath;
-    const re::Texture* m_worldTex          = nullptr;
-    const re::Buffer*  m_branchBuf         = nullptr;
-    const re::Buffer*  m_branchAllocRegBuf = nullptr;
+    std::string m_folderPath;
+    const re::Texture* m_worldTex         = nullptr;
+    const re::Buffer* m_branchBuf         = nullptr;
+    const re::Buffer* m_branchAllocRegBuf = nullptr;
 
     glm::ivec2 m_worldTexMaskCh{};
 
-    re::Buffer                       m_activeChunksBuf;
+    re::Buffer m_activeChunksBuf;
     re::BufferMapped<ActiveChunksSB> m_activeChunksStageBuf;
 
-    ChunkGenerator   m_chunkGen;
+    ChunkGenerator m_chunkGen;
     ChunkTransferMgr m_chunkTransferMgr;
 };
 
