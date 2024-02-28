@@ -23,10 +23,10 @@ using enum ChunkTransferMgr::DownloadPlan;
 using enum ChunkTransferMgr::UploadPlan;
 
 ChunkTransferMgr::ChunkTransferMgr(const re::PipelineLayout& pipelineLayout)
-    : m_allocBranchesPl(
+    : m_reallocBranchesPl(
           {.pipelineLayout = *pipelineLayout,
-           .debugName      = "rw::ChunkTransferMgr::allocBranches"},
-          {.comp = allocBranches_comp}
+           .debugName      = "rw::ChunkTransferMgr::reallocBranches"},
+          {.comp = reallocBranches_comp}
       ) {
 }
 
@@ -316,7 +316,7 @@ void ChunkTransferMgr::endStep(
                 cb->pipelineBarrier2({{}, {}, barrier, {}});
 
                 // Allocate and deallocate branches
-                cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_allocBranchesPl);
+                cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_reallocBranchesPl);
                 cb->dispatch(1, 1, 1);
             },
             BufferAccess{

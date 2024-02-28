@@ -1,0 +1,45 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/vegetation/shaders/BranchSB.glsl>
+#define VegPrepSB_ACCESS readonly
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
+
+layout (local_size_x = 2,
+        local_size_y = 32,
+        local_size_z = 1
+) in;
+
+shared VegInstance s_inst;
+
+void main(){
+    uint id = gl_WorkGroupID.x;
+    uint vegIndex = b_vegPrep.vegIndex[id];
+    if (gl_LocalInvocationIndex == 0){
+        s_inst = b_vegPrep.vegInstances[vegIndex];
+    }
+    barrier();
+
+    uint indexWithinVeg = id - b_vegPrep.prepIndexOfFirstBranch[vegIndex];
+    uint i = b_vegPrep.branchOfChunk[s_inst.chunkIndex] +
+             b_vegPrep.vegOffsetWithinChunk[vegIndex] + 
+             indexWithinVeg;
+
+    g_randomState = s_inst.randomSeed ^ gl_LocalInvocationIndex * 2713;
+    uint val = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
+    storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), val);
+
+    if (gl_LocalInvocationIndex == 0){
+        b_branch.absPosTi[0][i] = b_vegPrep.absPosTi[id];
+        b_branch.absAngNorm[0][i] = b_vegPrep.absAngNorm[id];
+        b_branch.parentOffset15wallType31[i] = b_vegPrep.parentOffset15wallType31[id];
+        b_branch.relRestAngNorm[i] = b_vegPrep.relRestAngNorm[id];
+        b_branch.angVel[i] = 0.0;
+        b_branch.radiusTi[i] = b_vegPrep.radiusTi[id];
+        b_branch.lengthTi[i] = b_vegPrep.lengthTi[id];
+        b_branch.densityStiffness[i] = b_vegPrep.densityStiffness[id];
+    }
+}

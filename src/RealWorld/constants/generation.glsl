@@ -7,5 +7,7 @@
 const int k_genBorderWidth = 8;
 const int k_genGroupSize = 16;
 const int k_chunkGenSlots = 12;
+const int k_maxVegPerChunk = 64;
+const int k_branchGenSlots = k_chunkGenSlots * 256;
 
 #endif // !GENERATION_GLSL

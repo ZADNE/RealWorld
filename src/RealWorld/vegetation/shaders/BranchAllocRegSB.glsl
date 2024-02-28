@@ -57,7 +57,7 @@ uint roundUpToPowerOf2(uint n){
 int allocateBranches(
     uint branchCount, ivec2 chunkCh, ivec2 worldTexSizeCh
 ) {
-    uint toAllocate = roundUpToPowerOf2(max(branchCount, 128));
+    uint toAllocate = roundUpToPowerOf2(max(branchCount, 64));
 
     int allocSearched = 0;
     int allocIndex = b_branchAllocReg.nextAllocIter;

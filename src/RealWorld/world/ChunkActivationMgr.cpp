@@ -160,12 +160,13 @@ void ChunkActivationMgr::activateArea(
     }
 
     // Record planned generation
-    bool anyGenerated = m_chunkGen.generate(acb);
+    int chunksGenerated = m_chunkGen.generate(acb);
+    m_transparentChunkChanges += chunksGenerated;
 
     // Record planned uploads/downloads
     m_chunkTransferMgr.endStep(
         acb, *m_worldTex, *m_branchBuf, *m_branchAllocRegBuf, m_worldTexMaskCh,
-        anyGenerated
+        chunksGenerated
     );
 
     // If there have been transparent changes

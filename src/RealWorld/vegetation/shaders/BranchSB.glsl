@@ -25,13 +25,21 @@ restrict buffer BranchSB {
 // parentOffset15wallType31[ 0..15] = negative index offset to parent
 // parentOffset15wallType31[16..31] = wall type
 
-uvec2 loadBranchParentOffsetWallType(uint branchIndex){
-    uint packed = b_branch.parentOffset15wallType31[branchIndex];
+uint packBranchParentOffsetWallType(uint parentOffset, uint wallType){
+    return (parentOffset & 0xffff) | (wallType << 16);
+}
+
+uvec2 unpackBranchParentOffsetWallType(uint packed){
     return uvec2(packed & 0xffff, packed >> 16);
 }
 
+uvec2 loadBranchParentOffsetWallType(uint branchIndex){
+    uint packed = b_branch.parentOffset15wallType31[branchIndex];
+    return unpackBranchParentOffsetWallType(packed);
+}
+
 void storeBranchParentOffsetWallType(uint branchIndex, uint parentOffset, uint wallType){
-    uint packed = (parentOffset & 0xffff) | (wallType << 16);
+    uint packed = packBranchParentOffsetWallType(parentOffset, wallType);
     b_branch.parentOffset15wallType31[branchIndex] = packed;
 }
 

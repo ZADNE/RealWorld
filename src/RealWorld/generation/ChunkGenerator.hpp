@@ -51,9 +51,9 @@ public:
 
     /**
      * @brief Generates planned chunks
-     * @return True if any chunk generation was planned
+     * @return Number of chunk generated
      */
-    bool generate(const ActionCmdBuf& acb);
+    int generate(const ActionCmdBuf& acb);
 
 protected:
     void generateBasicTerrain(const re::CommandBuffer& cb);
@@ -98,6 +98,7 @@ protected:
         .debugName = "rw::ChunkGenerator::descriptorSet"
     }};
 
+    // Tile generation
     re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::generateStructure"},
@@ -113,22 +114,6 @@ protected:
          .debugName      = "rw::ChunkGenerator::selectVariant"},
         {.comp = selectVariant_comp}
     };
-    re::Pipeline m_generateVegPl{
-        {.pipelineLayout = *m_pipelineLayout,
-         .debugName      = "rw::ChunkGenerator::generateVeg"},
-        {.comp = generateVeg_comp}
-    };
-    re::Pipeline m_generateVectorVegPl{
-        {.pipelineLayout = *m_pipelineLayout,
-         .debugName      = "rw::ChunkGenerator::generateVectorVeg"},
-        {.comp = generateVectorVeg_comp}
-    };
-    re::Pipeline m_generateRasterVegPl{
-        {.pipelineLayout = *m_pipelineLayout,
-         .debugName      = "rw::ChunkGenerator::generateRasterVeg"},
-        {.comp = generateRasterVeg_comp}
-    };
-
     re::Texture m_layerTex{re::TextureCreateInfo{
         .format = vk::Format::eR8G8Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
@@ -147,8 +132,29 @@ protected:
         .debugName     = "rw::ChunkGenerator::material"
     }};
 
+    // Vegetation generation
+    re::Pipeline m_selectVegPl{
+        {.pipelineLayout = *m_pipelineLayout,
+         .debugName      = "rw::ChunkGenerator::selectVeg"},
+        {.comp = selectVeg_comp}
+    };
+    re::Pipeline m_expandLSystemsPl{
+        {.pipelineLayout = *m_pipelineLayout,
+         .debugName      = "rw::ChunkGenerator::expandLSystems"},
+        {.comp = expandLSystems_comp}
+    };
+    re::Pipeline m_allocBranchesPl{
+        {.pipelineLayout = *m_pipelineLayout,
+         .debugName      = "rw::ChunkGenerator::allocBranches"},
+        {.comp = allocBranches_comp}
+    };
+    re::Pipeline m_outputBranchesPl{
+        {.pipelineLayout = *m_pipelineLayout,
+         .debugName      = "rw::ChunkGenerator::outputBranches"},
+        {.comp = outputBranches_comp}
+    };
     re::Buffer m_vegTemplatesBuf = createVegTemplatesBuffer();
-    re::Buffer m_vegPreparationBuf;
+    re::Buffer m_vegPrepBuf;
 };
 
 } // namespace rw

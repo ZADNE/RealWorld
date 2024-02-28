@@ -2,7 +2,6 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
 #include <RealWorld/world/shaders/random.glsl>
@@ -11,7 +10,7 @@
 #define VegPrepSB_ACCESS writeonly
 #include <RealWorld/generation/shaders/VegPrepSB.glsl>
 
-layout (local_size_x = 64,
+layout (local_size_x = k_maxVegPerChunk,
         local_size_y = 1,
         local_size_z = 1
 ) in;
@@ -25,15 +24,12 @@ int invocXPosTi(ivec2 chunkTi){
     return basePosTi + randomOffsetTi;
 }
 
-shared int  s_globalFirstBranchIndex;
 shared uint s_vegPrepI;
-shared uint s_branchPrepI;
 
 void main(){
     // Init shared vars
     if (gl_LocalInvocationID.x == 0){
         s_vegPrepI = 0;
-        s_branchPrepI = 0;
     }
     barrier();
 
@@ -45,16 +41,14 @@ void main(){
     ivec2 pTi = ivec2(invocXPosTi(chunkTi), 0);
     float xPx = tiToPx(pTi.x);
     vec2 biomeClimate = biomeClimate(xPx, p_seed);
-    Biome biome = biomeStructure(biomeClimate);
-    float horizonPx = horizon(xPx, biome, p_seed).r;
+    float horizonPx = horizon(xPx, biomeStructure(biomeClimate), p_seed).r;
     pTi.y = int(pxToTi(horizonPx));
 
     uint templateIndex = ~0;
-    uint branchThreadOffset;
     uint vegPrepThreadOffset;
 
-    // Gather vegetation of the chunk
-    if (pTi.y >= chunkTi.y && pTi.y < (chunkTi.y + iChunkTi.y)) {// If on the horizon
+    // Gather vegetation instances of the chunk
+    if (pTi.y >= chunkTi.y && pTi.y < (chunkTi.y + iChunkTi.y)) { // If on the horizon
         // Select the vegetation to generate
         VegDistr distr = biomeVegDistr(biomeClimate);
         float rndTemplate = randomFloat() * float(gl_WorkGroupSize.x);
@@ -68,41 +62,27 @@ void main(){
         // If some vegetation succeeded the test
         if (templateIndex != ~0){
             vegPrepThreadOffset = atomicAdd(s_vegPrepI, 1);
-            const uint branchCount = k_vegTemplates[templateIndex].branchCount;
-            branchThreadOffset = atomicAdd(s_branchPrepI, branchCount);
         }
     }
     barrier();
 
-    // Allocate space for all vegetation of the chunk
+    // Reserve space in the preparation buffer
     if (gl_LocalInvocationID.x == 0){
-        if (s_branchPrepI > 0){
-            lockAllocRegister();
-            s_globalFirstBranchIndex = allocateBranches(
-                s_branchPrepI, tiToCh(chunkTi), p_worldTexSizeCh);
-            unlockAllocRegister();
-            // Also reserve space in the preparation buffer
+        if (s_vegPrepI > 0){
             s_vegPrepI = atomicAdd(b_vegPrep.vegDispatchSize.x, s_vegPrepI);
-            s_branchPrepI = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchPrepI);
-        } else {
-            s_globalFirstBranchIndex = -1; // There is no vegetation in the chunk
         }
     }
     barrier();
 
     // Prepare vegetation instances
-    if (s_globalFirstBranchIndex >= 0){ // If allocation succeeded
-        if (templateIndex != ~0){ // If this thread represents a vegetation
-            float greenMass = biomeClimate.x + biomeClimate.y;
-            b_vegPrep.vegInstances[s_vegPrepI + vegPrepThreadOffset] = VegInstance(
-                templateIndex,                                      // templateIndex
-                s_globalFirstBranchIndex + branchThreadOffset,      // outputIndex
-                random(),                                           // randomSeed
-                s_branchPrepI + branchThreadOffset,
-                (templateIndex != 2 /*not wheat*/) ? pTi : chunkTi, // rootPosTi
-                greenMass * 0.25 + 0.75,                            // sizeFactor
-                0.5 * randomFloat() + 0.75                          // angleFactor
-            );
-        }
+    if (templateIndex != ~0){ // If this thread represents a vegetation
+        float greenMass = biomeClimate.x + biomeClimate.y;
+        b_vegPrep.vegInstances[s_vegPrepI + vegPrepThreadOffset] = VegInstance(
+            templateIndex,              // templateIndex
+            random(),                   // randomSeed
+            gl_WorkGroupID.z,           // chunkIndex
+            greenMass * 0.25 + 0.75,    // growth
+            pTi                         // rootPosTi
+        );
     }
 }

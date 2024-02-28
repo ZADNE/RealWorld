@@ -8,7 +8,7 @@
 #include <glm/trigonometric.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/generation/VegPreparationSB.hpp>
+#include <RealWorld/generation/VegPrepSB.hpp>
 #include <RealWorld/vegetation/VegSimulator.hpp>
 
 using S = vk::PipelineStageFlagBits2;
@@ -135,67 +135,88 @@ void interpret(
 } // namespace
 
 void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
-    { // Clear dispatch counts
+    { // Clear count
         (*acb)->fillBuffer(
-            *m_vegPreparationBuf, offsetof(VegPreparationSB, vegDispatchSize.x),
-            sizeof(VegPreparationSB::vegDispatchSize.x), 0
+            *m_vegPrepBuf, offsetof(VegPrepSB, vegDispatchSize.x),
+            sizeof(VegPrepSB::vegDispatchSize.x), 0
         );
         (*acb)->fillBuffer(
-            *m_vegPreparationBuf, offsetof(VegPreparationSB, branchDispatchSize.x),
-            sizeof(VegPreparationSB::branchDispatchSize.x), 0
+            *m_vegPrepBuf, offsetof(VegPrepSB, branchDispatchSize.x),
+            sizeof(VegPrepSB::branchDispatchSize.x), 0
+        );
+        (*acb)->fillBuffer(
+            *m_vegPrepBuf, offsetof(VegPrepSB, vegOffsetWithinChunk),
+            sizeof(VegPrepSB::vegOffsetWithinChunk), 0
+        );
+        (*acb)->fillBuffer(
+            *m_vegPrepBuf, offsetof(VegPrepSB, branchOfChunk),
+            sizeof(VegPrepSB::branchOfChunk), 0
         );
         auto clearCountsBarrier = re::bufferMemoryBarrier(
             S::eTransfer,                                   // Src stage mask
             A::eTransferWrite,                              // Src access mask
             S::eComputeShader,                              // Dst stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-            *m_vegPreparationBuf
+            *m_vegPrepBuf
         );
         (*acb)->pipelineBarrier2({{}, {}, clearCountsBarrier, {}});
     }
 
+    // Select vegetation
+    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVegPl);
+    (*acb)->dispatch(1u, 1u, m_chunksPlanned);
+
+    { // Add barrier between vegetation selection and L-system expansion
+        auto preparationBarrier = re::bufferMemoryBarrier(
+            S::eComputeShader,                              // Src stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+            S::eDrawIndirect | S::eComputeShader,           // Dst stage mask
+            A::eIndirectCommandRead | A::eShaderStorageRead |
+                A::eShaderStorageWrite,                     // Dst access mask
+            *m_vegPrepBuf
+        );
+        (*acb)->pipelineBarrier2({{}, {}, preparationBarrier, {}});
+    }
+
+    // Expand L-systems
+    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_expandLSystemsPl);
+    (*acb)->dispatchIndirect(*m_vegPrepBuf, offsetof(VegPrepSB, vegDispatchSize));
+
     acb.action(
         [&](const re::CommandBuffer& cb) {
-            // Dispatch preparation
-            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVegPl);
-            cb->dispatch(1u, 1u, m_chunksPlanned);
-
-            { // Add barriers between preparation and vector generation
-                auto preparationBarrier = re::bufferMemoryBarrier(
+            { // Add barrier between L-system expansion and branch allocation
+                auto vectorBarrier = re::bufferMemoryBarrier(
                     S::eComputeShader,                    // Src stage mask
                     A::eShaderStorageRead |
                         A::eShaderStorageWrite,           // Src access mask
                     S::eDrawIndirect | S::eComputeShader, // Dst stage mask
                     A::eIndirectCommandRead | A::eShaderStorageRead |
                         A::eShaderStorageWrite,           // Dst access mask
-                    *m_vegPreparationBuf
-                );
-                cb->pipelineBarrier2({{}, {}, preparationBarrier, {}});
-            }
-
-            // Dispatch branch vector generation
-            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateVectorVegPl);
-            cb->dispatchIndirect(
-                *m_vegPreparationBuf, offsetof(VegPreparationSB, vegDispatchSize)
-            );
-
-            { // Add barriers between vector generation and raster generation
-                auto vectorBarrier = re::bufferMemoryBarrier(
-                    S::eComputeShader,      // Src stage mask
-                    A::eShaderStorageWrite, // Src access mask
-                    S::eComputeShader,      // Dst stage mask
-                    A::eShaderStorageRead,  // Dst access mask
-                    *m_vegPreparationBuf,
-                    offsetof(VegPreparationSB, branchInstances)
+                    *m_vegPrepBuf
                 );
                 cb->pipelineBarrier2({{}, {}, vectorBarrier, {}});
             }
 
-            // Dispatch branch raster generation
-            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateRasterVegPl);
-            cb->dispatchIndirect(
-                *m_vegPreparationBuf, offsetof(VegPreparationSB, branchDispatchSize)
-            );
+            // Allocate branches
+            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_allocBranchesPl);
+            cb->dispatch(1, 1, 1);
+
+            { // Add barrier between branch allocation and output
+                auto vectorBarrier = re::bufferMemoryBarrier(
+                    S::eComputeShader,          // Src stage mask
+                    A::eShaderStorageRead |
+                        A::eShaderStorageWrite, // Src access mask
+                    S::eComputeShader,          // Dst stage mask
+                    A::eShaderStorageRead |
+                        A::eShaderStorageWrite, // Dst access mask
+                    *m_vegPrepBuf
+                );
+                cb->pipelineBarrier2({{}, {}, vectorBarrier, {}});
+            }
+
+            // Output branches
+            cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_outputBranchesPl);
+            cb->dispatchIndirect(*m_vegPrepBuf, offsetof(VegPrepSB, branchDispatchSize));
         },
         BufferAccess{
             .name   = BufferTrackName::Branch,

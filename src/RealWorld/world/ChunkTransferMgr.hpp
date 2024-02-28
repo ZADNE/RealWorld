@@ -95,7 +95,7 @@ private:
 
     glm::ivec2 m_worldTexCh{};
 
-    re::Pipeline m_allocBranchesPl;
+    re::Pipeline m_reallocBranchesPl;
     re::BufferMapped<BranchAllocRegSB> m_regBuf{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,

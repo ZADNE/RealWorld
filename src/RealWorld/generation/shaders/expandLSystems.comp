@@ -1,0 +1,80 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/chunk.glsl>
+#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/generateStructure.glsl>
+#include <RealWorld/generation/shaders/vegDistribution.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
+#define VegPrepSB_ACCESS
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
+#include <RealWorld/vegetation/shaders/BranchSB.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
+
+layout (local_size_x = 64,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+shared VegInstance  s_inst;
+shared VegTemplate  s_tmplt;
+shared uint         s_branchCount;
+shared uint         s_branchI;
+
+const int k_randomOffsetTi = iChunkTi.x - 1;
+
+int invocXPosTi(){
+    return int(s_inst.rootPosTi.x);
+}
+
+void main(){
+    // Load vegetation instance & template description
+    if (gl_LocalInvocationID.x == 0){
+        s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.x];
+        s_tmplt = k_vegTemplates[s_inst.templateIndex];
+        s_branchCount = 0;
+    }
+    barrier();
+
+    // Expand L-system
+    g_randomState = s_inst.randomSeed ^ gl_LocalInvocationID.x * 2713;
+    ivec2 pTi = ivec2(invocXPosTi(), 0);
+    float xPx = tiToPx(pTi.x);
+    vec2 biomeClimate = biomeClimate(xPx, p_seed);
+    Biome biome = biomeStructure(biomeClimate);
+    float horizonPx = horizon(xPx, biome, p_seed).r;
+    pTi.y = int(pxToTi(horizonPx));
+    bool stemBranch = bool(gl_LocalInvocationID.x & 1);
+    float angleNorm = stemBranch ? 0.0 : 0.25;
+    float randAngleScaler = stemBranch ? s_tmplt.rndAngle : 0.0;
+    angleNorm = fract(angleNorm + (randomFloat() - 0.5) * randAngleScaler);
+    vec2 sizeTi = stemBranch ? vec2(0.5, 22.0) : vec2(0.0, 0.0);
+    sizeTi.y *= 1.0 + (randomFloat() - 0.5) * 0.375;
+    if (gl_LocalInvocationID.x < 2){
+        atomicAdd(s_branchCount, 1);
+    }
+    barrier();
+
+    // Reserve space for branches in the preparation buffer
+    if (gl_LocalInvocationID.x == 0){
+        s_branchI = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchCount);
+        b_vegPrep.prepIndexOfFirstBranch[gl_WorkGroupID.x] = s_branchI;
+        b_vegPrep.vegOffsetWithinChunk[gl_WorkGroupID.x] =
+            atomicAdd(b_vegPrep.branchOfChunk[s_inst.chunkIndex], s_branchCount);
+    }
+    barrier();
+
+    // Output branches to the preparation buffer
+    for (uint i = gl_LocalInvocationID.x + s_branchI; i < s_branchCount + s_branchI; i += gl_WorkGroupSize.x){
+        b_vegPrep.vegIndex[i] = gl_WorkGroupID.x;
+        b_vegPrep.absPosTi[i] = pTi;
+        b_vegPrep.absAngNorm[i] = angleNorm;
+        b_vegPrep.parentOffset15wallType31[i] = packBranchParentOffsetWallType(gl_LocalInvocationID.x & 1, k_wheatWl);
+        b_vegPrep.relRestAngNorm[i] = angleNorm;
+        b_vegPrep.radiusTi[i] = sizeTi.x;
+        b_vegPrep.lengthTi[i] = sizeTi.y;
+        b_vegPrep.densityStiffness[i] = vec2(8.0, 0.015625);
+    }
+}

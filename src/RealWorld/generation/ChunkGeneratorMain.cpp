@@ -3,7 +3,7 @@
  */
 #include <RealWorld/constants/world.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/generation/VegPreparationSB.hpp>
+#include <RealWorld/generation/VegPrepSB.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -18,18 +18,18 @@ using B = vk::BufferUsageFlagBits;
 namespace rw {
 
 namespace {
-using SB = VegPreparationSB;
-struct VegPreparationSBInitHelper {
+using SB = VegPrepSB;
+struct VegPrepSBInitHelper {
     decltype(SB::vegDispatchSize) vegDispatchSize{0, 1, 1, 0};
     decltype(SB::branchDispatchSize) branchDispatchSize{0, 1, 1, 0};
 };
-using SBInitHelper = VegPreparationSBInitHelper;
+using SBInitHelper = VegPrepSBInitHelper;
 static_assert(offsetof(SB, vegDispatchSize) == offsetof(SBInitHelper, vegDispatchSize));
 static_assert(
     offsetof(SB, branchDispatchSize) == offsetof(SBInitHelper, branchDispatchSize)
 );
 
-constexpr VegPreparationSBInitHelper k_vegPreparationSBInitHelper{};
+constexpr VegPrepSBInitHelper k_vegPrepSBInitHelper{};
 
 constexpr glm::uint k_tilesImageBinding     = 0;
 constexpr glm::uint k_materialImageBinding  = 1;
@@ -56,19 +56,19 @@ ChunkGenerator::ChunkGenerator()
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}
           }
       )
-    , m_vegPreparationBuf(re::BufferCreateInfo{
+    , m_vegPrepBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(VegPreparationSB),
+          .sizeInBytes = sizeof(VegPrepSB),
           .usage     = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
-          .initData  = re::objectToByteSpan(k_vegPreparationSBInitHelper),
-          .debugName = "rw::ChunkGenerator::vegPreparation"
+          .initData  = re::objectToByteSpan(k_vegPrepSBInitHelper),
+          .debugName = "rw::ChunkGenerator::vegPrep"
       }) {
     m_descriptorSet.write(eStorageImage, k_tilesImageBinding, 0, m_layerTex, eGeneral);
     m_descriptorSet.write(
         eStorageImage, k_materialImageBinding, 0, m_materialTex, eGeneral
     );
     m_descriptorSet.write(eUniformBuffer, k_vegTemplatesBinding, 0, m_vegTemplatesBuf);
-    m_descriptorSet.write(eStorageBuffer, k_vegPrepBinding, 0, m_vegPreparationBuf);
+    m_descriptorSet.write(eStorageBuffer, k_vegPrepBinding, 0, m_vegPrepBuf);
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {
@@ -92,7 +92,8 @@ bool ChunkGenerator::planGeneration(glm::ivec2 posCh) {
     return false;
 }
 
-bool ChunkGenerator::generate(const ActionCmdBuf& acb) {
+int ChunkGenerator::generate(const ActionCmdBuf& acb) {
+    int rval = m_chunksPlanned;
     if (m_chunksPlanned > 0) {
         auto& secCb = *m_cb;
         vk::CommandBufferInheritanceInfo inheritanceInfo{};
@@ -118,9 +119,8 @@ bool ChunkGenerator::generate(const ActionCmdBuf& acb) {
         (*acb)->executeCommands(*secCb);
 
         m_chunksPlanned = 0;
-        return true;
     }
-    return false;
+    return rval;
 }
 
 void ChunkGenerator::copyToDestination(const ActionCmdBuf& acb) {
