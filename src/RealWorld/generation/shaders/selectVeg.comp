@@ -53,7 +53,7 @@ void main(){
         VegDistr distr = biomeVegDistr(biomeClimate);
         float rndTemplate = randomFloat() * float(gl_WorkGroupSize.x);
         float probMin = 0.0;
-        for (int i = 0; i < k_vegTemplates.length(); ++i){
+        for (int i = 0; i < k_vegTemplateCount; ++i){
             float probMax = probMin + distr.genProbability[i];
             templateIndex = (rndTemplate > probMin && rndTemplate <= probMax) ? i : templateIndex;
             probMin = probMax;

@@ -3,29 +3,13 @@
  */
 #ifndef VEG_DISTRIBUTION_GLSL
 #define VEG_DISTRIBUTION_GLSL
-
-struct VegTemplate{
-    uint branchFirstIndex;
-    uint branchCount;
-    float rndLength;
-    float rndAngle;
-};
-
-const VegTemplate k_vegTemplates[] = {
-    VegTemplate(0,      51, 0.325,  0.03125),   // Oak
-    VegTemplate(51,     64, 0.75,   0.0625),    // Acacia
-    VegTemplate(115,    64, 0.75,   0.03125),   // Wheat (must be index 2; see generateVeg)
-};
-
-const uint k_vegTemplatesBranchCount =
-    k_vegTemplates[k_vegTemplates.length() - 1].branchFirstIndex + 
-    k_vegTemplates[k_vegTemplates.length() - 1].branchCount;
+#include <RealWorld/constants/generation.glsl>
 
 // Describes vegetation distribution
 struct VegDistr {
     // Represents probabilities to generate each template
     // Probabilities are per chunk
-    float genProbability[k_vegTemplates.length()];
+    float genProbability[k_vegTemplateCount];
 };
 
 const VegDistr k_mountainVeg =    {{  0.01,   0.0,    0.0}};
@@ -63,7 +47,7 @@ VegDistr biomeVegDistr(vec2 biomeClimate){
     const VegDistr b10 = k_biomeVegDistrs[ll.x + 1][ll.y];
     const VegDistr b11 = k_biomeVegDistrs[ll.x + 1][ll.y + 1];
 
-    for (int i = 0; i < k_vegTemplates.length(); ++i){
+    for (int i = 0; i < k_vegTemplateCount; ++i){
         // Interpolate over X axis
         float bx0 = mix(b00.genProbability[i], b10.genProbability[i], frac.x);
         float bx1 = mix(b01.genProbability[i], b11.genProbability[i], frac.x);

@@ -18,47 +18,120 @@ layout (local_size_x = 64,
         local_size_z = 1
 ) in;
 
+const uint k_maxSentenceLength = 512;
+
 shared VegInstance  s_inst;
 shared VegTemplate  s_tmplt;
+shared uint         s_symbolCount[2];
+shared uint8_t      s_symbols[2][k_maxSentenceLength];
+shared uint         s_symbolsOfThread[gl_WorkGroupSize.x];
 shared uint         s_branchCount;
 shared uint         s_branchI;
 
-const int k_randomOffsetTi = iChunkTi.x - 1;
+// Return index relative to the provided rules or ~0 if no rule was selected
+uint probSelectRuleIndex(ProbabilisticRewriteRuleBodies rules){
+    uint ruleIndex = ~0;
+    float rndRule = randomFloat();
+    float probMin = 0.0;
+    for (int r = 0; r < rules.bodyCount; ++r){
+        float probMax = probMin + u_vegTmplts.ruleProbs[rules.firstIndex + r];
+        ruleIndex = (rndRule > probMin && rndRule <= probMax) ? r : ruleIndex;
+        probMin = probMax;
+    }
+    return ruleIndex;
+}
 
-int invocXPosTi(){
-    return int(s_inst.rootPosTi.x);
+void doInclusiveScan(){
+    const uint id = gl_LocalInvocationID.x;
+    for (int off = 1; off <= gl_WorkGroupSize.x / 2; off *= 2){
+        uint my = s_symbolsOfThread[id];
+        barrier();
+        if (id + off < gl_WorkGroupSize.x) {
+            s_symbolsOfThread[id + off] += my;
+        }
+        barrier();
+    }
 }
 
 void main(){
+    const uint id = gl_LocalInvocationID.x;
     // Load vegetation instance & template description
-    if (gl_LocalInvocationID.x == 0){
+    if (id == 0){
         s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.x];
-        s_tmplt = k_vegTemplates[s_inst.templateIndex];
+        s_tmplt = u_vegTmplts.tmplts[s_inst.templateIndex];
         s_branchCount = 0;
+        s_symbolCount[0] = s_tmplt.axiom.count;
     }
     barrier();
 
-    // Expand L-system
-    g_randomState = s_inst.randomSeed ^ gl_LocalInvocationID.x * 2713;
-    ivec2 pTi = ivec2(invocXPosTi(), 0);
-    float xPx = tiToPx(pTi.x);
-    vec2 biomeClimate = biomeClimate(xPx, p_seed);
-    Biome biome = biomeStructure(biomeClimate);
-    float horizonPx = horizon(xPx, biome, p_seed).r;
-    pTi.y = int(pxToTi(horizonPx));
-    bool stemBranch = bool(gl_LocalInvocationID.x & 1);
-    float angleNorm = stemBranch ? 0.0 : 0.25;
-    float randAngleScaler = stemBranch ? s_tmplt.rndAngle : 0.0;
-    angleNorm = fract(angleNorm + (randomFloat() - 0.5) * randAngleScaler);
-    vec2 sizeTi = stemBranch ? vec2(0.5, 22.0) : vec2(0.0, 0.0);
-    sizeTi.y *= 1.0 + (randomFloat() - 0.5) * 0.375;
-    if (gl_LocalInvocationID.x < 2){
-        atomicAdd(s_branchCount, 1);
+    // Initialize by the axiom
+    if (id < s_symbolCount[0]){
+        s_symbols[0][id] = u_vegTmplts.symbols[s_tmplt.axiom.begin + id];
     }
+    barrier();
+
+    // Expand the L-system
+    g_randomState = s_inst.randomSeed ^ id * 2713;
+    for (uint iter = 0; iter < s_tmplt.iterCount; ++iter) {
+        s_symbolCount[(iter + 1) & 1] = 0;
+        for (uint wi = 0; wi < s_symbolCount[iter & 1]; wi += gl_WorkGroupSize.x){
+            // Select a rule to apply based on probabilities
+            uint8_t mySymbol = (wi + id < s_symbolCount[iter & 1])
+                               ? s_symbols[iter & 1][wi + id]
+                               : uint8_t(255);
+            ProbabilisticRewriteRuleBodies rules = s_tmplt.rules[mySymbol];
+            uint ruleIndex = (mySymbol < k_rewriteableSymbolCount)
+                             ? probSelectRuleIndex(rules)
+                             : ~0;
+
+            // Write number of symbols required
+            uint mySymbolCount = s_symbolsOfThread[id] =
+                (ruleIndex != ~0)
+                ? u_vegTmplts.ruleBodies[rules.firstIndex + ruleIndex].count
+                : 1;
+
+            // Scan the counts to get displacements
+            doInclusiveScan();
+
+            // Write selected rule bodies
+            uint displacement = s_symbolCount[(iter + 1) & 1] + 
+                                s_symbolsOfThread[id] - mySymbolCount;
+            if (ruleIndex != ~0){
+                uint begin = u_vegTmplts.ruleBodies[rules.firstIndex + ruleIndex].begin;
+                for (uint i = 0; i < mySymbolCount; ++i){
+                    s_symbols[(iter + 1) & 1][displacement + i] = 
+                        u_vegTmplts.symbols[begin + i];
+                }
+            } else {
+                // Or copy the symbol
+                s_symbols[(iter + 1) & 1][displacement] = mySymbol;
+            }
+            barrier();
+
+            // Update the total number of symbols
+            if (id == 0) {
+                s_symbolCount[(iter + 1) & 1] += 
+                    s_symbolsOfThread[min(gl_WorkGroupSize.x, s_symbolCount[iter & 1] - wi) - 1];
+            }
+        }
+    }
+    barrier();
+
+    // Interpret the L-system
+    // TODO
+    /*if (id == 0){
+        uint branchCount = 0;
+        for (uint i = 0; i < s_symbolCount[s_tmplt.iterCount & 1]; ++i){
+            uint8_t s = s_symbols[s_tmplt.iterCount & 1][i];
+            branchCount += (s == 0 || s == 17) ? 1 : 0;
+        }
+        #extension GL_EXT_debug_printf : require
+        debugPrintfEXT("SC: %i, BC: %u\n", s_symbolCount[s_tmplt.iterCount & 1], branchCount);
+    }*/
     barrier();
 
     // Reserve space for branches in the preparation buffer
-    if (gl_LocalInvocationID.x == 0){
+    if (id == 0){
         s_branchI = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchCount);
         b_vegPrep.prepIndexOfFirstBranch[gl_WorkGroupID.x] = s_branchI;
         b_vegPrep.vegOffsetWithinChunk[gl_WorkGroupID.x] =
@@ -67,14 +140,14 @@ void main(){
     barrier();
 
     // Output branches to the preparation buffer
-    for (uint i = gl_LocalInvocationID.x + s_branchI; i < s_branchCount + s_branchI; i += gl_WorkGroupSize.x){
-        b_vegPrep.vegIndex[i] = gl_WorkGroupID.x;
+    for (uint i = id + s_branchI; i < s_branchCount + s_branchI; i += gl_WorkGroupSize.x){
+        /*b_vegPrep.vegIndex[i] = gl_WorkGroupID.x;
         b_vegPrep.absPosTi[i] = pTi;
         b_vegPrep.absAngNorm[i] = angleNorm;
-        b_vegPrep.parentOffset15wallType31[i] = packBranchParentOffsetWallType(gl_LocalInvocationID.x & 1, k_wheatWl);
+        b_vegPrep.parentOffset15wallType31[i] = packBranchParentOffsetWallType(id & 1, k_wheatWl);
         b_vegPrep.relRestAngNorm[i] = angleNorm;
         b_vegPrep.radiusTi[i] = sizeTi.x;
         b_vegPrep.lengthTi[i] = sizeTi.y;
-        b_vegPrep.densityStiffness[i] = vec2(8.0, 0.015625);
+        b_vegPrep.densityStiffness[i] = vec2(8.0, 0.015625);*/
     }
 }

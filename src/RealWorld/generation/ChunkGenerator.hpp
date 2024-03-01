@@ -12,7 +12,6 @@
 #include <RealWorld/constants/generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
 #include <RealWorld/main/ActionCmdBuf.hpp>
-#include <RealWorld/vegetation/Branch.hpp>
 
 namespace rw {
 

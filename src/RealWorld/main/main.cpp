@@ -16,6 +16,8 @@ int main(int argc, char* argv[]) {
                                         .setGeometryShader(true)
                                         .setMultiDrawIndirect(true)},
         vk::PhysicalDeviceVulkan12Features{}
+            .setShaderInt8(true)
+            .setUniformAndStorageBuffer8BitAccess(true)
             .setStorageBuffer8BitAccess(true)
             .setUniformBufferStandardLayout(true)
             .setShaderSampledImageArrayNonUniformIndexing(true)

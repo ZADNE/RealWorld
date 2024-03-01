@@ -5,4 +5,5 @@ target_sources(RealWorld PRIVATE
     ChunkGenerator.hpp          ChunkGeneratorMain.cpp
     ChunkGeneratorTerrain.cpp   ChunkGeneratorVeg.cpp
     VegPrepSB.hpp               
+    VegTemplatesUB.hpp          
 )

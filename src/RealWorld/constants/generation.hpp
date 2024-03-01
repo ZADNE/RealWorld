@@ -38,4 +38,7 @@ constexpr int k_maxVegPerChunk = 64;
  */
 constexpr int k_branchGenSlots = k_chunkGenSlots * 256;
 
+constexpr int k_vegTemplatesSymbolCount = 128;
+constexpr int k_vegTemplateCount        = 3;
+
 } // namespace rw
