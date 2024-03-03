@@ -152,7 +152,7 @@ protected:
          .debugName      = "rw::ChunkGenerator::outputBranches"},
         {.comp = outputBranches_comp}
     };
-    re::Buffer m_vegTemplatesBuf = createVegTemplatesBuffer();
+    re::Buffer m_vegTemplatesBuf;
     re::Buffer m_vegPrepBuf;
 };
 

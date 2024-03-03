@@ -4,6 +4,7 @@
 #include <RealWorld/constants/world.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/VegPrepSB.hpp>
+#include <RealWorld/generation/VegTemplatesUB.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -56,6 +57,13 @@ ChunkGenerator::ChunkGenerator()
               .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}
           }
       )
+    , m_vegTemplatesBuf{re::Buffer{re::BufferCreateInfo{
+          .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+          .sizeInBytes = sizeof(k_vegTemplatesUB),
+          .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
+          .initData    = re::objectToByteSpan(k_vegTemplatesUB),
+          .debugName   = "rw::ChunkGeneratorVeg::vegTemplates"
+      }}}
     , m_vegPrepBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(VegPrepSB),

@@ -6,6 +6,7 @@
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
+#include <RealWorld/vegetation/shaders/normAngles.glsl>
 #include <RealWorld/generation/shaders/generationPll.glsl>
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
 #define VegPrepSB_ACCESS
@@ -24,9 +25,19 @@ shared VegInstance  s_inst;
 shared VegTemplate  s_tmplt;
 shared uint         s_symbolCount[2];
 shared uint8_t      s_symbols[2][k_maxSentenceLength];
+shared float        s_symbolParams[2][k_maxSentenceLength];
 shared uint         s_symbolsOfThread[gl_WorkGroupSize.x];
+shared uint         s_chunkSize;
+shared uint         s_chunkRemainder;
 shared uint         s_branchCount;
-shared uint         s_branchI;
+
+struct TurtleState {
+    vec2    sizeTi;
+    vec2    densityStiffness;
+    float   relRestAngNorm;
+    uint    parentIndex;
+};
+shared TurtleState  s_stack[8];
 
 // Return index relative to the provided rules or ~0 if no rule was selected
 uint probSelectRuleIndex(ProbabilisticRewriteRuleBodies rules){
@@ -53,13 +64,27 @@ void doInclusiveScan(){
     }
 }
 
+void emitBranch(
+    inout uint outIndex, vec2 posTi, float relRestAngNorm, uint parentOffset,
+    uint wallType, vec2 sizeTi, vec2 densityStiffness
+){
+    b_vegPrep.vegIndex[outIndex] = gl_WorkGroupID.x;
+    b_vegPrep.absPosTi[outIndex] = posTi;
+    b_vegPrep.absAngNorm[outIndex] = 0.25;
+    b_vegPrep.parentOffset15wallType31[outIndex] = packBranchParentOffsetWallType(parentOffset, wallType);
+    b_vegPrep.relRestAngNorm[outIndex] = relRestAngNorm;
+    b_vegPrep.radiusTi[outIndex] = sizeTi.x;
+    b_vegPrep.lengthTi[outIndex] = sizeTi.y;
+    b_vegPrep.densityStiffness[outIndex] = densityStiffness;
+    outIndex++;
+}
+
 void main(){
     const uint id = gl_LocalInvocationID.x;
     // Load vegetation instance & template description
     if (id == 0){
         s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.x];
         s_tmplt = u_vegTmplts.tmplts[s_inst.templateIndex];
-        s_branchCount = 0;
         s_symbolCount[0] = s_tmplt.axiom.count;
     }
     barrier();
@@ -67,6 +92,7 @@ void main(){
     // Initialize by the axiom
     if (id < s_symbolCount[0]){
         s_symbols[0][id] = u_vegTmplts.symbols[s_tmplt.axiom.begin + id];
+        s_symbolParams[0][id] = u_vegTmplts.symbolParams[s_tmplt.axiom.begin + id];
     }
     barrier();
 
@@ -101,10 +127,16 @@ void main(){
                 for (uint i = 0; i < mySymbolCount; ++i){
                     s_symbols[(iter + 1) & 1][displacement + i] = 
                         u_vegTmplts.symbols[begin + i];
+                    s_symbolParams[(iter + 1) & 1][displacement + i] = 
+                        u_vegTmplts.symbolParams[begin + i];
                 }
             } else {
                 // Or copy the symbol
                 s_symbols[(iter + 1) & 1][displacement] = mySymbol;
+                s_symbolParams[(iter + 1) & 1][displacement] =
+                    (wi + id < s_symbolCount[iter & 1])
+                    ? s_symbolParams[iter & 1][wi + id]
+                    : 0.0;
             }
             barrier();
 
@@ -117,37 +149,95 @@ void main(){
     }
     barrier();
 
-    // Interpret the L-system
-    // TODO
-    /*if (id == 0){
-        uint branchCount = 0;
-        for (uint i = 0; i < s_symbolCount[s_tmplt.iterCount & 1]; ++i){
-            uint8_t s = s_symbols[s_tmplt.iterCount & 1][i];
-            branchCount += (s == 0 || s == 17) ? 1 : 0;
-        }
-        #extension GL_EXT_debug_printf : require
-        debugPrintfEXT("SC: %i, BC: %u\n", s_symbolCount[s_tmplt.iterCount & 1], branchCount);
-    }*/
-    barrier();
-
-    // Reserve space for branches in the preparation buffer
+    // Count the number of branches
     if (id == 0){
-        s_branchI = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchCount);
-        b_vegPrep.prepIndexOfFirstBranch[gl_WorkGroupID.x] = s_branchI;
-        b_vegPrep.vegOffsetWithinChunk[gl_WorkGroupID.x] =
-            atomicAdd(b_vegPrep.branchOfChunk[s_inst.chunkIndex], s_branchCount);
+        uint count = s_symbolCount[s_tmplt.iterCount & 1];
+        s_chunkSize = count / gl_WorkGroupSize.x;
+        s_chunkRemainder = count % gl_WorkGroupSize.x;
+        s_branchCount = 1; // 1 for the root degenerated branch
+    }
+    barrier();
+    {
+        uint begin = (id < s_chunkRemainder)
+                     ? id * (s_chunkSize + 1)
+                     : (id - s_chunkRemainder) * s_chunkSize + s_chunkRemainder * (s_chunkSize + 1);
+        uint end = begin + s_chunkSize + ((id < s_chunkRemainder) ? 1 : 0);
+        uint branchCount = 0;
+        for (uint i = begin; i < end; ++i){
+            uint8_t s = s_symbols[s_tmplt.iterCount & 1][i];
+            branchCount += (s == k_sBranch || s == k_sStem) ? 1 : 0;
+        }
+        if (branchCount > 0){
+            atomicAdd(s_branchCount, branchCount);
+        }
     }
     barrier();
 
-    // Output branches to the preparation buffer
-    for (uint i = id + s_branchI; i < s_branchCount + s_branchI; i += gl_WorkGroupSize.x){
-        /*b_vegPrep.vegIndex[i] = gl_WorkGroupID.x;
-        b_vegPrep.absPosTi[i] = pTi;
-        b_vegPrep.absAngNorm[i] = angleNorm;
-        b_vegPrep.parentOffset15wallType31[i] = packBranchParentOffsetWallType(id & 1, k_wheatWl);
-        b_vegPrep.relRestAngNorm[i] = angleNorm;
-        b_vegPrep.radiusTi[i] = sizeTi.x;
-        b_vegPrep.lengthTi[i] = sizeTi.y;
-        b_vegPrep.densityStiffness[i] = vec2(8.0, 0.015625);*/
+    if (id == 0){
+        // Reserve space for branches in the preparation buffer
+        uint outIndex = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchCount);
+        b_vegPrep.prepIndexOfFirstBranch[gl_WorkGroupID.x] = outIndex;
+        b_vegPrep.vegOffsetWithinChunk[gl_WorkGroupID.x] =
+            atomicAdd(b_vegPrep.branchOfChunk[s_inst.chunkIndex], s_branchCount);
+
+        // Initialize turtle state stack
+        uint stackDepth = 0;
+        s_stack[stackDepth] = TurtleState(
+            s_tmplt.initSizeTi,
+            s_tmplt.densityStiffness,
+            0.0,
+            outIndex
+        );
+
+        // Emit root branch
+        emitBranch(outIndex,
+            s_inst.rootPosTi,
+            0.0,
+            0,
+            s_tmplt.wallType,
+            vec2(0),
+            vec2(0)
+        );
+
+        // Interpret the L-system -> output branches to the preparation buffer
+        uint symbolCount = s_symbolCount[s_tmplt.iterCount & 1];
+        for (uint si = 0; si < symbolCount; ++si){
+            uint symbol = s_symbols[s_tmplt.iterCount & 1][si];
+            float param = s_symbolParams[s_tmplt.iterCount & 1][si];
+            switch (symbol){
+            case k_sBranch:
+            case k_sStem:
+                emitBranch(outIndex,
+                    vec2(0),
+                    s_stack[stackDepth].relRestAngNorm,
+                    outIndex - s_stack[stackDepth].parentIndex,
+                    s_tmplt.wallType,
+                    s_stack[stackDepth].sizeTi,
+                    s_stack[stackDepth].densityStiffness
+                );
+                s_stack[stackDepth].parentIndex = outIndex - 1;
+                s_stack[stackDepth].relRestAngNorm = 0.0;
+                s_stack[stackDepth].sizeTi *= s_tmplt.sizeChange;
+                s_stack[stackDepth].sizeTi.x =
+                    max(s_stack[stackDepth].sizeTi.x, 0.5);
+                s_stack[stackDepth].densityStiffness.y *= 0.75;
+                break;
+            case k_sLeftTurn:
+                s_stack[stackDepth].relRestAngNorm =
+                    fract(s_stack[stackDepth].relRestAngNorm + param);
+                break;
+            case k_sRightTurn:
+                s_stack[stackDepth].relRestAngNorm =
+                    fract(s_stack[stackDepth].relRestAngNorm - param);
+                break;
+            case k_sPush:
+                s_stack[stackDepth + 1] = s_stack[stackDepth];
+                stackDepth++;
+                break;
+            case k_sPop:
+                stackDepth--;
+                break;
+            }
+        }
     }
 }

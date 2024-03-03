@@ -26,7 +26,7 @@ VegPrepSB_ACCESS restrict buffer VegPrepSB {
     uint    vegIndex[k_branchGenSlots];
     vec2    absPosTi[k_branchGenSlots];
     float   absAngNorm[k_branchGenSlots];
-    uint    parentOffset15wallType31[k_branchGenSlots];// explanation below
+    uint    parentOffset15wallType31[k_branchGenSlots];
     float   relRestAngNorm[k_branchGenSlots];   // rest angle relative to parent
     float   radiusTi[k_branchGenSlots];
     float   lengthTi[k_branchGenSlots];
