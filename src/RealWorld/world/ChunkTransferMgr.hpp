@@ -91,7 +91,7 @@ private:
     int allocIndex(glm::ivec2 posAc) const;
 
     static constexpr auto k_stageSlotCount = k_chunkTransferSlots;
-    re::StepDoubleBuffered<ChunkTransferStage<k_stageSlotCount, 512>> m_stage;
+    re::StepDoubleBuffered<ChunkTransferStage<k_stageSlotCount, 2048>> m_stage;
 
     glm::ivec2 m_worldTexCh{};
 

@@ -6,36 +6,53 @@
 #include <RealWorld/constants/generation.glsl>
 
 struct String {
-    uint begin;
-    uint count;
+    uint sBegin; // Index of first symbol
+    uint sCount; // Number of symbols
+    uint pBegin; // Index of first parameter
+    uint pCount; // Number of parameters
 };
 
-struct ProbabilisticRewriteRuleBodies {
-    uint firstIndex;
-    uint bodyCount;
+struct Condition {
+    uint  paramIndex;
+    float border;
 };
 
-const int k_rewriteableSymbolCount = 1;
+struct RuleBodies {
+    Condition cond;
+    uint firstIndex[2]; // 0 <=> cond false, 1 <=> cond true
+    uint bodyCount[2];  // 0 <=> cond false, 1 <=> cond true
+};
+
+const int k_rewriteableSymbolCount = 3; // So far: == number of ~segment symbols
 
 struct VegTemplate {
-    String  axiom;
-    vec2    initSizeTi;
-    vec2    sizeChange;
-    vec2    densityStiffness;
-    uint    wallType;
-    uint    iterCount;
-    ProbabilisticRewriteRuleBodies rules[k_rewriteableSymbolCount];
+    String     axiom;
+    vec2       densityStiffness;
+    uint       wallType;
+    uint       iterCount;
+    RuleBodies rules[k_rewriteableSymbolCount];
 };
 
 #extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
-const uint8_t   k_sBranch       = uint8_t(0);
-const uint8_t   k_sStem         = uint8_t(1);
-const uint8_t   k_sLeftTurn     = uint8_t(2);
-const uint8_t   k_sRightTurn    = uint8_t(3);
-const uint8_t   k_sPush         = uint8_t(4);
-const uint8_t   k_sPop          = uint8_t(5);
+const uint8_t   k_sTwig         = uint8_t(0);
+const uint8_t   k_sBranch       = uint8_t(1);
+const uint8_t   k_sStem         = uint8_t(2);
+const uint8_t   k_sRotate       = uint8_t(3);
+const uint8_t   k_sFlip         = uint8_t(4);
+const uint8_t   k_sPush         = uint8_t(5);
+const uint8_t   k_sPop          = uint8_t(6);
 
-const int k_totalRewriteRuleBodyCount = 3;
+const uint k_paramCount[7] = {
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0
+};
+
+const int k_totalRewriteRuleBodyCount = 8;
 
 #extension GL_EXT_scalar_block_layout : require
 layout (set = 0, binding = k_vegTemplatesBinding, std430)

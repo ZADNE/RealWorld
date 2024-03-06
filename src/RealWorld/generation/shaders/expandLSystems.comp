@@ -19,46 +19,70 @@ layout (local_size_x = 64,
         local_size_z = 1
 ) in;
 
-const uint k_maxSentenceLength = 512;
+const uint k_maxSymbolSentenceLength = 1536;
+const uint k_maxParamSentenceLength = 1024;
 
 shared VegInstance  s_inst;
 shared VegTemplate  s_tmplt;
+
 shared uint         s_symbolCount[2];
-shared uint8_t      s_symbols[2][k_maxSentenceLength];
-shared float        s_symbolParams[2][k_maxSentenceLength];
+shared uint8_t      s_symbols[2][k_maxSymbolSentenceLength];
+
+shared uint         s_headParamDispl;
+shared uint         s_bodyParamDispl;
+shared float        s_params[2][k_maxParamSentenceLength];
+
 shared uint         s_symbolsOfThread[gl_WorkGroupSize.x];
+shared uint         s_headParamsOfThread[gl_WorkGroupSize.x];
+shared uint         s_bodyParamsOfThread[gl_WorkGroupSize.x];
+
 shared uint         s_chunkSize;
 shared uint         s_chunkRemainder;
 shared uint         s_branchCount;
 
 struct TurtleState {
-    vec2    sizeTi;
-    vec2    densityStiffness;
-    float   relRestAngNorm;
-    uint    parentIndex;
+    float flipAngDir;
+    float parentAbsAngNorm;
+    float relRestAngNorm;
+    uint  parentIndex;
 };
-shared TurtleState  s_stack[8];
+const int k_maxStackDepth = 8;
+shared TurtleState s_stack[k_maxStackDepth];
 
 // Return index relative to the provided rules or ~0 if no rule was selected
-uint probSelectRuleIndex(ProbabilisticRewriteRuleBodies rules){
+uint probSelectRuleIndex(uint cond, RuleBodies rules){
     uint ruleIndex = ~0;
     float rndRule = randomFloat();
     float probMin = 0.0;
-    for (int r = 0; r < rules.bodyCount; ++r){
-        float probMax = probMin + u_vegTmplts.ruleProbs[rules.firstIndex + r];
+    for (int r = 0; r < rules.bodyCount[cond]; ++r){
+        float probMax = probMin + u_vegTmplts.ruleProbs[rules.firstIndex[cond] + r];
         ruleIndex = (rndRule > probMin && rndRule <= probMax) ? r : ruleIndex;
         probMin = probMax;
     }
     return ruleIndex;
 }
 
-void doInclusiveScan(){
+void doInclusiveScanOfHeadParams(){
     const uint id = gl_LocalInvocationID.x;
     for (int off = 1; off <= gl_WorkGroupSize.x / 2; off *= 2){
-        uint my = s_symbolsOfThread[id];
+        uint myHeadP = s_headParamsOfThread[id];
         barrier();
         if (id + off < gl_WorkGroupSize.x) {
-            s_symbolsOfThread[id + off] += my;
+            s_headParamsOfThread[id + off] += myHeadP;
+        }
+        barrier();
+    }
+}
+
+void doInclusiveScanOfBodySymbolsAndParams(){
+    const uint id = gl_LocalInvocationID.x;
+    for (int off = 1; off <= gl_WorkGroupSize.x / 2; off *= 2){
+        uint myS = s_symbolsOfThread[id];
+        uint myBodyP = s_bodyParamsOfThread[id];
+        barrier();
+        if (id + off < gl_WorkGroupSize.x) {
+            s_symbolsOfThread[id + off] += myS;
+            s_bodyParamsOfThread[id + off] += myBodyP;
         }
         barrier();
     }
@@ -70,7 +94,7 @@ void emitBranch(
 ){
     b_vegPrep.vegIndex[outIndex] = gl_WorkGroupID.x;
     b_vegPrep.absPosTi[outIndex] = posTi;
-    b_vegPrep.absAngNorm[outIndex] = 0.25;
+    b_vegPrep.absAngNorm[outIndex] = s_inst.rootDirNorm;
     b_vegPrep.parentOffset15wallType31[outIndex] = packBranchParentOffsetWallType(parentOffset, wallType);
     b_vegPrep.relRestAngNorm[outIndex] = relRestAngNorm;
     b_vegPrep.radiusTi[outIndex] = sizeTi.x;
@@ -85,65 +109,98 @@ void main(){
     if (id == 0){
         s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.x];
         s_tmplt = u_vegTmplts.tmplts[s_inst.templateIndex];
-        s_symbolCount[0] = s_tmplt.axiom.count;
+        s_symbolCount[0] = s_tmplt.axiom.sCount;
     }
     barrier();
 
     // Initialize by the axiom
     if (id < s_symbolCount[0]){
-        s_symbols[0][id] = u_vegTmplts.symbols[s_tmplt.axiom.begin + id];
-        s_symbolParams[0][id] = u_vegTmplts.symbolParams[s_tmplt.axiom.begin + id];
+        s_symbols[0][id] = u_vegTmplts.symbols[s_tmplt.axiom.sBegin + id];
+    }
+    if (id < s_tmplt.axiom.pCount){
+        s_params[0][id] = u_vegTmplts.symbolParams[s_tmplt.axiom.pBegin + id];
     }
     barrier();
 
     // Expand the L-system
-    g_randomState = s_inst.randomSeed ^ id * 2713;
+    g_randomState = s_inst.randomSeed ^ (id * 2713);
+    random();
     for (uint iter = 0; iter < s_tmplt.iterCount; ++iter) {
-        s_symbolCount[(iter + 1) & 1] = 0;
-        for (uint wi = 0; wi < s_symbolCount[iter & 1]; wi += gl_WorkGroupSize.x){
+        const uint read = iter & 1;
+        const uint write = 1 - read;
+        s_symbolCount[write] = 0;
+        s_headParamDispl = 0;
+        s_bodyParamDispl = 0;
+        for (uint wi = 0; wi < s_symbolCount[read]; wi += gl_WorkGroupSize.x){
+            // Read head symbol and its params
+            uint8_t headS = (wi + id < s_symbolCount[read])
+                            ? s_symbols[read][wi + id]
+                            : uint8_t(k_rewriteableSymbolCount + 1);
+            uint headPCount = s_headParamsOfThread[id] = k_paramCount[headS & 127];
+
+            // Scan head param counts to get displacements
+            doInclusiveScanOfHeadParams();
+            uint headPDispl = s_headParamDispl +
+                              s_headParamsOfThread[id] - headPCount;
+
             // Select a rule to apply based on probabilities
-            uint8_t mySymbol = (wi + id < s_symbolCount[iter & 1])
-                               ? s_symbols[iter & 1][wi + id]
-                               : uint8_t(255);
-            ProbabilisticRewriteRuleBodies rules = s_tmplt.rules[mySymbol];
-            uint ruleIndex = (mySymbol < k_rewriteableSymbolCount)
-                             ? probSelectRuleIndex(rules)
+            RuleBodies rules = s_tmplt.rules[headS];
+            uint cond = uint(
+                s_params[read][headPDispl + rules.cond.paramIndex] >= rules.cond.border
+            );
+            uint ruleIndex = (headS < k_rewriteableSymbolCount)
+                             ? probSelectRuleIndex(cond, rules)
                              : ~0;
 
-            // Write number of symbols required
-            uint mySymbolCount = s_symbolsOfThread[id] =
+            // Write the number of symbols and params required
+            uint bodySCount = s_symbolsOfThread[id] =
                 (ruleIndex != ~0)
-                ? u_vegTmplts.ruleBodies[rules.firstIndex + ruleIndex].count
+                ? u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].sCount
                 : 1;
+            uint bodyPCount = s_bodyParamsOfThread[id] =
+                (ruleIndex != ~0)
+                ? u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].pCount
+                : headPCount;
 
-            // Scan the counts to get displacements
-            doInclusiveScan();
+            // Scan the body symbol and param counts to get displacements
+            doInclusiveScanOfBodySymbolsAndParams();
+            uint bodySDispl = s_symbolCount[write] + 
+                              s_symbolsOfThread[id] - bodySCount;
+            uint bodyPDispl = s_bodyParamDispl +
+                              s_bodyParamsOfThread[id] - bodyPCount;
 
-            // Write selected rule bodies
-            uint displacement = s_symbolCount[(iter + 1) & 1] + 
-                                s_symbolsOfThread[id] - mySymbolCount;
+            // Write the rule bodies to the displacements
             if (ruleIndex != ~0){
-                uint begin = u_vegTmplts.ruleBodies[rules.firstIndex + ruleIndex].begin;
-                for (uint i = 0; i < mySymbolCount; ++i){
-                    s_symbols[(iter + 1) & 1][displacement + i] = 
-                        u_vegTmplts.symbols[begin + i];
-                    s_symbolParams[(iter + 1) & 1][displacement + i] = 
-                        u_vegTmplts.symbolParams[begin + i];
+                // Expand the rule
+                uint sBegin = u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].sBegin;
+                uint pBegin = u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].pBegin;
+                uint pI = 0;
+                for (uint i = 0; i < bodySCount; ++i){
+                    const uint8_t s = u_vegTmplts.symbols[sBegin + i];
+                    s_symbols[write][bodySDispl + i] = s & uint8_t(127);
+                    // Resolve the parameters
+                    for (uint j = 0; j < k_paramCount[s & 127]; ++j){
+                        float prevP = s_params[read][headPDispl + j];
+                        s_params[write][bodyPDispl + pI] =
+                            prevP * float(bool(s & 128)) + u_vegTmplts.symbolParams[pBegin + pI];
+                        pI++;
+                    }
                 }
             } else {
-                // Or copy the symbol
-                s_symbols[(iter + 1) & 1][displacement] = mySymbol;
-                s_symbolParams[(iter + 1) & 1][displacement] =
-                    (wi + id < s_symbolCount[iter & 1])
-                    ? s_symbolParams[iter & 1][wi + id]
-                    : 0.0;
+                // Or copy the symbol and its params
+                s_symbols[write][bodySDispl] = headS;
+                for (uint i = 0; i < headPCount; ++i){
+                    s_params[write][bodyPDispl + i] = s_params[read][headPDispl + i];
+                }
             }
             barrier();
 
             // Update the total number of symbols
             if (id == 0) {
-                s_symbolCount[(iter + 1) & 1] += 
-                    s_symbolsOfThread[min(gl_WorkGroupSize.x, s_symbolCount[iter & 1] - wi) - 1];
+                uint lastValidId = min(gl_WorkGroupSize.x, s_symbolCount[read] - wi) - 1;
+                s_symbolCount[write] += s_symbolsOfThread[lastValidId];
+                s_headParamDispl     += s_headParamsOfThread[lastValidId];
+                s_bodyParamDispl     += s_bodyParamsOfThread[lastValidId];
             }
         }
     }
@@ -165,7 +222,7 @@ void main(){
         uint branchCount = 0;
         for (uint i = begin; i < end; ++i){
             uint8_t s = s_symbols[s_tmplt.iterCount & 1][i];
-            branchCount += (s == k_sBranch || s == k_sStem) ? 1 : 0;
+            branchCount += uint(s < k_rewriteableSymbolCount);
         }
         if (branchCount > 0){
             atomicAdd(s_branchCount, branchCount);
@@ -183,10 +240,10 @@ void main(){
         // Initialize turtle state stack
         uint stackDepth = 0;
         s_stack[stackDepth] = TurtleState(
-            s_tmplt.initSizeTi,
-            s_tmplt.densityStiffness,
-            0.0,
-            outIndex
+            1.0,                // flipAngDir
+            s_inst.rootDirNorm, // parentAbsAngNorm
+            0.0,                // relRestAngNorm
+            outIndex            // parentIndex
         );
 
         // Emit root branch
@@ -201,34 +258,46 @@ void main(){
 
         // Interpret the L-system -> output branches to the preparation buffer
         uint symbolCount = s_symbolCount[s_tmplt.iterCount & 1];
+        uint paramIndex = 0;
         for (uint si = 0; si < symbolCount; ++si){
             uint symbol = s_symbols[s_tmplt.iterCount & 1][si];
-            float param = s_symbolParams[s_tmplt.iterCount & 1][si];
             switch (symbol){
+            case k_sTwig:
             case k_sBranch:
             case k_sStem:
+                float tropismLengthFactor = 1.0 - 4.0 * abs(
+                    s_inst.tropismDirNorm - s_stack[stackDepth].parentAbsAngNorm
+                );
+                float len = s_params[s_tmplt.iterCount & 1][paramIndex + 1] *
+                          (0.8 + randomFloat() * 0.4) *
+                          tropismLengthFactor;
                 emitBranch(outIndex,
-                    vec2(0),
+                    s_inst.rootPosTi,
                     s_stack[stackDepth].relRestAngNorm,
                     outIndex - s_stack[stackDepth].parentIndex,
                     s_tmplt.wallType,
-                    s_stack[stackDepth].sizeTi,
-                    s_stack[stackDepth].densityStiffness
+                    vec2(s_params[s_tmplt.iterCount & 1][paramIndex], len),
+                    s_tmplt.densityStiffness
                 );
                 s_stack[stackDepth].parentIndex = outIndex - 1;
+                s_stack[stackDepth].parentAbsAngNorm = fract(
+                    s_stack[stackDepth].parentAbsAngNorm + s_stack[stackDepth].relRestAngNorm
+                );
                 s_stack[stackDepth].relRestAngNorm = 0.0;
-                s_stack[stackDepth].sizeTi *= s_tmplt.sizeChange;
-                s_stack[stackDepth].sizeTi.x =
-                    max(s_stack[stackDepth].sizeTi.x, 0.5);
-                s_stack[stackDepth].densityStiffness.y *= 0.75;
+                paramIndex += 2;
                 break;
-            case k_sLeftTurn:
+            case k_sRotate:
+                float desiredAbs =
+                    s_stack[stackDepth].parentAbsAngNorm +
+                    s_stack[stackDepth].relRestAngNorm +
+                    (s_params[s_tmplt.iterCount & 1][paramIndex++] *
+                    (0.9 + randomFloat() * 0.2)) * s_stack[stackDepth].flipAngDir;
+                float desiredW = float((stackDepth + 1) * (stackDepth + 1));
                 s_stack[stackDepth].relRestAngNorm =
-                    fract(s_stack[stackDepth].relRestAngNorm + param);
+                    desiredAbs - s_stack[stackDepth].parentAbsAngNorm;
                 break;
-            case k_sRightTurn:
-                s_stack[stackDepth].relRestAngNorm =
-                    fract(s_stack[stackDepth].relRestAngNorm - param);
+            case k_sFlip:
+                s_stack[stackDepth].flipAngDir = randomBool() ? 1.0 : -1.0;
                 break;
             case k_sPush:
                 s_stack[stackDepth + 1] = s_stack[stackDepth];
@@ -239,5 +308,11 @@ void main(){
                 break;
             }
         }
+        /*#extension GL_EXT_debug_printf : require
+        debugPrintfEXT("S: %i/%i, P: %i/%i, S: %i/%i, B: %i\n",
+            symbolCount, k_maxSymbolSentenceLength,
+            paramIndex - 1, k_maxParamSentenceLength,
+            maxDepth + 1, k_maxStackDepth,
+            s_branchCount);*/
     }
 }

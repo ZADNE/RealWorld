@@ -10,11 +10,13 @@
 namespace rw {
 
 struct VegInstance {
-    glm::uint templateIndex; // Index of the template
-    glm::uint randomSeed;
-    glm::uint chunkIndex;
-    float growth;
     glm::vec2 rootPosTi;
+    glm::uint templateIndex;
+    glm::uint chunkIndex;
+    glm::uint randomSeed;
+    float growth;
+    float rootDirNorm;
+    float tropismDirNorm;
 };
 
 struct VegPrepSB {

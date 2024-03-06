@@ -6,11 +6,13 @@
 #include <RealWorld/constants/generation.glsl>
 
 struct VegInstance{
-    uint  templateIndex; // Index of the template
-    uint  randomSeed;
-    uint  chunkIndex;
-    float growth;
     vec2  rootPosTi;
+    uint  templateIndex;
+    uint  chunkIndex;
+    uint  randomSeed;
+    float growth;
+    float rootDirNorm;
+    float tropismDirNorm;
 };
 
 layout (binding = k_vegPrepBinding, std430)

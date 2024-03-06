@@ -27,8 +27,8 @@ void main(){
     uint i = b_vegPrep.branchOfChunk[s_inst.chunkIndex] +
              b_vegPrep.vegOffsetWithinChunk[vegIndex] + 
              indexWithinVeg;
+    g_randomState = s_inst.randomSeed ^ (indexWithinVeg * 2713);
 
-    g_randomState = s_inst.randomSeed ^ gl_LocalInvocationIndex * 2713;
     uint val = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
     storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), val);
 
