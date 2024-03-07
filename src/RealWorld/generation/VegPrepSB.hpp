@@ -9,7 +9,7 @@
 
 namespace rw {
 
-struct VegInstance {
+struct alignas(sizeof(glm::vec2)) VegInstance {
     glm::vec2 rootPosTi;
     glm::uint templateIndex;
     glm::uint chunkIndex;

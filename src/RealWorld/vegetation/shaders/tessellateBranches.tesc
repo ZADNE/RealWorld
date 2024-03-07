@@ -25,7 +25,10 @@ vec2 imPos(vec2 posTi){
 void main() {
     float lengthTi = i_sizeTi[gl_InvocationID].y;
     float aDiff = abs(angularDifference(i_startAngleNorm[gl_InvocationID], i_endAngleNorm[gl_InvocationID]));
-    float subdivs = lengthTi * aDiff;
+    float subdivs =
+        (lengthTi > 0.0)
+        ? max(lengthTi * aDiff, 1.0) // max to avoid the branch from disappearing if aDiff == 0
+        : 0.0;                       // Discard root zero-length 'branch'
     gl_TessLevelOuter[0] = subdivs;
     gl_TessLevelOuter[1] = 1.0;
     gl_TessLevelOuter[2] = subdivs;

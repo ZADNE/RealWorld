@@ -139,7 +139,7 @@ void leafGrowth(uvec2 leaf, ivec2 posAt){
     for (int i = 0; i < neighborhood; i++){
         ivec2 nPosAt = tiToAt(posAt + k_neighborhood[i], p_worldTexMaskTi);
         uvec2 n = loadWall(nPosAt);
-        if (n.L_T == k_airWl){
+        if (n.L_T == k_airWl || (n.L_T == k_oakWoodWl && (n.L_V & 7) > 1)){
             storeWall(nPosAt, uvec2(leaf.L_T, strength));
         } else if (n.L_T == leaf.L_T){
             storeWall(nPosAt, uvec2(leaf.L_T, max(strength, n.L_V)));

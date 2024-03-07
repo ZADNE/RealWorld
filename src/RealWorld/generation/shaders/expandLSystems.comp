@@ -41,10 +41,11 @@ shared uint         s_chunkRemainder;
 shared uint         s_branchCount;
 
 struct TurtleState {
+    vec2  parentTipTi;
+    uint  parentIndex;
     float flipAngDir;
     float parentAbsAngNorm;
     float relRestAngNorm;
-    uint  parentIndex;
 };
 const int k_maxStackDepth = 8;
 shared TurtleState s_stack[k_maxStackDepth];
@@ -89,12 +90,12 @@ void doInclusiveScanOfBodySymbolsAndParams(){
 }
 
 void emitBranch(
-    inout uint outIndex, vec2 posTi, float relRestAngNorm, uint parentOffset,
-    uint wallType, vec2 sizeTi, vec2 densityStiffness
+    inout uint outIndex, vec2 posTi, float tipAbsAngNorm, float relRestAngNorm,
+    uint parentOffset, uint wallType, vec2 sizeTi, vec2 densityStiffness
 ){
     b_vegPrep.vegIndex[outIndex] = gl_WorkGroupID.x;
     b_vegPrep.absPosTi[outIndex] = posTi;
-    b_vegPrep.absAngNorm[outIndex] = s_inst.rootDirNorm;
+    b_vegPrep.absAngNorm[outIndex] = tipAbsAngNorm;
     b_vegPrep.parentOffset15wallType31[outIndex] = packBranchParentOffsetWallType(parentOffset, wallType);
     b_vegPrep.relRestAngNorm[outIndex] = relRestAngNorm;
     b_vegPrep.radiusTi[outIndex] = sizeTi.x;
@@ -240,15 +241,18 @@ void main(){
         // Initialize turtle state stack
         uint stackDepth = 0;
         s_stack[stackDepth] = TurtleState(
+            s_inst.rootPosTi,   // parentTipTi
+            outIndex,           // parentIndex
             1.0,                // flipAngDir
             s_inst.rootDirNorm, // parentAbsAngNorm
-            0.0,                // relRestAngNorm
-            outIndex            // parentIndex
+            0.0                 // relRestAngNorm
         );
 
         // Emit root branch
-        emitBranch(outIndex,
-            s_inst.rootPosTi,
+        emitBranch(
+            outIndex,
+            s_stack[stackDepth].parentTipTi,
+            s_inst.rootDirNorm,
             0.0,
             0,
             s_tmplt.wallType,
@@ -265,24 +269,28 @@ void main(){
             case k_sTwig:
             case k_sBranch:
             case k_sStem:
+                float absAngNorm = fract(
+                    s_stack[stackDepth].parentAbsAngNorm + s_stack[stackDepth].relRestAngNorm
+                );
                 float tropismLengthFactor = 1.0 - 4.0 * abs(
-                    s_inst.tropismDirNorm - s_stack[stackDepth].parentAbsAngNorm
+                    s_inst.tropismDirNorm - absAngNorm
                 );
                 float len = s_params[s_tmplt.iterCount & 1][paramIndex + 1] *
                           (0.8 + randomFloat() * 0.4) *
                           tropismLengthFactor;
-                emitBranch(outIndex,
-                    s_inst.rootPosTi,
+                emitBranch(
+                    outIndex,
+                    s_stack[stackDepth].parentTipTi,
+                    absAngNorm,
                     s_stack[stackDepth].relRestAngNorm,
                     outIndex - s_stack[stackDepth].parentIndex,
                     s_tmplt.wallType,
                     vec2(s_params[s_tmplt.iterCount & 1][paramIndex], len),
                     s_tmplt.densityStiffness
                 );
+                s_stack[stackDepth].parentTipTi += toCartesian(len, absAngNorm);
                 s_stack[stackDepth].parentIndex = outIndex - 1;
-                s_stack[stackDepth].parentAbsAngNorm = fract(
-                    s_stack[stackDepth].parentAbsAngNorm + s_stack[stackDepth].relRestAngNorm
-                );
+                s_stack[stackDepth].parentAbsAngNorm = absAngNorm;
                 s_stack[stackDepth].relRestAngNorm = 0.0;
                 paramIndex += 2;
                 break;
@@ -292,8 +300,7 @@ void main(){
                     s_stack[stackDepth].relRestAngNorm +
                     (s_params[s_tmplt.iterCount & 1][paramIndex++] *
                     (0.9 + randomFloat() * 0.2)) * s_stack[stackDepth].flipAngDir;
-                float desiredW = float((stackDepth + 1) * (stackDepth + 1));
-                s_stack[stackDepth].relRestAngNorm =
+                s_stack[stackDepth].relRestAngNorm = 
                     desiredAbs - s_stack[stackDepth].parentAbsAngNorm;
                 break;
             case k_sFlip:

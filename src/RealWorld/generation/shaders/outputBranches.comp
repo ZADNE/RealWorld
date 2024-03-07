@@ -2,6 +2,8 @@
  *  @author     Dubsky Tomas
  */
 #version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generationPll.glsl>
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
@@ -29,16 +31,36 @@ void main(){
              indexWithinVeg;
     g_randomState = s_inst.randomSeed ^ (indexWithinVeg * 2713);
 
-    uint val = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
-    storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), val);
+    uint packed    = b_vegPrep.parentOffset15wallType31[id];
+    uint wallType  = unpackBranchParentOffsetWallType(packed).y;
+    float radiusTi = b_vegPrep.radiusTi[id];
+    vec2 absPosTi  = b_vegPrep.absPosTi[id];
 
+    // Calculate raster variant
+    uint var = 0;
+    switch (wallType){
+    case k_oakWoodWl:
+        float n = snoise(vec2(gl_LocalInvocationID.xy) * 0.0625, float(indexWithinVeg)) * 7.0;
+        float radF = (1.0 - radiusTi) * 3.0;
+        radF = radF * radF * radF;
+        float d = distance(absPosTi, s_inst.rootPosTi);
+        var = uint(clamp(n + radF, 0.0, 7.0)) | (uint(d) & 248);
+        break;
+    case k_tallGrassWl:
+    case k_wheatWl:
+        var = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
+        break;
+    }
+    storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), var);
+
+    // Copy vector parameters to their final location
     if (gl_LocalInvocationIndex == 0){
-        b_branch.absPosTi[0][i] = b_vegPrep.absPosTi[id];
+        b_branch.absPosTi[0][i] = absPosTi;
         b_branch.absAngNorm[0][i] = b_vegPrep.absAngNorm[id];
-        b_branch.parentOffset15wallType31[i] = b_vegPrep.parentOffset15wallType31[id];
+        b_branch.parentOffset15wallType31[i] = packed;
         b_branch.relRestAngNorm[i] = b_vegPrep.relRestAngNorm[id];
         b_branch.angVel[i] = 0.0;
-        b_branch.radiusTi[i] = b_vegPrep.radiusTi[id];
+        b_branch.radiusTi[i] = radiusTi;
         b_branch.lengthTi[i] = b_vegPrep.lengthTi[id];
         b_branch.densityStiffness[i] = b_vegPrep.densityStiffness[id];
     }
