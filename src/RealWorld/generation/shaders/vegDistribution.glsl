@@ -12,17 +12,17 @@ struct VegDistr {
     float genProbability[k_vegTemplateCount];
 };
 
-const VegDistr k_mountainVeg =    {{  0.01,   0.0,    0.0}};
-const VegDistr k_tundraVeg =      {{  0.01,   0.0,    0.0}};
-const VegDistr k_taigaVeg =       {{  0.01,   0.0,    0.0}};
+const VegDistr k_mountainVeg =    {{  0.0,    0.0,    0.0}};
+const VegDistr k_tundraVeg =      {{  0.0,    0.0,    0.0}};
+const VegDistr k_taigaVeg =       {{  0.0,    0.0,    0.0}};
 
-const VegDistr k_grasslandVeg =   {{  0.1,    0.0,    1.0}};
-const VegDistr k_forestVeg =      {{  2.0,    0.0,    1.0}};
+const VegDistr k_grasslandVeg =   {{  0.1,    0.1,    0.0}};
+const VegDistr k_forestVeg =      {{  1.0,    0.0,    0.0}};
 const VegDistr k_swampVeg =       {{  0.0,    0.0,    0.0}};
 
 const VegDistr k_desertVeg =      {{  0.0,    0.1,    0.0}};
-const VegDistr k_savannaVeg =     {{  0.0,    1.0,    1.0}};
-const VegDistr k_rainforestVeg =  {{  0.0,    1.0,    1.0}};
+const VegDistr k_savannaVeg =     {{  0.0,    0.7,    0.0}};
+const VegDistr k_rainforestVeg =  {{  0.0,    0.0,    0.0}};
 
 const VegDistr k_biomeVegDistrs[3][3] = {
 //humidity> |low                |normal             |high           temperature \/

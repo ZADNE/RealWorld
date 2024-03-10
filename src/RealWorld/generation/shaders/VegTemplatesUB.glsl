@@ -52,7 +52,7 @@ const uint k_paramCount[7] = {
     0
 };
 
-const int k_totalRewriteRuleBodyCount = 8;
+const int k_totalRewriteRuleBodyCount = 16;
 
 #extension GL_EXT_scalar_block_layout : require
 layout (set = 0, binding = k_vegTemplatesBinding, std430)

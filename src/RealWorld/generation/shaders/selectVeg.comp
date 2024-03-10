@@ -88,7 +88,7 @@ void main(){
         float rootDirNorm = (horizonNormalNorm(xPx, biome) + 0.25) * 0.5;
         b_vegPrep.vegInstances[s_vegPrepI + vegPrepThreadOffset] = VegInstance(
             pTi,                    // rootPosTi
-            0/*FIX*/,               // templateIndex
+            templateIndex,          // templateIndex
             gl_WorkGroupID.z,       // chunkIndex
             random(),               // randomSeed
             greenMass * 0.25 + 0.75,// growth

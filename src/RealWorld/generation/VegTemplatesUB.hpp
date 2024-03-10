@@ -42,7 +42,7 @@ struct alignas(sizeof(glm::vec2)) VegTemplate {
     std::array<RuleBodies, k_rewriteableSymbolCount> rules;
 };
 
-constexpr int k_totalRewriteRuleBodyCount = 8;
+constexpr int k_totalRewriteRuleBodyCount = 16;
 
 enum class Symbol : uint8_t {
     Twig,
@@ -295,7 +295,6 @@ constexpr VegTemplatesUB composeVegTemplates() {
 
         auto b0 = addString({'b', 0.25, 3.});
         auto b1 = addString({'b', 0.25, 2.});
-        // auto b1 = addString({oakDefParams, 'b', 0.125f, 4.0f, "-[-B+B]+[+B-B]"sv});
 
         tmplts.push_back(VegTemplate{
             .axiom            = addString({'T', 0.5f, 18.0f}),
@@ -321,9 +320,9 @@ constexpr VegTemplatesUB composeVegTemplates() {
             .densityStiffness = {4.0, 0.5},
             .wallType         = Wall::AcaciaWood,
             .iterCount        = 5,
-            .rules            = {addProbRuleBodies(
-                {1, 20.0f}, {std::make_pair(1.0f, acaciaRuleStr)}, {}
-            )}
+            .rules =
+                {addProbRuleBodies({1, 20.0f}, {}, {}),
+                 addProbRuleBodies({1, 20.0f}, {}, {{1.0f, acaciaRuleStr}})}
         });
     }
 
