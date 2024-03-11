@@ -2,7 +2,7 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/vegetation.glsl>
 #include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/world/shaders/random.glsl>
 #include <RealWorld/world/shaders/simulationPll.glsl>
@@ -139,7 +139,7 @@ void leafGrowth(uvec2 leaf, ivec2 posAt){
     for (int i = 0; i < neighborhood; i++){
         ivec2 nPosAt = tiToAt(posAt + k_neighborhood[i], p_worldTexMaskTi);
         uvec2 n = loadWall(nPosAt);
-        if (n.L_T == k_airWl || (n.L_T == k_oakWoodWl && (n.L_V & 7) > 1)){
+        if (n.L_T == k_airWl || (isWoodWall(n.L_T) && (n.L_V & 7) > 1)){
             storeWall(nPosAt, uvec2(leaf.L_T, strength));
         } else if (n.L_T == leaf.L_T){
             storeWall(nPosAt, uvec2(leaf.L_T, max(strength, n.L_V)));
@@ -170,11 +170,11 @@ void main(){
             }
             { // Wall layer simulation
                 uvec2 wall = loadWall(posAt);
-                if (wall.L_T == k_leafWl){
+                if (isLeafWall(wall.L_T)){
                     if (wall.L_V > 8) {
                         leafGrowth(wall, posAt);
                     } else if (wall.L_V > 0){
-                        storeWall(posAt, uvec2(k_leafWl, wall.L_V - 1));
+                        storeWall(posAt, uvec2(wall.L_T, wall.L_V - 1));
                     } else {
                         storeWall(posAt, uvec2(k_airWl, 0));
                     }

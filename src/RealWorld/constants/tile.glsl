@@ -41,8 +41,8 @@ const uint k_hallowDirtBl =     11;
 const uint k_hallowGrassBl =    12;
 const uint k_highlighterBl =    223;
 // Fluids
-const uint k_firstNonsolidBl =  224;//0b1110'0000
-const uint k_waterBl =          224;
+const uint k_firstNonsolidBl =  224; // 0b1110'0000
+const uint k_waterBl =          k_firstNonsolidBl;
 const uint k_lavaBl =           225;
 const uint k_steamBl =          226;
 const uint k_fireBl =           227;
@@ -68,12 +68,13 @@ const uint k_hallowDirtWl =     11;
 const uint k_hallowGrassWl =    12;
 const uint k_highlighterWl =    223;
 // Vegetation
-const uint k_firstNonsolidWl =  224;//0b1110'0000
-const uint k_oakWoodWl =        224;
+const uint k_firstNonsolidWl =  224; // 0b1110'0000
+const uint k_oakWoodWl =        k_firstNonsolidWl;
 const uint k_acaciaWoodWl =     225;
 const uint k_tallGrassWl =      226;
 const uint k_wheatWl =          227;
 const uint k_leafWl =           228;
+const uint k_dryLeafWl =        229;
 const uint k_airWl =            255;
 const uint k_neverWl =          256;
 

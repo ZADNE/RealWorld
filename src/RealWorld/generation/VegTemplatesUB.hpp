@@ -39,7 +39,14 @@ struct alignas(sizeof(glm::vec2)) VegTemplate {
     glm::vec2 densityStiffness;
     Wall wallType;
     glm::uint iterCount;
+    float tropismFactor;
     std::array<RuleBodies, k_rewriteableSymbolCount> rules;
+};
+
+struct VegRasterTemplate {
+    float noiseScale;
+    float branchRadiusFactor;
+    float maxLeafStrength;
 };
 
 constexpr int k_totalRewriteRuleBodyCount = 16;
@@ -49,6 +56,7 @@ enum class Symbol : uint8_t {
     Branch,
     Stem,
     Rotate,
+    TropismRotate,
     Flip,
     Push,
     Pop,
@@ -68,6 +76,9 @@ constexpr Symbol toSymbol(char c) {
     case 's': return StemAdditive;
     case '+':
     case '-': return Rotate;
+    case '<':
+    case '>':
+    case '^': return TropismRotate;
     case 'F': return Flip;
     case '[': return Push;
     case ']': return Pop;
@@ -85,6 +96,7 @@ constexpr int paramCount(Symbol s) {
     case Stem:
     case StemAdditive:   return 2;
     case Rotate:         return 1;
+    case TropismRotate:  return 1;
     case Flip:           return 0;
     case Push:           return 0;
     case Pop:            return 0;
@@ -113,7 +125,7 @@ struct VegTemplatesUB {
     constexpr VegTemplatesUB(
         std::string_view s, std::span<const SymbolParam> params,
         std::span<const float> probs, std::span<const String> bodies,
-        std::span<const VegTemplate> ts
+        std::span<const VegTemplate> ts, std::span<const VegRasterTemplate> rts
     ) {
         assert(s.size() <= symbols.size());
         int expectedParamCount = 0;
@@ -124,11 +136,13 @@ struct VegTemplatesUB {
         assert(probs.size() <= ruleProbs.size());
         assert(bodies.size() <= ruleBodies.size());
         assert(ts.size() == tmplts.size());
+        assert(rts.size() == rasterTmplts.size());
         std::copy(s.begin(), s.end(), symbols.data());
         std::copy(params.begin(), params.end(), symbolParams.data());
         std::copy(probs.begin(), probs.end(), ruleProbs.data());
         std::copy(bodies.begin(), bodies.end(), ruleBodies.data());
         std::copy(ts.begin(), ts.end(), tmplts.data());
+        std::copy(rts.begin(), rts.end(), rasterTmplts.data());
         std::for_each(symbols.begin(), symbols.begin() + s.size(), [](char& c) {
             c = std::to_underlying(toSymbol(c));
         });
@@ -139,6 +153,7 @@ struct VegTemplatesUB {
     std::array<float, k_totalRewriteRuleBodyCount> ruleProbs{};
     std::array<String, k_totalRewriteRuleBodyCount> ruleBodies{};
     std::array<VegTemplate, k_vegTemplateCount> tmplts{};
+    std::array<VegRasterTemplate, k_vegTemplateCount> rasterTmplts{};
 };
 
 template<typename T>
@@ -230,6 +245,9 @@ private:
             break;
         case '+': params.emplace_back(def->turnAngle); break;
         case '-': params.emplace_back(-def->turnAngle); break;
+        case '<': params.emplace_back(0.25f); break;
+        case '>': params.emplace_back(-0.25f); break;
+        case '^': params.emplace_back(0.0f); break;
         case 'F':
         case '[':
         case ']': break;
@@ -247,6 +265,7 @@ constexpr VegTemplatesUB composeVegTemplates() {
     std::vector<float> probs;
     std::vector<String> bodies;
     std::vector<VegTemplate> tmplts;
+    std::vector<VegRasterTemplate> rasterTmplts;
 
     auto addString = [&symbols, &params](const ParamString& str) -> String {
         glm::uint sBegin = symbols.size();
@@ -285,53 +304,67 @@ constexpr VegTemplatesUB composeVegTemplates() {
     };
 
     { // Oak
-        DefaultParams oakDefParams{.branchSizeTi = {.5, 18.}, .turnAngle = .08};
-        auto t0 = addString({'t', .125, 4.});
-        auto t1 = addString({oakDefParams, 'b', .25, 4., "F-[T]+", .16, "[T]"});
-        auto t2 =
-            addString({oakDefParams, 'b', .25, 4., "F-[T]+", 0.04, "[T]+[T]"});
-        auto t3 =
-            addString({oakDefParams, 'b', .25, 4., "F-[T]+", 0.12, "[T]+[T]"});
+        DefaultParams def{.branchSizeTi = {.5, 3.5}, .turnAngle = .08};
+        auto t0 = addString({'t', .125, 2.});
+        auto t1 = addString({def, 'b', .25, .5, "F-[T]+", .16, "[T]"});
+        auto t2 = addString({def, 'b', .25, .5, "F-[T]+", 0.04, "[T]+[T]"});
+        auto t3 = addString({def, 'b', .25, .5, "F-[T]+", 0.12, "[T]+[T]"});
 
-        auto b0 = addString({'b', 0.25, 3.});
-        auto b1 = addString({'b', 0.25, 2.});
+        auto b0 = addString({'b', 0.25, .25});
+        auto b1 = addString({'b', 0.25, .125});
 
         tmplts.push_back(VegTemplate{
-            .axiom            = addString({'T', 0.5f, 18.0f}),
-            .densityStiffness = {4., .0625},
+            .axiom            = addString({'T', .5, 3.5}),
+            .densityStiffness = {3., .0625},
             .wallType         = Wall::OakWood,
             .iterCount        = 5,
+            .tropismFactor    = 4.0f,
             .rules =
                 {addProbRuleBodies(
-                     {1, 18.f}, {{1.f, t0}},
+                     {1, 3.5f}, {{1.f, t0}},
                      {{.1f, t1}, {.35f, t2}, {.35f, t3}, {.1f, t0}}
                  ),
-                 addProbRuleBodies({1, 25.f}, {{1.f, b0}}, {{1.f, b1}}),
+                 addProbRuleBodies({1, 5.f}, {{1.f, b0}}, {{1.f, b1}}),
                  addProbRuleBodies({0, 0.f}, {}, {})}
+        });
+        rasterTmplts.push_back(VegRasterTemplate{
+            .noiseScale = 1.0f / 16.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 7.0f
         });
     }
 
     { // Acacia
-        DefaultParams acaDefParams{.branchSizeTi = {1.75, 30.0}, .turnAngle = 0.08f};
-        auto acaciaRuleStr = addString({acaDefParams, "S[+B][-B]"});
+        DefaultParams def{.branchSizeTi = {.5, 35.0}, .turnAngle = 0.08f};
+        auto t0 = addString({def, 't', .125, 5.0});
+        auto t1 = addString({def, "B+", +0.03, "[^+T][^-T]"});
+        auto t2 = addString({def, "B+", +0.03, "[^+T][^-T", .375, 25., "]"});
+        auto t3 = addString({def, "B+", -0.03, "[^+T", .375, 25., "][^-T]"});
+
+        auto b0 = addString({def, 'b', .25, 5.});
 
         tmplts.push_back(VegTemplate{
-            .axiom            = addString({acaDefParams, 'B'}),
-            .densityStiffness = {4.0, 0.5},
+            .axiom            = addString({def, 'B', .75, 80., "[+T][-T]"}),
+            .densityStiffness = {2., .125},
             .wallType         = Wall::AcaciaWood,
             .iterCount        = 5,
+            .tropismFactor    = -0.8f,
             .rules =
-                {addProbRuleBodies({1, 20.0f}, {}, {}),
-                 addProbRuleBodies({1, 20.0f}, {}, {{1.0f, acaciaRuleStr}})}
+                {addProbRuleBodies(
+                     {1, 35.0f}, {{1.0f, t0}},
+                     {{0.8f, t1}, {0.05f, t2}, {0.05f, t3}, {0.1f, t0}}
+                 ),
+                 addProbRuleBodies({1, 50.0f}, {{1.0f, b0}}, {{0.9f, b0}})}
+        });
+        rasterTmplts.push_back(VegRasterTemplate{
+            .noiseScale = 1.0f / 8.0f, .branchRadiusFactor = 2.5f, .maxLeafStrength = 3.0f
         });
     }
 
-    tmplts.push_back(VegTemplate{});
+    tmplts.emplace_back();
+    rasterTmplts.emplace_back();
 
-    return VegTemplatesUB{
-        std::string_view{symbols}, std::span{params}, std::span{probs},
-        std::span{bodies}, std::span{tmplts}
-    };
+    return VegTemplatesUB{std::string_view{symbols}, std::span{params},
+                          std::span{probs},          std::span{bodies},
+                          std::span{tmplts},         std::span{rasterTmplts}};
 }
 } // namespace veg_templates
 

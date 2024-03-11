@@ -30,22 +30,31 @@ struct VegTemplate {
     vec2       densityStiffness;
     uint       wallType;
     uint       iterCount;
+    float      tropismFactor;
     RuleBodies rules[k_rewriteableSymbolCount];
 };
 
-#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
-const uint8_t   k_sTwig         = uint8_t(0);
-const uint8_t   k_sBranch       = uint8_t(1);
-const uint8_t   k_sStem         = uint8_t(2);
-const uint8_t   k_sRotate       = uint8_t(3);
-const uint8_t   k_sFlip         = uint8_t(4);
-const uint8_t   k_sPush         = uint8_t(5);
-const uint8_t   k_sPop          = uint8_t(6);
+struct VegRasterTemplate {
+    float noiseScale;
+    float branchRadiusFactor;
+    float maxLeafStrength;
+};
 
-const uint k_paramCount[7] = {
+#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+const uint8_t   k_sTwig             = uint8_t(0);
+const uint8_t   k_sBranch           = uint8_t(1);
+const uint8_t   k_sStem             = uint8_t(2);
+const uint8_t   k_sRotate           = uint8_t(3);
+const uint8_t   k_sTropismRotate    = uint8_t(4);
+const uint8_t   k_sFlip             = uint8_t(5);
+const uint8_t   k_sPush             = uint8_t(6);
+const uint8_t   k_sPop              = uint8_t(7);
+
+const uint k_paramCount[8] = {
     2,
     2,
     2,
+    1,
     1,
     0,
     0,
@@ -57,11 +66,12 @@ const int k_totalRewriteRuleBodyCount = 16;
 #extension GL_EXT_scalar_block_layout : require
 layout (set = 0, binding = k_vegTemplatesBinding, std430)
 restrict uniform VegTemplatesUB {
-    uint8_t     symbols[k_vegTemplatesSymbolCount];
-    float       symbolParams[k_vegTemplatesSymbolCount];
-    float       ruleProbs[k_totalRewriteRuleBodyCount];
-    String      ruleBodies[k_totalRewriteRuleBodyCount];
-    VegTemplate tmplts[k_vegTemplateCount];
+    uint8_t             symbols[k_vegTemplatesSymbolCount];
+    float               symbolParams[k_vegTemplatesSymbolCount];
+    float               ruleProbs[k_totalRewriteRuleBodyCount];
+    String              ruleBodies[k_totalRewriteRuleBodyCount];
+    VegTemplate         tmplts[k_vegTemplateCount];
+    VegRasterTemplate   rasterTmplts[k_vegTemplateCount];
 } u_vegTmplts;
 
 #endif // !VEG_TEMPLATES_UB_GLSL

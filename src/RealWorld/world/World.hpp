@@ -106,10 +106,10 @@ private:
     re::DescriptorSet m_simulationDS{re::DescriptorSetCreateInfo{
         .layout = m_simulationPL.descriptorSetLayout(0), .debugName = "rw::World::simulation"
     }};
-    re::Pipeline m_simulateFluidsPl{
+    re::Pipeline m_simulateMovementPl{
         {.pipelineLayout = *m_simulationPL,
-         .debugName      = "rw::World::simulateFluids"},
-        {.comp = simulateFluids_comp}
+         .debugName      = "rw::World::simulateMovement"},
+        {.comp = simulateMovement_comp}
     };
     re::Pipeline m_transformTilesPl{
         {.pipelineLayout = *m_simulationPL,

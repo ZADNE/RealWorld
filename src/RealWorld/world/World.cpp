@@ -273,7 +273,7 @@ void World::fluidDynamicsStep(
     order = permuteOrder(m_worldDynamicsPC.timeHash);
 
     // 4 rounds, each updates one quarter of the chunks
-    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateFluidsPl);
+    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateMovementPl);
     glm::ivec2 dynBotLeftTi = botLeftCh * iChunkTi + iChunkTi / 2;
     for (unsigned int i = 0; i < 4; i++) {
         acb.action(

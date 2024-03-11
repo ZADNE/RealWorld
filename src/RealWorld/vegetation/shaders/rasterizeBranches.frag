@@ -34,11 +34,12 @@ void main(){
             vec2 dir = (uv.x - 0.5) * normal + (uv.y * 0.5) * i_tipDir;
             ivec2 leafPosAt = tiToAt(ivec2(gl_FragCoord.xy + dir * float(bud * 3)), p_worldTexMaskTi);
             uvec2 leaf = loadWall(leafPosAt);
+            uint leafType = wallType + k_woodToLeafTypeOffset;
             if (leaf.L_T == k_airWl){
-                storeWall(leafPosAt, uvec2(k_leafWl, 8));
-            } else if (leaf.L_T == k_leafWl){
+                storeWall(leafPosAt, uvec2(leafType, 8));
+            } else if (leaf.L_T == leafType){
                 uint var = min(leaf.L_V + 6, 8 + bud * 6);
-                storeWall(leafPosAt, uvec2(k_leafWl, var));
+                storeWall(leafPosAt, uvec2(leafType, var));
             }
         }
     } else {

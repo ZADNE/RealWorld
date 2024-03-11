@@ -4,7 +4,7 @@
     modifyTiles.comp            
     random.glsl                 
     reallocBranches.comp        
-    simulateFluids.comp         
+    simulateMovement.comp       
     simulationPll.glsl          
     tileLoad.glsl               tileLoadStore.glsl
     TilePropertiesUB.glsl       

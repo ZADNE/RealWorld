@@ -272,12 +272,10 @@ void main(){
                 float absAngNorm = fract(
                     s_stack[stackDepth].parentAbsAngNorm + s_stack[stackDepth].relRestAngNorm
                 );
-                float tropismLengthFactor = 1.0 - 4.0 * abs(
-                    s_inst.tropismDirNorm - absAngNorm
-                );
+                float tropism = 1.0 - abs(s_inst.tropismDirNorm - absAngNorm);
                 float len = s_params[s_tmplt.iterCount & 1][paramIndex + 1] *
                           (0.8 + randomFloat() * 0.4) *
-                          tropismLengthFactor;
+                          (1.0 + s_tmplt.tropismFactor * tropism * tropism);
                 emitBranch(
                     outIndex,
                     s_stack[stackDepth].parentTipTi,
@@ -294,7 +292,7 @@ void main(){
                 s_stack[stackDepth].relRestAngNorm = 0.0;
                 paramIndex += 2;
                 break;
-            case k_sRotate:
+            case k_sRotate:{
                 float desiredAbs =
                     s_stack[stackDepth].parentAbsAngNorm +
                     s_stack[stackDepth].relRestAngNorm +
@@ -302,7 +300,19 @@ void main(){
                     (0.9 + randomFloat() * 0.2)) * s_stack[stackDepth].flipAngDir;
                 s_stack[stackDepth].relRestAngNorm = 
                     desiredAbs - s_stack[stackDepth].parentAbsAngNorm;
-                break;
+                break;}
+            case k_sTropismRotate:{
+                float desiredAbs = fract(
+                    s_inst.tropismDirNorm +
+                    s_params[s_tmplt.iterCount & 1][paramIndex++] + 
+                    (-0.05 + randomFloat() * 0.1));
+                float curr = 
+                    s_stack[stackDepth].parentAbsAngNorm +
+                    s_stack[stackDepth].relRestAngNorm;
+                desiredAbs = (desiredAbs + curr) * 0.5;
+                s_stack[stackDepth].relRestAngNorm = 
+                    desiredAbs - s_stack[stackDepth].parentAbsAngNorm;
+                break;}
             case k_sFlip:
                 s_stack[stackDepth].flipAngDir = randomBool() ? 1.0 : -1.0;
                 break;
@@ -316,10 +326,9 @@ void main(){
             }
         }
         /*#extension GL_EXT_debug_printf : require
-        debugPrintfEXT("S: %i/%i, P: %i/%i, S: %i/%i, B: %i\n",
+        debugPrintfEXT("S: %i/%i, P: %i/%i, B: %i\n",
             symbolCount, k_maxSymbolSentenceLength,
             paramIndex - 1, k_maxParamSentenceLength,
-            maxDepth + 1, k_maxStackDepth,
             s_branchCount);*/
     }
 }
