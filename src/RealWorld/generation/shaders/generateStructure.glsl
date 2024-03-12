@@ -20,18 +20,18 @@ float age(vec2 posPx, float seed){
  * @return x = temperature, y = humidity
  */
 vec2 biomeClimate(float xPx, float seed){
-    vec2 res = vec2(0.0);
+    vec2 res = vec2(0.5);
     float x = xPx * (1.0 / 8192.0);
-    float amp = 0.5;
+    float amp = 1.0;
 
     for (int i = 0; i < 3; ++i){
-        res +=
-            vec2(linColumnValue_x(x, seed), linColumnValue_x(x, seed + 11.0)) * amp;
-        x *= 2.0;
+        res += vec2(linColumnValue_x(x, seed), linColumnValue_x(x, seed + 11.0)) * amp;
         amp *= 0.5;
+        res -= amp;
+        x *= 2.0;
     }
 
-    return res;
+    return clamp(res, 0.0, 0.99999);
 }
 
 vec2 horizon(float xPx, Biome biome, float seed){

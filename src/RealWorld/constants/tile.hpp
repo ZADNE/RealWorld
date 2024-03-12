@@ -73,10 +73,12 @@ enum class Wall : uint8_t {
     Highlighter = 223,
     OakWood     = 224, // 0b1110'0000
     AcaciaWood,
+    ConiferousWood,
     TallGrass,
     Wheat,
     Leaf,
     DryLeaf,
+    Needle,
 
     Air = 255
 };

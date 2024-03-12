@@ -49,8 +49,6 @@ struct VegRasterTemplate {
     float maxLeafStrength;
 };
 
-constexpr int k_totalRewriteRuleBodyCount = 16;
-
 enum class Symbol : uint8_t {
     Twig,
     Branch,
@@ -120,6 +118,9 @@ union SymbolParam {
     int i;
     float f;
 };
+
+constexpr int k_vegTemplatesSymbolCount   = 256;
+constexpr int k_totalRewriteRuleBodyCount = 24;
 
 struct VegTemplatesUB {
     constexpr VegTemplatesUB(
@@ -314,10 +315,10 @@ constexpr VegTemplatesUB composeVegTemplates() {
         auto b1 = addString({'b', 0.25, .125});
 
         tmplts.push_back(VegTemplate{
-            .axiom            = addString({'T', .5, 3.5}),
+            .axiom            = addString({'T', .75, 3.5}),
             .densityStiffness = {3., .0625},
             .wallType         = Wall::OakWood,
-            .iterCount        = 5,
+            .iterCount        = 4,
             .tropismFactor    = 4.0f,
             .rules =
                 {addProbRuleBodies(
@@ -359,8 +360,37 @@ constexpr VegTemplatesUB composeVegTemplates() {
         });
     }
 
-    tmplts.emplace_back();
-    rasterTmplts.emplace_back();
+    { // Spruce
+        DefaultParams def{.branchSizeTi = {.5, 4.}, .turnAngle = 0.18f};
+        auto t0 = addString({def, 't', .0, 2.5});
+
+        auto b0 = addString({def, 'b', .125, 2.0});
+        auto b1 = addString(
+            {def, "s", .125, 2.5, "[+T+", -0.04, "T][^B", .5, 6.0, "][-T+",
+             0.04, "T]"}
+        );
+        auto b2 =
+            addString({def, "s", .125, 2.5, "[F+T+", -0.04, "T][^B", .5, 6.0, "]"});
+
+        auto s0 = addString({def, 's', .25, 1.5});
+
+        tmplts.push_back(VegTemplate{
+            .axiom            = addString({def, 'B', .5, 7.5}),
+            .densityStiffness = {2., .125},
+            .wallType         = Wall::ConiferousWood,
+            .iterCount        = 6,
+            .tropismFactor    = 0.0f,
+            .rules =
+                {addProbRuleBodies({1, 15.0f}, {{1.0f, t0}}, {{1.0f, t0}}),
+                 addProbRuleBodies(
+                     {1, 6.0f}, {{0.95f, b0}}, {{0.7f, b1}, {0.2f, b2}, {0.05f, b0}}
+                 ),
+                 addProbRuleBodies({1, 40.0f}, {{0.95f, s0}}, {{0.8f, s0}})}
+        });
+        rasterTmplts.push_back(VegRasterTemplate{
+            .noiseScale = 1.0f / 8.0f, .branchRadiusFactor = 5.0f, .maxLeafStrength = 4.0f
+        });
+    }
 
     return VegTemplatesUB{std::string_view{symbols}, std::span{params},
                           std::span{probs},          std::span{bodies},

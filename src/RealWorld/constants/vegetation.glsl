@@ -11,10 +11,10 @@ const uint k_branchRasterSpace      = 64;
 
 
 const uint k_firstWoodWl            = k_oakWoodWl;
-const uint k_lastWoodWl             = k_acaciaWoodWl;
+const uint k_lastWoodWl             = k_coniferousWoodWl;
 const uint k_firstLeafWl            = k_leafWl;
-const uint k_lastLeafWl             = k_dryLeafWl;
-const uint k_woodToLeafTypeOffset   = k_leafWl - k_oakWoodWl;
+const uint k_lastLeafWl             = k_needleWl;
+const uint k_woodToLeafTypeOffset   = k_firstLeafWl - k_firstWoodWl;
 
 bool isWoodWall(uint wallType){
     return wallType >= k_firstWoodWl && wallType <= k_lastWoodWl;

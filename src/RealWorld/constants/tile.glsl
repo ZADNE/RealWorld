@@ -71,10 +71,12 @@ const uint k_highlighterWl =    223;
 const uint k_firstNonsolidWl =  224; // 0b1110'0000
 const uint k_oakWoodWl =        k_firstNonsolidWl;
 const uint k_acaciaWoodWl =     225;
-const uint k_tallGrassWl =      226;
-const uint k_wheatWl =          227;
-const uint k_leafWl =           228;
-const uint k_dryLeafWl =        229;
+const uint k_coniferousWoodWl = 226;
+const uint k_tallGrassWl =      227;
+const uint k_wheatWl =          228;
+const uint k_leafWl =           229;
+const uint k_dryLeafWl =        230;
+const uint k_needleWl =         231;
 const uint k_airWl =            255;
 const uint k_neverWl =          256;
 

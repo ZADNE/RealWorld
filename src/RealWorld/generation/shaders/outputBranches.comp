@@ -44,6 +44,7 @@ void main(){
     switch (wallType){
     case k_oakWoodWl:
     case k_acaciaWoodWl:
+    case k_coniferousWoodWl:
         float n = snoise(vec2(gl_LocalInvocationID.xy) * s_tmplt.noiseScale, float(indexWithinVeg)) * s_tmplt.maxLeafStrength;
         float radF = (1.0 - radiusTi) * s_tmplt.branchRadiusFactor;
         radF = radF * radF * radF;
