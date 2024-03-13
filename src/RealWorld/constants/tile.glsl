@@ -77,6 +77,7 @@ const uint k_wheatWl =          228;
 const uint k_leafWl =           229;
 const uint k_dryLeafWl =        230;
 const uint k_needleWl =         231;
+const uint k_withyWl =          232;
 const uint k_airWl =            255;
 const uint k_neverWl =          256;
 

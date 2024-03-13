@@ -46,6 +46,9 @@ struct TurtleState {
     float flipAngDir;
     float parentAbsAngNorm;
     float relRestAngNorm;
+    float density;
+    float stiffness;
+    uint  wallType;
 };
 const int k_maxStackDepth = 8;
 shared TurtleState s_stack[k_maxStackDepth];
@@ -181,9 +184,10 @@ void main(){
                     s_symbols[write][bodySDispl + i] = s & uint8_t(127);
                     // Resolve the parameters
                     for (uint j = 0; j < k_paramCount[s & 127]; ++j){
-                        float prevP = s_params[read][headPDispl + j];
+                        float prev = s_params[read][headPDispl + j];
+                        float curr = u_vegTmplts.symbolParams[pBegin + pI];
                         s_params[write][bodyPDispl + pI] =
-                            prevP * float(bool(s & 128)) + u_vegTmplts.symbolParams[pBegin + pI];
+                            bool(s & 128) ? prev + curr : curr;
                         pI++;
                     }
                 }
@@ -245,7 +249,10 @@ void main(){
             outIndex,           // parentIndex
             1.0,                // flipAngDir
             s_inst.rootDirNorm, // parentAbsAngNorm
-            0.0                 // relRestAngNorm
+            0.0,                // relRestAngNorm
+            0.0,                // density
+            0.0,                // stiffness
+            k_airWl             // wallType
         );
 
         // Emit root branch
@@ -255,7 +262,7 @@ void main(){
             s_inst.rootDirNorm,
             0.0,
             0,
-            s_tmplt.wallType,
+            s_stack[stackDepth].wallType,
             vec2(0),
             vec2(0)
         );
@@ -282,9 +289,9 @@ void main(){
                     absAngNorm,
                     s_stack[stackDepth].relRestAngNorm,
                     outIndex - s_stack[stackDepth].parentIndex,
-                    s_tmplt.wallType,
+                    s_stack[stackDepth].wallType,
                     vec2(s_params[s_tmplt.iterCount & 1][paramIndex], len),
-                    s_tmplt.densityStiffness
+                    vec2(s_stack[stackDepth].density, s_stack[stackDepth].stiffness)
                 );
                 s_stack[stackDepth].parentTipTi += toCartesian(len, absAngNorm);
                 s_stack[stackDepth].parentIndex = outIndex - 1;
@@ -322,6 +329,18 @@ void main(){
                 break;
             case k_sPop:
                 stackDepth--;
+                break;
+            case k_sDensity:
+                s_stack[stackDepth].density =
+                    s_params[s_tmplt.iterCount & 1][paramIndex++];
+                break;
+            case k_sStiffness:
+                s_stack[stackDepth].stiffness =
+                    s_params[s_tmplt.iterCount & 1][paramIndex++];
+                break;
+            case k_sWallType:
+                s_stack[stackDepth].wallType =
+                    floatBitsToUint(s_params[s_tmplt.iterCount & 1][paramIndex++]);
                 break;
             }
         }

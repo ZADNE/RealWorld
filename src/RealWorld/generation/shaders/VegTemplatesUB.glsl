@@ -27,8 +27,6 @@ const int k_rewriteableSymbolCount = 3; // So far: == number of ~segment symbols
 
 struct VegTemplate {
     String     axiom;
-    vec2       densityStiffness;
-    uint       wallType;
     uint       iterCount;
     float      tropismFactor;
     RuleBodies rules[k_rewriteableSymbolCount];
@@ -49,8 +47,11 @@ const uint8_t   k_sTropismRotate    = uint8_t(4);
 const uint8_t   k_sFlip             = uint8_t(5);
 const uint8_t   k_sPush             = uint8_t(6);
 const uint8_t   k_sPop              = uint8_t(7);
+const uint8_t   k_sDensity          = uint8_t(8);
+const uint8_t   k_sStiffness        = uint8_t(9);
+const uint8_t   k_sWallType         = uint8_t(10);
 
-const uint k_paramCount[8] = {
+const uint k_paramCount[11] = {
     2,
     2,
     2,
@@ -58,11 +59,14 @@ const uint k_paramCount[8] = {
     1,
     0,
     0,
-    0
+    0,
+    1,
+    1,
+    1
 };
 
 const int k_vegTemplatesSymbolCount     = 256;
-const int k_totalRewriteRuleBodyCount   = 24;
+const int k_totalRewriteRuleBodyCount   = 32;
 
 #extension GL_EXT_scalar_block_layout : require
 layout (set = 0, binding = k_vegTemplatesBinding, std430)

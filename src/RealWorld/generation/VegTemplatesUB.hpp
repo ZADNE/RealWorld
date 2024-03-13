@@ -34,10 +34,8 @@ struct RuleBodies {
 
 constexpr int k_rewriteableSymbolCount = 3;
 
-struct alignas(sizeof(glm::vec2)) VegTemplate {
+struct VegTemplate {
     String axiom;
-    glm::vec2 densityStiffness;
-    Wall wallType;
     glm::uint iterCount;
     float tropismFactor;
     std::array<RuleBodies, k_rewriteableSymbolCount> rules;
@@ -58,6 +56,9 @@ enum class Symbol : uint8_t {
     Flip,
     Push,
     Pop,
+    Density,
+    Stiffness,
+    WallType,
     TwigAdditive   = Twig | 128,
     BranchAdditive = Branch | 128,
     StemAdditive   = Stem | 128
@@ -80,6 +81,9 @@ constexpr Symbol toSymbol(char c) {
     case 'F': return Flip;
     case '[': return Push;
     case ']': return Pop;
+    case 'D': return Density;
+    case 'I': return Stiffness;
+    case 'W': return WallType;
     default:  throw std::exception{"Unknown symbol"};
     }
 }
@@ -98,6 +102,9 @@ constexpr int paramCount(Symbol s) {
     case Flip:           return 0;
     case Push:           return 0;
     case Pop:            return 0;
+    case Density:        return 1;
+    case Stiffness:      return 1;
+    case WallType:       return 1;
     default:             throw std::exception{"Unknown symbol"};
     }
 }
@@ -120,7 +127,7 @@ union SymbolParam {
 };
 
 constexpr int k_vegTemplatesSymbolCount   = 256;
-constexpr int k_totalRewriteRuleBodyCount = 24;
+constexpr int k_totalRewriteRuleBodyCount = 32;
 
 struct VegTemplatesUB {
     constexpr VegTemplatesUB(
@@ -164,6 +171,9 @@ concept SymbolParamType = std::is_same_v<T, float> || std::is_same_v<T, int> ||
 struct DefaultParams {
     glm::vec2 branchSizeTi;
     float turnAngle;
+    float density;
+    float stiffness;
+    Wall wallType;
 };
 
 // std::strlen is not constexpr...
@@ -226,6 +236,11 @@ private:
     }
 
     template<typename... Types>
+    constexpr void decode(const DefaultParams* def, Wall wallType, Types... args) {
+        decode(def, static_cast<glm::uint>(std::to_underlying(wallType)), args...);
+    }
+
+    template<typename... Types>
     constexpr void decode(const DefaultParams* def) {
         if (missingParamCount > 0) {
             assert(missingParamCount == paramCount(str.back()));
@@ -252,6 +267,9 @@ private:
         case 'F':
         case '[':
         case ']': break;
+        case 'D': params.emplace_back(def->density); break;
+        case 'I': params.emplace_back(def->stiffness); break;
+        case 'W': params.emplace_back(std::to_underlying(def->wallType)); break;
         default:  throw std::exception{"Unknown symbol"};
         }
     }
@@ -305,7 +323,13 @@ constexpr VegTemplatesUB composeVegTemplates() {
     };
 
     { // Oak
-        DefaultParams def{.branchSizeTi = {.5, 3.5}, .turnAngle = .08};
+        DefaultParams def{
+            .branchSizeTi = {0.5f, 3.5f},
+            .turnAngle    = 0.08f,
+            .density      = 3.0f,
+            .stiffness    = 0.0625f,
+            .wallType     = Wall::OakWood
+        };
         auto t0 = addString({'t', .125, 2.});
         auto t1 = addString({def, 'b', .25, .5, "F-[T]+", .16, "[T]"});
         auto t2 = addString({def, 'b', .25, .5, "F-[T]+", 0.04, "[T]+[T]"});
@@ -315,11 +339,9 @@ constexpr VegTemplatesUB composeVegTemplates() {
         auto b1 = addString({'b', 0.25, .125});
 
         tmplts.push_back(VegTemplate{
-            .axiom            = addString({'T', .75, 3.5}),
-            .densityStiffness = {3., .0625},
-            .wallType         = Wall::OakWood,
-            .iterCount        = 4,
-            .tropismFactor    = 4.0f,
+            .axiom         = addString({def, "DIWT", .75, 3.5}),
+            .iterCount     = 4,
+            .tropismFactor = 4.0f,
             .rules =
                 {addProbRuleBodies(
                      {1, 3.5f}, {{1.f, t0}},
@@ -334,7 +356,13 @@ constexpr VegTemplatesUB composeVegTemplates() {
     }
 
     { // Acacia
-        DefaultParams def{.branchSizeTi = {.5, 35.0}, .turnAngle = 0.08f};
+        DefaultParams def{
+            .branchSizeTi = {.5, 35.0},
+            .turnAngle    = 0.08f,
+            .density      = 2.0f,
+            .stiffness    = 0.125f,
+            .wallType     = Wall::AcaciaWood
+        };
         auto t0 = addString({def, 't', .125, 5.0});
         auto t1 = addString({def, "B+", +0.03, "[^+T][^-T]"});
         auto t2 = addString({def, "B+", +0.03, "[^+T][^-T", .375, 25., "]"});
@@ -343,11 +371,9 @@ constexpr VegTemplatesUB composeVegTemplates() {
         auto b0 = addString({def, 'b', .25, 5.});
 
         tmplts.push_back(VegTemplate{
-            .axiom            = addString({def, 'B', .75, 80., "[+T][-T]"}),
-            .densityStiffness = {2., .125},
-            .wallType         = Wall::AcaciaWood,
-            .iterCount        = 5,
-            .tropismFactor    = -0.8f,
+            .axiom         = addString({def, "DIWB", .75, 80., "[+T][-T]"}),
+            .iterCount     = 5,
+            .tropismFactor = -0.8f,
             .rules =
                 {addProbRuleBodies(
                      {1, 35.0f}, {{1.0f, t0}},
@@ -361,7 +387,13 @@ constexpr VegTemplatesUB composeVegTemplates() {
     }
 
     { // Spruce
-        DefaultParams def{.branchSizeTi = {.5, 4.}, .turnAngle = 0.18f};
+        DefaultParams def{
+            .branchSizeTi = {.5, 4.},
+            .turnAngle    = 0.18f,
+            .density      = 2.0f,
+            .stiffness    = 0.125f,
+            .wallType     = Wall::ConiferousWood
+        };
         auto t0 = addString({def, 't', .0, 2.5});
 
         auto b0 = addString({def, 'b', .125, 2.0});
@@ -375,11 +407,9 @@ constexpr VegTemplatesUB composeVegTemplates() {
         auto s0 = addString({def, 's', .25, 1.5});
 
         tmplts.push_back(VegTemplate{
-            .axiom            = addString({def, 'B', .5, 7.5}),
-            .densityStiffness = {2., .125},
-            .wallType         = Wall::ConiferousWood,
-            .iterCount        = 6,
-            .tropismFactor    = 0.0f,
+            .axiom         = addString({def, "DIWB", .5, 7.5}),
+            .iterCount     = 6,
+            .tropismFactor = 0.0f,
             .rules =
                 {addProbRuleBodies({1, 15.0f}, {{1.0f, t0}}, {{1.0f, t0}}),
                  addProbRuleBodies(
@@ -389,6 +419,45 @@ constexpr VegTemplatesUB composeVegTemplates() {
         });
         rasterTmplts.push_back(VegRasterTemplate{
             .noiseScale = 1.0f / 8.0f, .branchRadiusFactor = 5.0f, .maxLeafStrength = 4.0f
+        });
+    }
+
+    { // Willow
+        DefaultParams def{
+            .branchSizeTi = {0.5f, 12.0f},
+            .turnAngle    = 0.08f,
+            .density      = 2.0f,
+            .stiffness    = 0.125f,
+            .wallType     = Wall::OakWood
+        };
+        auto t0 = addString({def, 't', .0, 5.});
+
+        auto b0 = addString(
+            {def, 's', .0, 2.5, "[FI", 0.002f, 'W', Wall::Withy, "[+", -0.23,
+             "T][+", 0.1, "T][+", 0.26, "T]]"}
+        );
+        auto b1 = addString(
+            {def, 's', .0, 2.5, "[FI", 0.002f, 'W', Wall::Withy, "[+", -0.34,
+             "T][+", 0.13, "T][+", 0.11, "T][+", 0.21, "T]]"}
+        );
+
+        auto s0 = addString({def, 's', 0.25, 5.});
+        auto s1 = addString(
+            {def, 's', 0.25, 0., "F[+", -0.1, "B", .75, 2.5, "][+", 0.03, "B",
+             1.25, 4.0, "]"}
+        );
+
+        tmplts.push_back(VegTemplate{
+            .axiom         = addString({def, "DIWS", 1.25, 25.}),
+            .iterCount     = 6,
+            .tropismFactor = 0.0f,
+            .rules =
+                {addProbRuleBodies({1, 27.f}, {{1.f, t0}}, {}),
+                 addProbRuleBodies({1, 0.f}, {}, {{.35f, b0}, {.65f, b1}}),
+                 addProbRuleBodies({1, 15.f}, {{1.f, s0}}, {{.9f, s1}, {.1f, s0}})}
+        });
+        rasterTmplts.push_back(VegRasterTemplate{
+            .noiseScale = 0.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
         });
     }
 

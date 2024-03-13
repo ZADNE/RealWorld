@@ -21,7 +21,7 @@ void main(){
     if (prevWall.L_T == wallType){
         uint branchIndex = i_branchIndex15wallType31 & 0xffff;
         ivec2 uv = ivec2(round(i_uv * (i_sizeTi - 1.0)));
-        storeBranchTexel(branchIndex, uv, prevWall.L_V);
+        //storeBranchTexel(branchIndex, uv, prevWall.L_V);
         o_wall = uvec2(k_airWl, 0);
     } else {
         o_wall = prevWall;

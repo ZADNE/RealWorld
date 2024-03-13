@@ -55,6 +55,11 @@ void main(){
     case k_wheatWl:
         var = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
         break;
+    case k_withyWl:
+        int ivar = int(gl_WorkGroupSize.y - gl_LocalInvocationID.y - 1) * int(256 / gl_WorkGroupSize.y) + 
+                   int(random() & 64) - 32;
+        var = clamp(ivar, 0, 255);
+        break;
     }
     storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), var);
 
