@@ -127,7 +127,7 @@ union SymbolParam {
 };
 
 constexpr int k_vegTemplatesSymbolCount   = 256;
-constexpr int k_totalRewriteRuleBodyCount = 32;
+constexpr int k_totalRewriteRuleBodyCount = 40;
 
 struct VegTemplatesUB {
     constexpr VegTemplatesUB(
@@ -458,6 +458,42 @@ constexpr VegTemplatesUB composeVegTemplates() {
         });
         rasterTmplts.push_back(VegRasterTemplate{
             .noiseScale = 0.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
+        });
+    }
+
+    { // Cactus
+        DefaultParams def{
+            .branchSizeTi = {1.5f, 7.5f},
+            .turnAngle    = 0.22f,
+            .density      = 2.0f,
+            .stiffness    = 0.25f,
+            .wallType     = Wall::Cactus
+        };
+
+        auto t0 = addString({def, 't', 0.125, .5});
+
+        auto b0 = addString({def, 'b', 0.125, 5.});
+        auto b1 = addString(
+            {def, 's', 0.25, 0., "F[-T", 1.5, 3.5, "+T][B", 2.0, 12.0, "]"}
+        );
+        auto b2 = addString(
+            {def, 's', 0.25, 0., "F[-T", 1.5, 3.5, "+T][B", 2.0, 12.0, "][+T",
+             1.5, 3.0, "-T", 1.5, 5.5, "]"}
+        );
+
+        tmplts.push_back(VegTemplate{
+            .axiom         = addString({def, "DIWB", 2.25, 15.}),
+            .iterCount     = 5,
+            .tropismFactor = 0.0f,
+            .rules =
+                {addProbRuleBodies({1, 0.f}, {}, {{.2f, t0}}),
+                 addProbRuleBodies(
+                     {1, 15.f}, {{.9f, b0}}, {{.4f, b1}, {.1f, b2}, {.4f, b0}}
+                 ),
+                 addProbRuleBodies({1, 0.f}, {}, {})}
+        });
+        rasterTmplts.push_back(VegRasterTemplate{
+            .noiseScale = 1.0f / 16.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
         });
     }
 

@@ -80,6 +80,7 @@ enum class Wall : uint8_t {
     DryLeaf,
     Needle,
     Withy,
+    Cactus,
 
     Air = 255
 };

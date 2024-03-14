@@ -28,7 +28,7 @@ void main(){
         uint wallType = (i_branchIndex15wallType31 >> 16) & 0xff;
         o_wall = uvec2(wallType, variant);
         uint bud = (variant & 7);
-        if (bud > 0){ // If should spawn root leaf
+        if (isWoodWall(wallType) && bud > 0){ // If should spawn root leaf
             uv /= i_sizeTi;
             vec2 normal = vec2(i_tipDir.y, -i_tipDir.x);
             vec2 dir = (uv.x - 0.5) * normal + (uv.y * 0.5) * i_tipDir;

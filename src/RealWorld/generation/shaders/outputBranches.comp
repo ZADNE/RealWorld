@@ -5,6 +5,7 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/vegetation/shaders/normAngles.glsl>
 #include <RealWorld/generation/shaders/generationPll.glsl>
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
@@ -32,12 +33,14 @@ void main(){
     uint i = b_vegPrep.branchOfChunk[s_inst.chunkIndex] +
              b_vegPrep.vegOffsetWithinChunk[vegIndex] + 
              indexWithinVeg;
-    g_randomState = s_inst.randomSeed ^ (indexWithinVeg * 2713);
-
-    uint packed    = b_vegPrep.parentOffset15wallType31[id];
-    uint wallType  = unpackBranchParentOffsetWallType(packed).y;
-    float radiusTi = b_vegPrep.radiusTi[id];
-    vec2 absPosTi  = b_vegPrep.absPosTi[id];
+    g_randomState = s_inst.randomSeed ^ (indexWithinVeg * 2713) ^ (gl_LocalInvocationIndex * 7823);
+    
+    vec2 absPosTi    = b_vegPrep.absPosTi[id];
+    float absAngNorm = b_vegPrep.absAngNorm[id];
+    uint packed      = b_vegPrep.parentOffset15wallType31[id];
+    uint wallType    = unpackBranchParentOffsetWallType(packed).y;
+    float radiusTi   = b_vegPrep.radiusTi[id];
+    float lengthTi   = b_vegPrep.lengthTi[id];
 
     // Calculate raster variant
     uint var = 0;
@@ -55,23 +58,32 @@ void main(){
     case k_wheatWl:
         var = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
         break;
-    case k_withyWl:
+    case k_withyWl:{
         int ivar = int(gl_WorkGroupSize.y - gl_LocalInvocationID.y - 1) * int(256 / gl_WorkGroupSize.y) + 
                    int(random() & 64) - 32;
         var = clamp(ivar, 0, 255);
-        break;
+        break;}
+    case k_cactusWl:{
+        vec2 p = mix(
+            absPosTi,
+            absPosTi + toCartesian(lengthTi, absAngNorm),
+            float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y - 1)
+        );
+        float n = snoise(p * s_tmplt.noiseScale, 11.0) * 0.5 + 0.5;
+        var = uint(n * 127.0) | (uint(randomFloat() < 0.125) * 128);
+        break;}
     }
     storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), var);
 
     // Copy vector parameters to their final location
     if (gl_LocalInvocationIndex == 0){
         b_branch.absPosTi[0][i] = absPosTi;
-        b_branch.absAngNorm[0][i] = b_vegPrep.absAngNorm[id];
+        b_branch.absAngNorm[0][i] = absAngNorm;
         b_branch.parentOffset15wallType31[i] = packed;
         b_branch.relRestAngNorm[i] = b_vegPrep.relRestAngNorm[id];
         b_branch.angVel[i] = 0.0;
         b_branch.radiusTi[i] = radiusTi;
-        b_branch.lengthTi[i] = b_vegPrep.lengthTi[id];
+        b_branch.lengthTi[i] = lengthTi;
         b_branch.densityStiffness[i] = b_vegPrep.densityStiffness[id];
     }
 }

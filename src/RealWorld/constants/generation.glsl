@@ -10,6 +10,6 @@ const int k_chunkGenSlots = 12;
 const int k_maxVegPerChunk = 64;
 const int k_branchGenSlots = k_chunkGenSlots * 256;
 
-const int k_vegTemplateCount = 4;
+const int k_vegTemplateCount = 5;
 
 #endif // !GENERATION_GLSL
