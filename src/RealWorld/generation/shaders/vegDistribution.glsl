@@ -9,20 +9,20 @@
 struct VegDistr {
     // Represents probabilities to generate each template
     // Probabilities are per chunk
-    float genProbability[k_vegTemplateCount];
+    float genProbability[k_vegSpeciesCount];
 };
 
-const VegDistr k_mountainVeg =  {{  0.0,    0.0,    0.0,    0.0,    0.0}};
-const VegDistr k_tundraVeg =    {{  0.0,    0.0,    0.2,    0.0,    0.0}};
-const VegDistr k_taigaVeg =     {{  0.0,    0.0,    4.0,    0.0,    0.0}};
+const VegDistr k_mountainVeg =  {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_tundraVeg =    {{  0.0,    0.0,    0.2,    0.0,    0.0,    0.0}};
+const VegDistr k_taigaVeg =     {{  0.0,    0.0,    4.0,    0.0,    0.0,    0.0}};
 
-const VegDistr k_grasslandVeg = {{  0.0,    0.0,    0.0,    0.0,    0.0}};
-const VegDistr k_forestVeg =    {{  1.0,    0.0,    0.0,    0.0,    0.0}};
-const VegDistr k_swampVeg =     {{  0.0,    0.0,    0.0,    3.0,    0.0}};
+const VegDistr k_grasslandVeg = {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_forestVeg =    {{  1.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_swampVeg =     {{  0.0,    0.0,    0.0,    3.0,    0.0,    0.0}};
 
-const VegDistr k_desertVeg =    {{  0.0,    0.05,   0.0,    0.0,    1.0}};
-const VegDistr k_savannaVeg =   {{  0.0,    1.0,    0.0,    0.0,    0.1}};
-const VegDistr k_rainforestVeg ={{  0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_desertVeg =    {{  0.0,    0.05,   0.0,    0.0,    1.0,    0.1}};
+const VegDistr k_savannaVeg =   {{  0.0,    1.0,    0.0,    0.0,    0.1,    0.25}};
+const VegDistr k_rainforestVeg ={{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
 
 const VegDistr k_biomeVegDistrs[3][3] = {
 //humidity> |low                |normal             |high           temperature \/
@@ -47,7 +47,7 @@ VegDistr biomeVegDistr(vec2 biomeClimate){
     const VegDistr b10 = k_biomeVegDistrs[ll.x + 1][ll.y];
     const VegDistr b11 = k_biomeVegDistrs[ll.x + 1][ll.y + 1];
 
-    for (int i = 0; i < k_vegTemplateCount; ++i){
+    for (int i = 0; i < k_vegSpeciesCount; ++i){
         // Interpolate over X axis
         float bx0 = mix(b00.genProbability[i], b10.genProbability[i], frac.x);
         float bx1 = mix(b01.genProbability[i], b11.genProbability[i], frac.x);

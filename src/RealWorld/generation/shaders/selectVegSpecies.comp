@@ -52,23 +52,23 @@ void main(){
     float horizonPx = horizon(xPx, biome, p_seed).r;
     pTi.y = int(pxToTi(horizonPx));
 
-    uint templateIndex = ~0;
+    uint speciesIndex = ~0;
     uint vegPrepThreadOffset;
 
     // Gather vegetation instances of the chunk
     if (pTi.y >= chunkTi.y && pTi.y < (chunkTi.y + iChunkTi.y)) { // If on the horizon
-        // Select the vegetation to generate
+        // Select the species to generate
         VegDistr distr = biomeVegDistr(biomeClimate);
         float rndTemplate = randomFloat() * float(gl_WorkGroupSize.x);
         float probMin = 0.0;
-        for (int i = 0; i < k_vegTemplateCount; ++i){
+        for (int i = 0; i < k_vegSpeciesCount; ++i){
             float probMax = probMin + distr.genProbability[i];
-            templateIndex = (rndTemplate > probMin && rndTemplate <= probMax) ? i : templateIndex;
+            speciesIndex = (rndTemplate > probMin && rndTemplate <= probMax) ? i : speciesIndex;
             probMin = probMax;
         }
 
-        // If some vegetation succeeded the test
-        if (templateIndex != ~0){
+        // If some species succeeded the test
+        if (speciesIndex != ~0){
             vegPrepThreadOffset = atomicAdd(s_vegPrepI, 1);
         }
     }
@@ -83,17 +83,17 @@ void main(){
     barrier();
 
     // Prepare vegetation instances
-    if (templateIndex != ~0){ // If this thread represents a vegetation
+    if (speciesIndex != ~0){ // If this thread represents a vegetation
         float greenMass = biomeClimate.x + biomeClimate.y;
         float rootDirNorm = (horizonNormalNorm(xPx, biome) + 0.25) * 0.5;
         b_vegPrep.vegInstances[s_vegPrepI + vegPrepThreadOffset] = VegInstance(
-            pTi,                    // rootPosTi
-            templateIndex,          // templateIndex
-            gl_WorkGroupID.z,       // chunkIndex
-            random(),               // randomSeed
-            greenMass * 0.25 + 0.75,// growth
-            rootDirNorm,            // rootDirNorm
-            0.25                    // tropismDirNorm
+            (speciesIndex < k_lSystemSpeciesCount) ? pTi : chunkTi, // rootPosTi
+            speciesIndex,                                           // speciesIndex
+            gl_WorkGroupID.z,                                       // chunkIndex
+            random(),                                               // randomSeed
+            greenMass * 0.25 + 0.75,                                // growth
+            rootDirNorm,                                            // rootDirNorm
+            0.25                                                    // tropismDirNorm
         );
     }
 }

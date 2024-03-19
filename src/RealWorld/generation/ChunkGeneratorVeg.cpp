@@ -37,11 +37,11 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
         (*acb)->pipelineBarrier2({{}, {}, barrier, {}});
     }
 
-    // Select vegetation
-    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVegPl);
+    // Select species
+    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVegSpeciesPl);
     (*acb)->dispatch(1u, 1u, m_chunksPlanned);
 
-    { // Add barrier between vegetation selection and L-system expansion
+    { // Add barrier between species selection and their expansion
         auto barrier = re::bufferMemoryBarrier(
             S::eComputeShader,                              // Src stage mask
             A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
@@ -53,13 +53,13 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
         (*acb)->pipelineBarrier2({{}, {}, barrier, {}});
     }
 
-    // Expand L-systems
-    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_expandLSystemsPl);
+    // Expand species instances
+    (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_expandVegInstancesPl);
     (*acb)->dispatchIndirect(*m_vegPrepBuf, offsetof(VegPrepSB, vegDispatchSize));
 
     acb.action(
         [&](const re::CommandBuffer& cb) {
-            { // Add barrier between L-system expansion and branch allocation
+            { // Add barrier between expansion and branch allocation
                 auto barrier = re::bufferMemoryBarrier(
                     S::eComputeShader,                    // Src stage mask
                     A::eShaderStorageRead |

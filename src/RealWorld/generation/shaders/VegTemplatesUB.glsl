@@ -75,8 +75,8 @@ restrict uniform VegTemplatesUB {
     float               symbolParams[k_vegTemplatesSymbolCount];
     float               ruleProbs[k_totalRewriteRuleBodyCount];
     String              ruleBodies[k_totalRewriteRuleBodyCount];
-    VegTemplate         tmplts[k_vegTemplateCount];
-    VegRasterTemplate   rasterTmplts[k_vegTemplateCount];
+    VegTemplate         tmplts[k_lSystemSpeciesCount];
+    VegRasterTemplate   rasterTmplts[k_lSystemSpeciesCount];
 } u_vegTmplts;
 
 #endif // !VEG_TEMPLATES_UB_GLSL

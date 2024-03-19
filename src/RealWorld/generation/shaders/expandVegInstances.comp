@@ -13,6 +13,7 @@
 #include <RealWorld/generation/shaders/VegPrepSB.glsl>
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
+#include <RealWorld/generation/shaders/expansionHelpers.glsl>
 
 layout (local_size_x = 64,
         local_size_y = 1,
@@ -53,6 +54,9 @@ struct TurtleState {
 const int k_maxStackDepth = 8;
 shared TurtleState s_stack[k_maxStackDepth];
 
+// Requires at least some shared variables
+#include <RealWorld/generation/shaders/expandGrass.glsl>
+
 // Return index relative to the provided rules or ~0 if no rule was selected
 uint probSelectRuleIndex(uint cond, RuleBodies rules){
     uint ruleIndex = ~0;
@@ -92,30 +96,24 @@ void doInclusiveScanOfBodySymbolsAndParams(){
     }
 }
 
-void emitBranch(
-    inout uint outIndex, vec2 posTi, float tipAbsAngNorm, float relRestAngNorm,
-    uint parentOffset, uint wallType, vec2 sizeTi, vec2 densityStiffness
-){
-    b_vegPrep.vegIndex[outIndex] = gl_WorkGroupID.x;
-    b_vegPrep.absPosTi[outIndex] = posTi;
-    b_vegPrep.absAngNorm[outIndex] = tipAbsAngNorm;
-    b_vegPrep.parentOffset15wallType31[outIndex] = packBranchParentOffsetWallType(parentOffset, wallType);
-    b_vegPrep.relRestAngNorm[outIndex] = relRestAngNorm;
-    b_vegPrep.radiusTi[outIndex] = sizeTi.x;
-    b_vegPrep.lengthTi[outIndex] = sizeTi.y;
-    b_vegPrep.densityStiffness[outIndex] = densityStiffness;
-    outIndex++;
-}
-
 void main(){
     const uint id = gl_LocalInvocationID.x;
     // Load vegetation instance & template description
     if (id == 0){
         s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.x];
-        s_tmplt = u_vegTmplts.tmplts[s_inst.templateIndex];
-        s_symbolCount[0] = s_tmplt.axiom.sCount;
+        if (s_inst.templateIndex < k_lSystemSpeciesCount){
+            s_tmplt = u_vegTmplts.tmplts[s_inst.templateIndex];
+            s_symbolCount[0] = s_tmplt.axiom.sCount;
+        }
     }
+    g_randomState = s_inst.randomSeed ^ (id * 2713);
     barrier();
+
+    // Grass or L-system?
+    if (s_inst.templateIndex >= k_lSystemSpeciesCount){
+        expandGrass();
+        return;
+    }
 
     // Initialize by the axiom
     if (id < s_symbolCount[0]){
@@ -127,7 +125,6 @@ void main(){
     barrier();
 
     // Expand the L-system
-    g_randomState = s_inst.randomSeed ^ (id * 2713);
     random();
     for (uint iter = 0; iter < s_tmplt.iterCount; ++iter) {
         const uint read = iter & 1;
@@ -237,10 +234,9 @@ void main(){
 
     if (id == 0){
         // Reserve space for branches in the preparation buffer
-        uint outIndex = atomicAdd(b_vegPrep.branchDispatchSize.x, s_branchCount);
-        b_vegPrep.prepIndexOfFirstBranch[gl_WorkGroupID.x] = outIndex;
-        b_vegPrep.vegOffsetWithinChunk[gl_WorkGroupID.x] =
-            atomicAdd(b_vegPrep.branchOfChunk[s_inst.chunkIndex], s_branchCount);
+        uint outIndex = reserveSpaceInPrepBuf(
+            gl_WorkGroupID.x, s_inst.chunkIndex, s_branchCount
+        );
 
         // Initialize turtle state stack
         uint stackDepth = 0;
@@ -266,6 +262,7 @@ void main(){
             vec2(0),
             vec2(0)
         );
+        outIndex++;
 
         // Interpret the L-system -> output branches to the preparation buffer
         uint symbolCount = s_symbolCount[s_tmplt.iterCount & 1];
@@ -293,6 +290,7 @@ void main(){
                     vec2(s_params[s_tmplt.iterCount & 1][paramIndex], len),
                     vec2(s_stack[stackDepth].density, s_stack[stackDepth].stiffness)
                 );
+                outIndex++;
                 s_stack[stackDepth].parentTipTi += toCartesian(len, absAngNorm);
                 s_stack[stackDepth].parentIndex = outIndex - 1;
                 s_stack[stackDepth].parentAbsAngNorm = absAngNorm;

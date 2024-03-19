@@ -2,14 +2,16 @@
     allocBranches.comp          
     biome.glsl                  
     consolidateEdges.comp       
-    expandLSystems.comp         
+    expandGrass.glsl            
+    expandVegInstances.comp     
+    expansionHelpers.glsl       
     generateColumnValues.glsl   
     generateStructure.comp      generateStructure.glsl
     GenerationPC.glsl           
     generationPll.glsl          
     outputBranches.comp         
+    selectVegSpecies.comp       
     selectVariant.comp          
-    selectVeg.comp              
     vegDistribution.glsl        
     VegPrepSB.glsl              
     VegTemplatesUB.glsl         

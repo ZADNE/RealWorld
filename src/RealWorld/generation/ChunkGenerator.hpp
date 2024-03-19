@@ -132,15 +132,15 @@ protected:
     }};
 
     // Vegetation generation
-    re::Pipeline m_selectVegPl{
+    re::Pipeline m_selectVegSpeciesPl{
         {.pipelineLayout = *m_pipelineLayout,
-         .debugName      = "rw::ChunkGenerator::selectVeg"},
-        {.comp = selectVeg_comp}
+         .debugName      = "rw::ChunkGenerator::selectVegSpecies"},
+        {.comp = selectVegSpecies_comp}
     };
-    re::Pipeline m_expandLSystemsPl{
+    re::Pipeline m_expandVegInstancesPl{
         {.pipelineLayout = *m_pipelineLayout,
-         .debugName      = "rw::ChunkGenerator::expandLSystems"},
-        {.comp = expandLSystems_comp}
+         .debugName      = "rw::ChunkGenerator::expandVegInstances"},
+        {.comp = expandVegInstances_comp}
     };
     re::Pipeline m_allocBranchesPl{
         {.pipelineLayout = *m_pipelineLayout,

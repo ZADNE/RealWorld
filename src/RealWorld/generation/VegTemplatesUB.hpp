@@ -160,8 +160,8 @@ struct VegTemplatesUB {
     std::array<SymbolParam, k_vegTemplatesSymbolCount> symbolParams{};
     std::array<float, k_totalRewriteRuleBodyCount> ruleProbs{};
     std::array<String, k_totalRewriteRuleBodyCount> ruleBodies{};
-    std::array<VegTemplate, k_vegTemplateCount> tmplts{};
-    std::array<VegRasterTemplate, k_vegTemplateCount> rasterTmplts{};
+    std::array<VegTemplate, k_lSystemSpeciesCount> tmplts{};
+    std::array<VegRasterTemplate, k_lSystemSpeciesCount> rasterTmplts{};
 };
 
 template<typename T>
@@ -278,7 +278,6 @@ private:
 };
 
 constexpr VegTemplatesUB composeVegTemplates() {
-    using namespace std::string_view_literals;
     std::string symbols;
     std::vector<SymbolParam> params;
     std::vector<float> probs;
