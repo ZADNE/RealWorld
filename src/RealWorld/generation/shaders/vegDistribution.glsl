@@ -12,17 +12,19 @@ struct VegDistr {
     float genProbability[k_vegSpeciesCount];
 };
 
-const VegDistr k_mountainVeg =  {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
-const VegDistr k_tundraVeg =    {{  0.0,    0.0,    0.2,    0.0,    0.0,    0.0}};
-const VegDistr k_taigaVeg =     {{  0.0,    0.0,    4.0,    0.0,    0.0,    0.0}};
+// Vegetation type                  |trees (L-systems)                      |grasses
+// Species name                     |oak    |acacia |spruce |willow |cactus |normal |cold   |mud    |dry
+const VegDistr k_mountainVeg  = {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_tundraVeg    = {{  0.0,    0.0,    0.2,    0.0,    0.0,    0.0,    1.0,    0.0,    0.0}};
+const VegDistr k_taigaVeg     = {{  0.0,    0.0,    4.0,    0.0,    0.0,    0.0,    0.2,    0.0,    0.0}};
 
-const VegDistr k_grasslandVeg = {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
-const VegDistr k_forestVeg =    {{  1.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
-const VegDistr k_swampVeg =     {{  0.0,    0.0,    0.0,    3.0,    0.0,    0.0}};
+const VegDistr k_grasslandVeg = {{  0.0,    0.0,    0.0,    0.0,    0.0,    1.75,    0.0,   0.05,   0.05}};
+const VegDistr k_forestVeg    = {{  1.0,    0.0,    0.0,    0.0,    0.0,    0.15,   0.0,    0.0,    0.0}};
+const VegDistr k_swampVeg     = {{  0.0,    0.0,    0.0,    3.0,    0.0,    0.1,    0.0,    0.0,    0.0}};
 
-const VegDistr k_desertVeg =    {{  0.0,    0.05,   0.0,    0.0,    1.0,    0.1}};
-const VegDistr k_savannaVeg =   {{  0.0,    1.0,    0.0,    0.0,    0.1,    0.25}};
-const VegDistr k_rainforestVeg ={{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_desertVeg    = {{  0.0,    0.05,   0.0,    0.0,    1.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_savannaVeg   = {{  0.0,    1.0,    0.0,    0.0,    0.1,    0.25,   0.0,    0.0,    1.75}};
+const VegDistr k_rainforestVeg= {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    1.0,    0.0}};
 
 const VegDistr k_biomeVegDistrs[3][3] = {
 //humidity> |low                |normal             |high           temperature \/

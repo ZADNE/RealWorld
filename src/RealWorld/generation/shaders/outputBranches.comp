@@ -55,8 +55,10 @@ void main(){
         var = uint(clamp(n + radF, 0.0, s_tmplt.maxLeafStrength)) | (uint(d) & 248);
         break;
     case k_tallGrassWl:
-    case k_wheatWl:
-        var = random() & 120 + uint(gl_LocalInvocationID.y >= 24) * 128;
+    case k_coldTallGrassWl:
+    case k_mudTallGrassWl:
+    case k_dryTallGrassWl:
+        var = random() & 255;
         break;
     case k_withyWl:{
         int ivar = int(gl_WorkGroupSize.y - gl_LocalInvocationID.y - 1) * int(256 / gl_WorkGroupSize.y) + 
