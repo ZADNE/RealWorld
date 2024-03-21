@@ -16,6 +16,6 @@ layout (local_size_x = k_simulateBodiesGroupSizeX,
 void main(){
     /*if (gl_GlobalInvocationID.x < b_currentBodyCount) {
     ivec2 posTi = ivec2(b_bodies[gl_GlobalInvocationID.x].bottomCenterPx / TilePx);
-        tileStore(posTi, HIGHLIGHTER);
+        tileStore(posTi, k_highlighter);
     }*/
 }

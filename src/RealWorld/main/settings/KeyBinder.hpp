@@ -53,7 +53,7 @@ struct BindingInfo {
         , name(name)
         , desc(desc) {}
 
-    re::Key     defaultValue;
+    re::Key defaultValue;
     const char* name;
     const char* desc;
 };

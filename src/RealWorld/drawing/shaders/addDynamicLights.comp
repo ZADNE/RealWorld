@@ -5,7 +5,7 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/light.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
-const uint DynamicLightsSB_BINDING = 5u;
+const uint k_dynamicLightsBinding = 5u;
 #include <RealWorld/drawing/shaders/DynamicLightsSB.glsl>
 
 layout (local_size_x = 8,
@@ -26,14 +26,14 @@ vec4 lightOfThisUnit(vec4 lightTotal, vec2 lightPosPx, vec2 relUn){
 
 void main(){
     if (gl_GlobalInvocationID.x < p_lightCount){
-        ivec2 lightPosPx = b_lights[gl_GlobalInvocationID.x].posPx - p_addLightOffsetPx;
+        ivec2 lightPosPx = b_dynamicLights[gl_GlobalInvocationID.x].posPx - p_addLightOffsetPx;
         ivec2 lightPosUn = lightPosPx >> k_toUnitBits;
         ivec2 editPos = lightPosUn + ivec2(gl_LocalInvocationID.yz);
         bvec2 lowerClip = greaterThanEqual(editPos, ivec2(0));
         bvec2 upperClip = lessThan(editPos, imageSize(u_lightImage));
         if (all(bvec4(lowerClip, upperClip))){//If inside the light image
             vec4 dynLightUnit = lightOfThisUnit(
-                unpackUnorm4x8(b_lights[gl_GlobalInvocationID.x].col),
+                unpackUnorm4x8(b_dynamicLights[gl_GlobalInvocationID.x].col),
                 lightPosPx,
                 vec2(gl_LocalInvocationID.yz));
 

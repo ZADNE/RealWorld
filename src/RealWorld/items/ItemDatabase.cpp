@@ -1,9 +1,8 @@
-﻿/*! 
+﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/items/ItemDatabase.hpp>
-
 #include <RealWorld/constants/tile.hpp>
+#include <RealWorld/items/ItemDatabase.hpp>
 
 namespace rw {
 

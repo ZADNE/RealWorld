@@ -8,6 +8,7 @@ layout (push_constant, std430)
 restrict uniform VegDynamicsPC {
     mat4  p_mvpMat;
     vec2  p_worldTexSizeTi;
+    ivec2 p_worldTexMaskTi;
     float p_timeSec;
     uint  p_readBuf;
 };

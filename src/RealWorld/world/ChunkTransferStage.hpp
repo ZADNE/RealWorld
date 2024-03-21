@@ -23,8 +23,8 @@ struct StageBuf {
 
 struct TransferSlot {
     glm::ivec2 targetCh{};
-    int        branchCount{};
-    int        branchByteOffset{};
+    int branchCount{};
+    int branchByteOffset{};
 };
 
 /**
@@ -87,7 +87,8 @@ public:
         return std::span{
             m_buf->branches.begin() + slt.branchByteOffset,
             m_buf->branches.begin() + slt.branchByteOffset +
-                slt.branchCount * sizeof(BranchSerialized)};
+                slt.branchCount * sizeof(BranchSerialized)
+        };
     }
 
     [[nodiscard]] bool insertBranchAllocation(glm::ivec2 posCh, int branchCount) {
@@ -104,11 +105,8 @@ public:
     }
 
     [[nodiscard]] bool insertUpload(
-        glm::ivec2               posCh,
-        glm::ivec2               posAt,
-        BranchRange              range,
-        const uint8_t*           tiles,
-        std::span<const uint8_t> branchesSerialized
+        glm::ivec2 posCh, glm::ivec2 posAt, BranchRange range,
+        const uint8_t* tiles, std::span<const uint8_t> branchesSerialized
     ) {
         if (!hasFreeTransferSpace(range.count)) {
             return false;
@@ -119,73 +117,72 @@ public:
         m_tileCopyRegions[upSlotsEnd] = vk::BufferImageCopy2{
             offsetof(StageBuf, tiles[upSlotsEnd]), // Buffer offset
             0u,
-            0u,                                            // Tightly packed
-            {vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u}, // Subresource
-            {posAt.x, posAt.y, 0u},                        // Offset
-            {iChunkTi.x, iChunkTi.y, 1u}                   // Extent
+            0u,                                    // Tightly packed
+            {vk::ImageAspectFlagBits::eColor, 0u, 0u, k_tileLayerCount}, // Subresource
+            {posAt.x, posAt.y, 0u},      // Offset
+            {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
 
         if (range.count > 0) {
             std::memcpy(
-                &m_buf->branches[m_branchUpBytesEnd],
-                branchesSerialized.data(),
+                &m_buf->branches[m_branchUpBytesEnd], branchesSerialized.data(),
                 branchesSerialized.size_bytes()
             );
             // Plan upload of branches
             vk::DeviceSize sizeBytes = sizeof(BranchSerialized::raster) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, raster[range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, raster[range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::densityStiffness) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, densityStiffness[range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, densityStiffness[range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::lengthTi) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, lengthTi[range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, lengthTi[range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::radiusTi) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, radiusTi[range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, radiusTi[range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::angVel) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, angVel[range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, angVel[range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::relRestAngNorm) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, relRestAngNorm[range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, relRestAngNorm[range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::parentOffset15wallType31) *
                         range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, parentOffset15wallType31[range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, parentOffset15wallType31[range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::absAngNorm) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, absAngNorm[0][range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, absAngNorm[0][range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::absPosTi) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StageBuf, branches) + m_branchUpBytesEnd,
-                offsetof(BranchSB, absPosTi[0][range.begin]),
-                sizeBytes};
+                offsetof(BranchSB, absPosTi[0][range.begin]), sizeBytes
+            };
             m_branchUpBytesEnd += sizeBytes;
         }
 
@@ -202,7 +199,8 @@ public:
     vk::ArrayProxyNoTemporaries<const vk::BufferCopy2> branchUploadRegions() const {
         return {
             static_cast<uint32_t>(numberOfBranchUploads()),
-            m_branchCopyRegions.data()};
+            m_branchCopyRegions.data()
+        };
     }
 
     [[nodiscard]] bool insertDownloadAndBranchDeallocation(
@@ -218,10 +216,10 @@ public:
         m_tileCopyRegions[downSlotsBegin] = vk::BufferImageCopy2{
             offsetof(StageBuf, tiles[downSlotsBegin]), // Buffer offset
             0u,
-            0u,                                            // Tightly packed
-            {vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u}, // Subresource
-            {posAt.x, posAt.y, 0u},                        // Offset
-            {iChunkTi.x, iChunkTi.y, 1u}                   // Extent
+            0u,                                        // Tightly packed
+            {vk::ImageAspectFlagBits::eColor, 0u, 0u, k_tileLayerCount}, // Subresource
+            {posAt.x, posAt.y, 0u},      // Offset
+            {iChunkTi.x, iChunkTi.y, 1u} // Extent
         };
 
         if (range.count > 0) {
@@ -231,57 +229,57 @@ public:
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, absPosTi[0][range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::absAngNorm) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, absAngNorm[0][range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::parentOffset15wallType31) *
                         range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, parentOffset15wallType31[range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::relRestAngNorm) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, relRestAngNorm[range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::angVel) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, angVel[range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::radiusTi) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, radiusTi[range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::lengthTi) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, lengthTi[range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::densityStiffness) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, densityStiffness[range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
             sizeBytes = sizeof(BranchSerialized::raster) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
                 offsetof(BranchSB, raster[range.begin]),
-                offsetof(StageBuf, branches) + m_branchDownBytesBegin,
-                sizeBytes};
+                offsetof(StageBuf, branches) + m_branchDownBytesBegin, sizeBytes
+            };
 
             { // Request deallocation
                 auto reqSlot = --m_buf->branchAllocReq.deallocSlotsBegin;
@@ -291,20 +289,23 @@ public:
         m_slots[downSlotsBegin] = TransferSlot{
             .targetCh         = posCh,
             .branchCount      = range.count,
-            .branchByteOffset = m_branchDownBytesBegin};
+            .branchByteOffset = m_branchDownBytesBegin
+        };
         return true;
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferImageCopy2> tileDownloadRegions() const {
         return {
             static_cast<uint32_t>(numberOfDownloads()),
-            m_tileCopyRegions.data() + m_downSlotsBegin};
+            m_tileCopyRegions.data() + m_downSlotsBegin
+        };
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferCopy2> branchDownloadRegions() const {
         return {
             static_cast<uint32_t>(numberOfBranchDownloads()),
-            m_branchCopyRegions.data() + m_branchDownSlotsBegin};
+            m_branchCopyRegions.data() + m_branchDownSlotsBegin
+        };
     }
 
     const re::Buffer& buffer() const { return m_buf; }
@@ -343,7 +344,8 @@ private:
         .sizeInBytes = sizeof(StageBuf),
         .usage       = vk::BufferUsageFlagBits::eTransferSrc |
                  vk::BufferUsageFlagBits::eTransferDst,
-        .debugName = "rw::ChunkTransferMgr::stage::buf"}};
+        .debugName = "rw::ChunkTransferMgr::stage::buf"
+    }};
 
     /**
      * @brief Uploads are placed at the beginning, downloads at the end

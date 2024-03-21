@@ -12,8 +12,10 @@
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
+#include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/vegetation/shaders/AllShaders.hpp>
 
@@ -30,12 +32,12 @@ public:
     /**
      * @brief   Removes branches from the world texture
      */
-    void unrasterizeVegetation(const re::CommandBuffer& cmdBuf);
+    void unrasterizeVegetation(const ActionCmdBuf& acb);
 
     /**
      * @brief   Adds simulated branches to the world texture
      */
-    void rasterizeVegetation(const re::CommandBuffer& cmdBuf);
+    void rasterizeVegetation(const ActionCmdBuf& acb, float timeSec);
 
     struct VegStorage {
         const re::Buffer& branchBuf;
@@ -48,52 +50,51 @@ private:
     struct VegDynamicsPC {
         glm::mat4 mvpMat;
         glm::vec2 worldTexSizeTi;
-        float     timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
+        glm::ivec2 worldTexMaskTi;
+        float timeSec;
         glm::uint readBuf;
     } m_vegDynamicsPC;
 
     re::PipelineLayout m_pipelineLayout;
-    re::RenderPass     m_unrasterizationRenderPass;
-    re::Framebuffer    m_unrasterizationFramebuffer;
-    re::RenderPass     m_rasterizationRenderPass;
-    re::Framebuffer    m_rasterizationFramebuffer;
+    re::RenderPass m_rasterizationRenderPass;
+    re::ImageView m_wallLayerImageView;
+    re::Framebuffer m_rasterizationFramebuffer;
 
     re::Pipeline m_unrasterizeBranchesPl{
         {.topology           = vk::PrimitiveTopology::ePatchList,
          .patchControlPoints = 1,
          .enableBlend        = false,
          .pipelineLayout     = *m_pipelineLayout,
-         .renderPass         = *m_unrasterizationRenderPass,
+         .renderPassSubpass  = m_rasterizationRenderPass.subpass(0),
          .debugName          = "rw::VegSimulator::unrasterizeBranches"},
         {.vert = unrasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
          .geom = duplicateBranches_geom,
-         .frag = unrasterizeBranches_frag}};
+         .frag = unrasterizeBranches_frag}
+    };
     re::Pipeline m_rasterizeBranchesPl{
         {.topology           = vk::PrimitiveTopology::ePatchList,
          .patchControlPoints = 1,
          .enableBlend        = false,
          .pipelineLayout     = *m_pipelineLayout,
-         .renderPass         = *m_rasterizationRenderPass,
+         .renderPassSubpass  = m_rasterizationRenderPass.subpass(0),
          .debugName          = "rw::VegSimulator::rasterizeBranches"},
         {.vert = rasterizeBranches_vert,
          .tesc = tessellateBranches_tesc,
          .tese = tessellateBranches_tese,
          .geom = duplicateBranches_geom,
-         .frag = rasterizeBranches_frag}};
+         .frag = rasterizeBranches_frag}
+    };
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
-        .debugName = "rw::VegSimulator::descriptorSet"}};
-    re::Buffer        m_branchBuf;
-    re::Buffer        m_branchAllocRegBuf;
-    glm::uvec2        m_worldTexSizeTi{};
+        .debugName = "rw::VegSimulator::descriptorSet"
+    }};
+    re::Buffer m_branchBuf;
+    re::Buffer m_branchAllocRegBuf;
+    glm::uvec2 m_worldTexSizeTi{};
 
-    void beginWorldTextureRenderPass(
-        const re::CommandBuffer& cmdBuf,
-        const vk::RenderPass&    renderPass,
-        const vk::Framebuffer&   framebuffer
-    ) const;
+    void beginWorldTextureRenderPass(const re::CommandBuffer& cb) const;
 };
 
 } // namespace rw

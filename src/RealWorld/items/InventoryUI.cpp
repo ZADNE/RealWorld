@@ -32,8 +32,8 @@ void InventoryUI::windowResized(glm::vec2 newWindowSize) {
 }
 
 void InventoryUI::connectToInventory(Inventory* inventory, Connection connection) {
-    bool  changed = false;
-    auto& inv     = m_inv[(size_t)connection];
+    bool changed = false;
+    auto& inv    = m_inv[(size_t)connection];
     if (inv) { // Disconnect from the current inventory
         inv->connectToUI(nullptr, connection);
         changed = true;
@@ -74,8 +74,8 @@ void InventoryUI::reload() {
 void InventoryUI::swapUnderCursor(glm::vec2 cursorPx) {
     auto slot = cursorToSlot(cursorPx);
     if (slot) {
-        int   x          = slot->x;
-        int   y          = slot->y;
+        int x            = slot->x;
+        int y            = slot->y;
         Item& itemInSlot = (*m_inv[Primary])[x][y];
         if (itemInSlot.id == m_heldItem.id) {
             // Same items, drop item under corsor to slot
@@ -208,13 +208,13 @@ inline int InventoryUI::invSlotCount(Connection con) const {
 
 std::optional<glm::ivec2> InventoryUI::cursorToSlot(glm::vec2 cursorPx) const {
     if (m_open && m_inv[Primary]) {
-        glm::vec2  posWithinInv = cursorPx - m_invBotLeftPx;
-        glm::vec2  slotPos      = posWithinInv / (slotDims() + k_slotPadding);
+        glm::vec2 posWithinInv = cursorPx - m_invBotLeftPx;
+        glm::vec2 slotPos      = posWithinInv / (slotDims() + k_slotPadding);
         glm::bvec2 validSlot =
             glm::greaterThanEqual(slotPos, glm::vec2(0.0f, 0.0f)) &&
             glm::lessThan(slotPos, glm::vec2(invSize(Primary)));
 
-        glm::vec2  slotPart   = slotDims() / (slotDims() + k_slotPadding);
+        glm::vec2 slotPart    = slotDims() / (slotDims() + k_slotPadding);
         glm::bvec2 notPadding = glm::lessThan(glm::fract(slotPos), slotPart);
 
         if (glm::all(validSlot && notPadding)) {

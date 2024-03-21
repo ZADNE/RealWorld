@@ -3,42 +3,28 @@
  */
 #ifndef VEG_DISTRIBUTION_GLSL
 #define VEG_DISTRIBUTION_GLSL
-
-struct VegTemplate{
-    uint branchFirstIndex;
-    uint branchCount;
-    float rndLength;
-    float rndAngle;
-};
-
-const VegTemplate k_vegTemplates[] = {
-    VegTemplate(0,      51, 0.325,  0.03125),   // Oak
-    VegTemplate(51,     64, 0.75,   0.0625),    // Acacia
-    VegTemplate(115,    64, 0.75,   0.03125),   // Wheat (must be index 2; see generateVeg)
-};
-
-const uint k_vegTemplatesBranchCount =
-    k_vegTemplates[k_vegTemplates.length() - 1].branchFirstIndex + 
-    k_vegTemplates[k_vegTemplates.length() - 1].branchCount;
+#include <RealWorld/constants/generation.glsl>
 
 // Describes vegetation distribution
 struct VegDistr {
     // Represents probabilities to generate each template
     // Probabilities are per chunk
-    float genProbability[k_vegTemplates.length()];
+    float genProbability[k_vegSpeciesCount];
 };
 
-const VegDistr k_mountainVeg =    {{  0.01,   0.0,    0.0}};
-const VegDistr k_tundraVeg =      {{  0.01,   0.0,    0.0}};
-const VegDistr k_taigaVeg =       {{  0.01,   0.0,    0.0}};
+// Vegetation type                  |trees (L-systems)                      |grasses
+// Species name                     |oak    |acacia |spruce |willow |cactus |normal |cold   |mud    |dry
+const VegDistr k_mountainVeg  = {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_tundraVeg    = {{  0.0,    0.0,    0.2,    0.0,    0.0,    0.0,    1.0,    0.0,    0.0}};
+const VegDistr k_taigaVeg     = {{  0.0,    0.0,    4.0,    0.0,    0.0,    0.0,    0.2,    0.0,    0.0}};
 
-const VegDistr k_grasslandVeg =   {{  0.1,    0.0,    1.0}};
-const VegDistr k_forestVeg =      {{  2.0,    0.0,    1.0}};
-const VegDistr k_swampVeg =       {{  0.0,    0.0,    0.0}};
+const VegDistr k_grasslandVeg = {{  0.0,    0.0,    0.0,    0.0,    0.0,    1.75,    0.0,   0.05,   0.05}};
+const VegDistr k_forestVeg    = {{  1.0,    0.0,    0.0,    0.0,    0.0,    0.15,   0.0,    0.0,    0.0}};
+const VegDistr k_swampVeg     = {{  0.0,    0.0,    0.0,    3.0,    0.0,    0.1,    0.0,    0.0,    0.0}};
 
-const VegDistr k_desertVeg =      {{  0.0,    0.1,    0.0}};
-const VegDistr k_savannaVeg =     {{  0.0,    1.0,    1.0}};
-const VegDistr k_rainforestVeg =  {{  0.0,    1.0,    1.0}};
+const VegDistr k_desertVeg    = {{  0.0,    0.05,   0.0,    0.0,    1.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_savannaVeg   = {{  0.0,    1.0,    0.0,    0.0,    0.1,    0.25,   0.0,    0.0,    1.75}};
+const VegDistr k_rainforestVeg= {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    1.0,    0.0}};
 
 const VegDistr k_biomeVegDistrs[3][3] = {
 //humidity> |low                |normal             |high           temperature \/
@@ -63,7 +49,7 @@ VegDistr biomeVegDistr(vec2 biomeClimate){
     const VegDistr b10 = k_biomeVegDistrs[ll.x + 1][ll.y];
     const VegDistr b11 = k_biomeVegDistrs[ll.x + 1][ll.y + 1];
 
-    for (int i = 0; i < k_vegTemplates.length(); ++i){
+    for (int i = 0; i < k_vegSpeciesCount; ++i){
         // Interpolate over X axis
         float bx0 = mix(b00.genProbability[i], b10.genProbability[i], frac.x);
         float bx1 = mix(b01.genProbability[i], b11.genProbability[i], frac.x);

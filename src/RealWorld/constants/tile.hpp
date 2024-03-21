@@ -21,7 +21,7 @@ constexpr int k_physicsStepsPerSecond = 100;
  */
 constexpr glm::uvec2 uTilePx = glm::uvec2(4u, 4u);
 constexpr glm::ivec2 iTilePx = uTilePx;
-constexpr glm::vec2  TilePx  = uTilePx;
+constexpr glm::vec2 TilePx   = uTilePx;
 
 static_assert(std::has_single_bit(uTilePx.x) && std::has_single_bit(uTilePx.y));
 
@@ -49,6 +49,8 @@ enum class Block : uint8_t {
     Steam,
     Fire,
     Smoke,
+    DroppedLeaf,
+    DroppedDryLeaf,
 
     Acid = 254,
 
@@ -70,24 +72,34 @@ enum class Wall : uint8_t {
     HallowDirt,
     HallowGrass,
 
-    OakWood = 224,
+    Highlighter = 223,
+    OakWood     = 224, // 0b1110'0000
     AcaciaWood,
+    ConiferousWood,
     TallGrass,
-    Wheat,
+    ColdTallGrass,
+    MudTallGrass,
+    DryTallGrass,
+    Leaf,
+    DryLeaf,
+    Needle,
+    Withy,
+    Cactus,
 
     Air = 255
 };
 
+enum class TileLayer : uint32_t {
+    Block = 0,
+    Wall  = 1
+};
+constexpr uint32_t k_tileLayerCount = 2;
+
 enum class TileAttrib : uint32_t {
     BlockType = 0,
     BlockVar  = 1,
-    WallType  = 2,
-    WallVar   = 3
-};
-
-enum class TileLayer : uint32_t {
-    BlockLayer = static_cast<uint32_t>(TileAttrib::BlockType),
-    WallLayer  = static_cast<uint32_t>(TileAttrib::WallType)
+    WallType  = 0,
+    WallVar   = 1
 };
 
 /**

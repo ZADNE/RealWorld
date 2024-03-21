@@ -3,11 +3,10 @@
     AnalysisPC.glsl             
     analyzeTiles.comp           
     calculateShadows.comp       
-    drawColor.frag              
+    drawFullscreen.vert         
     drawMinimap.vert            drawMinimap.frag
-    drawShadows.vert            
-    drawTiles.vert              
+    drawShadows.frag            
+    drawTiles.frag              
     DynamicLightsSB.glsl        
-    ShadowDrawingPC.glsl        
-    TileDrawerPC.glsl           
+    WorldDrawingPC.glsl         
 )

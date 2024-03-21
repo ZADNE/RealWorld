@@ -9,6 +9,8 @@
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
+#include <RealWorld/drawing/WorldDrawingPC.hpp>
+
 namespace rw {
 
 /**
@@ -16,35 +18,33 @@ namespace rw {
  */
 class TileDrawer {
 public:
-    TileDrawer(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
+    TileDrawer(
+        re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
+        WorldDrawingPC& pc
+    );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
 
-    void resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi);
+    void resizeView(glm::vec2 viewSizePx);
 
-    void drawTiles(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx);
+    void drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
-    void drawMinimap(const re::CommandBuffer& cmdBuf);
+    void drawMinimap(const re::CommandBuffer& cb);
 
 private:
     re::TextureShaped m_blockAtlasTex{re::TextureSeed{"blockAtlas"}};
     re::TextureShaped m_wallAtlasTex{re::TextureSeed{"wallAtlas"}};
 
-    struct PushConstants {
-        glm::mat4  viewMat;
-        glm::ivec2 worldTexMask = glm::ivec2(1, 1);
-        glm::ivec2 viewSizeTi;
-        glm::vec2  botLeftPxModTilePx;
-        glm::ivec2 botLeftTi;
-        glm::vec2  minimapOffset;
-        glm::vec2  minimapSize;
-    } m_pushConstants;
+    glm::vec2 m_viewSizePx;
+
+    WorldDrawingPC& m_pc;
 
     re::PipelineLayout m_pipelineLayout;
-    re::DescriptorSet  m_descriptorSet{re::DescriptorSetCreateInfo{
-         .layout    = m_pipelineLayout.descriptorSetLayout(0),
-         .debugName = "rw::TileDrawer::descriptorSet"}};
-    re::Pipeline       m_drawTilesPl;
+    re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
+        .layout    = m_pipelineLayout.descriptorSetLayout(0),
+        .debugName = "rw::TileDrawer::descriptorSet"
+    }};
+    re::Pipeline m_drawTilesPl;
 
     // Minimap
     re::Pipeline m_drawMinimapPl;

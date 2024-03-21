@@ -12,43 +12,43 @@ layout (local_size_x = k_genGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = k_tilesImageBinding, rgba8ui)
-uniform restrict uimage2DArray          u_tilesImage;
-layout (set = 0, binding = k_materialImageBinding, rgba8ui)
-uniform restrict readonly uimage2DArray u_materialImage;
+layout (set = 0, binding = k_tilesImageBinding, rg8ui)
+    uniform restrict uimage2DArray          u_layerImage;
+layout (set = 0, binding = k_materialImageBinding, r8ui)
+    uniform restrict readonly uimage2DArray u_materialImage;
 
-const ivec2 NEIGHBORHOOD[] = {
+const ivec2 k_neighborhood[] = {
     {-1, +1},     {+0, +1},     {+1, +1},
     {-1, +0},                   {+1, +0},
     {-1, -1},     {+0, -1},     {+1, -1}
 };
 
 void main() {
-    // Load previous value of the tile
-    const uint loadLayer = tileImgLoadLayer();
+    // Load previous value of the block
+    const uint loadLayer = blockImgLoadLayer();
     const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-    uvec4 tile = imageLoad(u_tilesImage, ivec3(pTi, loadLayer));
+    uvec2 block = imageLoad(u_layerImage, ivec3(pTi, loadLayer)).xy;
 
     // Examine neighbors
     uint neighborsN = 0u;
-    for (int i = 0; i < NEIGHBORHOOD.length(); i++){
-        uint neighbor = imageLoad(u_tilesImage, ivec3(pTi + NEIGHBORHOOD[i], loadLayer)).BL_T;
+    for (int i = 0; i < k_neighborhood.length(); i++){
+        uint neighbor = imageLoad(u_layerImage, ivec3(pTi + k_neighborhood[i], loadLayer)).L_T;
         neighborsN += uint(!isAirBlock(neighbor));
     }
 
-    // Determine new tile
-    if (tile.BL_T == AIR_BL){
+    // Determine new block
+    if (block.L_T == k_airBl){
         if (neighborsN > p_edgeConsolidationPromote){
             // Surrounded air -> promote to material
-            tile = uvec4(imageLoad(u_materialImage, ivec3(pTi, gl_WorkGroupID.z)).BL_T, tile.gba);
+            block.L_T = imageLoad(u_materialImage, ivec3(pTi, gl_WorkGroupID.z)).r;
         }
     } else {
         if (neighborsN < p_edgeConsolidationReduce){
             // Lonely solid -> reduce to air
-            tile = uvec4(AIR.BL_T, tile.gba);
+            block.L_T = k_airBl;
         }
     }
 
-    // Store the new tile
-    imageStore(u_tilesImage, ivec3(pTi, tileImgStoreLayer()), tile);
+    // Store the new block
+    imageStore(u_layerImage, ivec3(pTi, blockImgStoreLayer()), block.xyxy);
 }

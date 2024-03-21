@@ -1,0 +1,30 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#define VegPrepSB_ACCESS
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
+
+layout (local_size_x = 1,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+void main(){
+    lockAllocRegister();
+
+    for (int i = 0; i < k_chunkGenSlots; ++i) {
+        uint branchesNeeded = b_vegPrep.branchOfChunk[i];
+        if (branchesNeeded > 0){
+            b_vegPrep.branchOfChunk[i] = allocateBranches(
+                branchesNeeded,
+                tiToCh(p_chunkTi[i]),
+                p_worldTexSizeCh);
+        }
+    }
+
+    unlockAllocRegister();
+}

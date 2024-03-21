@@ -1,0 +1,99 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/generation/shaders/generateStructure.glsl>
+#include <RealWorld/generation/shaders/vegDistribution.glsl>
+#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#define VegPrepSB_ACCESS writeonly
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
+
+layout (local_size_x = k_maxVegPerChunk,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+const int k_invocOffsetTi = iChunkTi.x / int(gl_WorkGroupSize.x);
+const int k_randomOffsetTi = k_invocOffsetTi - 1;
+
+int invocXPosTi(ivec2 chunkTi){
+    int basePosTi = chunkTi.x + int(gl_LocalInvocationID.x) * k_invocOffsetTi;
+    int randomOffsetTi = int(random()) & k_randomOffsetTi;
+    return basePosTi + randomOffsetTi;
+}
+
+shared uint s_vegPrepI;
+
+float horizonNormalNorm(float xPx, Biome biome){
+    float leftY = horizon(xPx - 20.0, biome, p_seed).r;
+    float rightY = horizon(xPx + 20.0, biome, p_seed).r;
+    const float k_1Over2Pi = 0.15915494309;
+    return fract(atan(rightY - leftY, 40.0) * k_1Over2Pi + 0.25);
+}
+
+void main(){
+    // Init shared vars
+    if (gl_LocalInvocationID.x == 0){
+        s_vegPrepI = 0;
+    }
+    barrier();
+
+    ivec2 chunkTi = p_chunkTi[gl_WorkGroupID.z];
+    g_randomState =
+        uint(chunkTi.y << 16 | chunkTi.x) ^
+        uint(gl_LocalInvocationID.x * 2713) ^
+        uint(p_seed);
+    ivec2 pTi = ivec2(invocXPosTi(chunkTi), 0);
+    float xPx = tiToPx(pTi.x);
+    vec2 biomeClimate = biomeClimate(xPx, p_seed);
+    Biome biome = biomeStructure(biomeClimate);
+    float horizonPx = horizon(xPx, biome, p_seed).r;
+    pTi.y = int(pxToTi(horizonPx));
+
+    uint speciesIndex = ~0;
+    uint vegPrepThreadOffset;
+
+    // Gather vegetation instances of the chunk
+    if (pTi.y >= chunkTi.y && pTi.y < (chunkTi.y + iChunkTi.y)) { // If on the horizon
+        // Select the species to generate
+        VegDistr distr = biomeVegDistr(biomeClimate);
+        float rndTemplate = randomFloat() * float(gl_WorkGroupSize.x);
+        float probMin = 0.0;
+        for (int i = 0; i < k_vegSpeciesCount; ++i){
+            float probMax = probMin + distr.genProbability[i];
+            speciesIndex = (rndTemplate > probMin && rndTemplate <= probMax) ? i : speciesIndex;
+            probMin = probMax;
+        }
+
+        // If some species succeeded the test
+        if (speciesIndex != ~0){
+            vegPrepThreadOffset = atomicAdd(s_vegPrepI, 1);
+        }
+    }
+    barrier();
+
+    // Reserve space in the preparation buffer
+    if (gl_LocalInvocationID.x == 0){
+        if (s_vegPrepI > 0){
+            s_vegPrepI = atomicAdd(b_vegPrep.vegDispatchSize.x, s_vegPrepI);
+        }
+    }
+    barrier();
+
+    // Prepare vegetation instances
+    if (speciesIndex != ~0){ // If this thread represents a vegetation
+        float greenMass = biomeClimate.x + biomeClimate.y;
+        float rootDirNorm = (horizonNormalNorm(xPx, biome) + 0.25) * 0.5;
+        b_vegPrep.vegInstances[s_vegPrepI + vegPrepThreadOffset] = VegInstance(
+            (speciesIndex < k_lSystemSpeciesCount) ? pTi : chunkTi, // rootPosTi
+            speciesIndex,                                           // speciesIndex
+            gl_WorkGroupID.z,                                       // chunkIndex
+            random(),                                               // randomSeed
+            greenMass * 0.25 + 0.75,                                // growth
+            rootDirNorm,                                            // rootDirNorm
+            0.25                                                    // tropismDirNorm
+        );
+    }
+}

@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/light.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
@@ -11,11 +12,16 @@ layout (local_size_x = k_analysisGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = 0, r32ui) uniform restrict writeonly uimage2D u_lightImage;
-layout (set = 0, binding = 1, r8) uniform restrict writeonly image2D     u_transluImage;
-layout (set = 0, binding = 2) uniform usampler2D                         u_worldTexture;
-layout (set = 0, binding = 3) uniform sampler2D                          u_blockLightAtlas;
-layout (set = 0, binding = 4) uniform sampler2D                          u_wallLightAtlas;
+layout (set = 0, binding = 0, r32ui)
+    uniform restrict writeonly uimage2D u_lightImage;
+layout (set = 0, binding = 1, r8)
+    uniform restrict writeonly image2D  u_transluImage;
+layout (set = 0, binding = 2)
+    uniform usampler2DArray             u_worldTex;
+layout (set = 0, binding = 3)
+    uniform sampler2D                   u_blockLightAtlas;
+layout (set = 0, binding = 4)
+    uniform sampler2D                   u_wallLightAtlas;
 
 const float TO_UNIT_SCALE = 1.0 / (k_iLightScale * k_iLightScale);
 
@@ -29,15 +35,17 @@ void main(){
     for (int y = 0; y < k_iLightScale; y++){
         for (int x = 0; x < k_iLightScale; x++){
             // Fetch the tile
-            uvec4 tile = texelFetch(u_worldTexture, (readBasePosTi + ivec2(x, y)) & p_worldTexMask, 0);
+            ivec2 posAt = tiToAt(readBasePosTi + ivec2(x, y), p_worldTexMask);
+            uvec2 block = texelFetch(u_worldTex, ivec3(posAt, k_blockLayer), 0).xy;
+            uvec2 wall = texelFetch(u_worldTex, ivec3(posAt, k_wallLayer), 0).xy;
 
             // Process its translucency
-            bool airBlock = isAirBlock(tile.BLOCK_TYPE);
+            bool airBlock = isAirBlock(block.L_T);
             translu.r += airBlock ? (208.0/255.0) : (150.0/255.0);
 
             // Process it as a light source
-            vec4 blockLight = texelFetch(u_blockLightAtlas, ivec2(tile.yx), 0);
-            vec4 wallLight = texelFetch(u_wallLightAtlas, ivec2(tile.wz), 0);
+            vec4 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0);
+            vec4 wallLight = texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0);
             vec4 tileLight = airBlock ? wallLight : blockLight;
             light += tileLight;
         }

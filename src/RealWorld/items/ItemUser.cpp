@@ -28,9 +28,9 @@ void ItemUser::selectSlot(int slot) {
 }
 
 void ItemUser::step(
-    const re::CommandBuffer& cmdBuf, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
+    const ActionCmdBuf& acb, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
 ) {
-    auto dbg    = cmdBuf.createDebugRegion("item user");
+    auto dbg    = acb->createDebugRegion("item user");
     bool use[2] = {usePrimary, useSecondary};
 
     // Update usage
@@ -50,48 +50,32 @@ void ItemUser::step(
         case ItemType::Empty: break;
         case ItemType::Pickaxe:
             m_world.modify(
-                cmdBuf,
-                TileLayer::BlockLayer,
-                m_shape,
-                m_radiusTi,
-                pxToTi(relCursorPosPx),
-                glm::uvec2(Block::Air, 0)
+                acb, TileLayer::Block, m_shape, m_radiusTi,
+                pxToTi(relCursorPosPx), glm::uvec2(Block::Air, 0)
             );
             break;
         case ItemType::Hammer:
             m_world.modify(
-                cmdBuf,
-                TileLayer::WallLayer,
-                m_shape,
-                m_radiusTi,
-                pxToTi(relCursorPosPx),
-                glm::uvec2(Wall::Air, 0)
+                acb, TileLayer::Wall, m_shape, m_radiusTi,
+                pxToTi(relCursorPosPx), glm::uvec2(Wall::Air, 0)
             );
             break;
         }
     }
-    // ALTERNATIVE
+    // Alternative
     if (m_using[k_secondaryUse] > 0) {
         switch (md.type) {
         case ItemType::Empty: break;
         case ItemType::Block:
             m_world.modify(
-                cmdBuf,
-                TileLayer::BlockLayer,
-                m_shape,
-                m_radiusTi,
-                pxToTi(relCursorPosPx),
-                glm::uvec2(md.typeIndex, 256)
+                acb, TileLayer::Block, m_shape, m_radiusTi,
+                pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256)
             );
             break;
         case ItemType::Wall:
             m_world.modify(
-                cmdBuf,
-                TileLayer::WallLayer,
-                m_shape,
-                m_radiusTi,
-                pxToTi(relCursorPosPx),
-                glm::uvec2(md.typeIndex, 256)
+                acb, TileLayer::Wall, m_shape, m_radiusTi,
+                pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256)
             );
             break;
         }
@@ -104,13 +88,13 @@ void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
     if (md.type != ItemType::Empty) {
         re::Color col{255, 255, 255, 255};
         glm::vec2 center = tiToPx(pxToTi(relCursorPosPx)) + TilePx * 0.5f;
-        float     radPx  = m_radiusTi * TilePx.x;
+        float radPx      = m_radiusTi * TilePx.x;
         if (m_shape == World::ModificationShape::Disk) {
             constexpr float k_quality   = 16.0f;
             constexpr float k_angleIncr = glm::pi<float>() * 2.0f / k_quality;
             std::array<re::VertexPoCo, static_cast<size_t>(k_quality * 2.0f)> vertices;
             for (float i = 0.0f; i < k_quality; i++) {
-                float     a = i * k_angleIncr;
+                float a     = i * k_angleIncr;
                 glm::vec2 p = center + glm::vec2{cos(a), sin(a)} * radPx;
                 vertices[static_cast<size_t>(i * 2.0f) % vertices.size()] =
                     re::VertexPoCo{p, col};

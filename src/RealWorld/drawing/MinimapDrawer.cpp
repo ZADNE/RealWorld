@@ -16,7 +16,14 @@ constexpr re::Color k_red{255, 0, 0, 255};
 constexpr re::Color k_green{0, 255, 0, 255};
 } // namespace
 
-MinimapDrawer::MinimapDrawer(glm::vec2 viewSizePx, glm::vec2 viewSizeTi) {
+MinimapDrawer::MinimapDrawer(
+    re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx, glm::vec2 viewSizeTi
+)
+    : m_geometryBatch{re::GeometryBatchCreateInfo{
+          .topology          = vk::PrimitiveTopology::eLineList,
+          .renderPassSubpass = renderPassSubpass,
+          .maxVertices       = 512
+      }} {
     resizeView(viewSizePx, viewSizeTi);
 }
 
@@ -34,9 +41,7 @@ void MinimapDrawer::resizeView(glm::vec2 viewSizePx, glm::vec2 viewSizeTi) {
     m_layout = minimapLayout(chToTi(m_worldTexCh), m_viewSizePx);
 }
 
-void MinimapDrawer::drawMinimapLines(
-    const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx
-) {
+void MinimapDrawer::drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
     m_geometryBatch.begin();
     std::array<re::VertexPoCo, 2> v = std::to_array(
         {re::VertexPoCo{glm::vec2{}, k_red}, re::VertexPoCo{glm::vec2{}, k_red}}
@@ -65,11 +70,11 @@ void MinimapDrawer::drawMinimapLines(
     }
 
     { // View
-        v[0].color        = k_green;
-        v[1].color        = k_green;
-        glm::vec2  scale  = m_layout.sizePx / chToPx(m_worldTexCh);
-        glm::ivec2 mask   = chToPx(m_worldTexCh) - 1.0f;
-        auto       toView = [&](glm::vec2 worldPx) -> glm::vec2 {
+        v[0].color      = k_green;
+        v[1].color      = k_green;
+        glm::vec2 scale = m_layout.sizePx / chToPx(m_worldTexCh);
+        glm::ivec2 mask = chToPx(m_worldTexCh) - 1.0f;
+        auto toView     = [&](glm::vec2 worldPx) -> glm::vec2 {
             return worldPx * scale + m_layout.offsetPx;
         };
         auto addRectangle = [&](glm::vec2 bl, glm::vec2 size) {
@@ -109,24 +114,29 @@ void MinimapDrawer::drawMinimapLines(
     }
 
     m_geometryBatch.end();
-    cmdBuf->setScissor(
+    cb->setScissor(
         0,
         vk::Rect2D{
             vk::Offset2D{
                 static_cast<int32_t>(m_layout.offsetPx.x - 1),
-                static_cast<int32_t>(m_layout.offsetPx.y - 1)},
+                static_cast<int32_t>(m_layout.offsetPx.y - 1)
+            },
             vk::Extent2D{
                 static_cast<uint32_t>(m_layout.sizePx.x + 1),
-                static_cast<uint32_t>(m_layout.sizePx.y + 1)}}
+                static_cast<uint32_t>(m_layout.sizePx.y + 1)
+            }
+        }
     );
-    m_geometryBatch.draw(cmdBuf, m_viewMat);
-    cmdBuf->setScissor(
+    m_geometryBatch.draw(cb, m_viewMat);
+    cb->setScissor(
         0,
         vk::Rect2D{
             vk::Offset2D{},
             vk::Extent2D{
                 static_cast<uint32_t>(m_viewSizePx.x),
-                static_cast<uint32_t>(m_viewSizePx.y)}}
+                static_cast<uint32_t>(m_viewSizePx.y)
+            }
+        }
     );
 }
 

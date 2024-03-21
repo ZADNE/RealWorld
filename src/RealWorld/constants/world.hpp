@@ -40,7 +40,7 @@ constexpr bool isSpecialChunk(glm::ivec2 posCh) {
     case k_chunkNotActive.x:
     case k_chunkBeingDownloaded.x:
     case k_chunkBeingAllocated.x:
-    case k_chunkBeingUploaded.x: return true;
+    case k_chunkBeingUploaded.x:   return true;
     }
     return false;
 }

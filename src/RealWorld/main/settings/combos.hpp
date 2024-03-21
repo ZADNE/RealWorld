@@ -40,17 +40,14 @@ inline std::string ivec2ToString(glm::ivec2 vec) {
 
 template<typename T, size_t N, typename ToStringConvertor>
 bool comboSelect(
-    const std::array<T, N>&                    combos,
-    const char*                                label,
-    float                                      width,
-    typename std::array<T, N>::const_iterator& selected,
-    ToStringConvertor                          toString
+    const std::array<T, N>& combos, const char* label, float width,
+    typename std::array<T, N>::const_iterator& selected, ToStringConvertor toString
 ) {
     ImGui::TextUnformatted(label);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(width);
-    bool        changedSelection = false;
-    std::string hiddenlabel      = std::string("##") + label;
+    bool changedSelection   = false;
+    std::string hiddenlabel = std::string("##") + label;
     if (ImGui::BeginCombo(
             hiddenlabel.c_str(),
             selected != combos.end() ? toString(*selected).c_str() : ""

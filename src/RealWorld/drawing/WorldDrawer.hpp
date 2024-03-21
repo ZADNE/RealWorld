@@ -7,6 +7,7 @@
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
+#include <RealWorld/drawing/WorldDrawingPC.hpp>
 
 namespace rw {
 
@@ -15,7 +16,10 @@ namespace rw {
  */
 class WorldDrawer {
 public:
-    WorldDrawer(glm::uvec2 viewSizePx, glm::uint maxNumberOfExternalLights);
+    WorldDrawer(
+        re::RenderPassSubpass renderPassSubpass, glm::uvec2 viewSizePx,
+        glm::uint maxNumberOfExternalLights
+    );
 
     void setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi);
     void resizeView(glm::uvec2 viewSizePx);
@@ -29,7 +33,7 @@ public:
     /**
      * @brief External lights have to be added between beginStep() and endStep()
      */
-    void beginStep(const re::CommandBuffer& cmdBuf);
+    void beginStep(const re::CommandBuffer& cb);
 
     /**
      * @brief Adds an external light into the world. Must be used between
@@ -40,23 +44,25 @@ public:
     /**
      * @brief External lights have to be added between beginStep() and endStep()
      */
-    void endStep(const re::CommandBuffer& cmdBuf);
+    void endStep(const re::CommandBuffer& cb);
 
-    void drawTiles(const re::CommandBuffer& cmdBuf);
+    void drawTiles(const re::CommandBuffer& cb);
 
-    void drawShadows(const re::CommandBuffer& cmdBuf);
+    void drawShadows(const re::CommandBuffer& cb);
 
-    void drawMinimap(const re::CommandBuffer& cmdBuf);
+    void drawMinimap(const re::CommandBuffer& cb);
 
 private:
-    glm::vec2  m_botLeftPx; // Bottom-left corner of the view
+    glm::vec2 m_botLeftPx;  // Bottom-left corner of the view
     glm::ivec2 m_botLeftTi; // Bottom-left corner of the view in tiles
 
     glm::uvec2 m_viewSizeTi;
     glm::uvec2 viewSizeTi(glm::vec2 viewSizePx) const;
 
-    TileDrawer    m_tileDrawer;
-    ShadowDrawer  m_shadowDrawer;
+    WorldDrawingPC m_pc{};
+
+    TileDrawer m_tileDrawer;
+    ShadowDrawer m_shadowDrawer;
     MinimapDrawer m_minimapDawer;
 };
 

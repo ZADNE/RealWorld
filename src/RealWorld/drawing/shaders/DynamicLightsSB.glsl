@@ -10,9 +10,9 @@ struct DynamicLight{
     uint padding;
 };
 
-layout (set = 0, binding = DynamicLightsSB_BINDING, std430)
+layout (set = 0, binding = k_dynamicLightsBinding, std430)
 readonly restrict buffer DynamicLightsSB {
-    DynamicLight b_lights[];
+    DynamicLight b_dynamicLights[];
 };
 
 #endif // !DYNAMIC_LIGHTS_SB_GLSL

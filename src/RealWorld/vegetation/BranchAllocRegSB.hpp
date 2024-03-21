@@ -25,10 +25,10 @@ struct BranchAllocRegSB {
         std::fill(allocIndexOfTheChunk.begin(), allocIndexOfTheChunk.end(), -1);
     }
 
-    std::array<int, k_maxWorldTexChunkCount>            allocIndexOfTheChunk{};
+    std::array<int, k_maxWorldTexChunkCount> allocIndexOfTheChunk{};
     std::array<BranchAllocation, k_maxBranchAllocCount> allocations{};
-    int                                                 nextAllocIter{};
-    int                                                 lock{}; // 0 = unlocked
+    int nextAllocIter{};
+    int lock{}; // 0 = unlocked
 };
 
 } // namespace rw

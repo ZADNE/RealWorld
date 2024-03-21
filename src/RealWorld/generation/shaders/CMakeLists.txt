@@ -1,13 +1,16 @@
-﻿target_shaders(RealWorld PRIVATE 
+﻿target_shaders(RealWorld PRIVATE
+    allocBranches.comp          
     biome.glsl                  
     consolidateEdges.comp       
+    expandGrass.glsl            
+    expandVegInstances.comp     
+    expansionHelpers.glsl       
     generateColumnValues.glsl   
-    generateRasterVeg.comp      
     generateStructure.comp      generateStructure.glsl
-    generateVectorVeg.comp      
-    generateVeg.comp            
     GenerationPC.glsl           
     generationPll.glsl          
+    outputBranches.comp         
+    selectVegSpecies.comp       
     selectVariant.comp          
     vegDistribution.glsl        
     VegPrepSB.glsl              

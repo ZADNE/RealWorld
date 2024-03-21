@@ -20,8 +20,8 @@ struct ItemSample {
     // ItemSample is considered empty if its ItemId == ItemId::Empty
     bool isEmpty() const;
 
-    ItemId id      = ItemId::Empty;
-    float  special = 0.0f;
+    ItemId id     = ItemId::Empty;
+    float special = 0.0f;
 };
 
 struct ItemSampleHasher {

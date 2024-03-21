@@ -13,20 +13,23 @@ namespace rw {
  */
 class MinimapDrawer {
 public:
-    MinimapDrawer(glm::vec2 viewSizePx, glm::vec2 viewSizeTi);
+    MinimapDrawer(
+        re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
+        glm::vec2 viewSizeTi
+    );
 
     void setTarget(glm::vec2 worldTexSize);
 
     void resizeView(glm::vec2 viewSizePx, glm::vec2 viewSizeTi);
 
-    void drawMinimapLines(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx);
+    void drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
 private:
     glm::mat4 m_viewMat;
     glm::vec2 m_viewSizePx;
     glm::vec2 m_viewSizeTi;
     glm::vec2 m_worldTexCh;
-    re::GeometryBatch m_geometryBatch{vk::PrimitiveTopology::eLineList, 512u, 1.0f};
+    re::GeometryBatch m_geometryBatch;
     MinimapLayout m_layout;
 };
 

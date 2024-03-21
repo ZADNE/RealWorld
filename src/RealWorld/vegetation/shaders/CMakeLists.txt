@@ -1,6 +1,5 @@
 ﻿target_shaders(RealWorld PRIVATE
     BodiesSB.glsl               
-    Branch.glsl                 
     BranchAllocRegSB.glsl       
     BranchAllocReqUB.glsl       
     branchRasterizationPll.glsl 
@@ -12,4 +11,5 @@
     tessellateBranches.tesc     tessellateBranches.tese
     unrasterizeBranches.vert    unrasterizeBranches.frag
     VegDynamicsPC.glsl          
+    wind.glsl                   
 )

@@ -1,0 +1,351 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/chunk.glsl>
+#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/generation/shaders/generateStructure.glsl>
+#include <RealWorld/generation/shaders/vegDistribution.glsl>
+#include <RealWorld/vegetation/shaders/normAngles.glsl>
+#include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
+#define VegPrepSB_ACCESS
+#include <RealWorld/generation/shaders/VegPrepSB.glsl>
+#include <RealWorld/vegetation/shaders/BranchSB.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
+#include <RealWorld/generation/shaders/expansionHelpers.glsl>
+
+layout (local_size_x = 64,
+        local_size_y = 1,
+        local_size_z = 1
+) in;
+
+const uint k_maxSymbolSentenceLength = 1536;
+const uint k_maxParamSentenceLength = 1024;
+
+shared VegInstance  s_inst;
+shared VegTemplate  s_tmplt;
+
+shared uint         s_symbolCount[2];
+shared uint8_t      s_symbols[2][k_maxSymbolSentenceLength];
+
+shared uint         s_headParamDispl;
+shared uint         s_bodyParamDispl;
+shared float        s_params[2][k_maxParamSentenceLength];
+
+shared uint         s_symbolsOfThread[gl_WorkGroupSize.x];
+shared uint         s_headParamsOfThread[gl_WorkGroupSize.x];
+shared uint         s_bodyParamsOfThread[gl_WorkGroupSize.x];
+
+shared uint         s_chunkSize;
+shared uint         s_chunkRemainder;
+shared uint         s_branchCount;
+
+struct TurtleState {
+    vec2  parentTipTi;
+    uint  parentIndex;
+    float flipAngDir;
+    float parentAbsAngNorm;
+    float relRestAngNorm;
+    float density;
+    float stiffness;
+    uint  wallType;
+};
+const int k_maxStackDepth = 8;
+shared TurtleState s_stack[k_maxStackDepth];
+
+// Requires at least some shared variables
+#include <RealWorld/generation/shaders/expandGrass.glsl>
+
+// Return index relative to the provided rules or ~0 if no rule was selected
+uint probSelectRuleIndex(uint cond, RuleBodies rules){
+    uint ruleIndex = ~0;
+    float rndRule = randomFloat();
+    float probMin = 0.0;
+    for (int r = 0; r < rules.bodyCount[cond]; ++r){
+        float probMax = probMin + u_vegTmplts.ruleProbs[rules.firstIndex[cond] + r];
+        ruleIndex = (rndRule > probMin && rndRule <= probMax) ? r : ruleIndex;
+        probMin = probMax;
+    }
+    return ruleIndex;
+}
+
+void doInclusiveScanOfHeadParams(){
+    const uint id = gl_LocalInvocationID.x;
+    for (int off = 1; off <= gl_WorkGroupSize.x / 2; off *= 2){
+        uint myHeadP = s_headParamsOfThread[id];
+        barrier();
+        if (id + off < gl_WorkGroupSize.x) {
+            s_headParamsOfThread[id + off] += myHeadP;
+        }
+        barrier();
+    }
+}
+
+void doInclusiveScanOfBodySymbolsAndParams(){
+    const uint id = gl_LocalInvocationID.x;
+    for (int off = 1; off <= gl_WorkGroupSize.x / 2; off *= 2){
+        uint myS = s_symbolsOfThread[id];
+        uint myBodyP = s_bodyParamsOfThread[id];
+        barrier();
+        if (id + off < gl_WorkGroupSize.x) {
+            s_symbolsOfThread[id + off] += myS;
+            s_bodyParamsOfThread[id + off] += myBodyP;
+        }
+        barrier();
+    }
+}
+
+void main(){
+    const uint id = gl_LocalInvocationID.x;
+    // Load vegetation instance & template description
+    if (id == 0){
+        s_inst = b_vegPrep.vegInstances[gl_WorkGroupID.x];
+        if (s_inst.templateIndex < k_lSystemSpeciesCount){
+            s_tmplt = u_vegTmplts.tmplts[s_inst.templateIndex];
+            s_symbolCount[0] = s_tmplt.axiom.sCount;
+        }
+    }
+    g_randomState = s_inst.randomSeed ^ (id * 2713);
+    barrier();
+
+    // Grass or L-system?
+    if (s_inst.templateIndex >= k_lSystemSpeciesCount){
+        expandGrass();
+        return;
+    }
+
+    // Initialize by the axiom
+    if (id < s_symbolCount[0]){
+        s_symbols[0][id] = u_vegTmplts.symbols[s_tmplt.axiom.sBegin + id];
+    }
+    if (id < s_tmplt.axiom.pCount){
+        s_params[0][id] = u_vegTmplts.symbolParams[s_tmplt.axiom.pBegin + id];
+    }
+    barrier();
+
+    // Expand the L-system
+    random();
+    for (uint iter = 0; iter < s_tmplt.iterCount; ++iter) {
+        const uint read = iter & 1;
+        const uint write = 1 - read;
+        s_symbolCount[write] = 0;
+        s_headParamDispl = 0;
+        s_bodyParamDispl = 0;
+        for (uint wi = 0; wi < s_symbolCount[read]; wi += gl_WorkGroupSize.x){
+            // Read head symbol and its params
+            uint8_t headS = (wi + id < s_symbolCount[read])
+                            ? s_symbols[read][wi + id]
+                            : uint8_t(k_rewriteableSymbolCount + 1);
+            uint headPCount = s_headParamsOfThread[id] = k_paramCount[headS & 127];
+
+            // Scan head param counts to get displacements
+            doInclusiveScanOfHeadParams();
+            uint headPDispl = s_headParamDispl +
+                              s_headParamsOfThread[id] - headPCount;
+
+            // Select a rule to apply based on probabilities
+            RuleBodies rules = s_tmplt.rules[headS];
+            uint cond = uint(
+                s_params[read][headPDispl + rules.cond.paramIndex] >= rules.cond.border
+            );
+            uint ruleIndex = (headS < k_rewriteableSymbolCount)
+                             ? probSelectRuleIndex(cond, rules)
+                             : ~0;
+
+            // Write the number of symbols and params required
+            uint bodySCount = s_symbolsOfThread[id] =
+                (ruleIndex != ~0)
+                ? u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].sCount
+                : 1;
+            uint bodyPCount = s_bodyParamsOfThread[id] =
+                (ruleIndex != ~0)
+                ? u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].pCount
+                : headPCount;
+
+            // Scan the body symbol and param counts to get displacements
+            doInclusiveScanOfBodySymbolsAndParams();
+            uint bodySDispl = s_symbolCount[write] + 
+                              s_symbolsOfThread[id] - bodySCount;
+            uint bodyPDispl = s_bodyParamDispl +
+                              s_bodyParamsOfThread[id] - bodyPCount;
+
+            // Write the rule bodies to the displacements
+            if (ruleIndex != ~0){
+                // Expand the rule
+                uint sBegin = u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].sBegin;
+                uint pBegin = u_vegTmplts.ruleBodies[rules.firstIndex[cond] + ruleIndex].pBegin;
+                uint pI = 0;
+                for (uint i = 0; i < bodySCount; ++i){
+                    const uint8_t s = u_vegTmplts.symbols[sBegin + i];
+                    s_symbols[write][bodySDispl + i] = s & uint8_t(127);
+                    // Resolve the parameters
+                    for (uint j = 0; j < k_paramCount[s & 127]; ++j){
+                        float prev = s_params[read][headPDispl + j];
+                        float curr = u_vegTmplts.symbolParams[pBegin + pI];
+                        s_params[write][bodyPDispl + pI] =
+                            bool(s & 128) ? prev + curr : curr;
+                        pI++;
+                    }
+                }
+            } else {
+                // Or copy the symbol and its params
+                s_symbols[write][bodySDispl] = headS;
+                for (uint i = 0; i < headPCount; ++i){
+                    s_params[write][bodyPDispl + i] = s_params[read][headPDispl + i];
+                }
+            }
+            barrier();
+
+            // Update the total number of symbols
+            if (id == 0) {
+                uint lastValidId = min(gl_WorkGroupSize.x, s_symbolCount[read] - wi) - 1;
+                s_symbolCount[write] += s_symbolsOfThread[lastValidId];
+                s_headParamDispl     += s_headParamsOfThread[lastValidId];
+                s_bodyParamDispl     += s_bodyParamsOfThread[lastValidId];
+            }
+        }
+    }
+    barrier();
+
+    // Count the number of branches
+    if (id == 0){
+        uint count = s_symbolCount[s_tmplt.iterCount & 1];
+        s_chunkSize = count / gl_WorkGroupSize.x;
+        s_chunkRemainder = count % gl_WorkGroupSize.x;
+        s_branchCount = 1; // 1 for the root degenerated branch
+    }
+    barrier();
+    {
+        uint begin = (id < s_chunkRemainder)
+                     ? id * (s_chunkSize + 1)
+                     : (id - s_chunkRemainder) * s_chunkSize + s_chunkRemainder * (s_chunkSize + 1);
+        uint end = begin + s_chunkSize + ((id < s_chunkRemainder) ? 1 : 0);
+        uint branchCount = 0;
+        for (uint i = begin; i < end; ++i){
+            uint8_t s = s_symbols[s_tmplt.iterCount & 1][i];
+            branchCount += uint(s < k_rewriteableSymbolCount);
+        }
+        if (branchCount > 0){
+            atomicAdd(s_branchCount, branchCount);
+        }
+    }
+    barrier();
+
+    if (id == 0){
+        // Reserve space for branches in the preparation buffer
+        uint outIndex = reserveSpaceInPrepBuf(
+            gl_WorkGroupID.x, s_inst.chunkIndex, s_branchCount
+        );
+
+        // Initialize turtle state stack
+        uint stackDepth = 0;
+        s_stack[stackDepth] = TurtleState(
+            s_inst.rootPosTi,   // parentTipTi
+            outIndex,           // parentIndex
+            1.0,                // flipAngDir
+            s_inst.rootDirNorm, // parentAbsAngNorm
+            0.0,                // relRestAngNorm
+            0.0,                // density
+            0.0,                // stiffness
+            k_airWl             // wallType
+        );
+
+        // Emit root branch
+        emitBranch(
+            outIndex,
+            s_stack[stackDepth].parentTipTi,
+            s_inst.rootDirNorm,
+            0.0,
+            0,
+            s_stack[stackDepth].wallType,
+            vec2(0),
+            vec2(0)
+        );
+        outIndex++;
+
+        // Interpret the L-system -> output branches to the preparation buffer
+        uint symbolCount = s_symbolCount[s_tmplt.iterCount & 1];
+        uint paramIndex = 0;
+        for (uint si = 0; si < symbolCount; ++si){
+            uint symbol = s_symbols[s_tmplt.iterCount & 1][si];
+            switch (symbol){
+            case k_sTwig:
+            case k_sBranch:
+            case k_sStem:
+                float absAngNorm = fract(
+                    s_stack[stackDepth].parentAbsAngNorm + s_stack[stackDepth].relRestAngNorm
+                );
+                float tropism = 1.0 - abs(s_inst.tropismDirNorm - absAngNorm);
+                float len = s_params[s_tmplt.iterCount & 1][paramIndex + 1] *
+                          (0.8 + randomFloat() * 0.4) *
+                          (1.0 + s_tmplt.tropismFactor * tropism * tropism);
+                emitBranch(
+                    outIndex,
+                    s_stack[stackDepth].parentTipTi,
+                    absAngNorm,
+                    s_stack[stackDepth].relRestAngNorm,
+                    outIndex - s_stack[stackDepth].parentIndex,
+                    s_stack[stackDepth].wallType,
+                    vec2(s_params[s_tmplt.iterCount & 1][paramIndex], len),
+                    vec2(s_stack[stackDepth].density, s_stack[stackDepth].stiffness)
+                );
+                outIndex++;
+                s_stack[stackDepth].parentTipTi += toCartesian(len, absAngNorm);
+                s_stack[stackDepth].parentIndex = outIndex - 1;
+                s_stack[stackDepth].parentAbsAngNorm = absAngNorm;
+                s_stack[stackDepth].relRestAngNorm = 0.0;
+                paramIndex += 2;
+                break;
+            case k_sRotate:{
+                float desiredAbs =
+                    s_stack[stackDepth].parentAbsAngNorm +
+                    s_stack[stackDepth].relRestAngNorm +
+                    (s_params[s_tmplt.iterCount & 1][paramIndex++] *
+                    (0.9 + randomFloat() * 0.2)) * s_stack[stackDepth].flipAngDir;
+                s_stack[stackDepth].relRestAngNorm = 
+                    desiredAbs - s_stack[stackDepth].parentAbsAngNorm;
+                break;}
+            case k_sTropismRotate:{
+                float desiredAbs = fract(
+                    s_inst.tropismDirNorm +
+                    s_params[s_tmplt.iterCount & 1][paramIndex++] + 
+                    (-0.05 + randomFloat() * 0.1));
+                float curr = 
+                    s_stack[stackDepth].parentAbsAngNorm +
+                    s_stack[stackDepth].relRestAngNorm;
+                desiredAbs = (desiredAbs + curr) * 0.5;
+                s_stack[stackDepth].relRestAngNorm = 
+                    desiredAbs - s_stack[stackDepth].parentAbsAngNorm;
+                break;}
+            case k_sFlip:
+                s_stack[stackDepth].flipAngDir = randomBool() ? 1.0 : -1.0;
+                break;
+            case k_sPush:
+                s_stack[stackDepth + 1] = s_stack[stackDepth];
+                stackDepth++;
+                break;
+            case k_sPop:
+                stackDepth--;
+                break;
+            case k_sDensity:
+                s_stack[stackDepth].density =
+                    s_params[s_tmplt.iterCount & 1][paramIndex++];
+                break;
+            case k_sStiffness:
+                s_stack[stackDepth].stiffness =
+                    s_params[s_tmplt.iterCount & 1][paramIndex++];
+                break;
+            case k_sWallType:
+                s_stack[stackDepth].wallType =
+                    floatBitsToUint(s_params[s_tmplt.iterCount & 1][paramIndex++]);
+                break;
+            }
+        }
+        /*#extension GL_EXT_debug_printf : require
+        debugPrintfEXT("S: %i/%i, P: %i/%i, B: %i\n",
+            symbolCount, k_maxSymbolSentenceLength,
+            paramIndex - 1, k_maxParamSentenceLength,
+            s_branchCount);*/
+    }
+}

@@ -3,37 +3,42 @@
  */
 #ifndef TILE_LOAD_STORE_GLSL
 #define TILE_LOAD_STORE_GLSL
+#include <RealWorld/constants/world.glsl>
 
-layout (set = 0, binding = k_worldTexBinding, rgba8ui)
-uniform restrict coherent uimage2D u_worldImage;
+layout (set = 0, binding = k_worldTexBinding, rg8ui)
+uniform restrict coherent uimage2DArray u_worldImage;
 
-//Converts world position to image position
-ivec2 imPos(ivec2 posTi){
-    return posTi & (imageSize(u_worldImage) - 1);
-}
-//Converts 2 world positions to 2 image positions
-ivec4 imPos(ivec4 posTi){
-    return posTi & (imageSize(u_worldImage).xyxy - 1);
+uvec2 loadLayer(ivec2 posAt, uint layer){
+    return imageLoad(u_worldImage, ivec3(posAt, layer)).xy;
 }
 
-//Loads tile from the given WORLD position
-uvec4 tileLoad(ivec2 posTi){
-    return imageLoad(u_worldImage, imPos(posTi));
+uvec2 loadBlock(ivec2 posAt){
+    return loadLayer(posAt, k_blockLayer);
 }
 
-//Stores tile to the given WORLD position
-void tileStore(ivec2 posTi, uvec4 tile){
-    imageStore(u_worldImage, imPos(posTi), tile);
+uvec2 loadWall(ivec2 posAt){
+    return loadLayer(posAt, k_wallLayer);
 }
 
-//Loads tile from the given IMAGE position
-uvec4 tileLoadIm(ivec2 posIm){
-    return imageLoad(u_worldImage, posIm);
+uvec4 loadTile(ivec2 posAt){
+    return uvec4(loadBlock(posAt), loadWall(posAt));
 }
 
-//Stores tile to the given IMAGE position
-void tileStoreIm(ivec2 posIm, uvec4 tile){
-    imageStore(u_worldImage, posIm, tile);
+void storeLayer(ivec2 posAt, uint layer, uvec2 typeVar){
+    imageStore(u_worldImage, ivec3(posAt, layer), uvec4(typeVar, 0, 0));
+}
+
+void storeBlock(ivec2 posAt, uvec2 block){
+    storeLayer(posAt, k_blockLayer, block);
+}
+
+void storeWall(ivec2 posAt, uvec2 wall){
+    storeLayer(posAt, k_wallLayer, wall);
+}
+
+void storeTile(ivec2 posAt, uvec4 tile){
+    storeBlock(posAt, tile.rg);
+    storeWall(posAt, tile.ba);
 }
 
 #endif // !TILE_LOAD_STORE_GLSL

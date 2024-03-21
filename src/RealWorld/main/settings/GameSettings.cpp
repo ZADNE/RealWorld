@@ -16,7 +16,7 @@ const std::string k_settingsFilename = "game_settings.json";
 
 GameSettings::GameSettings() {
     std::ifstream i(k_settingsFilename);
-    json          j;
+    json j;
     try {
         i >> j;
         m_worldTexSize.x = j["world_tex_size"]["width"].get<int>();
@@ -42,7 +42,8 @@ void GameSettings::reset() {
 void GameSettings::save() {
     nlohmann::ordered_json j = {
         {"world_tex_size",
-         {{"width", m_worldTexSize.x}, {"height", m_worldTexSize.y}}}};
+         {{"width", m_worldTexSize.x}, {"height", m_worldTexSize.y}}}
+    };
 
     std::ofstream o(k_settingsFilename, std::ofstream::trunc);
     o << j.dump(2);

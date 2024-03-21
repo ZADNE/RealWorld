@@ -12,6 +12,7 @@
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
 #include <RealWorld/drawing/ExternalLight.hpp>
+#include <RealWorld/drawing/WorldDrawingPC.hpp>
 
 namespace rw {
 
@@ -21,7 +22,9 @@ namespace rw {
 class ShadowDrawer {
 public:
     ShadowDrawer(
-        glm::vec2 viewSizePx, glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights
+        re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
+        glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights,
+        WorldDrawingPC& pc
     );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
@@ -31,7 +34,7 @@ public:
     /**
      * @brief Analyzes the world texture
      */
-    void analyze(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftTi);
+    void analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi);
 
     /**
      * @brief Adds external light
@@ -42,26 +45,28 @@ public:
     /**
      * @brief Calculates the shadows
      */
-    void calculate(const re::CommandBuffer& cmdBuf, glm::ivec2 botLeftPx);
+    void calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx);
 
     /**
      * @brief Renders calculated shadow to the framebuffer
      */
-    void draw(const re::CommandBuffer& cmdBuf, glm::vec2 botLeftPx, glm::uvec2 viewSizeTi);
+    void draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
 private:
     re::TextureShaped m_blockLightAtlasTex{re::TextureSeed{"blockLightAtlas"}};
     re::TextureShaped m_wallLightAtlasTex{re::TextureSeed{"wallLightAtlas"}};
 
+    WorldDrawingPC& m_pc;
+
     re::PipelineLayout m_analysisPll;
-    re::Pipeline       m_analyzeTilesPl;
-    re::Pipeline       m_addLightsPl;
+    re::Pipeline m_analyzeTilesPl;
+    re::Pipeline m_addLightsPl;
 
     re::PipelineLayout m_calculationPll;
-    re::Pipeline       m_calculateShadowsPl;
+    re::Pipeline m_calculateShadowsPl;
 
     re::PipelineLayout m_shadowDrawingPll;
-    re::Pipeline       m_drawShadowsPl;
+    re::Pipeline m_drawShadowsPl;
 
     re::BufferMapped<ExternalLight> m_lightsBuf;
 
@@ -69,39 +74,31 @@ private:
         glm::ivec2 worldTexMask;
         glm::ivec2 analysisOffsetTi;
         glm::ivec2 addLightOffsetPx;
-        glm::uint  lightCount;
-    };
-
-    struct ShadowDrawingPC {
-        glm::mat4  viewMat;
-        glm::ivec2 viewSizeTi;
-        glm::vec2  botLeftPxModTilePx;
-        glm::ivec2 readOffsetTi;
+        glm::uint lightCount;
     };
 
     struct ViewSizeDependent {
         ViewSizeDependent(
-            glm::vec2                 viewSizePx,
-            glm::ivec2                viewSizeTi,
+            glm::vec2 viewSizePx, glm::ivec2 viewSizeTi,
             const re::PipelineLayout& analysisPll,
             const re::PipelineLayout& calculationPll,
             const re::PipelineLayout& shadowDrawingPll,
-            const re::Texture&        blockLightAtlasTex,
-            const re::Texture&        wallLightAtlasTex,
-            const re::Buffer&         lightsBuf
+            const re::Texture& blockLightAtlasTex,
+            const re::Texture& wallLightAtlasTex, const re::Buffer& lightsBuf
         );
 
+        glm::vec2 viewSizePx;
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
         re::Texture lightTex; /**< RGB = color of the light, A = intensity of the light */
-        re::ImageView     lightTexR32ImageView;
-        re::Texture       transluTex; /**< R = translucency of the unit */
-        re::Texture       shadowsTex;
-        AnalysisPC        analysisPC;
-        ShadowDrawingPC   shadowDrawingPC;
+        re::ImageView lightTexR32ImageView;
+        re::Texture transluTex; /**< R = translucency of the unit */
+        re::Texture shadowsTex;
+        AnalysisPC analysisPC;
         re::DescriptorSet analysisDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;
+        glm::vec2 shadowAreaPxInv; // 1 over the area where shadows are calculated
     };
 
     ViewSizeDependent m_;

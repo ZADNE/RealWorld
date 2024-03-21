@@ -1,10 +1,10 @@
 ﻿target_shaders(RealWorld PRIVATE
     ActiveChunksSB.glsl         
-    allocBranches.comp          
     analyzeContinuity.comp      
     modifyTiles.comp            
     random.glsl                 
-    simulateFluids.comp         
+    reallocBranches.comp        
+    simulateMovement.comp       
     simulationPll.glsl          
     tileLoad.glsl               tileLoadStore.glsl
     TilePropertiesUB.glsl       

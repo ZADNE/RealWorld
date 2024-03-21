@@ -7,6 +7,7 @@
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
+#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/player/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
@@ -20,7 +21,9 @@ public:
     Player()
         : Player(re::TextureShaped{re::TextureSeed{"player"}}) {}
 
-    void adoptSave(const PlayerSave& save, const re::Texture& worldTexture);
+    void adoptSave(
+        const PlayerSave& save, const re::Texture& worldTexture, glm::ivec2 worldTexCh
+    );
     void gatherSave(PlayerSave& save) const;
 
     glm::vec2 center() const;
@@ -33,7 +36,7 @@ public:
      * @param autojump Tells whether the player should automatically jump
      * over obstacles
      */
-    void step(const re::CommandBuffer& cmdBuf, float dir, bool jump, bool autojump);
+    void step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump);
 
     void draw(re::SpriteBatch& spriteBatch);
 
@@ -49,7 +52,8 @@ private:
               std::move(playerTex),
               PlayerHitboxSB{
                   .dimsPx = glm::ivec2(playerTex.subimageDims()) - glm::ivec2(1),
-                  .velocityPx = glm::vec2(0.0f, 0.0f)}
+                  .velocityPx = glm::vec2(0.0f, 0.0f)
+              }
           ) {}
 
     Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
@@ -57,6 +61,7 @@ private:
     re::TextureShaped m_playerTex;
 
     struct PlayerMovementPC {
+        glm::ivec2 worldTexMaskTi;
         float acceleration    = 0.5f;
         float maxWalkVelocity = 6.0f;
         float jumpVelocity    = 7.0f;
@@ -66,17 +71,19 @@ private:
         int writeIndex = 1; // Selects PlayerHitboxSB::botLeftPx, swings every step
     } m_pushConstants;
 
-    re::Buffer                       m_hitboxBuf;
+    re::Buffer m_hitboxBuf;
     re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
-    glm::vec2                        m_oldBotLeftPx{};
+    glm::vec2 m_oldBotLeftPx{};
 
     re::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
-    re::Pipeline       m_movePlayerPl{
-              {.pipelineLayout = *m_pipelineLayout, .debugName = "rw::Player::movePlayer"},
-              {.comp = movePlayer_comp}};
+    re::Pipeline m_movePlayerPl{
+        {.pipelineLayout = *m_pipelineLayout, .debugName = "rw::Player::movePlayer"},
+        {.comp = movePlayer_comp}
+    };
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),
-        .debugName = "rw::Player::descriptorSet"}};
+        .debugName = "rw::Player::descriptorSet"
+    }};
 
     glm::vec2 botLeftPx() const;
 };

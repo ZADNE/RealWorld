@@ -9,23 +9,27 @@
 
 int main(int argc, char* argv[]) {
     vk::StructureChain chain{
-        vk::PhysicalDeviceFeatures2{
-            vk::PhysicalDeviceFeatures{}
-                .setTessellationShader(true)
-                .setVertexPipelineStoresAndAtomics(true)
-                .setFragmentStoresAndAtomics(true)
-                .setGeometryShader(true)
-                .setMultiDrawIndirect(true)},
+        vk::PhysicalDeviceFeatures2{vk::PhysicalDeviceFeatures{}
+                                        .setTessellationShader(true)
+                                        .setVertexPipelineStoresAndAtomics(true)
+                                        .setFragmentStoresAndAtomics(true)
+                                        .setGeometryShader(true)
+                                        .setMultiDrawIndirect(true)},
         vk::PhysicalDeviceVulkan12Features{}
+            .setShaderInt8(true)
+            .setUniformAndStorageBuffer8BitAccess(true)
             .setStorageBuffer8BitAccess(true)
             .setUniformBufferStandardLayout(true)
             .setShaderSampledImageArrayNonUniformIndexing(true)
             .setDescriptorBindingUpdateUnusedWhilePending(true)
             .setDescriptorBindingPartiallyBound(true)
             .setTimelineSemaphore(true),
-        vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)};
-    re::VulkanInitInfo initInfo{.deviceCreateInfoChain = &chain.get<>()};
-    re::MainProgram::initialize(initInfo);
+        vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)
+    };
+
+    re::MainProgram::initialize(re::VulkanInitInfo{
+        .deviceCreateInfoChain = &chain.get<>()
+    });
 
     rw::GameSettings gameSettings{};
 

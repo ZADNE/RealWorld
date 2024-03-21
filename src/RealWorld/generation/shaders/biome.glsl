@@ -6,30 +6,30 @@
 
 #include <RealWorld/constants/tile.glsl>
 
-const uvec4 STONE_TILES[] = {
-    STONE,
-    COLD_STONE
+const uvec2 k_stoneTiles[] = {
+    k_stone,
+    k_coldStone
 };
 
 struct Biome {
-    uvec4 tiles;
-    vec2 elevation;//x = fixed, y = random
-    vec2 roughness;//x = fixed, y = slope-variable
-    vec2 surfaceWidth;//x = fixed, y = slope-variable
+    uvec2 tiles;
+    vec2  elevation;//x = fixed, y = random
+    vec2  roughness;//x = fixed, y = slope-variable
+    vec2  surfaceWidth;//x = fixed, y = slope-variable
 };
 
 //                          tile            elevation           roughness           surfaceWidth
-const Biome k_mountain =    {COLD_STONE,    {1000., 2000.},     {400., 250.},       {800., 200.}};
-const Biome k_tundra =      {COLD_DIRT,     {0., 1000.},        {0., 250.},         {50., 250.}};
-const Biome k_taiga =       {COLD_GRASS,    {500., 1200.},      {0., 150.},         {50., 200.}};
+const Biome k_mountain =    {k_coldStone,   {1000., 2000.},     {400., 250.},       {800., 200.}};
+const Biome k_tundra =      {k_coldDirt,    {0., 1000.},        {0., 250.},         {50., 250.}};
+const Biome k_taiga =       {k_coldGrass,   {500., 1200.},      {0., 150.},         {50., 200.}};
 
-const Biome k_grassland =   {GRASS,          {0., 1000.},        {100., 150.},       {50., 200.}};
-const Biome k_forest =      {GRASS,         {0., 800.},         {100., 200.},       {50., 200.}};
-const Biome k_swamp =       {MUD,           {-1500., 400.},     {0., 100.},         {500., 100.}};
+const Biome k_grassland =   {k_grass,       {0., 1000.},        {100., 150.},       {50., 200.}};
+const Biome k_forest =      {k_grass,       {0., 800.},         {100., 200.},       {50., 200.}};
+const Biome k_swamp =       {k_mud,         {-1500., 400.},     {0., 100.},         {500., 100.}};
 
-const Biome k_desert =      {SAND,          {0., 500.},         {0., 0.},           {600., 100.}};
-const Biome k_savanna =     {DRY_GRASS,     {250., 800.},       {100., 100.},       {200., 200.}};
-const Biome k_rainforest =  {MUD_GRASS,     {250., 1000.},      {150., 160.},       {240., 280.}};
+const Biome k_desert =      {k_sand,        {0., 500.},         {0., 0.},           {600., 100.}};
+const Biome k_savanna =     {k_dryGrass,    {250., 800.},       {100., 100.},       {200., 200.}};
+const Biome k_rainforest =  {k_mudGrass,    {250., 1000.},      {150., 160.},       {240., 280.}};
 
 const Biome k_biomes[3][3] = {
 //humidity> |low                |normal             |high           temperature \/
