@@ -5,16 +5,18 @@
 #define TILE_PROPERTIES_UB_GLSL
 
 // Tile properties
-const uint STONEb =     1 << 0;
-const uint DIRTb =      1 << 1;
-const uint GRASSb =     1 << 2;
-const uint BURNINGb =   1 << 3;
-const uint HALLOWb =    1 << 4;
-const uint WOODb =      1 << 5;
+const uint STONEb     = 1 << 0;
+const uint DIRTb      = 1 << 1;
+const uint GRASSb     = 1 << 2;
+const uint BURNINGb   = 1 << 3;
+const uint HALLOWb    = 1 << 4;
+const uint WOODb      = 1 << 5;
 
 // Wall properties
-const uint EDGEb =      1 << 0;
-const uint MIX_PROPSb = 1 << 1;// Mix properties with the other layer 
+const uint EDGEb      = 1 << 0;
+const uint MIX_PROPSb = 1 << 1;
+const uint TO_OTHERb  = 1 << 2;
+const uint LOW_VARb   = 1 << 3;
 
 layout (set = 0, binding = k_tilePropertiesBinding, std140)
 restrict uniform TilePropertiesUB {
@@ -28,7 +30,7 @@ restrict uniform TilePropertiesUB {
     // z = Properties of the transformation
     // w = The wall that it will be transformed into
     uvec4 u_blockTransformationRules[16];
-    uvec4 u_wallTransformationRules[16];
+    uvec4 u_wallTransformationRules[18];
 };
 
 #endif // !TILE_PROPERTIES_UB_GLSL

@@ -8,6 +8,7 @@ layout (location = 2) out float o_startAngleNorm;
 layout (location = 3) out float o_endAngleNorm;
 layout (location = 4) out uint  o_branchIndex15wallType31;
 
+#include <RealWorld/vegetation/shaders/wind.glsl>
 #include <RealWorld/vegetation/shaders/branchRasterizationPll.glsl>
 #include <RealWorld/vegetation/shaders/BranchSB.glsl>
 #include <RealWorld/vegetation/shaders/normAngles.glsl>
@@ -39,8 +40,7 @@ void main(){
     o_branchIndex15wallType31 = id | (parentOffsetWallType.y << 16);
 
     // Simulation
-    float wind =  snoise(vec2(posTi.x * 0.001, p_timeSec * 0.1), 0.0);
-    wind += 0.5 * snoise(vec2(posTi.x * 0.002, p_timeSec * 0.2), 0.0);
+    float wind = windStrength(posTi, p_timeSec);
 
     float volume = k_pi * radiusTi * radiusTi * lengthTi;
     float weight = volume * densityStiffness.x;

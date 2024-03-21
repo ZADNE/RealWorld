@@ -24,8 +24,6 @@ constexpr glm::uint k_branchBinding       = 0;
 constexpr glm::uint k_wallLayerAttBinding = 1;
 constexpr glm::uint k_worldTexBinding     = 2;
 
-constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
-
 VegSimulator::VegSimulator()
     : m_pipelineLayout(
           {},
@@ -106,12 +104,12 @@ void VegSimulator::unrasterizeVegetation(const ActionCmdBuf& acb) {
     );
 }
 
-void VegSimulator::rasterizeVegetation(const ActionCmdBuf& acb) {
+void VegSimulator::rasterizeVegetation(const ActionCmdBuf& acb, float timeSec) {
     auto dbg = acb->createDebugRegion("rasterization");
     acb.action(
         [&](const re::CommandBuffer& cb) {
             // Update push constants
-            m_vegDynamicsPC.timeSec += k_stepDurationSec;
+            m_vegDynamicsPC.timeSec = timeSec;
             m_vegDynamicsPC.readBuf = re::StepDoubleBufferingState::readIndex();
 
             // Prepare rendering to world texture

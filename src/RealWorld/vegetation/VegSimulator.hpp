@@ -37,7 +37,7 @@ public:
     /**
      * @brief   Adds simulated branches to the world texture
      */
-    void rasterizeVegetation(const ActionCmdBuf& acb);
+    void rasterizeVegetation(const ActionCmdBuf& acb, float timeSec);
 
     struct VegStorage {
         const re::Buffer& branchBuf;
@@ -51,7 +51,7 @@ private:
         glm::mat4 mvpMat;
         glm::vec2 worldTexSizeTi;
         glm::ivec2 worldTexMaskTi;
-        float timeSec = static_cast<float>(time(nullptr) & 0xFFFF);
+        float timeSec;
         glm::uint readBuf;
     } m_vegDynamicsPC;
 

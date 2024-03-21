@@ -5,6 +5,7 @@
 #include <RealWorld/constants/vegetation.glsl>
 #include <RealWorld/constants/chunk.glsl>
 #include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/vegetation/shaders/wind.glsl>
 #include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
@@ -54,7 +55,7 @@ int randomStateToDirection1D(){
 
 uint fluidIndex(uint fluid){ return fluid & ~k_firstNonsolidBl; }
 
-void leaningFluidDynamics(uvec2 fluid, ivec2 posAt){
+void leaningFluidDynamics(uvec2 fluid, ivec2 posAt, vec2 posTi){
     uvec2 surroundings[3];
     int leaningSide = bool(fluid.L_V & 1) ? 1 : -1;
     uint fi = fluidIndex(fluid.L_T);
@@ -67,11 +68,11 @@ void leaningFluidDynamics(uvec2 fluid, ivec2 posAt){
     int first_move = probTest1023(k_primMoveProb[fi]) ? 0 : 2;
     int last_move = probTest1023(k_fluidity[fi]) ? 2 : 0;
     // Fetch surroundings
-    for(int i = first_move; i <= last_move; ++i){
+    for (int i = first_move; i <= last_move; ++i){
         surroundings[i] = loadBlock(surrPosAt[i]);
     }
     // Look for a swap
-    for(int i = first_move; i <= last_move; ++i){
+    for (int i = first_move; i <= last_move; ++i){
         const uvec2 n = surroundings[i]; // The neighbor
         // If touched the trigger tile and passed probability test
         if (n.L_T == k_triggerConv[fi].z && probTest1023(k_triggerConv[fi].x)){
@@ -90,6 +91,9 @@ void leaningFluidDynamics(uvec2 fluid, ivec2 posAt){
         fluid = blockRandomVariant(k_randomConv[fi].w);
     } else if (last_move == 2) { // If could not move horizontally
         fluid.L_V ^= 1; // Invert the leaning side
+    } else if (!probTest1023(k_density[fi])) {
+        // Lean according to the wind
+        fluid.L_V = (fluid.L_V & ~1) | uint(windStrength(posTi, p_timeSec) > 0.0);
     }
     storeBlock(posAt, fluid);
 }
@@ -162,8 +166,8 @@ void main(){
             ivec2 posAt = tiToAt(posTi, p_worldTexMaskTi);
             { // Block layer simulation
                 uvec2 block = loadBlock(posAt);
-                if (block.L_T >= k_waterBl && block.L_T <= k_smokeBl){
-                    leaningFluidDynamics(block, posAt);
+                if (block.L_T >= k_waterBl && block.L_T <= k_droppedDryLeafBl){
+                    leaningFluidDynamics(block, posAt, posTi);
                 } else if (block.L_T == k_acidBl){
                     velocityFluidDynamics(block, posAt);
                 }

@@ -40,12 +40,20 @@ const ivec2 k_nearbyOffsets[] = {
 
 bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, uvec4 rule, uvec2 nearbyProperties, uvec2 edgeTile){
     uint props = nearbyProperties[layer] | mix(0, nearbyProperties[otherLayer], bool(rule.z & MIX_PROPSb));
-    uint requiredNearby = uint((props & rule.x) == rule.x);
-    uint forbiddenNotNearby = uint((props & rule.y) == 0);
-    uint edgeRequiredToSpread = rule.z & EDGEb;
-    uint transform = requiredNearby & forbiddenNotNearby & (~edgeRequiredToSpread | edgeTile[layer]);
-    tile[layer * 2] = mix(tile[layer * 2], rule.w, bool(transform));
-    return bool(transform);
+    bool requiredNearby = (props & rule.x) == rule.x;
+    bool forbiddenNotNearby = (props & rule.y) == 0;
+    bool edgeRequiredToSpread = bool(rule.z & EDGEb);
+    bool toOtherLayer = bool(rule.z & TO_OTHERb);
+    bool mustHaveLowVar = bool(rule.z & LOW_VARb);
+    uint targetLayer = toOtherLayer ? otherLayer : layer;
+    uint prev = tile[targetLayer * 2];
+    bool transform = 
+        requiredNearby && forbiddenNotNearby &&
+        bool(!edgeRequiredToSpread || bool(edgeTile[layer])) &&
+        bool(!toOtherLayer || prev == k_air[targetLayer]) &&
+        bool(!mustHaveLowVar || tile[layer * 2 + 1] < 3);
+    tile[targetLayer * 2] = mix(prev, rule.w, transform);
+    return transform;
 }
 
 void main(){

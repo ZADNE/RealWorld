@@ -7,8 +7,12 @@
 
 namespace rw {
 
-constexpr glm::uint EDGEb =                  1 << 0;
-constexpr glm::uint MIX_PROPSb =             1 << 1;// Mix properties with the other layer 
+constexpr glm::uint EDGEb                 = 1 << 0; // The time must be on edge
+constexpr glm::uint MIX_PROPSb            = 1 << 1; // Mix properties with the other layer
+constexpr glm::uint TO_OTHERb             = 1 << 2; // Output of the rule should be placed in the other layer if there is air
+constexpr glm::uint LOW_VARb              = 1 << 3; // The layer must have variant < 3
+
+
 // x = The properties that neighbors MUST have to transform
 // y = The properties that neighbors MUST NOT have to transform
 // z = Properties of the transformation

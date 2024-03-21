@@ -15,7 +15,6 @@ constexpr glm::uint HALLOWb =   1 << 4;
 constexpr glm::uint WOODb =     1 << 5;
 
 
-
 constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
 //                              Properties                                  The first applicable rule   The last applicable rule    Padding
 /*stone*/           glm::uvec4{ STONEb,                                     6,                          6,                          0},

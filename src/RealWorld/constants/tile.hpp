@@ -49,6 +49,8 @@ enum class Block : uint8_t {
     Steam,
     Fire,
     Smoke,
+    DroppedLeaf,
+    DroppedDryLeaf,
 
     Acid = 254,
 

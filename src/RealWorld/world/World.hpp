@@ -100,6 +100,7 @@ private:
         float modifyRadius;
         glm::uint timeHash;
         glm::uint updateOrder = 0b00011011'00011011'00011011'00011011;
+        float timeSec         = static_cast<float>(time(nullptr) & 0xFFFF);
     } m_worldDynamicsPC;
 
     re::PipelineLayout m_simulationPL;

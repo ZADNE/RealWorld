@@ -14,6 +14,7 @@ restrict uniform WorldDynamicsPC {
     float   p_modifyRadius;
     uint    p_timeHash;
     uint    p_updateOrder;
+    float   p_timeSec;
 };
 
 #endif // !WORLD_DYNAMICS_PC_GLSL

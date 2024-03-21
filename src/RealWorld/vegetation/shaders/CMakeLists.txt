@@ -11,4 +11,5 @@
     tessellateBranches.tesc     tessellateBranches.tese
     unrasterizeBranches.vert    unrasterizeBranches.frag
     VegDynamicsPC.glsl          
+    wind.glsl                   
 )

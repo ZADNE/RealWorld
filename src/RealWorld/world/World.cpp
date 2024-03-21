@@ -21,6 +21,8 @@ constexpr glm::uint k_branchBinding         = 3;
 constexpr glm::uint k_branchAllocRegBinding = 4;
 constexpr glm::uint k_branchAllocReqBinding = 5;
 
+constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
+
 // Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
     state ^= state << 13;
@@ -55,7 +57,7 @@ constexpr static struct TilePropertiesUIB {
     // z = Properties of the transformation
     // w = The wall that it will be transformed into
     std::array<glm::uvec4, 16> blockTransformationRules = k_blockTransformationRules;
-    std::array<glm::uvec4, 16> wallTransformationRules = k_wallTransformationRules;
+    std::array<glm::uvec4, 18> wallTransformationRules = k_wallTransformationRules;
 } k_tileProperties;
 
 World::World()
@@ -164,6 +166,8 @@ void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRi
     // Unrasterize branches
     m_vegSimulator.unrasterizeVegetation(acb);
 
+    m_worldDynamicsPC.timeSec += k_stepDurationSec;
+
     // Activation manager
     (*acb)->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
@@ -174,7 +178,7 @@ void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRi
     // m_bodySimulator.step(*acb);
 
     // Rasterize branches
-    m_vegSimulator.rasterizeVegetation(acb);
+    m_vegSimulator.rasterizeVegetation(acb, m_worldDynamicsPC.timeSec);
 
     // Tile transformations
     tileTransformationsStep(acb);
