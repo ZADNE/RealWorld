@@ -94,11 +94,14 @@ constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBinding
     BindingInfo{re::Key::Numpad3,   "PERMUTE",                  "Permute order"}
 };
 
+using KeybinderType =
+    re::KeyBinder<RealWorldKeyBindings, BindingInfo, k_keybindingInfo>;
+
 /**
  * @brief Global keybinder object for the RealWorld game
  */
-inline auto& keybinder() {
-    static re::KeyBinder<RealWorldKeyBindings, BindingInfo, k_keybindingInfo> kb{};
+inline KeybinderType& keybinder() {
+    static KeybinderType kb;
     return kb;
 }
 

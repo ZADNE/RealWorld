@@ -84,7 +84,7 @@ constexpr Symbol toSymbol(char c) {
     case 'D': return Density;
     case 'I': return Stiffness;
     case 'W': return WallType;
-    default:  throw std::exception{"Unknown symbol"};
+    default:  throw std::runtime_error{"Unknown symbol"};
     }
 }
 
@@ -105,7 +105,7 @@ constexpr int paramCount(Symbol s) {
     case Density:        return 1;
     case Stiffness:      return 1;
     case WallType:       return 1;
-    default:             throw std::exception{"Unknown symbol"};
+    default:             throw std::runtime_error{"Unknown symbol"};
     }
 }
 constexpr int paramCount(char c) {
@@ -270,7 +270,7 @@ private:
         case 'D': params.emplace_back(def->density); break;
         case 'I': params.emplace_back(def->stiffness); break;
         case 'W': params.emplace_back(std::to_underlying(def->wallType)); break;
-        default:  throw std::exception{"Unknown symbol"};
+        default:  throw std::runtime_error{"Unknown symbol"};
         }
     }
 
@@ -289,7 +289,7 @@ constexpr VegTemplatesUB composeVegTemplates() {
         glm::uint sBegin = symbols.size();
         symbols.append(str.str);
         glm::uint pBegin = params.size();
-        params.append_range(str.params);
+        for (auto param : str.params) { params.emplace_back(param); }
         return String{
             sBegin, static_cast<glm::uint>(str.str.size()), pBegin,
             static_cast<glm::uint>(str.params.size())

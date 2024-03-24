@@ -4,9 +4,6 @@
 #include <algorithm>
 #include <execution>
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-
 #include <RealWorld/save/ChunkLoader.hpp>
 #include <RealWorld/world/ChunkActivationMgr.hpp>
 #include <RealWorld/world/shaders/AllShaders.hpp>
