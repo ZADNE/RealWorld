@@ -44,6 +44,11 @@ void main(){
 
     // Calculate raster variant
     uint var = 0;
+    vec2 threadTi = mix(
+        absPosTi,
+        absPosTi + toCartesian(lengthTi, absAngNorm),
+        float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y - 1)
+    );
     switch (wallType){
     case k_oakWoodWl:
     case k_acaciaWoodWl:
@@ -51,28 +56,23 @@ void main(){
         float n = snoise(vec2(gl_LocalInvocationID.xy) * s_tmplt.noiseScale, float(indexWithinVeg)) * s_tmplt.maxLeafStrength;
         float radF = (1.0 - radiusTi) * s_tmplt.branchRadiusFactor;
         radF = radF * radF * radF;
-        float d = distance(absPosTi, s_inst.rootPosTi);
-        var = uint(clamp(n + radF, 0.0, s_tmplt.maxLeafStrength)) | (uint(d) & 248);
+        float d = min(distance(threadTi, s_inst.rootPosTi) * 0.5, 56);
+        var = uint(clamp(n + radF, 0.0, s_tmplt.maxLeafStrength)) | (uint(d) & 56);
         break;
     case k_tallGrassWl:
     case k_coldTallGrassWl:
     case k_mudTallGrassWl:
     case k_dryTallGrassWl:
-        var = random() & 255;
+        var = random() & 63;
         break;
     case k_withyWl:{
-        int ivar = int(gl_WorkGroupSize.y - gl_LocalInvocationID.y - 1) * int(256 / gl_WorkGroupSize.y) + 
-                   int(random() & 64) - 32;
-        var = clamp(ivar, 0, 255);
+        int ivar = int(gl_WorkGroupSize.y - gl_LocalInvocationID.y - 1) * int(64 / gl_WorkGroupSize.y) + 
+                   int(random() & 16) - 8;
+        var = clamp(ivar, 0, 63);
         break;}
     case k_cactusWl:{
-        vec2 p = mix(
-            absPosTi,
-            absPosTi + toCartesian(lengthTi, absAngNorm),
-            float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y - 1)
-        );
-        float n = snoise(p * s_tmplt.noiseScale, 11.0) * 0.5 + 0.5;
-        var = uint(n * 127.0) | (uint(randomFloat() < 0.125) * 128);
+        float n = snoise(threadTi * s_tmplt.noiseScale, 11.0) * 0.5 + 0.5;
+        var = uint(n * 15.0) | (uint(randomFloat() < 0.125) * 32);
         break;}
     }
     storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), var);

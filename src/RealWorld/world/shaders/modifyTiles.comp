@@ -35,17 +35,17 @@ void main(){
 
     // Load the tile
     ivec2 posAt = tiToAt(p_globalPosTi + offset, p_worldTexMaskTi);
-    uvec2 typeVar = loadLayer(posAt, p_modifyLayer);
+    uvec2 layer = loadLayer(posAt, p_modifyLayer);
     uint  blockType = loadBlock(posAt).L_T;
 
     // Modify the tile
     bool airInAboveLayer = p_modifyLayer == k_blockLayer ? true : isNonsolidBlock(blockType);
-    if ((p_modifySetValue.x == k_airBl) == (typeVar.L_T == k_airBl) == airInAboveLayer){
+    if ((p_modifySetValue.x == k_removeBl) == (layer.L_T == k_airBl) == airInAboveLayer){
         return;
     }
     g_randomState = (posAt.x * posAt.y) ^ p_timeHash;
-    typeVar = p_modifySetValue.y <= 255 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
+    layer = p_modifySetValue.y <= 255 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
 
     // Store the modified tile
-    storeLayer(posAt, p_modifyLayer, typeVar);
+    storeLayer(posAt, p_modifyLayer, layer);
 }

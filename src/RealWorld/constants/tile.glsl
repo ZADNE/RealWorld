@@ -49,7 +49,8 @@ const uint k_fireBl           = 227;
 const uint k_smokeBl          = 228;
 const uint k_droppedLeafBl    = 229;
 const uint k_droppedDryLeafBl = 230;
-const uint k_acidBl           = 254;
+const uint k_acidBl           = 253;
+const uint k_removeBl         = 254;
 const uint k_airBl            = 255;
 const uint k_neverBl          = 256;
 
@@ -83,6 +84,10 @@ const uint k_dryLeafWl        = 232;
 const uint k_needleWl         = 233;
 const uint k_withyWl          = 234;
 const uint k_cactusWl         = 235;
+const uint k_burningWoodWl    = 236;
+const uint k_burntWoodWl      = 237;
+const uint k_removedWoodWl    = 238;
+const uint k_removeWl         = 254;
 const uint k_airWl            = 255;
 const uint k_neverWl          = 256;
 
@@ -105,6 +110,7 @@ const uvec2 k_highlighter     = {k_highlighterBl,   k_highlighterWl};
 
 const uvec2 k_firstNonsolid   = {k_firstNonsolidBl, k_firstNonsolidWl};
 
+const uvec2 k_remove          = {k_removeBl,        k_removeWl};
 const uvec2 k_air             = {k_airBl,           k_airWl};
 const uvec2 k_never           = {k_neverBl,         k_neverWl};
 

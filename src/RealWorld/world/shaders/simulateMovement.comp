@@ -170,6 +170,8 @@ void main(){
                     leaningFluidDynamics(block, posAt, posTi);
                 } else if (block.L_T == k_acidBl){
                     velocityFluidDynamics(block, posAt);
+                } else if (block.L_T == k_removeBl){
+                    storeBlock(posAt, uvec2(k_airBl, 0));
                 }
             }
             { // Wall layer simulation
@@ -182,6 +184,8 @@ void main(){
                     } else {
                         storeWall(posAt, uvec2(k_airWl, 0));
                     }
+                } else if (wall.L_T == k_removeWl){
+                    storeWall(posAt, uvec2(k_airWl, 0));
                 }
             }
         }
