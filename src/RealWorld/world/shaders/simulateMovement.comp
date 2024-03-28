@@ -26,9 +26,6 @@ uint invocHash(){
     return globalIndex ^ p_timeHash;
 }
 
-bool probTest1023(uint probability){ return (random() & 1023) < probability; }
-bool probTest65535(uint probability){ return (random() & 65535) < probability; }
-
 uvec2 blockRandomVariant(uint blockType){
     return uvec2(blockType, isNonsolidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
 }
