@@ -45,9 +45,14 @@ int prevAllocIndex(uint allocIndex){
     return int((allocIndex - 1) & (k_maxBranchAllocCount - 1));
 }
 
+bool isLastAllocIndex(uint allocIndex){
+    return allocIndex == k_maxBranchAllocCount - 1;
+}
+
 uint roundUpToPowerOf2(uint n){
     return 2u << findMSB(n - 1);
 }
+
 
 /**
  * @brief Allocates space for branches
@@ -63,28 +68,28 @@ int allocateBranches(
     int allocIndex = b_branchAllocReg.nextAllocIter;
     do { // While not all allocations have been searched
         BranchAllocation alloc = b_branchAllocReg.allocations[allocIndex];
-        if (alloc.branchCount == 0) { // If the allocation is empty
-            if (alloc.capacity >= toAllocate){ // If the allocation is big enough
-                if (alloc.capacity > toAllocate){ // If the allocation is bigger than necessary
-                    int nextAllocI = nextAllocIndex(allocIndex);
-                    BranchAllocation nextAlloc = b_branchAllocReg.allocations[nextAllocI];
-                    if (nextAlloc.branchCount == 0) { // If the next is empty too
-                        // Donate free space to the next allocation
-                        uint emptySpace        = alloc.capacity - toAllocate;
-                        alloc.capacity         = toAllocate;
-                        nextAlloc.firstBranch  = alloc.firstBranch + toAllocate;
-                        nextAlloc.capacity    += emptySpace;
-                        b_branchAllocReg.allocations[nextAllocI] = nextAlloc;
-                    }
+        if (alloc.branchCount == 0 && alloc.capacity >= toAllocate) { // If the allocation is suitable
+            if (alloc.capacity > toAllocate   // If the allocation is bigger than necessary
+            &&  !isLastAllocIndex(allocIndex) // and there is a neighbor on the right
+            ){
+                int nextAllocI = allocIndex + 1;
+                BranchAllocation nextAlloc = b_branchAllocReg.allocations[nextAllocI];
+                if (nextAlloc.branchCount == 0) { // If the next is empty too
+                    // Donate free space to the next allocation
+                    uint emptySpace        = alloc.capacity - toAllocate;
+                    alloc.capacity         = toAllocate;
+                    nextAlloc.firstBranch  = alloc.firstBranch + toAllocate;
+                    nextAlloc.capacity    += emptySpace;
+                    b_branchAllocReg.allocations[nextAllocI] = nextAlloc;
                 }
-                // Capture the allocation
-                alloc.branchCount = branchCount;
-                b_branchAllocReg.allocations[allocIndex] = alloc;
-                int chunkIndex = chToIndex(chunkCh, worldTexSizeCh);
-                b_branchAllocReg.allocIndexOfTheChunk[chunkIndex] = allocIndex;
-                b_branchAllocReg.nextAllocIter = nextAllocIndex(allocIndex);
-                return int(alloc.firstBranch);
             }
+            // Capture the allocation
+            alloc.branchCount = branchCount;
+            b_branchAllocReg.allocations[allocIndex] = alloc;
+            int chunkIndex = chToIndex(chunkCh, worldTexSizeCh);
+            b_branchAllocReg.allocIndexOfTheChunk[chunkIndex] = allocIndex;
+            b_branchAllocReg.nextAllocIter = nextAllocIndex(allocIndex);
+            return int(alloc.firstBranch);
         }
         allocIndex = nextAllocIndex(allocIndex);
     } while (++allocSearched < k_maxBranchAllocCount);
@@ -102,42 +107,42 @@ void deallocateBranches(
 ) {
     int chunkIndex = chToIndex(chunkCh, worldTexSizeCh);
     int allocIndex = b_branchAllocReg.allocIndexOfTheChunk[chunkIndex];
-    if (allocIndex >= 0){// If there is an allocation for the chunk
-        // Free this allocation
-        b_branchAllocReg.allocIndexOfTheChunk[chunkIndex] = -1;
-        BranchAllocation alloc = b_branchAllocReg.allocations[allocIndex];
-        alloc.branchCount = 0;
-
-        { // Accumulate capacity of the next allocation
-            int nextAllocI = nextAllocIndex(allocIndex);
-            BranchAllocation nextAlloc = b_branchAllocReg.allocations[nextAllocI];
-            if (nextAlloc.branchCount == 0) {// If the next is empty
-                // Accumulate its capacity
-                alloc.capacity += nextAlloc.capacity;
-                b_branchAllocReg.allocations[nextAllocI].capacity = 0;
-            }
-        }
-        b_branchAllocReg.allocations[allocIndex] = BranchAllocation(0, 0, 0, 0, 0);
-
-        // Sweep and accumulate previous allocations
-        int allocSearched = 2;
-        BranchAllocation prevAlloc;
-        do {
-            allocIndex = prevAllocIndex(allocIndex);
-            prevAlloc = b_branchAllocReg.allocations[allocIndex];
-            if (prevAlloc.branchCount == 0) { // If previous is empty too
-                // Accumulate its capacity
-                alloc.capacity += prevAlloc.capacity;
-                b_branchAllocReg.allocations[allocIndex].capacity = 0;
-            } else {
-                break; // Sweep finished
-            }
-        } while (++allocSearched < k_maxBranchAllocCount);
-
-        // Store the accumulated allocation at the swept index
-        alloc.firstBranch = prevAlloc.firstBranch + prevAlloc.capacity;
-        b_branchAllocReg.allocations[nextAllocIndex(allocIndex)] = alloc;
+    if (allocIndex < 0){
+        return; // No branches allocated for the chunk
     }
+
+    // Free this allocation
+    b_branchAllocReg.allocIndexOfTheChunk[chunkIndex] = -1;
+    BranchAllocation alloc = b_branchAllocReg.allocations[allocIndex];
+    alloc.branchCount = 0;
+    b_branchAllocReg.allocations[allocIndex] = BranchAllocation(0, 0, 0, 0, 0);
+
+    if (!isLastAllocIndex(allocIndex)){ // Accumulate capacity of the next allocation
+        int nextAllocI = allocIndex + 1;
+        BranchAllocation nextAlloc = b_branchAllocReg.allocations[nextAllocI];
+        if (nextAlloc.branchCount == 0) {// If the next is empty
+            // Accumulate its capacity
+            alloc.capacity += nextAlloc.capacity;
+            b_branchAllocReg.allocations[nextAllocI].capacity = 0;
+        }
+    }
+
+    // Sweep and accumulate allocations to the left
+    BranchAllocation prevAlloc;
+    while (--allocIndex >= 0) {
+        prevAlloc = b_branchAllocReg.allocations[allocIndex];
+        if (prevAlloc.branchCount == 0) { // If previous is empty too
+            // Accumulate its capacity
+            alloc.capacity += prevAlloc.capacity;
+            alloc.firstBranch -= prevAlloc.capacity;
+            b_branchAllocReg.allocations[allocIndex].capacity = 0;
+        } else {
+            break; // Sweep finished
+        }
+    };
+
+    // Store the accumulated allocation at the swept index
+    b_branchAllocReg.allocations[allocIndex + 1] = alloc;
 }
 
 #endif // !BRANCH_ALLOC_REG_SB_GLSL
