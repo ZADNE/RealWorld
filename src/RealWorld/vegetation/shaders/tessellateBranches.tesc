@@ -27,14 +27,14 @@ void main() {
     float aDiff = abs(angularDifference(i_startAngleNorm[gl_InvocationID], i_endAngleNorm[gl_InvocationID]));
     float subdivs =
         (lengthTi > 0.0)
-        ? max(lengthTi * aDiff, 1.0) // max to avoid the branch from disappearing if aDiff == 0
+        ? max(lengthTi * aDiff * 3.0, 1.0) // max to avoid the branch from disappearing if aDiff == 0
         : 0.0;                       // Discard root zero-length 'branch'
     gl_TessLevelOuter[0] = subdivs;
     gl_TessLevelOuter[1] = 1.0;
     gl_TessLevelOuter[2] = subdivs;
     gl_TessLevelOuter[3] = 1.0;
-    gl_TessLevelInner[0] = 0.0;
-    gl_TessLevelInner[1] = 0.0;
+    gl_TessLevelInner[0] = 1.0;
+    gl_TessLevelInner[1] = subdivs;
 
     o_p0Ti = imPos(i_posTi[gl_InvocationID]);
     o_p1Ti = o_p0Ti + toCartesian(lengthTi * 0.5, i_startAngleNorm[gl_InvocationID]);
