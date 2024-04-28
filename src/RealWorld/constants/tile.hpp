@@ -88,6 +88,7 @@ enum class Wall : uint8_t {
     Cactus,
     BurningWood,
     BurntWood,
+    HallowWood,
 
     Remove = 254,
     Air    = 255

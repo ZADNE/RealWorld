@@ -75,7 +75,9 @@ void main(){
         var = uint(n * 15.0) | (uint(randomFloat() < 0.125) * 32);
         break;}
     }
-    storeBranchTexel(i, ivec2(gl_LocalInvocationID.xy), var);
+    storeBranchTexel(
+        i, ivec2(gl_LocalInvocationID.xy), uvec2(k_woodBasicStateNatural, var)
+    );
 
     // Copy vector parameters to their final location
     if (gl_LocalInvocationIndex == 0){

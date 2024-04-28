@@ -22,10 +22,11 @@ layout (location = 3) in flat uint i_branchIndex15wallType31;
 /// @return Wall type of the wood
 uint woodBasicStateToWall(uint basicState, uint naturalWall){
     switch (basicState) {
-    case 64:        return k_burningWoodWl;
-    case 128:       return k_burntWoodWl;
-    case 64 | 128:  return k_airWl;
-    default:        return naturalWall;
+    case k_woodBasicStateBurning:   return k_burningWoodWl;
+    case k_woodBasicStateBurnt:     return k_burntWoodWl;
+    case k_woodBasicStateHallow:    return k_hallowWoodWl;
+    case k_woodBasicStateRemoved:   return k_airWl;
+    default:                        return naturalWall;
     }
 }
 
@@ -34,13 +35,13 @@ void main(){
     if (isNonsolidWall(prevWall.L_T)){
         uint branchIndex = i_branchIndex15wallType31 & 0xffff;
         vec2 uv = ivec2(round(i_uv * (i_sizeTi - 1.0)));
-        uint texel = loadBranchTexel(branchIndex, ivec2(uv));
+        uvec2 texel = loadBranchTexel(branchIndex, ivec2(uv));
         uint wallType = woodBasicStateToWall(
-            texel & (64 | 128),
+            texel.L_T,
             (i_branchIndex15wallType31 >> 16) & 0xff
         );
-        o_wall = uvec2(wallType, texel);
-        uint bud = (texel & 7);
+        o_wall = uvec2(wallType, texel.L_V);
+        uint bud = (texel.L_V & 7);
         if (isWoodWall(wallType) && bud > 0){ // If should spawn root leaf
             uv /= i_sizeTi;
             vec2 normal = vec2(i_tipDir.y, -i_tipDir.x);

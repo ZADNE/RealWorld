@@ -7,7 +7,7 @@
 
 const uint k_maxBranchCount         = 65536;
 const uint k_maxBranchAllocCount    = 256;
-const uint k_branchRasterSpace      = 64;
+const uint k_branchRasterByteCount  = 128;
 
 
 const uint k_firstWoodWl            = k_oakWoodWl;

@@ -23,6 +23,6 @@ constexpr uint32_t k_maxBranchAllocCount = 256;
 /**
  * @brief Is the number of bytes in raster buffer that each branch has
  */
-constexpr uint32_t k_branchRasterSpace = 64;
+constexpr uint32_t k_branchRasterByteCount = 128;
 
 } // namespace rw

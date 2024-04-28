@@ -18,12 +18,13 @@ layout (location = 3) in flat uint i_branchIndex15wallType31;
 /// @return Basic state of the wood if prevWall is related, ~0 otherwise
 uint wallToWoodBasicState(uint prevWall, uint naturalWall){
     if (prevWall == naturalWall) {
-        return 0;
+        return k_woodBasicStateNatural;
     }
     switch (prevWall) {
-    case k_burningWoodWl: return 64;
-    case k_burntWoodWl:   return 128;
-    case k_removeWl:      return 64 | 128;
+    case k_burningWoodWl: return k_woodBasicStateBurning;
+    case k_burntWoodWl:   return k_woodBasicStateBurnt;
+    case k_hallowWoodWl:  return k_woodBasicStateHallow;
+    case k_removeWl:      return k_woodBasicStateRemoved;
     }
     return ~0;
 }
@@ -35,9 +36,7 @@ void main(){
     if (basicState != ~0){
         uint branchIndex = i_branchIndex15wallType31 & 0xffff;
         ivec2 uv = ivec2(round(i_uv * (i_sizeTi - 1.0)));
-        uint texel = loadBranchTexel(branchIndex, uv);
-        texel = (texel & ~(128 | 64)) | basicState;
-        storeBranchTexel(branchIndex, uv, texel);
+        storeBranchBasicState(branchIndex, uv, basicState);
         o_wall = uvec2(k_airWl, 0);
     } else {
         o_wall = prevWall;
