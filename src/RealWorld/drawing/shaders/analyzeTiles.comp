@@ -5,6 +5,7 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/light.glsl>
+#include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
 layout (local_size_x = k_analysisGroupSize,
@@ -24,6 +25,11 @@ layout (set = 0, binding = 4)
     uniform sampler2D                   u_wallLightAtlas;
 
 const float TO_UNIT_SCALE = 1.0 / (k_iLightScale * k_iLightScale);
+
+vec4 skyLight(vec2 posTi){
+    float noiseLight = max(snoise(posTi * k_iLightScaleInv / 8.0, 13.0) / 320.0, 0.0);
+    return vec4(p_skyLight.rgb, p_skyLight.a + noiseLight);
+}
 
 void main(){
     // Calculate position and init variables
@@ -45,13 +51,13 @@ void main(){
 
             // Process it as a light source
             vec4 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0);
-            vec4 wallLight = texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0);
+            vec4 wallLight = isAirWall(wall.L_T) ? skyLight(vec2(posAt)) : texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0);
             vec4 tileLight = airBlock ? wallLight : blockLight;
             light += tileLight;
         }
     }
 
-    //Scale
+    // Scale
     light *= TO_UNIT_SCALE;
     imageStore(u_lightImage, ivec2(gl_GlobalInvocationID), uvec4(packUnorm4x8(light)));
     translu.r *= TO_UNIT_SCALE;

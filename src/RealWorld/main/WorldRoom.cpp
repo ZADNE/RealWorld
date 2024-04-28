@@ -183,7 +183,8 @@ void WorldRoom::analyzeWorldForDrawing() {
     m_worldView.setPosition(glm::floor(viewPos));
 
     // Analyze the world texture
-    m_worldDrawer.beginStep(*m_acb);
+    m_timeDay += 0.00025f * static_cast<float>(!m_stopDaytime);
+    m_worldDrawer.beginStep(*m_acb, m_timeDay);
 
     // Add external lights (these below are mostly for debug)
     static float rad = 0.0f;
@@ -267,11 +268,16 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
     // Top-left menu
     ImGui::SetNextWindowPos({0.0f, 0.0f});
     ImGui::PushFont(m_arial);
-    if (ImGui::Begin("##topLeftMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
-        using namespace std::chrono;
+    if (ImGui::Begin(
+            "##topLeftMenu", nullptr,
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
+        )) {
         ImGui::Text(
             "FPS: %u\nMax FT: %i us", engine().framesPerSecond(),
-            (int)duration_cast<microseconds>(engine().maxFrameTime()).count()
+            static_cast<int>(
+                duration_cast<std::chrono::microseconds>(engine().maxFrameTime())
+                    .count()
+            )
         );
         ImGui::Separator();
         ImGui::TextUnformatted("Minimap:");
@@ -280,6 +286,9 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
         ImGui::TextUnformatted("Shadows:");
         ImGui::SameLine();
         ImGui::ToggleButton("##shadows", &m_shadows);
+        ImGui::TextUnformatted("Stop daytime:");
+        ImGui::SameLine();
+        ImGui::ToggleButton("##stopDaytime", &m_stopDaytime);
     }
     ImGui::End();
     ImGui::PopFont();
@@ -296,6 +305,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
         m_world.adoptSave(m_acb, save.metadata, m_gameSettings.worldTexSize());
     m_player.adoptSave(save.player, worldTex, m_gameSettings.worldTexSize());
     m_playerInv.adoptInventoryData(save.inventory);
+    m_timeDay = save.metadata.timeDay;
 
     m_worldDrawer.setTarget(worldTex, m_gameSettings.worldTexSize() * iChunkTi);
     return true;

@@ -135,12 +135,14 @@ void TileDrawer::resizeView(glm::vec2 viewSizePx) {
     m_pc.minimapSize   = layout.sizePx;
 }
 
-void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
+void TileDrawer::drawTiles(
+    const re::CommandBuffer& cb, glm::vec2 botLeftPx, float skyLight
+) {
     m_pc.uvRectSize   = m_viewSizePx;
     m_pc.uvRectOffset = glm::mod(botLeftPx, TilePx);
     m_pc.botLeftTi    = glm::ivec2(pxToTi(botLeftPx));
     m_pc.skyColor     = glm::vec4(
-        bcColor(biomeTemp(botLeftPx.x + m_viewSizePx.x * 0.5f, 1.0f)), 1.0
+        bcColor(biomeTemp(botLeftPx.x + m_viewSizePx.x * 0.5f, 1.0f)) * skyLight, 1.0
     );
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u,

@@ -27,7 +27,7 @@ public:
 
     void resizeView(glm::vec2 viewSizePx);
 
-    void drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
+    void drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx, float skyLight);
 
     void drawMinimap(const re::CommandBuffer& cb);
 

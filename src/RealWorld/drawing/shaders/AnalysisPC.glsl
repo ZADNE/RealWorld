@@ -7,6 +7,7 @@
 #extension GL_EXT_scalar_block_layout : require
 layout (push_constant, std430)
 uniform AnalysisPC {
+    vec4    p_skyLight;
     ivec2   p_worldTexMask;
     ivec2   p_analysisOffsetTi;
     ivec2   p_addLightOffsetPx;
