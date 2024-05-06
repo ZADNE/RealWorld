@@ -126,8 +126,8 @@ union SymbolParam {
     float f;
 };
 
-constexpr int k_vegTemplatesSymbolCount   = 256;
-constexpr int k_totalRewriteRuleBodyCount = 40;
+constexpr int k_vegTemplatesSymbolCount   = 384;
+constexpr int k_totalRewriteRuleBodyCount = 48;
 
 struct VegTemplatesUB {
     constexpr VegTemplatesUB(
@@ -493,6 +493,42 @@ constexpr VegTemplatesUB composeVegTemplates() {
         });
         rasterTmplts.push_back(VegRasterTemplate{
             .noiseScale = 1.0f / 16.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
+        });
+    }
+
+    { // Palm tree
+        DefaultParams def{
+            .branchSizeTi = {1.5f, 7.5f},
+            .turnAngle    = 0.22f,
+            .density      = 2.0f,
+            .stiffness    = 0.25f,
+            .wallType     = Wall::OakWood
+        };
+        auto t0 = addString({def, 't', .0, 2.5});
+
+        auto b0 = addString({def, 'b', .125, 2.0});
+        auto b1 = addString(
+            {def, "s", .125, 2.5, "[+T+", -0.04, "T][^B", .5, 6.0, "][-T+",
+             0.04, "T]"}
+        );
+        auto b2 =
+            addString({def, "s", .125, 2.5, "[F+T+", -0.04, "T][^B", .5, 6.0, "]"});
+
+        auto s0 = addString({def, 's', .25, 1.5});
+
+        tmplts.push_back(VegTemplate{
+            .axiom         = addString({def, "DIWB", .5, 7.5}),
+            .iterCount     = 6,
+            .tropismFactor = 0.0f,
+            .rules =
+                {addProbRuleBodies({1, 15.0f}, {{1.0f, t0}}, {{1.0f, t0}}),
+                 addProbRuleBodies(
+                     {1, 6.0f}, {{0.95f, b0}}, {{0.7f, b1}, {0.2f, b2}, {0.05f, b0}}
+                 ),
+                 addProbRuleBodies({1, 40.0f}, {{0.95f, s0}}, {{0.8f, s0}})}
+        });
+        rasterTmplts.push_back(VegRasterTemplate{
+            .noiseScale = 1.0f / 8.0f, .branchRadiusFactor = 5.0f, .maxLeafStrength = 4.0f
         });
     }
 
