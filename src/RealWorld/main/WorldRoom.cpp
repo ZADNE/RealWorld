@@ -175,10 +175,7 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
 void WorldRoom::analyzeWorldForDrawing() {
     auto dbg = m_acb->createDebugRegion("analysisForDrawing");
     // Move the view based on movements of the player
-    glm::vec2 prevViewPos   = m_worldView.center();
-    glm::vec2 targetViewPos = glm::vec2(m_player.center()) * 0.75f +
-                              m_worldView.cursorRel() * 0.25f;
-    auto viewPos = prevViewPos * 0.875f + targetViewPos * 0.125f;
+    auto viewPos = newViewPos();
     m_worldView.setCursorAbs(engine().cursorAbs());
     m_worldView.setPosition(glm::floor(viewPos));
 

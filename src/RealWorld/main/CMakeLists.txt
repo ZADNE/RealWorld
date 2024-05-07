@@ -8,4 +8,5 @@ target_sources(RealWorld PRIVATE
 )
 target_sources(RealWorld_Game PRIVATE 
                                 main.cpp
+                                WorldRoom.Game.cpp
 )

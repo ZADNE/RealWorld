@@ -41,6 +41,8 @@ private:
 
     void analyzeWorldForDrawing();
 
+    glm::vec2 newViewPos() const;
+
     void updateInventoryAndUI();
 
     void drawGUI(const re::CommandBuffer& cb);
