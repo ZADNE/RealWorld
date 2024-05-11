@@ -246,7 +246,7 @@ constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
 /*lava*/            glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
 /*steam*/           glm::uvec4{ 0,                                          ~0,                         0,                          0},
 /*fire*/            glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
-/*smoke*/           glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
+/*smoke*/           glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},

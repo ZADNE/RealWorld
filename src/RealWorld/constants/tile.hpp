@@ -77,13 +77,16 @@ enum class Wall : uint8_t {
     OakWood     = 224, // 0b1110'0000
     AcaciaWood,
     ConiferousWood,
-    TallGrass,
+    PalmWood,
+
+    TallGrass = 240,
     ColdTallGrass,
     MudTallGrass,
     DryTallGrass,
     Leaf,
     DryLeaf,
     Needle,
+    PalmLeaf,
     Withy,
     Cactus,
     BurningWood,

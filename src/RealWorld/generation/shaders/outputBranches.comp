@@ -52,13 +52,23 @@ void main(){
     switch (wallType){
     case k_oakWoodWl:
     case k_acaciaWoodWl:
-    case k_coniferousWoodWl:
+    case k_coniferousWoodWl:{
         float n = snoise(vec2(gl_LocalInvocationID.xy) * s_tmplt.noiseScale, float(indexWithinVeg)) * s_tmplt.maxLeafStrength;
         float radF = (1.0 - radiusTi) * s_tmplt.branchRadiusFactor;
         radF = radF * radF * radF;
         float d = min(distance(threadTi, s_inst.rootPosTi) * 0.5, 56);
         var = uint(clamp(n + radF, 0.0, s_tmplt.maxLeafStrength)) | (uint(d) & 56);
-        break;
+        break;}
+    case k_palmWoodWl:{
+        float n = snoise(vec2(gl_LocalInvocationID.xy) * s_tmplt.noiseScale, float(indexWithinVeg)) * 2.0;
+        if (radiusTi == 0.5){ // If palm leaf
+            float l = s_tmplt.maxLeafStrength - 0.25 * abs(float(gl_LocalInvocationID.y) - lengthTi * 0.5);
+            var = uint(clamp(l, 0.0, s_tmplt.maxLeafStrength)) | (uint(48) & 56);
+        } else { // Else palm trunk
+            float d = distance(absPosTi, threadTi);
+            var = uint((n + d) * 13.0) & 56;
+        }
+        break;}
     case k_tallGrassWl:
     case k_coldTallGrassWl:
     case k_mudTallGrassWl:
