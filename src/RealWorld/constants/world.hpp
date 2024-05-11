@@ -9,6 +9,7 @@
 #include <RealWorld/constants/chunk.hpp>
 
 namespace rw {
+
 /**
  * @brief Is the minimum size of the world texture, in chunks
  */

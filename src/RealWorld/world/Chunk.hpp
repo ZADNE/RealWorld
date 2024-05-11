@@ -13,9 +13,10 @@
 namespace rw {
 
 /**
- * @brief Represents a fixed-size square of tiles and vegetation belonging to it.
+ * @brief Represents a square of tiles and vegetation belonging to it.
  *
- * All chunks have the size of ChunkTi constant. Vegetation per chunk varies.
+ * All chunks have the dimensions of ChunkTi constant. The number of branches
+ * per chunk varies.
  *
  * A tile is defined by 4 values: block type, block variant, wall type and wall
  * variant.

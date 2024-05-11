@@ -10,7 +10,7 @@
 namespace rw {
 
 /**
- * @brief Specify settings specific to RealWorld game.
+ * @brief Specifies settings specific to RealWorld game.
  */
 class GameSettings {
 public:

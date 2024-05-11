@@ -13,7 +13,7 @@
 namespace rw {
 
 /**
- * @brief Holds the main menu and related objects.
+ * @brief Holds the main menu and related objects
  */
 class MainMenuRoom: public Room {
 public:

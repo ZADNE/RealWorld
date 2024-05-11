@@ -12,7 +12,7 @@ namespace rw {
  * @brief Dimensions of a chunk, in tiles
  *
  * All chunks have the same dimensions.
- * Both componenets must be powers of 2.
+ * Both dimensions must be powers of 2.
  */
 constexpr glm::uvec2 uChunkTi = glm::uvec2(128u, 128u);
 constexpr glm::ivec2 iChunkTi = uChunkTi;

@@ -17,7 +17,7 @@
 namespace rw {
 
 /**
- * @brief Renders shadows of the world
+ * @brief Calcualtes and renders shadows of the world
  */
 class ShadowDrawer {
 public:
