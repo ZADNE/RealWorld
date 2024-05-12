@@ -14,9 +14,9 @@ struct VegDistr {
 
 // Vegetation type                  |trees (L-systems)                              |grasses
 // Species name                     |oak    |acacia |spruce |willow |cactus |palm   |normal |cold   |mud    |dry
-const VegDistr k_mountainVeg  = {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0}};
+const VegDistr k_mountainVeg  = {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.1,    0.0,    0.0}};
 const VegDistr k_tundraVeg    = {{  0.0,    0.0,    0.2,    0.0,    0.0,    0.0,    0.0,    1.0,    0.0,    0.0}};
-const VegDistr k_taigaVeg     = {{  0.0,    0.0,    4.0,    0.0,    0.0,    0.0,    0.0,    0.2,    0.0,    0.0}};
+const VegDistr k_taigaVeg     = {{  0.0,    0.0,    4.0,    0.0,    0.0,    0.0,    0.0,    1.5,    0.0,    0.0}};
 
 const VegDistr k_grasslandVeg = {{  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    1.75,   0.0,    0.05,   0.05}};
 const VegDistr k_forestVeg    = {{  1.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.15,   0.0,    0.0,    0.0}};
