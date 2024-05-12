@@ -14,6 +14,7 @@ struct MetadataSave {
     std::string path; // Includes ending slash
     int seed;
     std::string worldName;
+    float timeDay;
 };
 
 struct PlayerSave {

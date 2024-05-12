@@ -4,6 +4,9 @@
 #pragma once
 #include <unordered_map>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>

@@ -41,6 +41,8 @@ private:
 
     void analyzeWorldForDrawing();
 
+    glm::vec2 newViewPos() const;
+
     void updateInventoryAndUI();
 
     void drawGUI(const re::CommandBuffer& cb);
@@ -96,6 +98,8 @@ private:
     Inventory m_playerInv;
     ItemUser m_itemUser;
     InventoryUI m_invUI;
+    float m_timeDay    = 0.0f;
+    bool m_stopDaytime = false;
 
     // Toggle states
     bool m_minimap = false;

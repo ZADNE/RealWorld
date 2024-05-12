@@ -22,7 +22,7 @@
 namespace rw {
 
 /**
- * @brief   Simulates swaying and growth of vegetation
+ * @brief   Simulates vegetation
  * @details Rasterizes and unrasterizes the vegetation to the world texture.
  */
 class VegSimulator {

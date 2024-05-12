@@ -4,6 +4,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include <cstdint>
 
 namespace rw {
 

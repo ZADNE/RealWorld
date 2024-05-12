@@ -21,8 +21,7 @@ namespace rw {
 
 /**
  * @brief Represents the world as an endless grid of tiles.
- *
- * Also runs tile transformation and fluid dynamics simulation.
+ * @details Also runs tile transformation and fluid dynamics simulation.
  */
 class World {
 public:

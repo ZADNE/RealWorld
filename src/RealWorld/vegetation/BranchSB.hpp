@@ -23,12 +23,12 @@ struct BranchSB {
     float radiusTi[k_maxBranchCount];
     float lengthTi[k_maxBranchCount];
     glm::vec2 densityStiffness[k_maxBranchCount];
-    uint8_t raster[k_maxBranchCount][k_branchRasterSpace];
+    uint8_t raster[k_maxBranchCount][k_branchRasterByteCount];
 };
 
 struct BranchSerialized {
     static_assert(
-        sizeof(BranchSB) == 7602176,
+        sizeof(BranchSB) == 11796480,
         "Layout of branch members probably changed - fix me"
     );
     template<typename T>
@@ -48,7 +48,7 @@ struct BranchSerialized {
 
     static constexpr size_t memberCount() {
         static_assert(
-            sizeof(BranchSB) == 7602176, "Also fix the count of members here"
+            sizeof(BranchSB) == 11796480, "Also fix the count of members here"
         );
         return 9;
     }

@@ -7,13 +7,13 @@
 
 const uint k_maxBranchCount         = 65536;
 const uint k_maxBranchAllocCount    = 256;
-const uint k_branchRasterSpace      = 64;
+const uint k_branchRasterByteCount  = 128;
 
 
 const uint k_firstWoodWl            = k_oakWoodWl;
-const uint k_lastWoodWl             = k_coniferousWoodWl;
+const uint k_lastWoodWl             = k_palmWoodWl;
 const uint k_firstLeafWl            = k_leafWl;
-const uint k_lastLeafWl             = k_needleWl;
+const uint k_lastLeafWl             = k_palmLeafWl;
 const uint k_woodToLeafTypeOffset   = k_firstLeafWl - k_firstWoodWl;
 
 bool isWoodWall(uint wallType){

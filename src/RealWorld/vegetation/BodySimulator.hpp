@@ -12,6 +12,9 @@
 
 namespace rw {
 
+/**
+ * @brief Is not used, maybe in fufure...
+ */
 class BodySimulator {
 public:
     explicit BodySimulator(const re::PipelineLayout& simulationPL);

@@ -52,9 +52,10 @@ enum class Block : uint8_t {
     DroppedLeaf,
     DroppedDryLeaf,
 
-    Acid = 254,
+    Acid = 253,
 
-    Air = 255
+    Remove = 254,
+    Air    = 255
 };
 
 enum class Wall : uint8_t {
@@ -76,17 +77,24 @@ enum class Wall : uint8_t {
     OakWood     = 224, // 0b1110'0000
     AcaciaWood,
     ConiferousWood,
-    TallGrass,
+    PalmWood,
+
+    TallGrass = 240,
     ColdTallGrass,
     MudTallGrass,
     DryTallGrass,
     Leaf,
     DryLeaf,
     Needle,
+    PalmLeaf,
     Withy,
     Cactus,
+    BurningWood,
+    BurntWood,
+    HallowWood,
 
-    Air = 255
+    Remove = 254,
+    Air    = 255
 };
 
 enum class TileLayer : uint32_t {

@@ -57,7 +57,7 @@ constexpr static struct TilePropertiesUIB {
     // z = Properties of the transformation
     // w = The wall that it will be transformed into
     std::array<glm::uvec4, 16> blockTransformationRules = k_blockTransformationRules;
-    std::array<glm::uvec4, 18> wallTransformationRules = k_wallTransformationRules;
+    std::array<glm::uvec4, 25> wallTransformationRules = k_wallTransformationRules;
 } k_tileProperties;
 
 World::World()

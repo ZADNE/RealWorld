@@ -121,7 +121,10 @@ void ShadowDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
                            m_wallLightAtlasTex, m_lightsBuf};
 }
 
-void ShadowDrawer::analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi) {
+void ShadowDrawer::analyze(
+    const re::CommandBuffer& cb, glm::ivec2 botLeftTi, const glm::vec4& skyLight
+) {
+    m_.analysisPC.skyLight = skyLight;
     m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) &
                                      ~k_lightScaleBits;
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);

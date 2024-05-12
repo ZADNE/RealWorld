@@ -17,7 +17,7 @@
 namespace rw {
 
 /**
- * @brief Renders shadows of the world
+ * @brief Calcualtes and renders shadows of the world
  */
 class ShadowDrawer {
 public:
@@ -34,7 +34,9 @@ public:
     /**
      * @brief Analyzes the world texture
      */
-    void analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi);
+    void analyze(
+        const re::CommandBuffer& cb, glm::ivec2 botLeftTi, const glm::vec4& skyLight
+    );
 
     /**
      * @brief Adds external light
@@ -71,6 +73,7 @@ private:
     re::BufferMapped<ExternalLight> m_lightsBuf;
 
     struct AnalysisPC {
+        glm::vec4 skyLight;
         glm::ivec2 worldTexMask;
         glm::ivec2 analysisOffsetTi;
         glm::ivec2 addLightOffsetPx;

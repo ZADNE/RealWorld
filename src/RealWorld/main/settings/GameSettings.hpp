@@ -10,13 +10,13 @@
 namespace rw {
 
 /**
- * @brief Specify settings specific to RealWorld game.
+ * @brief Specifies settings specific to RealWorld game.
  */
 class GameSettings {
 public:
     /**
      * @brief Constructs settings from file that was saved before.
-     * @detailsIf the file cannot be loaded, settings are constructed with the
+     * @details If the file cannot be loaded, settings are constructed with the
      * default values.
      */
     GameSettings();

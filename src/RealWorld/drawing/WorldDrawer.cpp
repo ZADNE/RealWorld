@@ -1,6 +1,10 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
+#include <glm/gtc/constants.hpp>
+#include <glm/packing.hpp>
+#include <glm/trigonometric.hpp>
+
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
@@ -48,8 +52,11 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
     };
 }
 
-void WorldDrawer::beginStep(const re::CommandBuffer& cb) {
-    m_shadowDrawer.analyze(cb, m_botLeftTi);
+void WorldDrawer::beginStep(const re::CommandBuffer& cb, float timeDay) {
+    m_skyLightPower     = timeToSkyLightPower(timeDay);
+    float skyLightPower = m_skyLightPower * m_skyLightPower * 0.14f;
+    glm::vec4 skyLight  = glm::vec4{0.0f, 0.0f, 0.0f, skyLightPower};
+    m_shadowDrawer.analyze(cb, m_botLeftTi, skyLight);
 }
 
 void WorldDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
@@ -61,7 +68,8 @@ void WorldDrawer::endStep(const re::CommandBuffer& cb) {
 }
 
 void WorldDrawer::drawTiles(const re::CommandBuffer& cb) {
-    m_tileDrawer.drawTiles(cb, m_botLeftPx);
+    float skyLight = 0.0625f + glm::sqrt(m_skyLightPower) * 0.9375f;
+    m_tileDrawer.drawTiles(cb, m_botLeftPx, skyLight);
 }
 
 void WorldDrawer::drawShadows(const re::CommandBuffer& cb) {
@@ -75,6 +83,11 @@ void WorldDrawer::drawMinimap(const re::CommandBuffer& cb) {
 
 glm::uvec2 WorldDrawer::viewSizeTi(glm::vec2 viewSizePx) const {
     return glm::uvec2(glm::ceil(viewSizePx / TilePx)) + 1u;
+}
+
+float WorldDrawer::timeToSkyLightPower(float timeDay) const {
+    const float s = glm::sin(timeDay * glm::pi<float>() * 2.0f);
+    return glm::clamp(s * 0.75f + 0.5f, 0.0f, 1.0f);
 }
 
 } // namespace rw

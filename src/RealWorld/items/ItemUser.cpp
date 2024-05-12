@@ -51,13 +51,13 @@ void ItemUser::step(
         case ItemType::Pickaxe:
             m_world.modify(
                 acb, TileLayer::Block, m_shape, m_radiusTi,
-                pxToTi(relCursorPosPx), glm::uvec2(Block::Air, 0)
+                pxToTi(relCursorPosPx), glm::uvec2(Block::Remove, 0)
             );
             break;
         case ItemType::Hammer:
             m_world.modify(
                 acb, TileLayer::Wall, m_shape, m_radiusTi,
-                pxToTi(relCursorPosPx), glm::uvec2(Wall::Air, 0)
+                pxToTi(relCursorPosPx), glm::uvec2(Wall::Remove, 0)
             );
             break;
         }

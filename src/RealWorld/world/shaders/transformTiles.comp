@@ -44,14 +44,13 @@ bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, 
     bool forbiddenNotNearby = (props & rule.y) == 0;
     bool edgeRequiredToSpread = bool(rule.z & EDGEb);
     bool toOtherLayer = bool(rule.z & TO_OTHERb);
-    bool mustHaveLowVar = bool(rule.z & LOW_VARb);
     uint targetLayer = toOtherLayer ? otherLayer : layer;
     uint prev = tile[targetLayer * 2];
     bool transform = 
         requiredNearby && forbiddenNotNearby &&
         bool(!edgeRequiredToSpread || bool(edgeTile[layer])) &&
         bool(!toOtherLayer || prev == k_air[targetLayer]) &&
-        bool(!mustHaveLowVar || tile[layer * 2 + 1] < 3);
+        probTest1023((rule.z & PROBb) + 1);
     tile[targetLayer * 2] = mix(prev, rule.w, transform);
     return transform;
 }

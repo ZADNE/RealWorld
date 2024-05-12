@@ -7,7 +7,7 @@ layout (location = 1) out vec2 o_tipDir;
 layout (location = 2) out vec2 o_sizeTi;
 layout (location = 3) out uint o_branchIndex15wallType31;
 
-layout (quads, fractional_even_spacing) in;
+layout (quads, fractional_odd_spacing) in;
 layout (location = 0) patch in vec2  i_p0Ti; // Start
 layout (location = 1) patch in vec2  i_p1Ti; // Control
 layout (location = 2) patch in vec2  i_p2Ti; // End

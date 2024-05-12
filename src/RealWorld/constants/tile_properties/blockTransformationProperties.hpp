@@ -7,12 +7,13 @@
 
 namespace rw {
 
-constexpr glm::uint STONEb =    1 << 0;
-constexpr glm::uint DIRTb =     1 << 1;
-constexpr glm::uint GRASSb =    1 << 2;
-constexpr glm::uint BURNINGb =  1 << 3;
-constexpr glm::uint HALLOWb =   1 << 4;
-constexpr glm::uint WOODb =     1 << 5;
+constexpr glm::uint STONEb          = 1 << 0;
+constexpr glm::uint DIRTb           = 1 << 1;
+constexpr glm::uint GRASSb          = 1 << 2;
+constexpr glm::uint BURNINGb        = 1 << 3;
+constexpr glm::uint HALLOWb         = 1 << 4;
+constexpr glm::uint WOODb           = 1 << 5;
+constexpr glm::uint EXTINGUISHINGb  = 1 << 6;
 
 
 constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
@@ -241,11 +242,11 @@ constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
-/*water*/           glm::uvec4{ 0,                                          ~0,                         0,                          0},
+/*water*/           glm::uvec4{ EXTINGUISHINGb,                             ~0,                         0,                          0},
 /*lava*/            glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
 /*steam*/           glm::uvec4{ 0,                                          ~0,                         0,                          0},
 /*fire*/            glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
-/*smoke*/           glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
+/*smoke*/           glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
@@ -271,7 +272,7 @@ constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
-/*acid*/            glm::uvec4{ 0,                                          ~0,                         0,                          0},
+/*acid*/            glm::uvec4{ EXTINGUISHINGb,                             ~0,                         0,                          0},
 /*air*/             glm::uvec4{ 0,                                          ~0,                         0,                          0}
 };
 

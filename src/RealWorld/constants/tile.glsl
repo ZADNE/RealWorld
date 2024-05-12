@@ -49,7 +49,8 @@ const uint k_fireBl           = 227;
 const uint k_smokeBl          = 228;
 const uint k_droppedLeafBl    = 229;
 const uint k_droppedDryLeafBl = 230;
-const uint k_acidBl           = 254;
+const uint k_acidBl           = 253;
+const uint k_removeBl         = 254;
 const uint k_airBl            = 255;
 const uint k_neverBl          = 256;
 
@@ -74,15 +75,23 @@ const uint k_firstNonsolidWl  = 224; // 0b1110'0000
 const uint k_oakWoodWl        = k_firstNonsolidWl;
 const uint k_acaciaWoodWl     = 225;
 const uint k_coniferousWoodWl = 226;
-const uint k_tallGrassWl      = 227;
-const uint k_coldTallGrassWl  = 228;
-const uint k_mudTallGrassWl   = 229;
-const uint k_dryTallGrassWl   = 230;
-const uint k_leafWl           = 231;
-const uint k_dryLeafWl        = 232;
-const uint k_needleWl         = 233;
-const uint k_withyWl          = 234;
-const uint k_cactusWl         = 235;
+const uint k_palmWoodWl       = 227;
+
+const uint k_tallGrassWl      = 240;
+const uint k_coldTallGrassWl  = 241;
+const uint k_mudTallGrassWl   = 242;
+const uint k_dryTallGrassWl   = 243;
+const uint k_leafWl           = 244;
+const uint k_dryLeafWl        = 245;
+const uint k_needleWl         = 246;
+const uint k_palmLeafWl       = 247;
+const uint k_withyWl          = 248;
+const uint k_cactusWl         = 249;
+const uint k_burningWoodWl    = 250;
+const uint k_burntWoodWl      = 251;
+const uint k_hallowWoodWl     = 252;
+
+const uint k_removeWl         = 254;
 const uint k_airWl            = 255;
 const uint k_neverWl          = 256;
 
@@ -105,6 +114,7 @@ const uvec2 k_highlighter     = {k_highlighterBl,   k_highlighterWl};
 
 const uvec2 k_firstNonsolid   = {k_firstNonsolidBl, k_firstNonsolidWl};
 
+const uvec2 k_remove          = {k_removeBl,        k_removeWl};
 const uvec2 k_air             = {k_airBl,           k_airWl};
 const uvec2 k_never           = {k_neverBl,         k_neverWl};
 

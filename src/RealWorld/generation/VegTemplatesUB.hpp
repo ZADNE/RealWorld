@@ -15,15 +15,15 @@ namespace rw {
 namespace veg_templates {
 
 struct String {
-    glm::uint sBegin; // Index of first symbol
-    glm::uint sCount; // Number of symbols
-    glm::uint pBegin; // Index of first parameter
-    glm::uint pCount; // Number of parameters
+    glm::uint sBegin{}; // Index of first symbol
+    glm::uint sCount{}; // Number of symbols
+    glm::uint pBegin{}; // Index of first parameter
+    glm::uint pCount{}; // Number of parameters
 };
 
 struct Condition {
-    glm::uint paramIndex;
-    float border;
+    glm::uint paramIndex{};
+    float border{};
 };
 
 struct RuleBodies {
@@ -84,7 +84,7 @@ constexpr Symbol toSymbol(char c) {
     case 'D': return Density;
     case 'I': return Stiffness;
     case 'W': return WallType;
-    default:  throw std::exception{"Unknown symbol"};
+    default:  throw std::runtime_error{"Unknown symbol"};
     }
 }
 
@@ -105,7 +105,7 @@ constexpr int paramCount(Symbol s) {
     case Density:        return 1;
     case Stiffness:      return 1;
     case WallType:       return 1;
-    default:             throw std::exception{"Unknown symbol"};
+    default:             throw std::runtime_error{"Unknown symbol"};
     }
 }
 constexpr int paramCount(char c) {
@@ -126,8 +126,8 @@ union SymbolParam {
     float f;
 };
 
-constexpr int k_vegTemplatesSymbolCount   = 256;
-constexpr int k_totalRewriteRuleBodyCount = 40;
+constexpr int k_vegTemplatesSymbolCount   = 384;
+constexpr int k_totalRewriteRuleBodyCount = 48;
 
 struct VegTemplatesUB {
     constexpr VegTemplatesUB(
@@ -270,7 +270,7 @@ private:
         case 'D': params.emplace_back(def->density); break;
         case 'I': params.emplace_back(def->stiffness); break;
         case 'W': params.emplace_back(std::to_underlying(def->wallType)); break;
-        default:  throw std::exception{"Unknown symbol"};
+        default:  throw std::runtime_error{"Unknown symbol"};
         }
     }
 
@@ -289,7 +289,7 @@ constexpr VegTemplatesUB composeVegTemplates() {
         glm::uint sBegin = symbols.size();
         symbols.append(str.str);
         glm::uint pBegin = params.size();
-        params.append_range(str.params);
+        for (auto param : str.params) { params.emplace_back(param); }
         return String{
             sBegin, static_cast<glm::uint>(str.str.size()), pBegin,
             static_cast<glm::uint>(str.params.size())
@@ -346,8 +346,7 @@ constexpr VegTemplatesUB composeVegTemplates() {
                      {1, 3.5f}, {{1.f, t0}},
                      {{.1f, t1}, {.35f, t2}, {.35f, t3}, {.1f, t0}}
                  ),
-                 addProbRuleBodies({1, 5.f}, {{1.f, b0}}, {{1.f, b1}}),
-                 addProbRuleBodies({0, 0.f}, {}, {})}
+                 addProbRuleBodies({1, 5.f}, {{1.f, b0}}, {{1.f, b1}})}
         });
         rasterTmplts.push_back(VegRasterTemplate{
             .noiseScale = 1.0f / 16.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 7.0f
@@ -488,11 +487,42 @@ constexpr VegTemplatesUB composeVegTemplates() {
                 {addProbRuleBodies({1, 0.f}, {}, {{.2f, t0}}),
                  addProbRuleBodies(
                      {1, 15.f}, {{.9f, b0}}, {{.4f, b1}, {.1f, b2}, {.4f, b0}}
-                 ),
-                 addProbRuleBodies({1, 0.f}, {}, {})}
+                 )}
         });
         rasterTmplts.push_back(VegRasterTemplate{
             .noiseScale = 1.0f / 16.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
+        });
+    }
+
+    { // Palm tree
+        DefaultParams def{
+            .branchSizeTi = {0.5f, 19.f},
+            .turnAngle    = 0.25f,
+            .density      = 1.0f,
+            .stiffness    = 0.05f,
+            .wallType     = Wall::PalmWood
+        };
+        auto t0 = addString({def, 't', .0, 2.5});
+
+        auto b0 = addString({def, 'b', .125, 6.0});
+        auto b1 = addString({def, 'b', .125, 5.0, "[+", -0.2, "T]"});
+        auto b2 = addString({def, 'b', .125, 5.0, "[+", +0.2, "T]"});
+        auto b3 = addString({def, 'b', .125, 5.0, "[+", -0.09, "T]"});
+        auto b4 = addString({def, 'b', .125, 5.0, "[+", +0.09, "T]"});
+
+        tmplts.push_back(VegTemplate{
+            .axiom = addString({def, "DIW^B", .75, 3.5, 'D', 0.05, 'I', 2.0}),
+            .iterCount     = 8,
+            .tropismFactor = 0.0f,
+            .rules =
+                {addProbRuleBodies({1, 32.0f}, {{0.95f, t0}}, {{0.4f, t0}}),
+                 addProbRuleBodies(
+                     {1, 6.0f}, {{0.9f, b0}},
+                     {{0.2f, b0}, {0.2f, b1}, {0.2f, b2}, {0.2f, b3}, {0.2f, b4}}
+                 )}
+        });
+        rasterTmplts.push_back(VegRasterTemplate{
+            .noiseScale = 1.0f / 4.0f, .branchRadiusFactor = 5.0f, .maxLeafStrength = 5.0f
         });
     }
 

@@ -19,7 +19,7 @@ restrict buffer BranchSB {
     float   radiusTi[k_maxBranchCount];
     float   lengthTi[k_maxBranchCount];
     vec2    densityStiffness[k_maxBranchCount];
-    uint8_t raster[k_maxBranchCount][k_branchRasterSpace];
+    uint8_t raster[k_maxBranchCount][k_branchRasterByteCount];
 } b_branch;
 
 // parentOffset15wallType31[ 0..15] = negative index offset to parent
@@ -43,14 +43,30 @@ void storeBranchParentOffsetWallType(uint branchIndex, uint parentOffset, uint w
     b_branch.parentOffset15wallType31[branchIndex] = packed;
 }
 
-uint loadBranchTexel(uint branchIndex, ivec2 uv){
-    uint i = ((uv.y & 31) * 2) + (uv.x & 1);
-    return b_branch.raster[branchIndex][i];
+uint branchUvToIndex(ivec2 uv){
+    return (((uv.y & 31) * 2) + (uv.x & 1)) * 2;
 }
 
-void storeBranchTexel(uint branchIndex, ivec2 uv, uint val){
-    uint i = ((uv.y & 31) * 2) + (uv.x & 1);
+uvec2 loadBranchTexel(uint branchIndex, ivec2 uv){
+    uint i = branchUvToIndex(uv);
+    return uvec2(b_branch.raster[branchIndex][i], b_branch.raster[branchIndex][i + 1]);
+}
+
+void storeBranchTexel(uint branchIndex, ivec2 uv, uvec2 val){
+    uint i = branchUvToIndex(uv);
+    b_branch.raster[branchIndex][i]     = uint8_t(val.x);
+    b_branch.raster[branchIndex][i + 1] = uint8_t(val.y);
+}
+
+void storeBranchBasicState(uint branchIndex, ivec2 uv, uint val){
+    uint i = branchUvToIndex(uv);
     b_branch.raster[branchIndex][i] = uint8_t(val);
 }
+
+const uint k_woodBasicStateNatural = 0;
+const uint k_woodBasicStateBurning = 1;
+const uint k_woodBasicStateBurnt   = 2;
+const uint k_woodBasicStateHallow  = 3;
+const uint k_woodBasicStateRemoved = 4;
 
 #endif // !BRANCH_SB_GLSL

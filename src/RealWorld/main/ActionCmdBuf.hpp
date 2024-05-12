@@ -18,6 +18,9 @@ enum class ImageTrackName {
 };
 using ImageAccess = re::ImageAccess<ImageTrackName>;
 
+/**
+ * @brief Is action command buffer of RealWorld
+ */
 using ActionCmdBuf = re::ActionCommandBuffer<BufferTrackName, 3, ImageTrackName, 1>;
 
 } // namespace rw

@@ -302,7 +302,7 @@ void ChunkTransferMgr::endStep(
             [&](const re::CommandBuffer& cb) {
                 // Copy (de)allocation request
                 vk::BufferCopy2 copyRegion{
-                    offsetof(decltype(m_stage)::Type::StageBuf, branchAllocReq),
+                    offsetof(decltype(m_stage)::Type::StgBuf, branchAllocReq),
                     0, sizeof(BranchAllocReqUB)
                 };
                 cb->copyBuffer2({*m_stage->buffer(), *m_allocReqBuf, copyRegion});
