@@ -184,11 +184,8 @@ void WorldRoom::analyzeWorldForDrawing() {
     m_worldDrawer.beginStep(*m_acb, m_timeDay);
 
     // Add external lights (these below are mostly for debug)
-    static float rad = 0.0f;
-    rad += 0.01f;
     m_worldDrawer.addExternalLight(
-        m_worldView.cursorRel() + glm::vec2(glm::cos(rad), glm::sin(rad)) * 0.0f,
-        re::Color{0u, 0u, 0u, 255u}
+        m_worldView.cursorRel(), re::Color{0u, 0u, 0u, 255u}
     );
     m_worldDrawer.addExternalLight(m_player.center(), re::Color{0u, 0u, 0u, 100u});
 
