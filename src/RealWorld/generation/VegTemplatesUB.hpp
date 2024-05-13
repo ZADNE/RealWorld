@@ -499,7 +499,7 @@ constexpr VegTemplatesUB composeVegTemplates() {
             .branchSizeTi = {0.5f, 19.f},
             .turnAngle    = 0.25f,
             .density      = 1.0f,
-            .stiffness    = 0.05f,
+            .stiffness    = 0.045f,
             .wallType     = Wall::PalmWood
         };
         auto t0 = addString({def, 't', .0, 2.5});
