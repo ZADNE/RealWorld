@@ -15,7 +15,11 @@ The project is developed in Vulkan using [RealEngine](https://github.com/ZADNE/R
 
 ### See [video on YouTube](https://youtu.be/Am1LrmIBw28).
 
+#### Player dropping acid, lava and water into the world
 ![Screenshot](readme_img/screenshot.png)
+#### Biomes from jungle to savanna and taiga
 ![Biomes](readme_img/biomes.png)
+#### A burning oak
 ![Fire](readme_img/fire.png)
+#### Blight spreading from acacia to nearby cactus 
 ![Blight](readme_img/mold.png)
