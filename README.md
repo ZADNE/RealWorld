@@ -15,14 +15,7 @@ The project is developed in Vulkan using [RealEngine](https://github.com/ZADNE/R
 
 ### See [video on YouTube](https://youtu.be/Am1LrmIBw28).
 
-#### Evaporation of water dropped into lava and ponds created by precipitation of the steam.
-
-![Evaporation](readme_img/evaporation.png)
-
-#### An artificial biome spreading across a muddy biome
-
-![Hallow](readme_img/hallow.png)
-
-#### Partially solidified lava dropped into a water pond inside a snowy biome
-
-![Solidification](readme_img/solidification.png)
+![Screenshot](readme_img/screenshot.png)
+![Biomes](readme_img/biomes.png)
+![Fire](readme_img/fire.png)
+![Blight](readme_img/mold.png)
