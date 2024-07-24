@@ -184,7 +184,7 @@ void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRi
     tileTransformationsStep(acb);
 
     // Fluid dynamics
-    fluidDynamicsStep(acb, botLeftTi, topRightTi);
+    fluidDynamicsStep(acb);
 }
 
 void World::modify(
@@ -193,7 +193,7 @@ void World::modify(
 ) {
     acb.action(
         [&](const re::CommandBuffer& cb) {
-            m_worldDynamicsPC.globalPosTi    = posTi;
+            m_worldDynamicsPC.globalOffsetTi = posTi;
             m_worldDynamicsPC.modifyLayer    = std::to_underlying(layer);
             m_worldDynamicsPC.modifyShape    = std::to_underlying(shape);
             m_worldDynamicsPC.modifyRadius   = radius;
@@ -252,15 +252,8 @@ void World::tileTransformationsStep(const ActionCmdBuf& acb) {
     );
 }
 
-void World::fluidDynamicsStep(
-    const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
-) {
+void World::fluidDynamicsStep(const ActionCmdBuf& acb) {
     auto dbg = acb->createDebugRegion("fluid dynamics");
-    // Convert positions to chunks
-    glm::ivec2 botLeftCh    = tiToCh(botLeftTi);
-    glm::ivec2 topRightCh   = tiToCh(topRightTi);
-    glm::ivec2 dispatchSize = topRightCh - botLeftCh;
-
     // Permute the orders
     uint32_t order;
     order                         = 0;
@@ -278,17 +271,19 @@ void World::fluidDynamicsStep(
 
     // 4 rounds, each updates one quarter of the chunks
     (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_simulateMovementPl);
-    glm::ivec2 dynBotLeftTi = botLeftCh * iChunkTi + iChunkTi / 2;
     for (unsigned int i = 0; i < 4; i++) {
         acb.action(
             [&](const re::CommandBuffer& cb) {
                 // Update offset of the groups
                 glm::ivec2 offset{(order >> (i * 2 + 1)) & 1, (order >> (i * 2)) & 1};
-                m_worldDynamicsPC.globalPosTi = dynBotLeftTi + offset * iChunkTi / 2;
+                m_worldDynamicsPC.globalOffsetTi = offset * iChunkTi / 2;
                 cb->pushConstants(
-                    *m_simulationPL, eCompute, member(m_worldDynamicsPC, globalPosTi)
+                    *m_simulationPL, eCompute,
+                    member(m_worldDynamicsPC, globalOffsetTi)
                 );
-                cb->dispatch(dispatchSize.x, dispatchSize.y, 1);
+                cb->dispatchIndirect(
+                    **m_activeChunksBuf, offsetof(ActiveChunksSB, dynamicsGroupSize)
+                );
             },
             ImageAccess{
                 .name   = ImageTrackName::World,

@@ -151,8 +151,10 @@ void leafGrowth(uvec2 leaf, ivec2 posAt){
 
 void main(){
     g_randomState = invocHash();
-    const ivec2 invocOffset = p_globalPosTi
-                    + chToTi(ivec2(gl_WorkGroupID.xy))
+
+    const ivec2 invocOffset =
+                      b_acChunks.offsets[gl_WorkGroupID.x]  // Offset of the chunk
+                    + p_globalOffsetTi                      // Offset within 4 rounds
                     + ivec2(gl_LocalInvocationID.xy) * 4;
 
     for (uint inGroup = 0; inGroup < 4; inGroup++){

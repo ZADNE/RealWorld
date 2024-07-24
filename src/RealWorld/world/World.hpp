@@ -79,9 +79,7 @@ public:
 private:
     void tileTransformationsStep(const ActionCmdBuf& acb);
 
-    void fluidDynamicsStep(
-        const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi
-    );
+    void fluidDynamicsStep(const ActionCmdBuf& acb);
 
     re::Texture m_worldTex;
     int m_seed = 0;
@@ -91,7 +89,7 @@ private:
     re::Buffer m_tilePropertiesBuf;
 
     struct WorldDynamicsPC {
-        glm::ivec2 globalPosTi;
+        glm::ivec2 globalOffsetTi;
         glm::ivec2 worldTexMaskTi;
         glm::uint modifyLayer;
         glm::uint modifyShape;

@@ -6,7 +6,7 @@
 
 layout (push_constant, std430)
 restrict uniform WorldDynamicsPC {
-    ivec2   p_globalPosTi;
+    ivec2   p_globalOffsetTi;
     ivec2   p_worldTexMaskTi;
     uint    p_modifyLayer;
     uint    p_modifyShape;
