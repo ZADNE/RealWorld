@@ -8,6 +8,7 @@
 #include <RealWorld/vegetation/shaders/wind.glsl>
 #include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
+#include <RealWorld/world/shaders/ActiveChunksSB.glsl>
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 #include <RealWorld/constants/tile_properties/fluidProperties.glsl>
