@@ -8,6 +8,7 @@
 #include <RealWorld/vegetation/shaders/wind.glsl>
 #include <RealWorld/world/shaders/simulationPll.glsl>
 #include <RealWorld/world/shaders/tileLoadStore.glsl>
+#include <RealWorld/world/shaders/ActiveChunksSB.glsl>
 #include <RealWorld/world/shaders/TilePropertiesUB.glsl>
 #include <RealWorld/world/shaders/WorldDynamicsPC.glsl>
 #include <RealWorld/constants/tile_properties/fluidProperties.glsl>
@@ -151,8 +152,10 @@ void leafGrowth(uvec2 leaf, ivec2 posAt){
 
 void main(){
     g_randomState = invocHash();
-    const ivec2 invocOffset = p_globalPosTi
-                    + chToTi(ivec2(gl_WorkGroupID.xy))
+
+    const ivec2 invocOffset =
+                      b_acChunks.offsets[gl_WorkGroupID.x]  // Offset of the chunk
+                    + p_globalOffsetTi                      // Offset within 4 rounds
                     + ivec2(gl_LocalInvocationID.xy) * 4;
 
     for (uint inGroup = 0; inGroup < 4; inGroup++){

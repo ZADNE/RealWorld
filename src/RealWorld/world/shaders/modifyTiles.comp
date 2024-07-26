@@ -34,7 +34,7 @@ void main(){
     }
 
     // Load the tile
-    ivec2 posAt = tiToAt(p_globalPosTi + offset, p_worldTexMaskTi);
+    ivec2 posAt = tiToAt(p_globalOffsetTi + offset, p_worldTexMaskTi);
     uvec2 layer = loadLayer(posAt, p_modifyLayer);
     uint  blockType = loadBlock(posAt).L_T;
 
