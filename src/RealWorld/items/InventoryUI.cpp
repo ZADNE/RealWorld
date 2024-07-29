@@ -48,7 +48,7 @@ void InventoryUI::connectToInventory(Inventory* inventory, Connection connection
     }
 }
 
-void InventoryUI::openOrClose() {
+void InventoryUI::switchOpenClose() {
     if (m_heldItem.isEmpty()) { // Not holding anything in hand
         m_open = !m_open;
     }
@@ -62,7 +62,7 @@ void InventoryUI::reload() {
                           (glm::vec2(invSize(Primary)) - 1.0f) * k_slotPadding;
 
     m_invBotLeftPx =
-        glm::vec2((m_windowSize.x - invSizePx.x) * 0.5f, k_slotPadding.y);
+        glm::vec2((m_windowSize.x - invSizePx.x) * 0.5f, k_slotPadding.y * 2.0f);
 
     // Reload sprites
     m_invItemSprites[Primary].resize(invSlotCount(Primary));
@@ -155,54 +155,37 @@ void InventoryUI::draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx) {
         return;
     }
 
-    glm::vec2 pos;
-    glm::vec2 slot0Px = m_invBotLeftPx + slotPivot();
+    const glm::vec2 slotOffsetPx = slotDims() + k_slotPadding;
+    glm::vec2 slot0Px            = m_invBotLeftPx + slotPivot();
 
-    if (m_open) { // OPEN INVENTORY
-        // Slots & item sprites
+    if (m_open) {                                          // OPEN INVENTORY
         int i = 0;
-        forEachSlotByPosition(Primary, [&](int x, int y) {
-            pos = slot0Px + (slotDims() + k_slotPadding) * glm::vec2(x, y);
-            Item& item = (*m_inv[Primary])[x][y];
-            spriteBatch.addSubimage(m_slotTex, pos, glm::vec2(0.0f, 0.0f));
-            if (!item.isEmpty()) {
-                spriteBatch.addSprite(m_invItemSprites[Primary][i].sprite(), pos);
-            }
+        forEachSlotByPosition(Primary, [&](int x, int y) { // All inv. slots
+            glm::vec2 pos = slot0Px + slotOffsetPx * glm::vec2{x, y};
+            drawSlot(spriteBatch, pos, i);
             i++;
         });
-        if (!m_heldItem.isEmpty()) {
-            // Item under cursor
+        if (!m_heldItem.isEmpty()) { // Item under cursor
             spriteBatch.addSprite(m_heldSprite.sprite(), cursorPx);
+            drawItemCount(spriteBatch, cursorPx, m_heldItem.amount);
         }
-    } else { // CLOSED INVENTORY
-        for (int x = 0; x < invSize(Primary).x; x++) {
-            Item& item = (*m_inv[Primary])[x][0];
-            pos = slot0Px + (slotDims() + k_slotPadding) * glm::vec2(x, 0.0f);
-            // Slot
-            spriteBatch.addSubimage(m_slotTex, pos, glm::vec2(0.0f, 0.0f));
-            if (!item.isEmpty()) {
-                // Item sprite
-                spriteBatch.addSprite(m_invItemSprites[Primary][x].sprite(), pos);
-            }
+    } else {                                           // CLOSED INVENTORY
+        for (int x = 0; x < invSize(Primary).x; x++) { // Hotbar
+            glm::vec2 pos = slot0Px + slotOffsetPx * glm::vec2{x, 0.0f};
+            drawSlot(spriteBatch, pos, x);
         };
-        // The selected slot indicator
-        spriteBatch.addSubimage(
+        spriteBatch.addSubimage( // The selected slot indicator
             m_slotTex,
-            glm::vec2(
-                slot0Px.x + (glm::ivec2(slotDims()).x + k_slotPadding.x) *
-                                (float)m_chosenSlot,
-                slot0Px.y
-            ),
+            glm::vec2(slot0Px.x + slotOffsetPx.x * m_chosenSlot, slot0Px.y),
             glm::vec2(1.0f, 0.0f)
         );
     }
 }
-
-inline glm::ivec2 InventoryUI::invSize(Connection con) const {
+glm::ivec2 InventoryUI::invSize(Connection con) const {
     return m_inv[con]->dims();
 }
 
-inline int InventoryUI::invSlotCount(Connection con) const {
+int InventoryUI::invSlotCount(Connection con) const {
     return m_inv[con]->slotCount();
 }
 
@@ -222,6 +205,30 @@ std::optional<glm::ivec2> InventoryUI::cursorToSlot(glm::vec2 cursorPx) const {
         }
     }
     return std::nullopt;
+}
+
+void InventoryUI::drawSlot(
+    re::SpriteBatch& spriteBatch, glm::vec2 pivotPx, int slotIndex
+) const {
+    spriteBatch.addSubimage(m_slotTex, pivotPx, glm::vec2(0.0f, 0.0f));
+    const Item& item = (*m_inv[Primary])(slotIndex);
+    if (!item.isEmpty()) {
+        spriteBatch.addSprite(m_invItemSprites[Primary][slotIndex].sprite(), pivotPx);
+        drawItemCount(spriteBatch, pivotPx, item.amount);
+    }
+}
+
+void InventoryUI::drawItemCount(
+    re::SpriteBatch& spriteBatch, glm::vec2 pivotPx, int itemCount
+) const {
+    if (itemCount > 1) {
+        auto str = std::to_string(itemCount);
+        std::u8string_view sv{
+            reinterpret_cast<const char8_t*>(str.c_str()), str.size()
+        };
+        pivotPx += glm::vec2{slotPivot().x - 3.0f, -slotPivot().y + 6.0f};
+        m_countFont.add(spriteBatch, sv, pivotPx, re::HorAlign::Right);
+    }
 }
 
 } // namespace rw

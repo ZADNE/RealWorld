@@ -4,7 +4,7 @@
     InventoryUI.hpp             InventoryUI.cpp
     Item.hpp                    Item.cpp
     ItemDatabase.hpp            ItemDatabase.cpp
-    ItemSample.hpp              ItemSample.cpp
+    ItemSample.hpp              
     ItemSprite.hpp              ItemSprite.cpp
     ItemUser.hpp                ItemUser.cpp
 )

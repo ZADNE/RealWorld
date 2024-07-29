@@ -30,8 +30,4 @@ ItemSprite::ItemSprite(ItemSample item)
     : ItemSprite{item.id} {
 }
 
-re::SpriteComplex& ItemSprite::sprite() {
-    return m_sprite;
-}
-
 } // namespace rw

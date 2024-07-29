@@ -18,7 +18,7 @@ struct ItemSample {
     friend auto operator<=>(const ItemSample&, const ItemSample&) = default;
 
     // ItemSample is considered empty if its ItemId == ItemId::Empty
-    bool isEmpty() const;
+    bool isEmpty() const { return id == ItemId::Empty; }
 
     ItemId id     = ItemId::Empty;
     float special = 0.0f;

@@ -197,7 +197,7 @@ void WorldRoom::updateInventoryAndUI() {
     // Inventory
     m_invUI.step();
     if (keybindPressed(InvOpenClose)) {
-        m_invUI.openOrClose();
+        m_invUI.switchOpenClose();
     }
     if (m_invUI.isOpen()) { // Inventory is open
         if (keybindPressed(InvMoveAll)) {
