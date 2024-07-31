@@ -43,7 +43,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
 
     for (size_t i = static_cast<size_t>(ItemId::FWater);
          i <= static_cast<size_t>(ItemId::WDryGrass); ++i) {
-        save.inventory(slot++) = Item{static_cast<ItemId>(i), 1000};
+        save.inventory(slot++) = Item{static_cast<ItemId>(i), 100000};
     }
 
     return saveWorld(save, worldName, true);

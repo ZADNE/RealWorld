@@ -46,8 +46,9 @@ void main(){
 
     // See if can modify the tile
     bool airInAboveLayer = p_modifyLayer == k_blockLayer ? true : isNonsolidBlock(blockType);
-    if ((p_modifySetValue.x == k_removeBl) == (layer.L_T == k_airBl) == airInAboveLayer){
-        s_threadActive[id] = false; // Setting already occupied or removing already free
+    bool removing = p_modifySetValue.x == k_removeBl;
+    if ((removing == (layer.L_T == k_airBl)) || !airInAboveLayer){
+        s_threadActive[id] = false; // Setting already occupied or removing already empty
     }
     barrier();
 

@@ -219,7 +219,12 @@ void InventoryUI::drawItemCount(
     re::SpriteBatch& spriteBatch, glm::vec2 pivotPx, int itemCount
 ) const {
     if (itemCount > 1) {
-        auto str = std::to_string(itemCount);
+        std::string str;
+        if (itemCount > 1000) {
+            str = std::to_string(itemCount / 1000) + 'k';
+        } else {
+            str = std::to_string(itemCount);
+        }
         std::u8string_view sv{
             reinterpret_cast<const char8_t*>(str.c_str()), str.size()
         };
