@@ -10,7 +10,6 @@ namespace rw {
 ItemUser::ItemUser(World& world, Inventory& inventory)
     : m_world(world)
     , m_inv(inventory) {
-    m_item = &m_inv[m_chosenSlot][0];
 }
 
 void ItemUser::switchShape() {
@@ -22,15 +21,16 @@ void ItemUser::resizeShape(float change) {
     m_radiusTi = glm::clamp(m_radiusTi + change, 0.5f, 7.5f);
 }
 
-void ItemUser::selectSlot(int slot) {
-    m_chosenSlot = slot;
-    m_item       = &m_inv[m_chosenSlot][0];
+void ItemUser::finishSpecRemoval(int count) {
+    m_inv[m_selSlot->slotIndex][0] -= count;
 }
 
 void ItemUser::step(
-    const ActionCmdBuf& acb, bool usePrimary, bool useSecondary, glm::ivec2 relCursorPosPx
+    const ActionCmdBuf& acb, int selSlot, bool usePrimary, bool useSecondary,
+    glm::ivec2 relCursorPosPx
 ) {
     auto dbg    = acb->createDebugRegion("item user");
+    *m_selSlot  = SelSlotState{selSlot, 0};
     bool use[2] = {usePrimary, useSecondary};
 
     // Update usage
@@ -42,48 +42,45 @@ void ItemUser::step(
         }
     }
 
-    const ItemMetadata& md = ItemDatabase::md(m_item->id);
+    const ItemMetadata& md = ItemDatabase::md(selItem().id);
 
-    // Main
-    if (m_using[k_primaryUse] > 0) {
+    if (m_using[k_primaryUse] > 0) { // Main
         switch (md.type) {
         case ItemType::Empty: break;
         case ItemType::Pickaxe:
-            m_world.modify(
-                acb, TileLayer::Block, m_shape, m_radiusTi,
-                pxToTi(relCursorPosPx), glm::uvec2(Block::Remove, 0)
-            );
-            break;
         case ItemType::Hammer:
+            auto layer = md.type == ItemType::Pickaxe ? TileLayer::Block
+                                                      : TileLayer::Wall;
             m_world.modify(
-                acb, TileLayer::Wall, m_shape, m_radiusTi,
-                pxToTi(relCursorPosPx), glm::uvec2(Wall::Remove, 0)
+                acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx),
+                glm::uvec2(Block::Remove, 0), std::numeric_limits<int>::max()
             );
             break;
         }
     }
-    // Alternative
-    if (m_using[k_secondaryUse] > 0) {
+
+    if (m_using[k_secondaryUse] > 0) { // Alternative
         switch (md.type) {
         case ItemType::Empty: break;
         case ItemType::Block:
-            m_world.modify(
-                acb, TileLayer::Block, m_shape, m_radiusTi,
-                pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256)
-            );
-            break;
         case ItemType::Wall:
-            m_world.modify(
-                acb, TileLayer::Wall, m_shape, m_radiusTi,
-                pxToTi(relCursorPosPx), glm::uvec2(md.typeIndex, 256)
-            );
+            auto layer    = md.type == ItemType::Block ? TileLayer::Block
+                                                       : TileLayer::Wall;
+            int specCount = selItemSpecCount();
+            if (specCount > 0) {
+                m_world.modify(
+                    acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx),
+                    glm::uvec2(md.typeIndex, 256), specCount
+                );
+                m_selSlot->specRemoved += std::min(specModifyCount(), specCount);
+            }
             break;
         }
     }
 }
 
 void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
-    const ItemMetadata& md = ItemDatabase::md(m_item->id);
+    const ItemMetadata& md = ItemDatabase::md(selItem().id);
 
     if (md.type != ItemType::Empty) {
         re::Color col{255, 255, 255, 255};
@@ -119,6 +116,17 @@ void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
             });
             gb.addVertices(vertices);
         }
+    }
+}
+
+int ItemUser::specModifyCount() const {
+    switch (m_shape) {
+    case rw::World::ModificationShape::Square:
+        return glm::pi<float>() * m_radiusTi * m_radiusTi;
+    case rw::World::ModificationShape::Disk:
+        return (m_radiusTi * 2.0f) * (m_radiusTi * 2.0f);
+    case rw::World::ModificationShape::Fill: return 256;
+    default:                                 return 0;
     }
 }
 

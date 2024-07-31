@@ -16,6 +16,7 @@
 #include <RealWorld/main/Room.hpp>
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/player/Player.hpp>
+#include <RealWorld/world/ShaderMessageBroker.hpp>
 #include <RealWorld/world/World.hpp>
 
 namespace rw {
@@ -92,6 +93,7 @@ private:
     glm::mat4 m_windowViewMat = calculateWindowViewMat(engine().windowDims());
 
     // Gameplay
+    ShaderMessageBroker m_messageBroker;
     World m_world;
     WorldDrawer m_worldDrawer;
     Player m_player;

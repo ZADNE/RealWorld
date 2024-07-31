@@ -6,5 +6,6 @@ target_sources(RealWorld PRIVATE
     ChunkActivationMgr.hpp      ChunkActivationMgr.cpp
     ChunkTransferMgr.hpp        ChunkTransferMgr.cpp
     ChunkTransferStage.hpp      
+    ShaderMessageBroker.hpp     ShaderMessageBroker.cpp
     World.hpp                   World.cpp
 )

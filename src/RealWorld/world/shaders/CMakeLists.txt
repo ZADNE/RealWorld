@@ -4,6 +4,7 @@
     modifyTiles.comp            
     random.glsl                 
     reallocBranches.comp        
+    ShaderMessageSB.glsl        
     simulateMovement.comp       
     simulationPll.glsl          
     tileLoad.glsl               tileLoadStore.glsl

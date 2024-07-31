@@ -34,7 +34,7 @@ public:
     /**
      * @brief Initializes the world
      */
-    World();
+    World(const re::Buffer& shaderMessageBuf);
 
     /**
      * @copydoc ChunkHandler::numberOfInactiveChunks
@@ -54,7 +54,7 @@ public:
      */
     void modify(
         const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
-        float radius, glm::ivec2 posTi, glm::uvec2 tile
+        float radius, glm::ivec2 posTi, glm::uvec2 tile, int maxCount
     );
 
     /**
@@ -94,6 +94,7 @@ private:
         glm::uint modifyLayer;
         glm::uint modifyShape;
         glm::uvec2 modifySetValue;
+        int modifyMaxCount;
         float modifyRadius;
         glm::uint timeHash;
         glm::uint updateOrder = 0b00011011'00011011'00011011'00011011;

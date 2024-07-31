@@ -62,7 +62,7 @@ void InventoryUI::reload() {
                           (glm::vec2(invSize(Primary)) - 1.0f) * k_slotPadding;
 
     m_invBotLeftPx =
-        glm::vec2((m_windowSize.x - invSizePx.x) * 0.5f, k_slotPadding.y * 2.0f);
+        glm::vec2((m_windowSize.x - invSizePx.x) * 0.5f, k_slotPadding.y);
 
     // Reload sprites
     m_invItemSprites[Primary].resize(invSlotCount(Primary));
@@ -112,32 +112,29 @@ void InventoryUI::selectSlot(SlotSelectionManner selectionManner, int number) {
 
     switch (selectionManner) {
     case SlotSelectionManner::AbsolutePos:
-        m_chosenSlotPrev = m_chosenSlot;
-        m_chosenSlot     = glm::clamp(number, 0, invSize(Primary).x - 1);
+        m_selSlotPrev = m_selSlot;
+        m_selSlot     = glm::clamp(number, 0, invSize(Primary).x - 1);
         break;
     case SlotSelectionManner::ScrollRight:
-        m_chosenSlotPrev = m_chosenSlot;
-        m_chosenSlot += number;
-        while (m_chosenSlot > (invSize(Primary).x - 1)) {
-            m_chosenSlot -= invSize(Primary).x;
+        m_selSlotPrev = m_selSlot;
+        m_selSlot += number;
+        while (m_selSlot > (invSize(Primary).x - 1)) {
+            m_selSlot -= invSize(Primary).x;
         }
         break;
     case SlotSelectionManner::ScrollLeft:
-        m_chosenSlotPrev = m_chosenSlot;
-        m_chosenSlot -= number;
-        while (m_chosenSlot < 0) { m_chosenSlot += invSize(Primary).x; }
+        m_selSlotPrev = m_selSlot;
+        m_selSlot -= number;
+        while (m_selSlot < 0) { m_selSlot += invSize(Primary).x; }
         break;
     case SlotSelectionManner::ToLastSlot:
-        m_chosenSlotPrev = m_chosenSlot;
-        m_chosenSlot     = invSize(Primary).x - 1;
+        m_selSlotPrev = m_selSlot;
+        m_selSlot     = invSize(Primary).x - 1;
         break;
     case SlotSelectionManner::ToPrevious:
-        std::swap(m_chosenSlot, m_chosenSlotPrev);
+        std::swap(m_selSlot, m_selSlotPrev);
         break;
     }
-
-    if (m_itemUser)
-        m_itemUser->selectSlot(m_chosenSlot);
 }
 
 void InventoryUI::step() {
@@ -167,7 +164,7 @@ void InventoryUI::draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx) {
         });
         if (!m_heldItem.isEmpty()) { // Item under cursor
             spriteBatch.addSprite(m_heldSprite.sprite(), cursorPx);
-            drawItemCount(spriteBatch, cursorPx, m_heldItem.amount);
+            drawItemCount(spriteBatch, cursorPx, m_heldItem.count);
         }
     } else {                                           // CLOSED INVENTORY
         for (int x = 0; x < invSize(Primary).x; x++) { // Hotbar
@@ -176,7 +173,7 @@ void InventoryUI::draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx) {
         };
         spriteBatch.addSubimage( // The selected slot indicator
             m_slotTex,
-            glm::vec2(slot0Px.x + slotOffsetPx.x * m_chosenSlot, slot0Px.y),
+            glm::vec2(slot0Px.x + slotOffsetPx.x * m_selSlot, slot0Px.y),
             glm::vec2(1.0f, 0.0f)
         );
     }
@@ -214,7 +211,7 @@ void InventoryUI::drawSlot(
     const Item& item = (*m_inv[Primary])(slotIndex);
     if (!item.isEmpty()) {
         spriteBatch.addSprite(m_invItemSprites[Primary][slotIndex].sprite(), pivotPx);
-        drawItemCount(spriteBatch, pivotPx, item.amount);
+        drawItemCount(spriteBatch, pivotPx, item.count);
     }
 }
 

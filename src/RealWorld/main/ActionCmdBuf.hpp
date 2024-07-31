@@ -9,7 +9,8 @@ namespace rw {
 enum class BufferTrackName {
     ActiveChunks,
     Branch,
-    AllocReg
+    AllocReg,
+    ShaderMessage
 };
 using BufferAccess = re::BufferAccess<BufferTrackName>;
 
@@ -21,6 +22,6 @@ using ImageAccess = re::ImageAccess<ImageTrackName>;
 /**
  * @brief Is action command buffer of RealWorld
  */
-using ActionCmdBuf = re::ActionCommandBuffer<BufferTrackName, 3, ImageTrackName, 1>;
+using ActionCmdBuf = re::ActionCommandBuffer<BufferTrackName, 4, ImageTrackName, 1>;
 
 } // namespace rw

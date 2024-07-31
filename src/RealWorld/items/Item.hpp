@@ -17,14 +17,14 @@ struct Item: public ItemSample {
     Item(){};
 
     /**
-     * @brief Constructs item from ItemSample and amount
+     * @brief Constructs item from ItemSample and count
      */
-    Item(const ItemSample& sample, int amount);
+    Item(const ItemSample& sample, int count);
 
     /**
-     * @brief Constructs item from its ID amount and special value
+     * @brief Constructs item from its ID count and special value
      */
-    Item(ItemId id, int amount, float special = 0.0f);
+    Item(ItemId id, int count, float special = 0.0f);
 
     // Merge with another item of same ID and special (checks are done inside
     // this function) Both items may be changed Action is done only with partion
@@ -35,35 +35,35 @@ struct Item: public ItemSample {
     void insert(Item& item, float portion);
 
     /**
-     * @brief Reduces amount by one
-     * @return The previous amount
+     * @brief Reduces count by one
+     * @return The previous count
      */
     int operator--();
 
     /**
-     * @brief Reduces amount by one
-     * @return The current amount
+     * @brief Reduces count by one
+     * @return The current count
      */
     int operator--(int);
 
     /**
-     * @brief Adds given number to amount
-     * @return The current amount
+     * @brief Adds given number to count
+     * @return The current count
      */
     int operator+=(int number);
 
     /**
-     * @brief Removes given number from amount
-     * @return The current amount
+     * @brief Removes given number from count
+     * @return The current count
      */
     int operator-=(int number);
     /**
-     * @brief Multiplies number by given amount
-     * @return The current amount
+     * @brief Multiplies number by given count
+     * @return The current count
      */
     Item operator*(int number) const;
 
-    int amount = 0;
+    int count = 0;
 };
 
 } // namespace rw

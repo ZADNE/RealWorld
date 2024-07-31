@@ -28,21 +28,21 @@ bool Inventory::insert(
     Item& item, float portion /* = 1.0f*/,
     glm::ivec2 startSlot /* = glm::ivec2(0, 0)*/, bool reload /* = true*/
 ) {
-    if (item.amount <= 0) {
+    if (item.count <= 0) {
         return true;
     }
-    int target = item.amount - (int)(std::ceil((float)item.amount * portion));
+    int target = item.count - (int)(std::ceil((float)item.count * portion));
     for (int y = startSlot.y; y < m_dims.y; y++) {
         for (int x = startSlot.x; x < m_dims.x; x++) {
             (*this)[x][y].insert(item, portion);
-            if (item.amount == target) {
+            if (item.count == target) {
                 if (reload) {
                     wasChanged();
                 }
                 return true;
             }
             (*this)[x][y].merge(item, portion);
-            if (item.amount == target) {
+            if (item.count == target) {
                 if (reload) {
                     wasChanged();
                 }
@@ -60,15 +60,15 @@ bool Inventory::fill(
     Item& item, float portion /* = 1.0f*/,
     glm::ivec2 startSlot /* = glm::ivec2(0, 0)*/, bool reload /* = true*/
 ) {
-    if (item.amount <= 0) {
+    if (item.count <= 0) {
         return true;
     }
-    int target = item.amount - (int)((float)item.amount * portion);
+    int target = item.count - (int)((float)item.count * portion);
     // Filling already existing stacks
     for (int y = startSlot.y; y < m_dims.y; y++) {
         for (int x = startSlot.x; x < m_dims.x; x++) {
             (*this)[x][y].merge(item, portion);
-            if (item.amount == target) {
+            if (item.count == target) {
                 if (reload) {
                     wasChanged();
                 }
@@ -80,7 +80,7 @@ bool Inventory::fill(
     for (int y = startSlot.y; y < m_dims.y; y++) {
         for (int x = startSlot.x; x < m_dims.x; x++) {
             (*this)[x][y].insert(item, portion);
-            if (item.amount == target) {
+            if (item.count == target) {
                 if (reload) {
                     wasChanged();
                 }
@@ -98,15 +98,15 @@ int Inventory::remove(
     const Item& item, glm::ivec2 startSlot /* = glm::ivec2(0, 0)*/,
     bool reload /* = true*/
 ) {
-    if (item.amount <= 0) {
+    if (item.count <= 0) {
         return 0;
     }
-    int leftToRemove = item.amount;
+    int leftToRemove = item.count;
     for (int y = startSlot.y; y < m_dims.y; y++) {
         for (int x = startSlot.x; x < m_dims.x; x++) {
             Item& slotItem = (*this)[x][y];
             if (slotItem == item) { // If this is the desired item
-                int removed = std::min(slotItem.amount, item.amount);
+                int removed = std::min(slotItem.count, item.count);
                 slotItem -= removed;
                 leftToRemove -= removed;
                 if (leftToRemove == 0) { // If already have all items removed

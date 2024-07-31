@@ -66,13 +66,6 @@ public:
     void connectToInventory(Inventory* inventory, Connection connection);
 
     /**
-     * @brief Connects the UI with given item user (disconnects the previous)
-     * @param itemUser The item user to connect with. nullptr effectively
-     * disconnects the previous item user
-     */
-    void connectToItemUser(ItemUser* itemUser) { m_itemUser = itemUser; }
-
-    /**
      * @brief   Switches the inventory to the oposite state
      * @details May be blocked if an item is held.
      */
@@ -92,6 +85,7 @@ public:
      * @param number The slot to select (for some manners irrelevant)
      */
     void selectSlot(SlotSelectionManner selectionManner, int number = 0);
+    int selectedSlot() const { return m_selSlot; }
 
     void step();
     void draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx);
@@ -133,8 +127,6 @@ private:
         }
     }
 
-    ItemUser* m_itemUser = nullptr;
-
     glm::vec2 m_windowSize;
     re::TextureShaped m_slotTex{re::TextureSeed{"slot"}};
     glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
@@ -142,8 +134,8 @@ private:
     Item m_heldItem{};
     ItemSprite m_heldSprite{};
 
-    int m_chosenSlot     = 0; /**< Signed but never should be negative */
-    int m_chosenSlotPrev = 0; /**< signed but never should be negative */
+    int m_selSlot     = 0; /**< Signed but never should be negative */
+    int m_selSlotPrev = 0; /**< signed but never should be negative */
 
     Inventory* m_inv[static_cast<size_t>(Connection::Count)] = {
         nullptr, nullptr, nullptr

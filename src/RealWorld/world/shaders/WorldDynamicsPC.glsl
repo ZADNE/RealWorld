@@ -11,6 +11,7 @@ restrict uniform WorldDynamicsPC {
     uint    p_modifyLayer;
     uint    p_modifyShape;
     uvec2   p_modifySetValue;
+    int     p_modifyMaxCount;
     float   p_modifyRadius;
     uint    p_timeHash;
     uint    p_updateOrder;

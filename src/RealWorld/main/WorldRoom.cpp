@@ -42,6 +42,8 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
               .imGuiSubpassIndex    = 0
           }
       )
+    , m_messageBroker(m_acb, m_itemUser)
+    , m_world(m_messageBroker.messageBuffer())
     , m_gameSettings(gameSettings)
     , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
     , m_player()
@@ -49,9 +51,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
     , m_itemUser(m_world, m_playerInv)
     , m_invUI(engine().windowDims()) {
 
-    // InventoryUI connections
     m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
-    m_invUI.connectToItemUser(&m_itemUser);
 }
 
 void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
@@ -129,10 +129,12 @@ void WorldRoom::render(const re::CommandBuffer& cb, double interpolationFactor) 
         m_worldDrawer.drawShadows(cb);
     }
 
-    m_geometryBatch.begin();
-    m_itemUser.render(m_worldView.cursorRel(), m_geometryBatch);
-    m_geometryBatch.end();
-    m_geometryBatch.draw(cb, m_worldView.viewMatrix());
+    if (!m_invUI.isOpen()) {
+        m_geometryBatch.begin();
+        m_itemUser.render(m_worldView.cursorRel(), m_geometryBatch);
+        m_geometryBatch.end();
+        m_geometryBatch.draw(cb, m_worldView.viewMatrix());
+    }
 
     drawGUI(cb);
 
@@ -150,12 +152,16 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
 ) {
     auto dbg = m_acb->createDebugRegion("simulation");
 
+    // Process messages from 2-previous step
+    m_messageBroker.beginStep(m_acb);
+
     // Simulate one physics step (load new chunks if required)
     m_world.step(m_acb, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
 
     // Modify the world with player's tools
     m_itemUser.step(
-        m_acb, keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
+        m_acb, m_invUI.selectedSlot(),
+        keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
         keybindDown(ItemuserUseSecondary) && !m_invUI.isOpen(),
         m_worldView.cursorRel()
     );
@@ -167,6 +173,9 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
             (keybindDown(PlayerRight) ? +1.0f : 0.0f),
         keybindDown(PlayerJump), keybindDown(PlayerAutojump)
     );
+
+    // Send messages colelcted this step
+    m_messageBroker.endStep(m_acb);
 
     // Finish the simulation step (transit image layouts back)
     m_world.prepareWorldForDrawing(m_acb);

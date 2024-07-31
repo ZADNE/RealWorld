@@ -20,6 +20,7 @@ constexpr glm::uint k_tilePropertiesBinding = 2;
 constexpr glm::uint k_branchBinding         = 3;
 constexpr glm::uint k_branchAllocRegBinding = 4;
 constexpr glm::uint k_branchAllocReqBinding = 5;
+constexpr glm::uint k_shaderMessageBinding  = 6;
 
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
@@ -60,7 +61,7 @@ constexpr static struct TilePropertiesUIB {
     std::array<glm::uvec4, 25> wallTransformationRules = k_wallTransformationRules;
 } k_tileProperties;
 
-World::World()
+World::World(const re::Buffer& shaderMessageBuf)
     : m_simulationPL(
           {},
           re::PipelineLayoutDescription{
@@ -70,7 +71,8 @@ World::World()
                     {k_tilePropertiesBinding, eUniformBuffer, 1, eCompute},
                     {k_branchBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
-                    {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute}}},
+                    {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute},
+                    {k_shaderMessageBinding, eStorageBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}
           }
       )
@@ -83,6 +85,7 @@ World::World()
       })
     , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
     m_simulationDS.write(eUniformBuffer, k_tilePropertiesBinding, 0, m_tilePropertiesBuf);
+    m_simulationDS.write(eStorageBuffer, k_shaderMessageBinding, 0, shaderMessageBuf);
 }
 
 const re::Texture& World::adoptSave(
@@ -189,7 +192,7 @@ void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRi
 
 void World::modify(
     const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
-    float radius, glm::ivec2 posTi, glm::uvec2 tile
+    float radius, glm::ivec2 posTi, glm::uvec2 tile, int maxCount
 ) {
     acb.action(
         [&](const re::CommandBuffer& cb) {
@@ -198,6 +201,7 @@ void World::modify(
             m_worldDynamicsPC.modifyShape    = std::to_underlying(shape);
             m_worldDynamicsPC.modifyRadius   = radius;
             m_worldDynamicsPC.modifySetValue = tile;
+            m_worldDynamicsPC.modifyMaxCount = maxCount;
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
             cb->pushConstants<WorldDynamicsPC>(
                 *m_simulationPL, eCompute, 0, m_worldDynamicsPC
@@ -206,6 +210,11 @@ void World::modify(
         },
         ImageAccess{
             .name   = ImageTrackName::World,
+            .stage  = S::eComputeShader,
+            .access = A::eShaderStorageRead | A::eShaderStorageWrite
+        },
+        BufferAccess{
+            .name   = BufferTrackName::ShaderMessage,
             .stage  = S::eComputeShader,
             .access = A::eShaderStorageRead | A::eShaderStorageWrite
         }
