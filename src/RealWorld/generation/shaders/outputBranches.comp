@@ -4,10 +4,10 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
-#include <RealWorld/world/shaders/random.glsl>
-#include <RealWorld/vegetation/shaders/normAngles.glsl>
+#include <RealWorld/simulation/tiles/shaders/random.glsl>
+#include <RealWorld/simulation/vegetation/shaders/normAngles.glsl>
 #include <RealWorld/generation/shaders/generationPll.glsl>
-#include <RealWorld/vegetation/shaders/BranchSB.glsl>
+#include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl>
 #include <RealWorld/generation/shaders/VegTemplatesUB.glsl>
 #define VegPrepSB_ACCESS readonly
 #include <RealWorld/generation/shaders/VegPrepSB.glsl>

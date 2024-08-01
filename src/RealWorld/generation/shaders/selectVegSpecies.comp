@@ -4,9 +4,9 @@
 #version 460
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
-#include <RealWorld/world/shaders/random.glsl>
+#include <RealWorld/simulation/tiles/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generationPll.glsl>
-#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
 #define VegPrepSB_ACCESS writeonly
 #include <RealWorld/generation/shaders/VegPrepSB.glsl>
 

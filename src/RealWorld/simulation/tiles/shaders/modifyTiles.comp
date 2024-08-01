@@ -1,0 +1,80 @@
+/*!
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/world.glsl>
+#include <RealWorld/simulation/tiles/shaders/random.glsl>
+#include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
+#include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
+#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
+#include <RealWorld/simulation/general/shaders/ShaderMessageSB.glsl>
+
+layout (local_size_x = 16,
+        local_size_y = 16,
+        local_size_z = 1
+) in;
+
+const uint k_square = 0;
+const uint k_disk = 1;
+const uint k_groupSize = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
+
+shared bool s_threadActive[k_groupSize];
+
+void main(){
+    const uint id = gl_LocalInvocationIndex;
+    s_threadActive[id] = true;
+    ivec2 offset = ivec2(gl_LocalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy) / 2;
+    // Construct the shape
+    switch (p_modifyShape){
+        case k_square:
+        if (abs(offset.x) > p_modifyRadius || abs(offset.y) > p_modifyRadius){
+            s_threadActive[id] = false; // Outside of the shape
+        }
+        break;
+        case k_disk:
+        if (dot(offset, offset) > p_modifyRadius * p_modifyRadius){
+            s_threadActive[id] = false; // Outside of the shape
+        }
+        break;
+    }
+
+    // Load the tile
+    ivec2 posAt = tiToAt(p_globalOffsetTi + offset, p_worldTexMaskTi);
+    uvec2 layer = loadLayer(posAt, p_modifyLayer);
+    uint  blockType = loadBlock(posAt).L_T;
+
+    // See if can modify the tile
+    bool airInAboveLayer = p_modifyLayer == k_blockLayer ? true : isNonsolidBlock(blockType);
+    bool removing = p_modifySetValue.x == k_removeBl;
+    if ((removing == (layer.L_T == k_airBl)) || !airInAboveLayer){
+        s_threadActive[id] = false; // Setting already occupied or removing already empty
+    }
+    barrier();
+
+    // Cull threads outside maximum
+    int activeBelowMe = 0;
+    for (int i = 0; i <= id; ++i){
+        activeBelowMe += int(s_threadActive[i]);
+    }
+
+    // If not culled
+    if (s_threadActive[id] && activeBelowMe <= p_modifyMaxCount){
+        // Modify the tile
+        g_randomState = (posAt.x * posAt.y) ^ p_timeHash;
+        layer = p_modifySetValue.y <= 255 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
+
+        // Store the modified tile
+        storeLayer(posAt, p_modifyLayer, layer);
+    }
+
+    // Message the number of modifications back to CPU
+    if (gl_LocalInvocationIndex == k_groupSize - 1){
+        if (!removing){
+            int placed = min(activeBelowMe, p_modifyMaxCount);
+            if (placed > 0){
+                messageRemoveFromSelSlot(placed);
+            }
+        }
+    }
+}

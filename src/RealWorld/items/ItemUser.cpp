@@ -121,12 +121,12 @@ void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
 
 int ItemUser::specModifyCount() const {
     switch (m_shape) {
-    case rw::World::ModificationShape::Square:
+    case World::ModificationShape::Square:
         return glm::pi<float>() * m_radiusTi * m_radiusTi;
-    case rw::World::ModificationShape::Disk:
+    case World::ModificationShape::Disk:
         return (m_radiusTi * 2.0f) * (m_radiusTi * 2.0f);
-    case rw::World::ModificationShape::Fill: return 256;
-    default:                                 return 0;
+    case World::ModificationShape::Fill: return 256;
+    default:                             return 0;
     }
 }
 

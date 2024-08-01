@@ -9,7 +9,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealWorld/world/Chunk.hpp>
+#include <RealWorld/simulation/tiles/Chunk.hpp>
 
 namespace rw {
 

@@ -7,8 +7,8 @@
 #include <RealEngine/graphics/batches/GeometryBatch.hpp>
 
 #include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/main/ActionCmdBuf.hpp>
-#include <RealWorld/world/World.hpp>
+#include <RealWorld/simulation/general/ActionCmdBuf.hpp>
+#include <RealWorld/simulation/tiles/World.hpp>
 
 namespace rw {
 

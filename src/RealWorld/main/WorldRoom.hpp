@@ -12,12 +12,12 @@
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 #include <RealWorld/items/ItemUser.hpp>
-#include <RealWorld/main/ActionCmdBuf.hpp>
+#include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/main/Room.hpp>
 #include <RealWorld/main/settings/GameSettings.hpp>
-#include <RealWorld/player/Player.hpp>
-#include <RealWorld/world/ShaderMessageBroker.hpp>
-#include <RealWorld/world/World.hpp>
+#include <RealWorld/simulation/player/Player.hpp>
+#include <RealWorld/simulation/general/ShaderMessageBroker.hpp>
+#include <RealWorld/simulation/tiles/World.hpp>
 
 namespace rw {
 
