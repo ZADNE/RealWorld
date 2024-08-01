@@ -20,6 +20,7 @@ const uint k_disk = 1;
 const uint k_groupSize = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
 
 shared bool s_threadActive[k_groupSize];
+shared int  s_messageOffset;
 
 void main(){
     const uint id = gl_LocalInvocationIndex;
@@ -41,31 +42,31 @@ void main(){
 
     // Load the tile
     ivec2 posAt = tiToAt(p_globalOffsetTi + offset, p_worldTexMaskTi);
-    uvec2 layer = loadLayer(posAt, p_modifyLayer);
+    uvec2 orig = loadLayer(posAt, p_modifyLayer);
     uint  blockType = loadBlock(posAt).L_T;
 
     // See if can modify the tile
     bool airInAboveLayer = p_modifyLayer == k_blockLayer ? true : isNonsolidBlock(blockType);
     bool removing = p_modifySetValue.x == k_removeBl;
-    if ((removing == (layer.L_T == k_airBl)) || !airInAboveLayer){
+    if ((removing == (orig.L_T == k_airBl)) || !airInAboveLayer){
         s_threadActive[id] = false; // Setting already occupied or removing already empty
     }
     barrier();
 
-    // Cull threads outside maximum
+    // Count number of active threads
     int activeBelowMe = 0;
     for (int i = 0; i <= id; ++i){
         activeBelowMe += int(s_threadActive[i]);
     }
 
-    // If not culled
+    // If not culled and within maximum
     if (s_threadActive[id] && activeBelowMe <= p_modifyMaxCount){
         // Modify the tile
         g_randomState = (posAt.x * posAt.y) ^ p_timeHash;
-        layer = p_modifySetValue.y <= 255 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
+        uvec2 toSet = p_modifySetValue.y <= 255 ? p_modifySetValue : uvec2(p_modifySetValue.x, random() % 12);
 
         // Store the modified tile
-        storeLayer(posAt, p_modifyLayer, layer);
+        storeLayer(posAt, p_modifyLayer, toSet);
     }
 
     // Message the number of modifications back to CPU
@@ -75,6 +76,19 @@ void main(){
             if (placed > 0){
                 messageRemoveFromSelSlot(placed);
             }
+        } else {
+            s_messageOffset =
+                messageDropTiles(p_modifyLayer, p_globalOffsetTi, activeBelowMe);
         }
+    }
+    barrier();
+
+    if (removing && s_messageOffset != -1 && s_threadActive[id]){
+        // Message individual removed tiles
+        uint msg = ((offset.x & 0xff) << 24) |
+                   ((offset.y & 0xff) << 16) |
+                   ((orig.x   & 0xff) <<  8) |
+                   ((orig.y   & 0xff));
+        b_message.messages[s_messageOffset + activeBelowMe - 1] = int(msg);
     }
 }

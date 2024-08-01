@@ -66,11 +66,12 @@ public:
         return InventoryData::Proxy(*this, x);
     }
 
-private:
     /**
      * @brief Notifies connected objects that they should reload
      */
     void wasChanged() const;
+
+private:
 
     // Should only be called from InventoryUI::connectToInventory()
     void connectToUI(InventoryUI* ui, InventoryUI::Connection connection);

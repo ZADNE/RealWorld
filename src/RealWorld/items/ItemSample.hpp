@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealWorld/items/ItemDatabase.hpp>
+#include <RealWorld/items/ItemMetadata.hpp>
 
 namespace rw {
 
@@ -10,10 +10,10 @@ namespace rw {
  * @brief Is an instance of a type of item.
  */
 struct ItemSample {
-    ItemSample(){};
+    ItemSample() {}
     ItemSample(ItemId id, float special)
         : id(id)
-        , special(special){};
+        , special(special) {}
 
     friend auto operator<=>(const ItemSample&, const ItemSample&) = default;
 

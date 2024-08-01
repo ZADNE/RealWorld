@@ -42,7 +42,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
               .imGuiSubpassIndex    = 0
           }
       )
-    , m_messageBroker(m_acb, m_itemUser)
+    , m_messageBroker(m_acb, m_playerInv, m_itemUser)
     , m_world(m_messageBroker.messageBuffer())
     , m_gameSettings(gameSettings)
     , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)

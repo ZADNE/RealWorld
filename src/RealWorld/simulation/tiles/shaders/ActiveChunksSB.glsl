@@ -10,7 +10,7 @@ restrict buffer ActiveChunksSB {
     ivec2 worldTexSizeCh;
     ivec4 dynamicsGroupSize;  // w = offset of the absolute positions in the next field
     ivec2 offsets[];          // First indices: offsets of update chunks, in tiles
-                                // Following indices: absolute positions of chunks, in chunks
+                              // Following indices: absolute positions of chunks, in chunks
 } b_acChunks;
 
 int g_maxNumberOfUpdateChunks =

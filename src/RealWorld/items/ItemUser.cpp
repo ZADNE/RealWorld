@@ -42,15 +42,15 @@ void ItemUser::step(
         }
     }
 
-    const ItemMetadata& md = ItemDatabase::md(selItem().id);
+    const Item& item  = selItem();
+    ItemIdSection sec = section(item.id);
 
     if (m_using[k_primaryUse] > 0) { // Main
-        switch (md.type) {
-        case ItemType::Empty: break;
-        case ItemType::Pickaxe:
-        case ItemType::Hammer:
-            auto layer = md.type == ItemType::Pickaxe ? TileLayer::Block
-                                                      : TileLayer::Wall;
+        switch (sec) {
+        case ItemIdSection::Pickaxes:
+        case ItemIdSection::Hammers:
+            auto layer = sec == ItemIdSection::Pickaxes ? TileLayer::Block
+                                                        : TileLayer::Wall;
             m_world.modify(
                 acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx),
                 glm::uvec2(Block::Remove, 0), std::numeric_limits<int>::max()
@@ -60,17 +60,16 @@ void ItemUser::step(
     }
 
     if (m_using[k_secondaryUse] > 0) { // Alternative
-        switch (md.type) {
-        case ItemType::Empty: break;
-        case ItemType::Block:
-        case ItemType::Wall:
-            auto layer    = md.type == ItemType::Block ? TileLayer::Block
-                                                       : TileLayer::Wall;
+        switch (sec) {
+        case ItemIdSection::Blocks:
+        case ItemIdSection::Walls:
+            auto layer    = sec == ItemIdSection::Blocks ? TileLayer::Block
+                                                         : TileLayer::Wall;
             int specCount = selItemSpecCount();
             if (specCount > 0) {
                 m_world.modify(
                     acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx),
-                    glm::uvec2(md.typeIndex, 256), specCount
+                    glm::uvec2{offsetInSection(item.id), 256u}, specCount
                 );
                 m_selSlot->specRemoved += std::min(specModifyCount(), specCount);
             }
@@ -80,9 +79,7 @@ void ItemUser::step(
 }
 
 void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
-    const ItemMetadata& md = ItemDatabase::md(selItem().id);
-
-    if (md.type != ItemType::Empty) {
+    if (selItem().id != ItemId::Empty) {
         re::Color col{255, 255, 255, 255};
         glm::vec2 center = tiToPx(pxToTi(relCursorPosPx)) + TilePx * 0.5f;
         float radPx      = m_radiusTi * TilePx.x;

@@ -28,9 +28,9 @@ void Item::merge(Item& item, float portion) {
         // Items do not have the same special, cannot merge
         return;
     }
-    int maxStack = ItemDatabase::md(id).maxStack;
-    int temp =
-        glm::min(maxStack - count, (int)(glm::ceil((float)item.count * portion)));
+    int temp = glm::min(
+        maxStack(id) - count, (int)(glm::ceil((float)item.count * portion))
+    );
     count += temp;
     item.count -= temp;
     if (item.count <= 0) {
@@ -43,10 +43,9 @@ void Item::insert(Item& item, float portion) {
         // This is not empty item, cannot insert
         return;
     }
-    special      = item.special;
-    id           = item.id;
-    int maxStack = ItemDatabase::md(id).maxStack;
-    int temp = glm::min(maxStack, (int)(glm::ceil((float)item.count * portion)));
+    special = item.special;
+    id      = item.id;
+    int temp = glm::min(maxStack(id), (int)(glm::ceil((float)item.count * portion)));
     count += temp;
     item.count -= temp;
     if (item.count <= 0) {

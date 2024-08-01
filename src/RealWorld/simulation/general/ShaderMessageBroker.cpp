@@ -7,11 +7,16 @@ namespace rw {
 
 enum class ShaderMessageId {
     Reserved,
-    RemoveFromSelSlot
+    RemoveFromSelSlot,
+    DropBlocks,
+    DropWalls
 };
 
-ShaderMessageBroker::ShaderMessageBroker(ActionCmdBuf& acb, ItemUser& itemUser)
-    : m_itemUser(itemUser) {
+ShaderMessageBroker::ShaderMessageBroker(
+    ActionCmdBuf& acb, Inventory& playerInv, ItemUser& itemUser
+)
+    : m_playerInv(playerInv)
+    , m_itemUser(itemUser) {
     m_messageBufMapped->read().totalInts  = 0;
     m_messageBufMapped->write().totalInts = 0;
     acb.track(BufferTrackName::ShaderMessage, m_messageBuf);
@@ -22,9 +27,30 @@ void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
     int intCount = m_messageBufMapped->read().totalInts;
     int* ints    = m_messageBufMapped->read().messages;
     for (int i = 0; i < intCount;) {
-        switch (static_cast<ShaderMessageId>(ints[i++])) {
+        auto msgId = static_cast<ShaderMessageId>(ints[i++]);
+        switch (msgId) {
         case ShaderMessageId::RemoveFromSelSlot:
             m_itemUser.finishSpecRemoval(ints[i++]);
+            break;
+        case ShaderMessageId::DropBlocks:
+        case ShaderMessageId::DropWalls:
+            int section = static_cast<int>(
+                msgId == ShaderMessageId::DropBlocks ? ItemIdSection::Blocks
+                                                     : ItemIdSection::Walls
+            );
+            int count   = ints[i++];
+            int baseXTi = ints[i++];
+            int baseYTi = ints[i++];
+            while (count--) {
+                int bits = ints[i++];
+                glm::ivec2 posTi{
+                    baseXTi + (bits >> 24) & 0xff, baseYTi + (bits >> 16) & 0xff
+                };
+                int tileType = (bits >> 8) & 0xff;
+                Item item{static_cast<ItemId>(section | tileType), 1};
+                m_playerInv.fill(item, 1.0f, glm::ivec2{}, false);
+            }
+            m_playerInv.wasChanged();
             break;
         }
     }

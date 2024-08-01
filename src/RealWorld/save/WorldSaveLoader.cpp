@@ -38,13 +38,8 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.inventory.resize({10, 4});
 
     int slot               = 0;
-    save.inventory(slot++) = Item{ItemId::CreativePickaxe, 1};
-    save.inventory(slot++) = Item{ItemId::CreativeHammer, 1};
-
-    for (size_t i = static_cast<size_t>(ItemId::FWater);
-         i <= static_cast<size_t>(ItemId::WDryGrass); ++i) {
-        save.inventory(slot++) = Item{static_cast<ItemId>(i), 100000};
-    }
+    save.inventory(slot++) = Item{ItemId::PCreativePickaxe, 1};
+    save.inventory(slot++) = Item{ItemId::HCreativeHammer, 1};
 
     return saveWorld(save, worldName, true);
 }

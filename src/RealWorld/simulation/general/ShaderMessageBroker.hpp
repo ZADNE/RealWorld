@@ -16,7 +16,7 @@ namespace rw {
 class ShaderMessageBroker {
 public:
 
-    ShaderMessageBroker(ActionCmdBuf& acb, ItemUser& itemUser);
+    ShaderMessageBroker(ActionCmdBuf& acb, Inventory& playerInv, ItemUser& itemUser);
 
     /**
      * @brief Processes messages sent last step
@@ -31,7 +31,7 @@ public:
     const re::Buffer& messageBuffer() const { return m_messageBuf; }
 
 private:
-    constexpr static int k_messageBufferSize = 63;
+    constexpr static int k_messageBufferSize = 511;
     struct ShaderMessageSB {
         int totalInts{};
         int messages[k_messageBufferSize];
@@ -55,6 +55,7 @@ private:
         .debugName   = "rw::ShaderMessageBroker::messageBufMapped"
     }};
 
+    Inventory& m_playerInv;
     ItemUser& m_itemUser;
 };
 
