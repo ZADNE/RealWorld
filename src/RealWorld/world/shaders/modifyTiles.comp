@@ -70,9 +70,11 @@ void main(){
 
     // Message the number of modifications back to CPU
     if (gl_LocalInvocationIndex == k_groupSize - 1){
-        int totalModified = min(activeBelowMe, p_modifyMaxCount);
-        if (totalModified > 0){
-            messageRemoveFromSelSlot(totalModified);
+        if (!removing){
+            int placed = min(activeBelowMe, p_modifyMaxCount);
+            if (placed > 0){
+                messageRemoveFromSelSlot(placed);
+            }
         }
     }
 }
