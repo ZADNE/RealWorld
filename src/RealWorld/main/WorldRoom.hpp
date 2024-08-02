@@ -16,7 +16,7 @@
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/simulation/general/ShaderMessageBroker.hpp>
-#include <RealWorld/simulation/player/Player.hpp>
+#include <RealWorld/simulation/objects/Player.hpp>
 #include <RealWorld/simulation/tiles/World.hpp>
 
 namespace rw {

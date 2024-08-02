@@ -34,7 +34,7 @@ int messageDropTiles(uint layer, ivec2 basePosTi, int count){
         b_message.messages[writeBase + 3] = basePosTi.y;
         return writeBase + 4;
     } else {
-        atomicAdd(b_message.totalInts, -(3 + count));
+        atomicAdd(b_message.totalInts, -(4 + count));
         return -1;
     }
 }

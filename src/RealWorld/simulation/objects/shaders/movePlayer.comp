@@ -4,10 +4,10 @@
 #version 460
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/world.glsl>
-#include <RealWorld/simulation/player/shaders/playerPll.glsl>
+#include <RealWorld/simulation/objects/shaders/playerPll.glsl>
 #include <RealWorld/simulation/tiles/shaders/tileLoad.glsl>
-#include <RealWorld/simulation/player/shaders/PlayerHitboxSB.glsl>
-#include <RealWorld/simulation/player/shaders/PlayerMovementPC.glsl>
+#include <RealWorld/simulation/objects/shaders/PlayerHitboxSB.glsl>
+#include <RealWorld/simulation/objects/shaders/PlayerMovementPC.glsl>
 
 layout (local_size_x = 1,
         local_size_y = 1,

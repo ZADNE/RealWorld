@@ -77,18 +77,20 @@ void main(){
                 messageRemoveFromSelSlot(placed);
             }
         } else {
+            ivec2 basePosTi = p_globalOffsetTi - ivec2(gl_WorkGroupSize.xy) / 2;
             s_messageOffset =
-                messageDropTiles(p_modifyLayer, p_globalOffsetTi, activeBelowMe);
+                messageDropTiles(p_modifyLayer, basePosTi, activeBelowMe);
         }
     }
     barrier();
 
     if (removing && s_messageOffset != -1 && s_threadActive[id]){
         // Message individual removed tiles
-        uint msg = ((offset.x & 0xff) << 24) |
-                   ((offset.y & 0xff) << 16) |
-                   ((orig.x   & 0xff) <<  8) |
-                   ((orig.y   & 0xff));
+        ivec2 baseOffset = ivec2(gl_LocalInvocationID.xy);
+        uint msg = ((baseOffset.x & 0xff) << 24) |
+                   ((baseOffset.y & 0xff) << 16) |
+                   ((orig.x       & 0xff) <<  8) |
+                   ((orig.y       & 0xff));
         b_message.messages[s_messageOffset + activeBelowMe - 1] = int(msg);
     }
 }

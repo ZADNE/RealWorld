@@ -8,7 +8,7 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
-#include <RealWorld/simulation/player/Player.hpp>
+#include <RealWorld/simulation/objects/Player.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;

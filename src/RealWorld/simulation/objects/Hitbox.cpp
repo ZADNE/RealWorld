@@ -3,7 +3,7 @@
  */
 #include <algorithm>
 
-#include <RealWorld/simulation/player/Hitbox.hpp>
+#include <RealWorld/simulation/objects/Hitbox.hpp>
 #include <RealWorld/simulation/tiles/World.hpp>
 
 namespace rw {

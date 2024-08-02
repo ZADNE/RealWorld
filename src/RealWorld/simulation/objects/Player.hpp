@@ -8,7 +8,7 @@
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
-#include <RealWorld/simulation/player/shaders/AllShaders.hpp>
+#include <RealWorld/simulation/objects/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 
 namespace rw {
