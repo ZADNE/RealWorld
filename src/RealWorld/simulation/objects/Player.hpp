@@ -7,9 +7,10 @@
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 
-#include <RealWorld/simulation/general/ActionCmdBuf.hpp>
-#include <RealWorld/simulation/objects/shaders/AllShaders.hpp>
 #include <RealWorld/save/WorldSave.hpp>
+#include <RealWorld/simulation/general/ActionCmdBuf.hpp>
+#include <RealWorld/simulation/objects/Hitbox.hpp>
+#include <RealWorld/simulation/objects/shaders/AllShaders.hpp>
 
 namespace rw {
 
@@ -26,7 +27,11 @@ public:
     );
     void gatherSave(PlayerSave& save) const;
 
-    glm::vec2 center() const;
+    glm::vec2 centerPx() const;
+
+    Hitbox hitbox() const {
+        return Hitbox{botLeftPx(), m_hitboxStageBuf->dimsPx};
+    }
 
     /**
      * @brief Moves the player based on its surroundings tiles and user input

@@ -66,9 +66,9 @@ void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
         re::fatalError("Bad transition paramaters to start WorldRoom session");
     }
 
-    m_worldView.setPosition(m_player.center());
+    m_worldView.setPosition(m_player.centerPx());
     m_worldView.setCursorAbs(engine().cursorAbs());
-    glm::vec2 viewPos = m_player.center() * 0.75f + m_worldView.cursorRel() * 0.25f;
+    glm::vec2 viewPos = m_player.centerPx() * 0.75f + m_worldView.cursorRel() * 0.25f;
     m_worldView.setPosition(glm::floor(viewPos));
 }
 
@@ -196,7 +196,7 @@ void WorldRoom::analyzeWorldForDrawing() {
     m_worldDrawer.addExternalLight(
         m_worldView.cursorRel(), re::Color{0u, 0u, 0u, 255u}
     );
-    m_worldDrawer.addExternalLight(m_player.center(), re::Color{0u, 0u, 0u, 100u});
+    m_worldDrawer.addExternalLight(m_player.centerPx(), re::Color{0u, 0u, 0u, 100u});
 
     // Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(*m_acb);

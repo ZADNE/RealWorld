@@ -3,31 +3,14 @@
  */
 #include <algorithm>
 
+#include <RealWorld/constants/tile.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
-#include <RealWorld/simulation/tiles/World.hpp>
 
 namespace rw {
 
-Hitbox::Hitbox(glm::ivec2 botLeftPx, glm::ivec2 dimsPx, glm::ivec2 centerOffsetPx /* = glm::ivec2(0.0f)*/)
+Hitbox::Hitbox(glm::vec2 botLeftPx, glm::vec2 dimsPx)
     : m_botLeftPx(botLeftPx)
-    , m_dimsPx(dimsPx)
-    , m_centerOffsetPx(centerOffsetPx) {
-}
-
-glm::ivec2& Hitbox::botLeft() {
-    return m_botLeftPx;
-}
-
-glm::ivec2 Hitbox::botLeft() const {
-    return m_botLeftPx;
-}
-
-void Hitbox::setDims(glm::ivec2 dimensionPx) {
-    m_dimsPx = dimensionPx;
-}
-
-glm::ivec2 Hitbox::center() const {
-    return m_botLeftPx + m_centerOffsetPx;
+    , m_dimsPx(dimsPx) {
 }
 
 bool Hitbox::collidesWith(Hitbox& otherHitbox) const {
@@ -40,7 +23,7 @@ bool Hitbox::collidesWith(Hitbox& otherHitbox) const {
     return false;
 }
 
-bool Hitbox::overlaps(glm::ivec2 pointPx) const {
+bool Hitbox::overlaps(glm::vec2 pointPx) const {
     if (m_botLeftPx.x <= pointPx.x && (m_botLeftPx.x + m_dimsPx.x) >= pointPx.x &&
         m_botLeftPx.y <= pointPx.y && (m_botLeftPx.y + m_dimsPx.y) >= pointPx.y) {
         return true;
@@ -48,10 +31,10 @@ bool Hitbox::overlaps(glm::ivec2 pointPx) const {
     return false;
 }
 
-bool Hitbox::overlapsBlockwise(glm::ivec2 pointPx) const {
-    glm::ivec2 botLeftTi  = pxToTi(m_botLeftPx);
-    glm::ivec2 topRightTi = pxToTi(m_botLeftPx + m_dimsPx);
-    glm::ivec2 pointTi    = pxToTi(pointPx);
+bool Hitbox::overlapsBlockwise(glm::vec2 pointPx) const {
+    glm::vec2 botLeftTi  = pxToTi(m_botLeftPx);
+    glm::vec2 topRightTi = pxToTi(m_botLeftPx + m_dimsPx);
+    glm::vec2 pointTi    = pxToTi(pointPx);
 
     if (botLeftTi.x <= pointTi.x && topRightTi.x >= pointTi.x &&
         botLeftTi.y <= pointTi.y && topRightTi.y >= pointTi.y) {
