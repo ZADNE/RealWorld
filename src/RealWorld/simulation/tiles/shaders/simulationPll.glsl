@@ -11,5 +11,6 @@ const uint k_branchBinding         = 3;
 const uint k_branchAllocRegBinding = 4;
 const uint k_branchAllocReqBinding = 5;
 const uint k_shaderMessageBinding  = 6;
+const uint k_droppedTilesBinding   = 7;
 
 #endif // !SIMULATION_PLL_GLSL

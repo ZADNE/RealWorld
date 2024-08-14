@@ -21,6 +21,7 @@ constexpr glm::uint k_branchBinding         = 3;
 constexpr glm::uint k_branchAllocRegBinding = 4;
 constexpr glm::uint k_branchAllocReqBinding = 5;
 constexpr glm::uint k_shaderMessageBinding  = 6;
+constexpr glm::uint k_droppedTilesBinding   = 7;
 
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
@@ -45,7 +46,7 @@ uint32_t permuteOrder(uint32_t& state) {
     return order;
 }
 
-constexpr static struct TilePropertiesUIB {
+constexpr static struct TilePropertiesUB {
     // x = properties
     // yz = indices of first and last transformation rule
     std::array<glm::uvec4, 256> blockTransformationProperties =
@@ -72,13 +73,14 @@ World::World(const re::Buffer& shaderMessageBuf)
                     {k_branchBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute},
-                    {k_shaderMessageBinding, eStorageBuffer, 1, eCompute}}},
+                    {k_shaderMessageBinding, eStorageBuffer, 1, eCompute},
+                    {k_droppedTilesBinding, eStorageBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}
           }
       )
     , m_tilePropertiesBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(TilePropertiesUIB),
+          .sizeInBytes = sizeof(TilePropertiesUB),
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties),
           .debugName   = "rw::World::tileProperties"
@@ -141,6 +143,11 @@ const re::Texture& World::adoptSave(
         eUniformBuffer, k_branchAllocReqBinding, 0, activationBufs.allocReqBuf
     );
 
+    m_simulationDS.write(
+        eStorageBuffer, k_droppedTilesBinding, 0,
+        m_droppedTilesMgr.droppedTilesBuf()
+    );
+
     return m_worldTex;
 }
 
@@ -176,6 +183,9 @@ void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRi
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );
     m_chunkActivationMgr.activateArea(acb, botLeftTi, topRightTi);
+
+    // Dropped tiles
+    m_droppedTilesMgr.step(acb);
 
     // Bodies
     // m_bodySimulator.step(*acb);

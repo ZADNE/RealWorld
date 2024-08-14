@@ -12,10 +12,11 @@
 #include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
 #include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/simulation/vegetation/BodySimulator.hpp>
-#include <RealWorld/simulation/vegetation/VegSimulator.hpp>
+#include <RealWorld/simulation/objects/DroppedTilesMgr.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
 #include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>
+#include <RealWorld/simulation/vegetation/BodySimulator.hpp>
+#include <RealWorld/simulation/vegetation/VegSimulator.hpp>
 
 namespace rw {
 
@@ -35,6 +36,10 @@ public:
      * @brief Initializes the world
      */
     World(const re::Buffer& shaderMessageBuf);
+
+    const re::Buffer& droppedTilesBuf() {
+        return m_droppedTilesMgr.droppedTilesBuf();
+    }
 
     /**
      * @copydoc ChunkHandler::numberOfInactiveChunks
@@ -124,6 +129,7 @@ private:
     const re::Buffer* m_activeChunksBuf = nullptr;
     BodySimulator m_bodySimulator{m_simulationPL};
     VegSimulator m_vegSimulator{};
+    DroppedTilesMgr m_droppedTilesMgr{m_simulationPL};
 };
 
 } // namespace rw

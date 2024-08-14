@@ -106,10 +106,10 @@ TileDrawer::TileDrawer(
           re::PipelineGraphicsSources{.vert = drawMinimap_vert, .frag = drawMinimap_frag}
       ) {
     m_descriptorSet.write(
-        eCombinedImageSampler, 1u, 0u, m_blockAtlasTex, eShaderReadOnlyOptimal
+        eCombinedImageSampler, 1u, 0u, *m_blockAtlasTex, eShaderReadOnlyOptimal
     );
     m_descriptorSet.write(
-        eCombinedImageSampler, 2u, 0u, m_wallAtlasTex, eShaderReadOnlyOptimal
+        eCombinedImageSampler, 2u, 0u, *m_wallAtlasTex, eShaderReadOnlyOptimal
     );
 
     resizeView(viewSizePx);

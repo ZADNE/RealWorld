@@ -9,6 +9,7 @@
 #include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
 #include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
 #include <RealWorld/simulation/general/shaders/ShaderMessageSB.glsl>
+#include <RealWorld/simulation/objects/shaders/DroppedTilesSB.glsl>
 
 layout (local_size_x = 16,
         local_size_y = 16,
@@ -20,7 +21,7 @@ const uint k_disk = 1;
 const uint k_groupSize = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
 
 shared bool s_threadActive[k_groupSize];
-shared int  s_messageOffset;
+shared uint s_droppedTilesOffset;
 
 void main(){
     const uint id = gl_LocalInvocationIndex;
@@ -41,7 +42,8 @@ void main(){
     }
 
     // Load the tile
-    ivec2 posAt = tiToAt(p_globalOffsetTi + offset, p_worldTexMaskTi);
+    ivec2 posTi = p_globalOffsetTi + offset;
+    ivec2 posAt = tiToAt(posTi, p_worldTexMaskTi);
     uvec2 orig = loadLayer(posAt, p_modifyLayer);
     uint  blockType = loadBlock(posAt).L_T;
 
@@ -69,28 +71,28 @@ void main(){
         storeLayer(posAt, p_modifyLayer, toSet);
     }
 
-    // Message the number of modifications back to CPU
     if (gl_LocalInvocationIndex == k_groupSize - 1){
-        if (!removing){
+        if (!removing) { // Message the number of modifications back to CPU
             int placed = min(activeBelowMe, p_modifyMaxCount);
             if (placed > 0){
                 messageRemoveFromSelSlot(placed);
             }
-        } else {
-            ivec2 basePosTi = p_globalOffsetTi - ivec2(gl_WorkGroupSize.xy) / 2;
-            s_messageOffset =
-                messageDropTiles(p_modifyLayer, basePosTi, activeBelowMe);
+        } else if (activeBelowMe > 0) { // Reserve space for dropped items
+            s_droppedTilesOffset = reserveDroppedTiles(activeBelowMe);
         }
     }
     barrier();
 
-    if (removing && s_messageOffset != -1 && s_threadActive[id]){
-        // Message individual removed tiles
-        ivec2 baseOffset = ivec2(gl_LocalInvocationID.xy);
-        uint msg = ((baseOffset.x & 0xff) << 24) |
-                   ((baseOffset.y & 0xff) << 16) |
-                   ((orig.x       & 0xff) <<  8) |
-                   ((orig.y       & 0xff));
-        b_message.messages[s_messageOffset + activeBelowMe - 1] = int(msg);
+    if (removing && s_droppedTilesOffset != -1 && s_threadActive[id]){
+        // Drop individual tiles
+        uint layerTypeVar = (p_modifyLayer << 16) |
+                            (orig.x        <<  8) |
+                            (orig.y             );
+        b_dropped.tiles[s_droppedTilesOffset + activeBelowMe - 1] = DroppedTile(
+            vec2(tiToPx(posTi)),
+            vec2(0.0, 0.0),
+            k_physicsStepsPerSecond * 300,
+            layerTypeVar
+        );
     }
 }

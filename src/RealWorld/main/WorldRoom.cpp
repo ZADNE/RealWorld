@@ -46,6 +46,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
     , m_world(m_messageBroker.messageBuffer())
     , m_gameSettings(gameSettings)
     , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
+    , m_droppedTilesDrawer(mainRenderPass().subpass(0), m_world.droppedTilesBuf())
     , m_player()
     , m_playerInv({10, 4})
     , m_itemUser(m_world, m_playerInv)
@@ -91,6 +92,11 @@ void WorldRoom::step() {
     {
         auto dbg = cb.createDebugRegion("step", {1.0, 0.0, 0.0, 1.0});
 
+        // Move the view based on movements of the player
+        auto viewPos = newViewPos();
+        m_worldView.setCursorAbs(engine().cursorAbs());
+        m_worldView.setPosition(glm::floor(viewPos));
+
         // Simulate one physics step
         performWorldSimulationStep(m_worldDrawer.setPosition(m_worldView.botLeft()));
 
@@ -119,11 +125,19 @@ void WorldRoom::render(const re::CommandBuffer& cb, double interpolationFactor) 
     auto dbg = cb.createDebugRegion("render", {0.0, 0.0, 1.0, 1.0});
     engine().mainRenderPassBegin({});
 
+    glm::mat4 mvpMat = m_worldView.viewMatrix();
+
     m_worldDrawer.drawTiles(cb);
 
     m_spriteBatch.clearAndBeginFirstBatch();
     m_player.draw(m_spriteBatch);
-    m_spriteBatch.drawBatch(cb, m_worldView.viewMatrix());
+    m_spriteBatch.drawBatch(cb, mvpMat);
+
+    float interpFactor = static_cast<float>(interpolationFactor);
+    float stepN        = static_cast<float>(m_stepN) + interpFactor;
+    m_droppedTilesDrawer.draw(
+        cb, mvpMat, stepN / static_cast<float>(k_physicsStepsPerSecond), interpFactor
+    );
 
     if (m_shadows) {
         m_worldDrawer.drawShadows(cb);
@@ -133,7 +147,7 @@ void WorldRoom::render(const re::CommandBuffer& cb, double interpolationFactor) 
         m_geometryBatch.begin();
         m_itemUser.render(m_worldView.cursorRel(), m_geometryBatch);
         m_geometryBatch.end();
-        m_geometryBatch.draw(cb, m_worldView.viewMatrix());
+        m_geometryBatch.draw(cb, mvpMat);
     }
 
     drawGUI(cb);
@@ -174,7 +188,7 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
         keybindDown(PlayerJump), keybindDown(PlayerAutojump)
     );
 
-    // Send messages colelcted this step
+    // Send messages collected this step
     m_messageBroker.endStep(m_acb);
 
     // Finish the simulation step (transit image layouts back)
@@ -183,10 +197,6 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
 
 void WorldRoom::analyzeWorldForDrawing() {
     auto dbg = m_acb->createDebugRegion("analysisForDrawing");
-    // Move the view based on movements of the player
-    auto viewPos = newViewPos();
-    m_worldView.setCursorAbs(engine().cursorAbs());
-    m_worldView.setPosition(glm::floor(viewPos));
 
     // Analyze the world texture
     m_timeDay += 0.00025f * static_cast<float>(!m_stopDaytime);

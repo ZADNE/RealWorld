@@ -25,7 +25,7 @@ void messageRemoveFromSelSlot(int count){
     }
 }
 
-int messageDropTiles(uint layer, ivec2 basePosTi, int count){
+int messageInsertTilesToInventory(uint layer, ivec2 basePosTi, int count){
     int writeBase = atomicAdd(b_message.totalInts, 4 + count);
     if (writeBase + 4 + count <= k_messageBufferSize) {
         b_message.messages[writeBase] = k_messageIdDropBlocks + int(layer);
