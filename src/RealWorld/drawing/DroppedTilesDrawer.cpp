@@ -52,7 +52,7 @@ DroppedTilesDrawer::DroppedTilesDrawer(
             re::PipelineGraphicsSources{
                 .vert = drawDroppedTiles_vert,
                 .geom = drawDroppedTiles_geom,
-                .frag = drawColor_frag
+                .frag = drawDroppedTiles_frag
             }
         };
     }()) {

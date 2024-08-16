@@ -3,8 +3,7 @@
     AnalysisPC.glsl             
     analyzeTiles.comp           
     calculateShadows.comp       
-    drawColor.frag              
-    drawDroppedTiles.vert       drawDroppedTiles.geom
+    drawDroppedTiles.vert       drawDroppedTiles.geom       drawDroppedTiles.frag
     drawFullscreen.vert         
     drawMinimap.vert            drawMinimap.frag
     drawShadows.frag            
