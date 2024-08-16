@@ -78,7 +78,7 @@ void main(){
                 messageRemoveFromSelSlot(placed);
             }
         } else if (activeBelowMe > 0) { // Reserve space for dropped items
-            s_droppedTilesOffset = reserveDroppedTiles(activeBelowMe);
+            s_droppedTilesOffset = reserveSpaceForDroppedTiles(activeBelowMe);
         }
     }
     barrier();
@@ -91,7 +91,7 @@ void main(){
         b_dropped.tiles[s_droppedTilesOffset + activeBelowMe - 1] = DroppedTile(
             vec2(tiToPx(posTi)),
             vec2(0.0, 0.0),
-            k_physicsStepsPerSecond * 300,
+            k_physicsStepsPerSecond * 60,
             layerTypeVar
         );
     }

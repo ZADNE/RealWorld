@@ -5,7 +5,7 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/world.glsl>
 #include <RealWorld/simulation/objects/shaders/playerPll.glsl>
-#include <RealWorld/simulation/tiles/shaders/tileLoad.glsl>
+#include <RealWorld/simulation/objects/shaders/hitboxMovement.glsl>
 #include <RealWorld/simulation/objects/shaders/PlayerHitboxSB.glsl>
 #include <RealWorld/simulation/objects/shaders/PlayerMovementPC.glsl>
 
@@ -14,32 +14,10 @@ layout (local_size_x = 1,
         local_size_z = 1
 ) in;
 
-uint ground(vec2 posPx, vec2 dimsPx) {
-    uint grnd = k_airBl;
-    int  yTi  = int(pxToTi(posPx.y - 1.0));
-    for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi) {
-        ivec2 posAt = tiToAt(ivec2(xTi, yTi), p_worldTexMaskTi);
-        grnd = min(grnd, loadBlock(posAt).L_T);
-    }
-    return grnd;
-}
-
-bool overlapsBlocks(vec2 posPx, vec2 dimsPx) {
-    for (int yTi = int(pxToTi(posPx.y)); yTi <= pxToTi(posPx.y + dimsPx.y); ++yTi) {
-        for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi) {
-            ivec2 posAt = tiToAt(ivec2(xTi, yTi), p_worldTexMaskTi);
-            if (isSolidBlock(loadBlock(posAt).L_T)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 void tryJump(vec2 posPx, float jumpPower, vec2 dimsPx, inout vec2 velPx) {
     if (p_jump != 0.0 || // Jump
         (p_autojump != 0.0 && p_walkDirection != 0.0 &&
-         overlapsBlocks(posPx + vec2(velPx.x * 4.0, 0.0), dimsPx))) { // Autojump
+         overlapsBlocks(posPx + vec2(velPx.x * 4.0, 0.0), dimsPx, p_worldTexMaskTi))) { // Autojump
         velPx.y = p_jumpVelocity * jumpPower;
     }
 }
@@ -56,38 +34,19 @@ void main() {
     // Read previous botLeft from buffer
     vec2 botLeftPx = b_player.botLeftPx[1 - p_writeIndex];
 
-    uint grnd = ground(botLeftPx, dimsPx);
+    uint grnd = ground(botLeftPx, dimsPx, p_worldTexMaskTi);
     if (isSolidBlock(grnd)) { // Standing on solid ground
         tryJump(botLeftPx, 1.0, dimsPx, velPx);
     } else if (!isAirBlock(grnd)) { // Floating in a fluid
         tryJump(botLeftPx, 0.75, dimsPx, velPx);
-        velPx *= 0.9375;
-        velPx *= 0.9375;
+        velPx *= 0.8789;
         velPx.y -= 0.1875; // Gravity
-    } else {                      // Falling through air
+    } else {               // Falling through air
         velPx.y -= 0.1875; // Gravity
     }
 
-    vec2 truncVelPx = trunc(velPx);
-    if (overlapsBlocks(botLeftPx + vec2(velPx.x, 0.0), dimsPx)) {
-        float velSign = sign(velPx.x);
-        while (!overlapsBlocks(botLeftPx + vec2(velSign, 0.0), dimsPx)) {
-            botLeftPx.x += velSign;
-        }
-        velPx.x = 0.0;
-    } else {
-        botLeftPx.x += truncVelPx.x;
-    }
-
-    if (overlapsBlocks(botLeftPx + vec2(0.0, velPx.y), dimsPx)) {
-        float velSign = sign(velPx.y);
-        while (!overlapsBlocks(botLeftPx + vec2(0.0, velSign), dimsPx)) {
-            botLeftPx.y += velSign;
-        }
-        velPx.y = 0.0;
-    } else {
-        botLeftPx.y += truncVelPx.y;
-    }
+    // Move the hitbox
+    moveFinely(botLeftPx, dimsPx, velPx, p_worldTexMaskTi);
 
     // Write output back to the buffer
     b_player.botLeftPx[p_writeIndex] = botLeftPx;

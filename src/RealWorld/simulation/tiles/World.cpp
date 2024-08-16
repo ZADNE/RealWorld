@@ -75,7 +75,7 @@ World::World(const re::Buffer& shaderMessageBuf)
                     {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute},
                     {k_shaderMessageBinding, eStorageBuffer, 1, eCompute},
                     {k_droppedTilesBinding, eStorageBuffer, 1, eCompute}}},
-              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(WorldDynamicsPC)}}
+              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(SimulationPC)}}
           }
       )
     , m_tilePropertiesBuf(re::BufferCreateInfo{
@@ -172,7 +172,10 @@ size_t World::numberOfInactiveChunks() {
     return m_chunkActivationMgr.numberOfInactiveChunks();
 }
 
-void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi) {
+void World::step(
+    const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi,
+    const Hitbox& player
+) {
     // Unrasterize branches
     m_vegSimulator.unrasterizeVegetation(acb);
 
@@ -185,7 +188,9 @@ void World::step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRi
     m_chunkActivationMgr.activateArea(acb, botLeftTi, topRightTi);
 
     // Dropped tiles
-    m_droppedTilesMgr.step(acb);
+    m_droppedTilesMgr.step(
+        acb, player, m_worldDynamicsPC.worldTexMaskTi, m_worldDynamicsPC.timeSec
+    );
 
     // Bodies
     // m_bodySimulator.step(*acb);
@@ -213,7 +218,7 @@ void World::modify(
             m_worldDynamicsPC.modifySetValue = tile;
             m_worldDynamicsPC.modifyMaxCount = maxCount;
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
-            cb->pushConstants<WorldDynamicsPC>(
+            cb->pushConstants<SimulationPC::WorldDynamics>(
                 *m_simulationPL, eCompute, 0, m_worldDynamicsPC
             );
             cb->dispatch(1, 1, 1);
@@ -250,7 +255,7 @@ void World::tileTransformationsStep(const ActionCmdBuf& acb) {
     acb.action(
         [&](const re::CommandBuffer& cb) {
             xorshift32(m_worldDynamicsPC.timeHash);
-            cb->pushConstants<WorldDynamicsPC>(
+            cb->pushConstants<SimulationPC::WorldDynamics>(
                 *m_simulationPL, eCompute, 0, m_worldDynamicsPC
             );
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);

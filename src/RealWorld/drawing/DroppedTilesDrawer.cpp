@@ -66,7 +66,7 @@ void DroppedTilesDrawer::draw(
 ) {
     DroppedTilesDrawingPC pc{
         .mvpMat       = mvpMat,
-        .blinkState   = std::sin(timeSec * 6.0f) * 0.125f + 0.125f,
+        .blinkState   = std::sin(timeSec * 6.0f) * 0.125f + 0.25f,
         .interpFactor = interpFactor
     };
     cb->pushConstants<DroppedTilesDrawingPC>(

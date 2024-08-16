@@ -12,12 +12,12 @@ layout (triangle_strip, max_vertices = 4) out;
 layout (location = 0) out vec4 o_col;
 
 layout (points) in;
-layout(location = 0) in vec2 i_botLeftPx[];
-layout(location = 1) in vec2 i_velPx[];
-layout(location = 2) in uint i_layerTypeVar[];
+layout (location = 0) in vec2 i_botLeftPx[];
+layout (location = 1) in vec2 i_velPx[];
+layout (location = 2) in uint i_layerTypeVar[];
 
 void main() {
-    vec2 botLeftPx = i_botLeftPx[0] + p_interpFactor * i_velPx[0];
+    vec2 botLeftPx = tiToPx(pxToTi(i_botLeftPx[0] + p_interpFactor * i_velPx[0]));
     uint layerTypeVar = i_layerTypeVar[0];
     uint layer = layerTypeVar >> 16;
     ivec2 typeVar = ivec2(layerTypeVar & 0xff, (layerTypeVar >> 8) & 0xff);

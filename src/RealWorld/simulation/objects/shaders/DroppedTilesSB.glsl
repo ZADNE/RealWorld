@@ -22,7 +22,7 @@ struct VkDispatchIndirectCommand {
 struct DroppedTile {
     vec2 botLeftPx;
     vec2 velPx;
-    uint lifetimeSec;
+    uint lifetimeSteps;
     uint layerTypeVar; // bits: 0..7 = variant, 8..15 = type, 16 = layer (block/wall)
 };
 
@@ -41,22 +41,36 @@ uint roundUpBitshift(uint x, uint yShift) {
     return (x + (1 << yShift) - 1) >> yShift;
 }
 
+void adjustGroupCount(uint prevCount, uint added){
+    uint before = roundUpBitshift(prevCount, k_moveTilesGroupSizeBit);
+    uint after = roundUpBitshift(prevCount + added, k_moveTilesGroupSizeBit);
+    uint diff = after - before;
+    if (diff != 0) {
+        atomicAdd(b_dropped.dispatchCommand.x, diff);
+    }
+}
+
 /**
  * @brief Returns index where tiles should be put or -1 if space not available
  */
-uint reserveDroppedTiles(uint count){
+uint reserveSpaceForDroppedTiles(uint count){
     uint index = atomicAdd(b_dropped.drawCommand.vertexCount, count);
     if (index + count <= k_maxDroppedTilesCount) {
-        uint groupsBefore = roundUpBitshift(index, k_moveTilesGroupSizeBit);
-        uint groupsAfter = roundUpBitshift(index + count, k_moveTilesGroupSizeBit);
-        if (groupsAfter > groupsBefore) {
-            atomicAdd(b_dropped.dispatchCommand.x, groupsAfter - groupsBefore);
-        }
+        adjustGroupCount(index, count);
         return index;
     } else {
         atomicAdd(b_dropped.drawCommand.vertexCount, -count);
         return -1;
     }
+}
+
+/**
+ * @brief Returns index of the first tiles that was removed
+ */
+uint removeSpaceForDroppedTiles(uint count){
+    uint index = atomicAdd(b_dropped.drawCommand.vertexCount, -count);
+    adjustGroupCount(index, -count);
+    return index - count;
 }
 
 #endif // !DROPPED_TILES_SB_GLSL

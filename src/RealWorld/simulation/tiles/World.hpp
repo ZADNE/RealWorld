@@ -35,7 +35,7 @@ public:
     /**
      * @brief Initializes the world
      */
-    World(const re::Buffer& shaderMessageBuf);
+    explicit World(const re::Buffer& shaderMessageBuf);
 
     const re::Buffer& droppedTilesBuf() {
         return m_droppedTilesMgr.droppedTilesBuf();
@@ -52,7 +52,10 @@ public:
      * @param botLeftTi  The most bottom-left tile that has to be active
      * @param topRightTi The most top-right tile that has to be active
      */
-    void step(const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi);
+    void step(
+        const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi,
+        const Hitbox& player
+    );
 
     /**
      * @brief Modifies tiles in the world
@@ -93,18 +96,7 @@ private:
 
     re::Buffer m_tilePropertiesBuf;
 
-    struct WorldDynamicsPC {
-        glm::ivec2 globalOffsetTi;
-        glm::ivec2 worldTexMaskTi;
-        glm::uint modifyLayer;
-        glm::uint modifyShape;
-        glm::uvec2 modifySetValue;
-        int modifyMaxCount;
-        float modifyRadius;
-        glm::uint timeHash;
-        glm::uint updateOrder = 0b00011011'00011011'00011011'00011011;
-        float timeSec         = static_cast<float>(time(nullptr) & 0xFFFF);
-    } m_worldDynamicsPC;
+    SimulationPC::WorldDynamics m_worldDynamicsPC;
 
     re::PipelineLayout m_simulationPL;
     re::DescriptorSet m_simulationDS{re::DescriptorSetCreateInfo{

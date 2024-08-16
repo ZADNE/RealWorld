@@ -4,13 +4,83 @@
 #version 460
 
 #include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
+#include <RealWorld/simulation/objects/shaders/hitboxMovement.glsl>
 #include <RealWorld/simulation/objects/shaders/DroppedTilesSB.glsl>
+#include <RealWorld/simulation/objects/shaders/DroppedTilesSimPC.glsl>
 
 layout (local_size_x = k_moveTilesGroupSize,
         local_size_y = 1,
         local_size_z = 1
 ) in;
 
-void main(){
+shared bool s_removeTile[gl_WorkGroupSize.x];
+shared uint s_removeTiles; // First count, then offset
 
+void main() {
+    const uint id = gl_LocalInvocationIndex;
+    if (id == 0) {
+        s_removeTiles = 0;
+    }
+    barrier();
+
+    DroppedTile dropped; // Tile processed by this thread
+    s_removeTile[id] = false;
+    bool removeMyTile = false;
+
+    if (gl_GlobalInvocationID.x < b_dropped.drawCommand.vertexCount) {
+        // Load my tile
+        dropped = b_dropped.tiles[gl_GlobalInvocationID.x];
+
+        // Lifetime check
+        --dropped.lifetimeSteps;
+        s_removeTile[id] = removeMyTile = (dropped.lifetimeSteps <= 0);
+
+        vec2 tileCenterPx = dropped.botLeftPx + TilePx * 0.5;
+        if (overlapsPoint(p_playerBotLeftPx, p_playerDimsPx, tileCenterPx)) {
+            // Try to insert item
+            s_removeTile[id] = removeMyTile = true;
+        }
+
+        // Determine movement
+        vec2 playerCenterPx = p_playerBotLeftPx + p_playerDimsPx * 0.5;
+        vec2 toPlayer = playerCenterPx - tileCenterPx;
+        float dist    = length(toPlayer);
+        if (dist <= 250.0) {
+            vec2 vec = normalize(toPlayer);
+            float acc = max(0.5 - dist * 0.002, 0.1);
+            dropped.velPx += vec * acc; // Shift towards player
+        } else {
+            dropped.velPx.y -= 0.1875; // Gravity
+        }
+
+        // Move item
+        moveFinely(dropped.botLeftPx, TilePx - 1.0, dropped.velPx, p_worldTexMaskTi);
+
+        if (removeMyTile) {
+            atomicAdd(s_removeTiles, 1);
+        } else { // Save the modified tile
+            b_dropped.tiles[gl_GlobalInvocationID.x] = dropped;
+        }
+    }
+    barrier();
+
+    if (s_removeTiles > 0) {
+        // Count number of removals
+        uint removedBelowMe = 0;
+        for (int i = 0; i < id; ++i){
+            removedBelowMe += uint(s_removeTile[i]);
+        }
+
+        // Remove space
+        if (id == 0) {
+            s_removeTiles = removeSpaceForDroppedTiles(s_removeTiles);
+        }
+        barrier();
+
+        // Overwrite removed tiles
+        if (removeMyTile) {
+            b_dropped.tiles[gl_GlobalInvocationID.x] =
+                b_dropped.tiles[s_removeTiles + removedBelowMe];
+        }
+    }
 }

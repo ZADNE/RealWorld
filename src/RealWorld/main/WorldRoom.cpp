@@ -170,7 +170,9 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
     m_messageBroker.beginStep(m_acb);
 
     // Simulate one physics step (load new chunks if required)
-    m_world.step(m_acb, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
+    m_world.step(
+        m_acb, viewEnvelope.botLeftTi, viewEnvelope.topRightTi, m_player.hitbox()
+    );
 
     // Modify the world with player's tools
     m_itemUser.step(
