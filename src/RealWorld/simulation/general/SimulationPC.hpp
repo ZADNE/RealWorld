@@ -23,13 +23,6 @@ union SimulationPC {
         glm::uint updateOrder = 0b00011011'00011011'00011011'00011011;
         float timeSec         = static_cast<float>(time(nullptr) & 0xFFFF);
     } worldDynamics;
-
-    struct DroppedTilesSim {
-        glm::vec2 playerBotLeftPx;
-        glm::vec2 playerDimsPx;
-        glm::ivec2 worldTexMaskTi;
-        float timeSec;
-    } droppedTilesSim;
 };
 
 } // namespace rw

@@ -8,7 +8,6 @@
 #include <RealEngine/graphics/cameras/View2D.hpp>
 #include <RealEngine/graphics/synchronization/Semaphore.hpp>
 
-#include <RealWorld/drawing/DroppedTilesDrawer.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
@@ -99,7 +98,6 @@ private:
     ShaderMessageBroker m_messageBroker;
     World m_world;
     WorldDrawer m_worldDrawer;
-    DroppedTilesDrawer m_droppedTilesDrawer;
     Player m_player;
     InventoryUI m_invUI;
     float m_timeDay    = 0.0f;

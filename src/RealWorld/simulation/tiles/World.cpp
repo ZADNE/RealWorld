@@ -21,7 +21,6 @@ constexpr glm::uint k_branchBinding         = 3;
 constexpr glm::uint k_branchAllocRegBinding = 4;
 constexpr glm::uint k_branchAllocReqBinding = 5;
 constexpr glm::uint k_shaderMessageBinding  = 6;
-constexpr glm::uint k_droppedTilesBinding   = 7;
 
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
@@ -73,8 +72,7 @@ World::World(const re::Buffer& shaderMessageBuf)
                     {k_branchBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute},
-                    {k_shaderMessageBinding, eStorageBuffer, 1, eCompute},
-                    {k_droppedTilesBinding, eStorageBuffer, 1, eCompute}}},
+                    {k_shaderMessageBinding, eStorageBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(SimulationPC)}}
           }
       )
@@ -143,11 +141,6 @@ const re::Texture& World::adoptSave(
         eUniformBuffer, k_branchAllocReqBinding, 0, activationBufs.allocReqBuf
     );
 
-    m_simulationDS.write(
-        eStorageBuffer, k_droppedTilesBinding, 0,
-        m_droppedTilesMgr.droppedTilesBuf()
-    );
-
     return m_worldTex;
 }
 
@@ -187,11 +180,6 @@ void World::step(
         vk::PipelineBindPoint::eCompute, *m_simulationPL, 0, *m_simulationDS, {}
     );
     m_chunkActivationMgr.activateArea(acb, botLeftTi, topRightTi);
-
-    // Dropped tiles
-    m_droppedTilesMgr.step(
-        acb, player, m_worldDynamicsPC.worldTexMaskTi, m_worldDynamicsPC.timeSec
-    );
 
     // Bodies
     // m_bodySimulator.step(*acb);

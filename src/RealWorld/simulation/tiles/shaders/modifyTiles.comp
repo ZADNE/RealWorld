@@ -9,7 +9,6 @@
 #include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
 #include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
 #include <RealWorld/simulation/general/shaders/ShaderMessageSB.glsl>
-#include <RealWorld/simulation/objects/shaders/DroppedTilesSB.glsl>
 
 layout (local_size_x = 16,
         local_size_y = 16,

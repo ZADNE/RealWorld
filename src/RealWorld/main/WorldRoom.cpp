@@ -42,14 +42,12 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
               .imGuiSubpassIndex    = 0
           }
       )
-    , m_messageBroker(m_acb, m_playerInv, m_itemUser)
-    , m_world(m_messageBroker.messageBuffer())
     , m_gameSettings(gameSettings)
-    , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
-    , m_droppedTilesDrawer(mainRenderPass().subpass(0), m_world.droppedTilesBuf())
-    , m_player()
     , m_playerInv({10, 4})
     , m_itemUser(m_world, m_playerInv)
+    , m_messageBroker(m_acb, m_playerInv, m_itemUser)
+    , m_world(m_messageBroker.messageBuffer())
+    , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
     , m_invUI(engine().windowDims()) {
 
     m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
@@ -132,12 +130,6 @@ void WorldRoom::render(const re::CommandBuffer& cb, double interpolationFactor) 
     m_spriteBatch.clearAndBeginFirstBatch();
     m_player.draw(m_spriteBatch);
     m_spriteBatch.drawBatch(cb, mvpMat);
-
-    float interpFactor = static_cast<float>(interpolationFactor);
-    float stepN        = static_cast<float>(m_stepN) + interpFactor;
-    m_droppedTilesDrawer.draw(
-        cb, mvpMat, stepN / static_cast<float>(k_physicsStepsPerSecond), interpFactor
-    );
 
     if (m_shadows) {
         m_worldDrawer.drawShadows(cb);
