@@ -13,25 +13,19 @@ ItemSprite::ItemSprite()
 }
 
 ItemSprite::ItemSprite(ItemId id)
-    : m_tex(re::RM::texture(re::TextureSeed{
-          k_atlasPrefix + ItemDatabase::md(id).textureAtlas
-      }))
+    : m_tex(re::RM::texture(re::TextureSeed{k_atlasPrefix + textureAtlas(id)}))
     , m_sprite{
           *m_tex,
-          ItemDatabase::md(id).spriteIndex,
-          0.0f,
+          spriteIndex(id),
+          subimageIndex(id),
           1.0f,
           re::Color{255u, 255u, 255u, 255u},
-          glm::vec2(ItemDatabase::md(id).drawScale)
+          glm::vec2{drawScale(id)}
       } {
 }
 
 ItemSprite::ItemSprite(ItemSample item)
     : ItemSprite{item.id} {
-}
-
-re::SpriteComplex& ItemSprite::sprite() {
-    return m_sprite;
 }
 
 } // namespace rw

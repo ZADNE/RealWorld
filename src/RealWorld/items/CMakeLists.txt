@@ -3,8 +3,8 @@
     InventoryData.hpp           
     InventoryUI.hpp             InventoryUI.cpp
     Item.hpp                    Item.cpp
-    ItemDatabase.hpp            ItemDatabase.cpp
-    ItemSample.hpp              ItemSample.cpp
+    ItemMetadata.hpp            ItemMetadata.cpp
+    ItemSample.hpp              
     ItemSprite.hpp              ItemSprite.cpp
     ItemUser.hpp                ItemUser.cpp
 )

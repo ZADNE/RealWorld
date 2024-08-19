@@ -7,7 +7,7 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
-#include <RealEngine/graphics/textures/TextureShaped.hpp>
+#include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/drawing/WorldDrawingPC.hpp>
 
@@ -32,8 +32,10 @@ public:
     void drawMinimap(const re::CommandBuffer& cb);
 
 private:
-    re::TextureShaped m_blockAtlasTex{re::TextureSeed{"blockAtlas"}};
-    re::TextureShaped m_wallAtlasTex{re::TextureSeed{"wallAtlas"}};
+    re::SharedTexture m_blockAtlasTex =
+        re::RM::texture(re::TextureSeed{"blockAtlas"});
+    re::SharedTexture m_wallAtlasTex =
+        re::RM::texture(re::TextureSeed{"wallAtlas"});
 
     glm::vec2 m_viewSizePx;
 

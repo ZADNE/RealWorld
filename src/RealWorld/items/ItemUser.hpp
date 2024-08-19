@@ -7,8 +7,8 @@
 #include <RealEngine/graphics/batches/GeometryBatch.hpp>
 
 #include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/main/ActionCmdBuf.hpp>
-#include <RealWorld/world/World.hpp>
+#include <RealWorld/simulation/general/ActionCmdBuf.hpp>
+#include <RealWorld/simulation/tiles/World.hpp>
 
 namespace rw {
 
@@ -26,24 +26,43 @@ public:
     void switchShape();
     void resizeShape(float change);
 
-    // Does not check if the slot is inside the inventory!
-    void selectSlot(int slot);
+    /**
+     * @brief Finishes speculative removal
+     * @note  Must be called before step(...)
+     */
+    void finishSpecRemoval(int count);
 
     void step(
-        const ActionCmdBuf& acb, bool usePrimary, bool useSecondary,
-        glm::ivec2 relCursorPosPx
+        const ActionCmdBuf& acb, int selSlot, bool usePrimary,
+        bool useSecondary, glm::ivec2 relCursorPosPx
     );
 
     void render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb);
 
 private:
+    Item& selItem() { return m_inv[m_selSlot->slotIndex][0]; }
+    const Item& selItem() const { return m_inv[m_selSlot->slotIndex][0]; }
+    int selItemSpecCount() const {
+        int count = selItem().count;
+        if (m_selSlot.write().slotIndex == m_selSlot.read().slotIndex) {
+            count -= m_selSlot.read().specRemoved; // Speculatively removed last step
+        }
+        return count;
+    }
+
     World& m_world;
     Inventory& m_inv;
 
-    int m_chosenSlot = 0;
+    struct SelSlotState {
+        int slotIndex;
+        int specRemoved{};
+    };
+    re::StepDoubleBuffered<SelSlotState> m_selSlot{};
 
     World::ModificationShape m_shape = World::ModificationShape::Disk;
     float m_radiusTi                 = 1.5f;
+
+    int specModifyCount() const;
 
     // <  -1: steps not using
     // == -1: just stopped using
@@ -51,7 +70,6 @@ private:
     // >  +1: steps using
     // == +1: just started using
     int m_using[2] = {-1, -1};
-    Item* m_item   = nullptr;
 };
 
 } // namespace rw

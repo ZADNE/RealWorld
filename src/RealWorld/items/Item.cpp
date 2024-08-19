@@ -9,14 +9,14 @@
 
 namespace rw {
 
-Item::Item(const ItemSample& sample, int amount)
+Item::Item(const ItemSample& sample, int count)
     : ItemSample(sample)
-    , amount(amount) {
+    , count(count) {
 }
 
-Item::Item(ItemId id, int amount, float special /* = 0.0f*/)
+Item::Item(ItemId id, int count, float special /* = 0.0f*/)
     : ItemSample(id, special)
-    , amount(amount) {
+    , count(count) {
 }
 
 void Item::merge(Item& item, float portion) {
@@ -28,12 +28,12 @@ void Item::merge(Item& item, float portion) {
         // Items do not have the same special, cannot merge
         return;
     }
-    int maxStack = ItemDatabase::md(id).maxStack;
-    int temp =
-        glm::min(maxStack - amount, (int)(glm::ceil((float)item.amount * portion)));
-    amount += temp;
-    item.amount -= temp;
-    if (item.amount <= 0) {
+    int temp = glm::min(
+        maxStack(id) - count, (int)(glm::ceil((float)item.count * portion))
+    );
+    count += temp;
+    item.count -= temp;
+    if (item.count <= 0) {
         item.id = ItemId::Empty;
     }
 }
@@ -43,51 +43,50 @@ void Item::insert(Item& item, float portion) {
         // This is not empty item, cannot insert
         return;
     }
-    special      = item.special;
-    id           = item.id;
-    int maxStack = ItemDatabase::md(id).maxStack;
-    int temp = glm::min(maxStack, (int)(glm::ceil((float)item.amount * portion)));
-    amount += temp;
-    item.amount -= temp;
-    if (item.amount <= 0) {
+    special = item.special;
+    id      = item.id;
+    int temp = glm::min(maxStack(id), (int)(glm::ceil((float)item.count * portion)));
+    count += temp;
+    item.count -= temp;
+    if (item.count <= 0) {
         item.id = ItemId::Empty;
     }
 }
 
 int Item::operator--() {
-    int tmp = amount;
-    if (--amount <= 0) {
+    int tmp = count;
+    if (--count <= 0) {
         id = ItemId::Empty;
     }
     return tmp;
 }
 
 int Item::operator--(int) {
-    if (--amount <= 0) {
+    if (--count <= 0) {
         id = ItemId::Empty;
     }
-    return amount;
+    return count;
 }
 
 int Item::operator+=(int number) {
-    amount += number;
-    if (amount <= 0) {
+    count += number;
+    if (count <= 0) {
         id = ItemId::Empty;
     }
-    return amount;
+    return count;
 }
 
 int Item::operator-=(int number) {
-    amount -= number;
-    if (amount <= 0) {
+    count -= number;
+    if (count <= 0) {
         id = ItemId::Empty;
     }
-    return amount;
+    return count;
 }
 
 Item Item::operator*(int number) const {
     Item returnItem = *this;
-    returnItem.amount *= number;
+    returnItem.count *= number;
     return returnItem;
 }
 

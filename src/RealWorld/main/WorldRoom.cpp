@@ -43,15 +43,14 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
           }
       )
     , m_gameSettings(gameSettings)
-    , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
-    , m_player()
     , m_playerInv({10, 4})
     , m_itemUser(m_world, m_playerInv)
+    , m_messageBroker(m_acb, m_playerInv, m_itemUser)
+    , m_world(m_messageBroker.messageBuffer())
+    , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
     , m_invUI(engine().windowDims()) {
 
-    // InventoryUI connections
     m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
-    m_invUI.connectToItemUser(&m_itemUser);
 }
 
 void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
@@ -66,9 +65,9 @@ void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
         re::fatalError("Bad transition paramaters to start WorldRoom session");
     }
 
-    m_worldView.setPosition(m_player.center());
+    m_worldView.setPosition(m_player.centerPx());
     m_worldView.setCursorAbs(engine().cursorAbs());
-    glm::vec2 viewPos = m_player.center() * 0.75f + m_worldView.cursorRel() * 0.25f;
+    glm::vec2 viewPos = m_player.centerPx() * 0.75f + m_worldView.cursorRel() * 0.25f;
     m_worldView.setPosition(glm::floor(viewPos));
 }
 
@@ -90,6 +89,11 @@ void WorldRoom::step() {
     cb->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
     {
         auto dbg = cb.createDebugRegion("step", {1.0, 0.0, 0.0, 1.0});
+
+        // Move the view based on movements of the player
+        auto viewPos = newViewPos();
+        m_worldView.setCursorAbs(engine().cursorAbs());
+        m_worldView.setPosition(glm::floor(viewPos));
 
         // Simulate one physics step
         performWorldSimulationStep(m_worldDrawer.setPosition(m_worldView.botLeft()));
@@ -119,20 +123,24 @@ void WorldRoom::render(const re::CommandBuffer& cb, double interpolationFactor) 
     auto dbg = cb.createDebugRegion("render", {0.0, 0.0, 1.0, 1.0});
     engine().mainRenderPassBegin({});
 
+    glm::mat4 mvpMat = m_worldView.viewMatrix();
+
     m_worldDrawer.drawTiles(cb);
 
     m_spriteBatch.clearAndBeginFirstBatch();
     m_player.draw(m_spriteBatch);
-    m_spriteBatch.drawBatch(cb, m_worldView.viewMatrix());
+    m_spriteBatch.drawBatch(cb, mvpMat);
 
     if (m_shadows) {
         m_worldDrawer.drawShadows(cb);
     }
 
-    m_geometryBatch.begin();
-    m_itemUser.render(m_worldView.cursorRel(), m_geometryBatch);
-    m_geometryBatch.end();
-    m_geometryBatch.draw(cb, m_worldView.viewMatrix());
+    if (!m_invUI.isOpen()) {
+        m_geometryBatch.begin();
+        m_itemUser.render(m_worldView.cursorRel(), m_geometryBatch);
+        m_geometryBatch.end();
+        m_geometryBatch.draw(cb, mvpMat);
+    }
 
     drawGUI(cb);
 
@@ -150,12 +158,18 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
 ) {
     auto dbg = m_acb->createDebugRegion("simulation");
 
+    // Process messages from 2-previous step
+    m_messageBroker.beginStep(m_acb);
+
     // Simulate one physics step (load new chunks if required)
-    m_world.step(m_acb, viewEnvelope.botLeftTi, viewEnvelope.topRightTi);
+    m_world.step(
+        m_acb, viewEnvelope.botLeftTi, viewEnvelope.topRightTi, m_player.hitbox()
+    );
 
     // Modify the world with player's tools
     m_itemUser.step(
-        m_acb, keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
+        m_acb, m_invUI.selectedSlot(),
+        keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
         keybindDown(ItemuserUseSecondary) && !m_invUI.isOpen(),
         m_worldView.cursorRel()
     );
@@ -168,16 +182,15 @@ void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& view
         keybindDown(PlayerJump), keybindDown(PlayerAutojump)
     );
 
+    // Send messages collected this step
+    m_messageBroker.endStep(m_acb);
+
     // Finish the simulation step (transit image layouts back)
     m_world.prepareWorldForDrawing(m_acb);
 }
 
 void WorldRoom::analyzeWorldForDrawing() {
     auto dbg = m_acb->createDebugRegion("analysisForDrawing");
-    // Move the view based on movements of the player
-    auto viewPos = newViewPos();
-    m_worldView.setCursorAbs(engine().cursorAbs());
-    m_worldView.setPosition(glm::floor(viewPos));
 
     // Analyze the world texture
     m_timeDay += 0.00025f * static_cast<float>(!m_stopDaytime);
@@ -187,7 +200,7 @@ void WorldRoom::analyzeWorldForDrawing() {
     m_worldDrawer.addExternalLight(
         m_worldView.cursorRel(), re::Color{0u, 0u, 0u, 255u}
     );
-    m_worldDrawer.addExternalLight(m_player.center(), re::Color{0u, 0u, 0u, 100u});
+    m_worldDrawer.addExternalLight(m_player.centerPx(), re::Color{0u, 0u, 0u, 100u});
 
     // Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(*m_acb);
@@ -197,7 +210,7 @@ void WorldRoom::updateInventoryAndUI() {
     // Inventory
     m_invUI.step();
     if (keybindPressed(InvOpenClose)) {
-        m_invUI.openOrClose();
+        m_invUI.switchOpenClose();
     }
     if (m_invUI.isOpen()) { // Inventory is open
         if (keybindPressed(InvMoveAll)) {

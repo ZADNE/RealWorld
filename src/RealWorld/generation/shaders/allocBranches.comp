@@ -3,7 +3,7 @@
  */
 #version 460
 #include <RealWorld/generation/shaders/generationPll.glsl>
-#include <RealWorld/vegetation/shaders/BranchAllocRegSB.glsl>
+#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
 #define VegPrepSB_ACCESS
 #include <RealWorld/generation/shaders/VegPrepSB.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>

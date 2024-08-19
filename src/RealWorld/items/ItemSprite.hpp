@@ -18,7 +18,8 @@ public:
     explicit ItemSprite(ItemId id);
     explicit ItemSprite(ItemSample item);
 
-    re::SpriteComplex& sprite();
+    const re::SpriteComplex& sprite() const { return m_sprite; }
+    re::SpriteComplex& sprite() { return m_sprite; }
 
 private:
     re::SharedTexture m_tex;

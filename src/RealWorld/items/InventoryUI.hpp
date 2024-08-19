@@ -7,6 +7,7 @@
 #include <glm/vec2.hpp>
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
+#include <RealEngine/graphics/fonts/RasterizedFont.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
@@ -65,19 +66,11 @@ public:
     void connectToInventory(Inventory* inventory, Connection connection);
 
     /**
-     * @brief Connects the UI with given item user (disconnects the previous)
-     * @param itemUser The item user to connect with. nullptr effectively
-     * disconnects the previous item user
+     * @brief   Switches the inventory to the oposite state
+     * @details May be blocked if an item is held.
      */
-    void connectToItemUser(ItemUser* itemUser) { m_itemUser = itemUser; }
-
-    /**
-     * @brief Switches the inventory to the oposite state
-     *
-     * May be blocked if an item is held.
-     */
-    void openOrClose();
-    bool isOpen() { return m_open; }
+    void switchOpenClose();
+    bool isOpen() const { return m_open; }
 
     void reload();
 
@@ -92,20 +85,26 @@ public:
      * @param number The slot to select (for some manners irrelevant)
      */
     void selectSlot(SlotSelectionManner selectionManner, int number = 0);
+    int selectedSlot() const { return m_selSlot; }
 
     void step();
     void draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx);
 
 private:
-    static constexpr glm::vec2 k_slotPadding = glm::vec2(8.0f, 8.0f);
+    constexpr static glm::vec2 k_slotPadding = glm::vec2(8.0f, 8.0f);
 
     inline glm::vec2 slotDims() const { return m_slotTex.subimageDims(); }
     inline glm::vec2 slotPivot() const { return m_slotTex.pivot(); }
 
-    inline glm::ivec2 invSize(Connection con) const;
-    inline int invSlotCount(Connection con) const;
+    inline glm::ivec2 invSize(Connection c) const;
+    inline int invSlotCount(Connection c) const;
 
     std::optional<glm::ivec2> cursorToSlot(glm::vec2 cursorPx) const;
+
+    void drawSlot(re::SpriteBatch& spriteBatch, glm::vec2 pivotPx, int slotIndex) const;
+    void drawItemCount(
+        re::SpriteBatch& spriteBatch, glm::vec2 pivotPx, int itemCount
+    ) const;
 
     template<typename Func>
     void forEachConnectedInventory(Func f) {
@@ -128,8 +127,6 @@ private:
         }
     }
 
-    ItemUser* m_itemUser = nullptr;
-
     glm::vec2 m_windowSize;
     re::TextureShaped m_slotTex{re::TextureSeed{"slot"}};
     glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
@@ -137,14 +134,16 @@ private:
     Item m_heldItem{};
     ItemSprite m_heldSprite{};
 
-    int m_chosenSlot     = 0; // Is signed but never should be negative
-    int m_chosenSlotPrev = 0; // Is signed but never should be negative
+    int m_selSlot     = 0; /**< Signed but never should be negative */
+    int m_selSlotPrev = 0; /**< signed but never should be negative */
 
     Inventory* m_inv[static_cast<size_t>(Connection::Count)] = {
         nullptr, nullptr, nullptr
     };
     std::vector<ItemSprite> m_invItemSprites[static_cast<size_t>(Connection::Count)];
     bool m_open = false;
+
+    re::RasterizedFont m_countFont{{.filePath = "fonts/arial.ttf", .pointSize = 26}};
 };
 
 } // namespace rw

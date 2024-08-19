@@ -4,6 +4,8 @@
 #ifndef TILE_GLSL
 #define TILE_GLSL
 
+const int k_physicsStepsPerSecond = 100;
+
 const uvec2 uTilePx = {4, 4};
 const ivec2 iTilePx = ivec2(uTilePx);
 const vec2  TilePx  = vec2(uTilePx);

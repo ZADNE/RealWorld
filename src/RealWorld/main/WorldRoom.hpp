@@ -12,11 +12,12 @@
 #include <RealWorld/items/Inventory.hpp>
 #include <RealWorld/items/InventoryUI.hpp>
 #include <RealWorld/items/ItemUser.hpp>
-#include <RealWorld/main/ActionCmdBuf.hpp>
 #include <RealWorld/main/Room.hpp>
 #include <RealWorld/main/settings/GameSettings.hpp>
-#include <RealWorld/player/Player.hpp>
-#include <RealWorld/world/World.hpp>
+#include <RealWorld/simulation/general/ActionCmdBuf.hpp>
+#include <RealWorld/simulation/general/ShaderMessageBroker.hpp>
+#include <RealWorld/simulation/objects/Player.hpp>
+#include <RealWorld/simulation/tiles/World.hpp>
 
 namespace rw {
 
@@ -92,11 +93,12 @@ private:
     glm::mat4 m_windowViewMat = calculateWindowViewMat(engine().windowDims());
 
     // Gameplay
+    Inventory m_playerInv;
+    ItemUser m_itemUser;
+    ShaderMessageBroker m_messageBroker;
     World m_world;
     WorldDrawer m_worldDrawer;
     Player m_player;
-    Inventory m_playerInv;
-    ItemUser m_itemUser;
     InventoryUI m_invUI;
     float m_timeDay    = 0.0f;
     bool m_stopDaytime = false;
