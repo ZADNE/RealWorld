@@ -11,6 +11,7 @@ namespace rw {
  */
 union SimulationPC {
     struct WorldDynamics {
+        glm::ivec2 playerPosTi;
         glm::ivec2 globalOffsetTi;
         glm::ivec2 worldTexMaskTi;
         glm::uint modifyLayer;

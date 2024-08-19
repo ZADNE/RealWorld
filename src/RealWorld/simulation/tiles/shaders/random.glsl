@@ -27,6 +27,7 @@ float randomFloat(){
     return float(random() & 0xffffff) * k_scaler;
 }
 
+bool probTest(float probability){ return randomFloat() < probability; }
 bool probTest1023(uint probability){ return (random() & 1023) < probability; }
 bool probTest65535(uint probability){ return (random() & 65535) < probability; }
 

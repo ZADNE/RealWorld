@@ -5,7 +5,6 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/world.glsl>
 #include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
-#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl>
 #include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
 #include <RealWorld/simulation/vegetation/shaders/BranchAllocReqUB.glsl>
 

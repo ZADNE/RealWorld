@@ -106,7 +106,7 @@ void velocityFluidDynamics(uvec2 fluid, ivec2 posAt){
         velocity.x += int(velocity.x == 0) * randomStateToDirection1D() * 5;// Shake my direction
     }
     ivec2 shift = ivec2(greaterThan(abs(velocity), ivec2(random() % 7, random() % 7))) * sign(velocity);
-    
+
     if (shift != ivec2(0, 0)){// If the particle should shift
         ivec2 nPosAt = tiToAt(posAt + shift, p_worldTexMaskTi);
         uvec2 neighbor = loadBlock(nPosAt);
@@ -150,6 +150,20 @@ void leafGrowth(uvec2 leaf, ivec2 posAt){
     storeWall(posAt, uvec2(leaf.L_T, strength));
 }
 
+void playerHomingBlockDynamics(uvec2 block, ivec2 posAt, ivec2 posTi){
+    ivec2 toPlayer = p_playerPosTi - posTi;
+    uint secondaryDir = uint(toPlayer.x <= toPlayer.y);
+    float secondaryDirRatio = float(toPlayer[secondaryDir]) / float(toPlayer.x + toPlayer.y);
+    ivec2 move = sign(toPlayer);
+    move[secondaryDir] *= int(probTest(secondaryDirRatio));
+    ivec2 targetAt = tiToAt(posTi + move, p_worldTexMaskTi);
+    uvec2 target = loadBlock(targetAt);
+    if (target.L_T == k_airBl){
+        storeBlock(targetAt, block);
+        storeBlock(posAt, uvec2(k_airBl, 0));
+    }
+}
+
 void main(){
     g_randomState = invocHash();
 
@@ -171,7 +185,8 @@ void main(){
                 } else if (block.L_T == k_acidBl){
                     velocityFluidDynamics(block, posAt);
                 } else if (block.L_T == k_removeBl){
-                    storeBlock(posAt, uvec2(k_airBl, 0));
+                    // storeBlock(posAt, uvec2(k_airBl, 0));
+                    playerHomingBlockDynamics(block, posAt, posTi);
                 }
             }
             { // Wall layer simulation

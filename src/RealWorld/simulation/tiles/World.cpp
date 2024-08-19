@@ -180,6 +180,7 @@ void World::step(
     m_vegSimulator.unrasterizeVegetation(acb);
 
     m_worldDynamicsPC.timeSec += k_stepDurationSec;
+    m_worldDynamicsPC.playerPosTi = pxToTi(player.centerPx());
 
     // Activation manager
     (*acb)->bindDescriptorSets(

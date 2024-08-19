@@ -70,33 +70,10 @@ void main(){
     }
     barrier();
 
-    /* // Debug print of the shared memory tile
-    if (gl_GlobalInvocationID.xy == uvec2(gl_NumWorkGroups.x * gl_WorkGroupSize.x - 1, 0)){
-        debugPrintfEXT("global: %v2u\n", gl_GlobalInvocationID.xy);
-        debugPrintfEXT("lb:     %v2u\n", lb);
-        debugPrintfEXT("rt:     %v2u\n", rt);
-        for (int y = 17; y >= 0; y--){
-            for (int x = 0; x < 18; x++){
-                ivec2 ac = s_posCh[y][x];
-                if (ac.x >= 10 || ac.x < 0){
-                    debugPrintfEXT("%i,", ac.x);
-                } else {
-                    debugPrintfEXT(" %i,", ac.x);
-                }
-                if (ac.y >= 10 || ac.y < 0){
-                    debugPrintfEXT("%i ", ac.y);
-                } else {
-                    debugPrintfEXT(" %i ", ac.y);
-                }
-            }
-            debugPrintfEXT("\n");
-        }
-    }*/
-
     // Test update chunk continuity
     int localOffsetOffset = -1;
+    const ivec2 ch00 = s_posCh[posSh.y][posSh.x];
     {
-        const ivec2 ch00 = s_posCh[posSh.y][posSh.x];
         const ivec2 ch01 = s_posCh[posSh.y + 1][posSh.x];
         const ivec2 ch10 = s_posCh[posSh.y][posSh.x + 1];
         const ivec2 ch11 = s_posCh[posSh.y + 1][posSh.x + 1];
@@ -118,7 +95,7 @@ void main(){
     // Output update chunk offsets
     if (localOffsetOffset != -1){
         b_acChunks.offsets[s_dispatchOffset + localOffsetOffset] =
-            chToTi(ivec2(gl_GlobalInvocationID.xy)) + k_chunkCenterOffsetTi;
+            chToTi(ch00) + k_chunkCenterOffsetTi;
     }
 
     // (De)activate branches of the chunk

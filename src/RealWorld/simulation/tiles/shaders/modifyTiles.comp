@@ -77,13 +77,13 @@ void main(){
             if (placed > 0){
                 messageRemoveFromSelSlot(placed);
             }
-        } else if (activeBelowMe > 0) { // Reserve space for dropped items
+        }/* else if (activeBelowMe > 0) { // Reserve space for dropped items
             s_droppedTilesOffset = reserveSpaceForDroppedTiles(activeBelowMe);
-        }
+        }*/
     }
     barrier();
 
-    if (removing && s_droppedTilesOffset != -1 && s_threadActive[id]){
+    /*if (removing && s_droppedTilesOffset != -1 && s_threadActive[id]){
         // Drop individual tiles
         uint layerTypeVar = (p_modifyLayer << 16) |
                             (orig.x        <<  8) |
@@ -94,5 +94,5 @@ void main(){
             k_physicsStepsPerSecond * 60,
             layerTypeVar
         );
-    }
+    }*/
 }

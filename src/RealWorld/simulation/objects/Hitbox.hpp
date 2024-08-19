@@ -19,6 +19,8 @@ public:
     glm::vec2& dimsPx() { return m_dimsPx; }
     glm::vec2 dimsPx() const { return m_dimsPx; }
 
+    glm::vec2 centerPx() const { return m_botLeftPx + m_dimsPx * 0.5f; }
+
     bool collidesWith(Hitbox& otherHitbox) const;
     bool overlaps(glm::vec2 pointPx) const;
 
