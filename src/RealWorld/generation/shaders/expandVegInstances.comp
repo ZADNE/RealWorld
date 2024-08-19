@@ -3,7 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/chunk.glsl>
-#include <RealWorld/simulation/tiles/shaders/random.glsl>
+#include <RealWorld/simulation/general/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
 #include <RealWorld/simulation/vegetation/shaders/normAngles.glsl>

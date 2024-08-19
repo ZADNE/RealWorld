@@ -4,7 +4,7 @@
 #version 460
 #include <RealWorld/constants/vegetation.glsl>
 #include <RealWorld/constants/chunk.glsl>
-#include <RealWorld/simulation/tiles/shaders/random.glsl>
+#include <RealWorld/simulation/general/shaders/random.glsl>
 #include <RealWorld/simulation/vegetation/shaders/wind.glsl>
 #include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
 #include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
@@ -150,20 +150,6 @@ void leafGrowth(uvec2 leaf, ivec2 posAt){
     storeWall(posAt, uvec2(leaf.L_T, strength));
 }
 
-void playerHomingBlockDynamics(uvec2 block, ivec2 posAt, ivec2 posTi){
-    ivec2 toPlayer = p_playerPosTi - posTi;
-    uint secondaryDir = uint(toPlayer.x <= toPlayer.y);
-    float secondaryDirRatio = float(toPlayer[secondaryDir]) / float(toPlayer.x + toPlayer.y);
-    ivec2 move = sign(toPlayer);
-    move[secondaryDir] *= int(probTest(secondaryDirRatio));
-    ivec2 targetAt = tiToAt(posTi + move, p_worldTexMaskTi);
-    uvec2 target = loadBlock(targetAt);
-    if (target.L_T == k_airBl){
-        storeBlock(targetAt, block);
-        storeBlock(posAt, uvec2(k_airBl, 0));
-    }
-}
-
 void main(){
     g_randomState = invocHash();
 
@@ -185,8 +171,7 @@ void main(){
                 } else if (block.L_T == k_acidBl){
                     velocityFluidDynamics(block, posAt);
                 } else if (block.L_T == k_removeBl){
-                    // storeBlock(posAt, uvec2(k_airBl, 0));
-                    playerHomingBlockDynamics(block, posAt, posTi);
+                    storeBlock(posAt, uvec2(k_airBl, 0));
                 }
             }
             { // Wall layer simulation
