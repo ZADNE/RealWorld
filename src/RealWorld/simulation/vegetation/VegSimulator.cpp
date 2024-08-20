@@ -41,7 +41,7 @@ VegSimulator::VegSimulator()
     , m_rasterizationRenderPass([]() {
         constexpr static vk::AttachmentDescription2 k_attachments{
             {},
-            vk::Format::eR8G8Uint,
+            vk::Format::eR16G16Uint,
             vk::SampleCountFlagBits::e1,
             vk::AttachmentLoadOp::eLoad,      // Color
             vk::AttachmentStoreOp::eStore,    // Color
@@ -177,7 +177,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
         {},
         worldTex.image(),
         vk::ImageViewType::e2D,
-        vk::Format::eR8G8Uint,
+        vk::Format::eR16G16Uint,
         {},
         {eColor, 0, 1, std::to_underlying(TileLayer::Wall), 1}
     }};

@@ -1,8 +1,8 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/simulation/vegetation/BranchSB.hpp>
 #include <RealWorld/simulation/tiles/Chunk.hpp>
+#include <RealWorld/simulation/vegetation/BranchSB.hpp>
 
 namespace rw {
 

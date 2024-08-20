@@ -5,7 +5,7 @@
 #define TILE_LOAD_GLSL
 #include <RealWorld/constants/world.glsl>
 
-layout (set = 0, binding = k_worldTexBinding, rg8ui)
+layout (set = 0, binding = k_worldTexBinding, rg16ui)
 uniform restrict readonly uimage2DArray u_worldImage;
 
 uvec2 loadLayer(ivec2 posAt, uint layer){
