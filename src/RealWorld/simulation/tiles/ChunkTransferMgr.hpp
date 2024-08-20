@@ -11,8 +11,8 @@
 
 #include <RealWorld/constants/world.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
-#include <RealWorld/simulation/vegetation/BranchAllocRegSB.hpp>
 #include <RealWorld/simulation/tiles/ChunkTransferStage.hpp>
+#include <RealWorld/simulation/vegetation/BranchAllocRegSB.hpp>
 
 namespace rw {
 

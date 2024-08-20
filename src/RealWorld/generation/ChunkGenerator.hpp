@@ -114,7 +114,7 @@ protected:
         {.comp = selectVariant_comp}
     };
     re::Texture m_layerTex{re::TextureCreateInfo{
-        .format = vk::Format::eR8G8Uint,
+        .format = vk::Format::eR16G16Uint,
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .layers = k_chunkGenSlots * 3, // 2 segments for blocks, 1 for walls
         .usage  = vk::ImageUsageFlagBits::eStorage |
@@ -123,7 +123,7 @@ protected:
         .debugName     = "rw::ChunkGenerator::layer"
     }};
     re::Texture m_materialTex{re::TextureCreateInfo{
-        .format        = vk::Format::eR8Uint,
+        .format        = vk::Format::eR16Uint,
         .extent        = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .layers        = k_chunkGenSlots,
         .usage         = vk::ImageUsageFlagBits::eStorage,

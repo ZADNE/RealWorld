@@ -42,8 +42,8 @@ void main(){
         for (int x = 0; x < k_iLightScale; x++){
             // Fetch the tile
             ivec2 posAt = tiToAt(readBasePosTi + ivec2(x, y), p_worldTexMask);
-            uvec2 block = texelFetch(u_worldTex, ivec3(posAt, k_blockLayer), 0).xy;
-            uvec2 wall = texelFetch(u_worldTex, ivec3(posAt, k_wallLayer), 0).xy;
+            uvec2 block = texelFetch(u_worldTex, ivec3(posAt, k_blockLayer), 0).xy & 0xff;
+            uvec2 wall = texelFetch(u_worldTex, ivec3(posAt, k_wallLayer), 0).xy   & 0xff;
 
             // Process its translucency
             bool airBlock = isAirBlock(block.L_T);

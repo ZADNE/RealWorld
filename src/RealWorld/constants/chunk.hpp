@@ -23,7 +23,8 @@ static_assert(std::has_single_bit(uChunkTi.x) && std::has_single_bit(uChunkTi.y)
 /**
  * @brief Size of a chunk in bytes
  */
-constexpr size_t k_chunkByteSize = static_cast<size_t>(iChunkTi.x) * iChunkTi.y * 4;
+constexpr size_t k_chunkByteSize = sizeof(uint16_t) * 4 *
+                                   static_cast<size_t>(iChunkTi.x) * iChunkTi.y;
 
 constexpr glm::ivec2 k_chunkLowZeroBits =
     glm::ivec2(std::countr_zero(uChunkTi.x), std::countr_zero(uChunkTi.y));

@@ -20,8 +20,8 @@ void main() {
 
     // Fetch the tile
     ivec2 pAt = tiToAt(pTi, p_worldTexMask);
-    uvec2 block = texelFetch(u_worldTex, ivec3(pAt, k_blockLayer), 0).xy;
-    uvec2 wall = texelFetch(u_worldTex, ivec3(pAt, k_wallLayer), 0).xy;
+    uvec2 block = texelFetch(u_worldTex, ivec3(pAt, k_blockLayer), 0).xy & 0xff;
+    uvec2 wall = texelFetch(u_worldTex, ivec3(pAt, k_wallLayer), 0).xy   & 0xff;
 
     // Fetch color of the block and wall
     vec4 blockColor = texelFetch(u_blockAtlas, ivec2(block.yx), 0);

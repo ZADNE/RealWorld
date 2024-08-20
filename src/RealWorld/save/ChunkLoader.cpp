@@ -22,9 +22,9 @@ std::optional<Chunk> ChunkLoader::loadChunk(
 ) {
     lodepng::State state{};
     state.info_raw.colortype              = LCT_GREY_ALPHA;
-    state.info_raw.bitdepth               = 8;
+    state.info_raw.bitdepth               = 16;
     state.decoder.remember_unknown_chunks = 1;
-    state.decoder.color_convert           = 1;
+    state.decoder.color_convert           = 0;
     glm::uvec2 realDims;
     unsigned int err;
     std::vector<uint8_t> encoded;
@@ -82,10 +82,12 @@ void ChunkLoader::saveChunk(
         }
 
         // Encode tiles and save file
-        std::string fullPath       = folderPath + chunkToChunkFilename(posCh);
-        state.info_raw.colortype   = LCT_GREY_ALPHA;
-        state.info_raw.bitdepth    = 8;
-        state.encoder.auto_convert = 0;
+        std::string fullPath = folderPath + chunkToChunkFilename(posCh);
+        state.info_png.color.colortype = LCT_GREY_ALPHA;
+        state.info_png.color.bitdepth  = 16;
+        state.info_raw.colortype       = LCT_GREY_ALPHA;
+        state.info_raw.bitdepth        = 16;
+        state.encoder.auto_convert     = 0;
         std::vector<uint8_t> png;
         if ((err = lodepng::encode(
                  png, tiles, uChunkTi.x, uChunkTi.y * k_tileLayerCount, state

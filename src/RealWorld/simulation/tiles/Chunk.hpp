@@ -19,7 +19,7 @@ namespace rw {
  * per chunk varies.
  *
  * A tile is defined by 4 values: block type, block variant, wall type and wall
- * variant.
+ * variant. All 4 values are 16 bits.
  */
 class Chunk {
 public:

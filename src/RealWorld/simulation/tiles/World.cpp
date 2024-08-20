@@ -100,7 +100,7 @@ const re::Texture& World::adoptSave(
     using enum vk::ImageUsageFlagBits;
     m_worldTex = re::Texture{re::TextureCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eDedicatedMemory,
-        .format     = vk::Format::eR8G8Uint,
+        .format     = vk::Format::eR16G16Uint,
         .extent     = {texSizeTi, 1},
         .layers     = k_tileLayerCount,
         .usage      = eStorage | eTransferSrc | eTransferDst | eSampled |
