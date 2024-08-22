@@ -34,4 +34,24 @@ restrict uniform TilePropertiesUB {
     uvec4 u_wallTransformationRules[23];
 };
 
+uint blockProperties(uint blockType){
+    return u_blockProperties[basicType(blockType)].x;
+}
+
+uint wallProperties(uint wallType){
+    return u_wallProperties[basicType(wallType)].x;
+}
+
+uvec2 blockRuleIndices(uint blockType){
+    return extendedType(blockType) != 0
+            ? uvec2(~0, 0)
+            : u_blockProperties[basicType(blockType)].yz;
+}
+
+uvec2 wallRuleIndices(uint wallType){
+    return extendedType(wallType) != 0
+            ? uvec2(~0, 0)
+            : u_wallProperties[basicType(wallType)].yz;
+}
+
 #endif // !TILE_PROPERTIES_UB_GLSL

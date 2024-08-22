@@ -54,8 +54,7 @@ enum class Block : uint8_t {
 
     Acid = 253,
 
-    Remove = 254,
-    Air    = 255
+    Air = 255
 };
 
 enum class Wall : uint8_t {
@@ -93,8 +92,7 @@ enum class Wall : uint8_t {
     BurntWood,
     HallowWood,
 
-    Remove = 254,
-    Air    = 255
+    Air = 255
 };
 
 enum class TileLayer : uint32_t {

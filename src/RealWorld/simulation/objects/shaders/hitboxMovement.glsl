@@ -9,7 +9,7 @@
 #include <RealWorld/simulation/tiles/shaders/tileLoad.glsl>
 
 uint ground(vec2 posPx, vec2 dimsPx, ivec2 worldTexMaskTi) {
-    uint grnd = k_airBl;
+    uint grnd = ~0;
     int  yTi  = int(pxToTi(posPx.y - 1.0));
     for (int xTi = int(pxToTi(posPx.x)); xTi <= pxToTi(posPx.x + dimsPx.x); ++xTi) {
         ivec2 posAt = tiToAt(ivec2(xTi, yTi), worldTexMaskTi);

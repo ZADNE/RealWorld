@@ -51,10 +51,7 @@ void ItemUser::step(
         case ItemIdSection::Hammers:
             auto layer = sec == ItemIdSection::Pickaxes ? TileLayer::Block
                                                         : TileLayer::Wall;
-            m_world.modify(
-                acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx),
-                glm::uvec2(Block::Remove, 0), std::numeric_limits<int>::max()
-            );
+            m_world.mineTiles(acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx));
             break;
         }
     }
@@ -67,9 +64,9 @@ void ItemUser::step(
                                                          : TileLayer::Wall;
             int specCount = selItemSpecCount();
             if (specCount > 0) {
-                m_world.modify(
+                m_world.placeTiles(
                     acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx),
-                    glm::uvec2{offsetInSection(item.id), 256u}, specCount
+                    glm::uvec2{offsetInSection(item.id), 0xffffffff}, specCount
                 );
                 m_selSlot->specRemoved += std::min(specModifyCount(), specCount);
             }

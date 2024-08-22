@@ -52,9 +52,8 @@ const uint k_smokeBl          = 228;
 const uint k_droppedLeafBl    = 229;
 const uint k_droppedDryLeafBl = 230;
 const uint k_acidBl           = 253;
-const uint k_removeBl         = 254;
 const uint k_airBl            = 255;
-const uint k_neverBl          = 256;
+const uint k_neverBl          = ~0;
 
 
 // Walls
@@ -93,9 +92,8 @@ const uint k_burningWoodWl    = 250;
 const uint k_burntWoodWl      = 251;
 const uint k_hallowWoodWl     = 252;
 
-const uint k_removeWl         = 254;
 const uint k_airWl            = 255;
-const uint k_neverWl          = 256;
+const uint k_neverWl          = ~0;
 
 
 // Dual tiles (both block and wall)
@@ -116,21 +114,31 @@ const uvec2 k_highlighter     = {k_highlighterBl,   k_highlighterWl};
 
 const uvec2 k_firstNonsolid   = {k_firstNonsolidBl, k_firstNonsolidWl};
 
-const uvec2 k_remove          = {k_removeBl,        k_removeWl};
 const uvec2 k_air             = {k_airBl,           k_airWl};
 const uvec2 k_never           = {k_neverBl,         k_neverWl};
 
+uint  basicType(uint type)           { return type & 0xff; }
+uvec2 basicType(uvec2 tileType)      { return tileType & 0xff; }
+uint  extendedType(uint type)        { return type & 0xff00; }
+uvec2 extendedType(uvec2 tileType)   { return tileType & 0xff; }
 
-bool isSolidBlock(uint blockType){ return blockType < k_firstNonsolidBl; }
-bool isNonsolidBlock(uint blockType){ return blockType >= k_firstNonsolidBl; }
-bool isAirBlock(uint blockType){ return blockType == k_airBl; }
+bool  isBasicType(uint type)         { return basicType(type) == type; }
+bvec2 isBasicType(uvec2 tileType)    { return equal(basicType(tileType), tileType); }
 
-bool isSolidWall(uint wallType){ return wallType < k_firstNonsolidWl; }
-bool isNonsolidWall(uint wallType){ return wallType >= k_firstNonsolidWl; }
-bool isAirWall(uint wallType){ return wallType == k_airWl; }
+bool  isSolidBlock(uint blockType)   { return isBasicType(blockType) && blockType < k_firstNonsolidBl; }
+bool  isNonsolidBlock(uint blockType){ return isBasicType(blockType) && blockType >= k_firstNonsolidBl; }
+bool  isAirBlock(uint blockType)     { return isBasicType(blockType) && blockType == k_airBl; }
 
-bvec2 isSolidTile(uvec2 tileType){ return lessThan(tileType, k_firstNonsolid); }
-bvec2 isNonsolidTile(uvec2 tileType){ return greaterThanEqual(tileType, k_firstNonsolid); }
-bvec2 isAirTile(uvec2 tileType){ return equal(tileType, k_air); }
+bool  isSolidWall(uint wallType)     { return isBasicType(wallType) && wallType < k_firstNonsolidWl; }
+bool  isNonsolidWall(uint wallType)  { return isBasicType(wallType) && wallType >= k_firstNonsolidWl; }
+bool  isAirWall(uint wallType)       { return isBasicType(wallType) && wallType == k_airWl; }
+
+bvec2 isSolidTile(uvec2 tileType)    { return bvec2(uvec2(isBasicType(tileType)) & uvec2(lessThan(tileType, k_firstNonsolid))); }
+bvec2 isNonsolidTile(uvec2 tileType) { return bvec2(uvec2(isBasicType(tileType)) & uvec2(greaterThanEqual(tileType, k_firstNonsolid))); }
+bvec2 isAirTile(uvec2 tileType)      { return bvec2(uvec2(isBasicType(tileType)) & uvec2(equal(tileType, k_air))); }
+
+const uint k_looseTypeBit = 0x100;
+bool  isLooseType(uint type)         { return bool(type & k_looseTypeBit); }
+bvec2 isLooseType(uvec2 tileType)    { return bvec2(tileType & k_looseTypeBit); }
 
 #endif // !TILE_GLSL
