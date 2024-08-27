@@ -38,10 +38,11 @@ inline std::string ivec2ToString(glm::ivec2 vec) {
     return std::to_string(vec.x) + "x" + std::to_string(vec.y);
 }
 
-template<typename T, size_t N, typename ToStringConvertor>
+template<typename Container, typename ToStringConvertor = std::identity>
 bool comboSelect(
-    const std::array<T, N>& combos, const char* label, float width,
-    typename std::array<T, N>::const_iterator& selected, ToStringConvertor toString
+    const Container& combos, const char* label, float width,
+    typename Container::const_iterator& selected,
+    ToStringConvertor toString = std::identity{}
 ) {
     ImGui::TextUnformatted(label);
     ImGui::SameLine();

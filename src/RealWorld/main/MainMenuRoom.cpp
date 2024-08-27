@@ -48,6 +48,10 @@ MainMenuRoom::MainMenuRoom(GameSettings& gameSettings)
     , m_resolution(std::find(
           k_resolutions.begin(), k_resolutions.end(), engine().windowDims()
       ))
+    , m_preferredDevice(std::find(
+          m_availableDevices.begin(), m_availableDevices.end(),
+          engine().preferredDevice()
+      ))
     , m_worldTexSize(std::find(
           k_worldTexSizes.begin(), k_worldTexSizes.end(),
           m_gameSettings.worldTexSize()
@@ -191,6 +195,10 @@ void MainMenuRoom::displaySettingsMenu() {
     auto width = engine().windowDims().x * 0.2f;
     if (comboSelect(k_resolutions, "Resolution", width, m_resolution, ivec2ToString)) {
         engine().setWindowDims(*m_resolution, true);
+    }
+
+    if (comboSelect(m_availableDevices, "Preferred device", width * 2.0f, m_preferredDevice)) {
+        engine().setPreferredDevice(*m_preferredDevice, true);
     }
 
     if (comboSelect(

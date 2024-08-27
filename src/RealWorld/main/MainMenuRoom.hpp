@@ -44,11 +44,13 @@ private:
     std::string m_newWorldName; /**< Name of the world that will be created */
     int m_newWorldSeed = 0;     /**< Seed of the world that will be created */
 
-    bool m_fullscreen = engine().isWindowFullscreen();
-    bool m_borderless = engine().isWindowBorderless();
-    bool m_vSync      = engine().isWindowVSynced();
-    decltype(k_resolutions)::const_iterator m_resolution;
-    decltype(k_worldTexSizes)::const_iterator m_worldTexSize;
+    bool m_fullscreen                           = engine().isWindowFullscreen();
+    bool m_borderless                           = engine().isWindowBorderless();
+    bool m_vSync                                = engine().isWindowVSynced();
+    std::vector<std::string> m_availableDevices = engine().availableDevices();
+    decltype(k_resolutions)::const_iterator m_resolution{};
+    decltype(m_availableDevices)::const_iterator m_preferredDevice{};
+    decltype(k_worldTexSizes)::const_iterator m_worldTexSize{};
 
     bool m_drawKeybindListeningPopup = false; /**< True if currently listening */
 
