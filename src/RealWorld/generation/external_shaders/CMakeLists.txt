@@ -1,4 +1,4 @@
-target_shaders(RealWorld PRIVATE
+real_target_sources(RealWorld PRIVATE
     float_hash.glsl             
     snoise.glsl                 
 )

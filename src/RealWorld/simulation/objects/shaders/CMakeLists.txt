@@ -1,4 +1,4 @@
-﻿target_shaders(RealWorld PRIVATE
+﻿real_target_sources(RealWorld PRIVATE
     hitboxMovement.glsl         
     movePlayer.comp             
     PlayerHitboxSB.glsl         

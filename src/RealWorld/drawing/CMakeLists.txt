@@ -1,6 +1,6 @@
 ﻿add_subdirectory(shaders)
 
-target_sources(RealWorld PRIVATE
+real_target_sources(RealWorld PRIVATE
     ExternalLight.hpp           
     MinimapDrawer.hpp           MinimapDrawer.cpp
     MinimapLayout.hpp           

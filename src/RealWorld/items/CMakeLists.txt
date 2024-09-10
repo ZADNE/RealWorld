@@ -1,4 +1,4 @@
-﻿target_sources(RealWorld PRIVATE 
+﻿real_target_sources(RealWorld PRIVATE 
     Inventory.hpp               Inventory.cpp
     InventoryData.hpp           
     InventoryUI.hpp             InventoryUI.cpp

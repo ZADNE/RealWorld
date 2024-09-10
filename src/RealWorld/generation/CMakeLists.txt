@@ -1,7 +1,7 @@
 ﻿add_subdirectory(external_shaders)
 add_subdirectory(shaders)
 
-target_sources(RealWorld PRIVATE 
+real_target_sources(RealWorld PRIVATE 
     ChunkGenerator.hpp          ChunkGeneratorMain.cpp
     ChunkGeneratorTerrain.cpp   ChunkGeneratorVeg.cpp
     VegPrepSB.hpp               

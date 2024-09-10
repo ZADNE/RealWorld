@@ -2,17 +2,18 @@ cmake_minimum_required(VERSION 3.24)
 project(RealWorld)
 
 #RealWorld library
-    add_library_with_shaders(RealWorld STATIC)
+    add_real_library(RealWorld STATIC)
+    real_target_init_file_sets(RealWorld BASE_DIR src)
     target_include_directories(RealWorld PRIVATE src)
     set_target_properties(RealWorld PROPERTIES
         CXX_STANDARD 23
-        REALSHADERS_CXX_NAMESPACE "rw"
+        realproject_shader_cxx_namespace "rw"
         INTERPROCEDURAL_OPTIMIZATION TRUE
     )
     target_link_libraries(RealWorld PUBLIC RealEngine)
 
 #RealWorld Game
-    add_executable(RealWorld_Game)
+    add_real_executable(RealWorld_Game)
     target_include_directories(RealWorld_Game PRIVATE src)
     set_target_properties(RealWorld_Game PROPERTIES
         CXX_STANDARD 23
@@ -25,7 +26,7 @@ project(RealWorld)
     )
 
 #RealWorld PerfTest
-    add_executable(RealWorld_PerfTest)
+    add_real_executable(RealWorld_PerfTest)
     target_include_directories(RealWorld_PerfTest PRIVATE src perf_test)
     set_target_properties(RealWorld_PerfTest PROPERTIES
         CXX_STANDARD 23
