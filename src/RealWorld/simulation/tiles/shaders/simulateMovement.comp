@@ -53,7 +53,7 @@ int randomStateToDirection1D(){
 
 void looseTypeDynamics(uint layer, uvec2 typeVar, ivec2 posAt){
     ivec2 belowAt = tiToAt(ivec2(posAt.x, posAt.y - 1), p_worldTexMaskTi);
-    uvec2 below = loadBlock(belowAt);
+    uvec2 below = loadLayer(belowAt, layer);
 
     if (isNonsolidBlock(below.L_T) && below.L_T != typeVar.L_T){ // If can swap
         storeLayer(belowAt, layer, typeVar);
