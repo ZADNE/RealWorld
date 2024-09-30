@@ -127,15 +127,15 @@ bvec2 isBasicType(uvec2 tileType)    { return equal(basicType(tileType), tileTyp
 
 bool  isSolidBlock(uint blockType)   { return isBasicType(blockType) && blockType < k_firstNonsolidBl; }
 bool  isNonsolidBlock(uint blockType){ return isBasicType(blockType) && blockType >= k_firstNonsolidBl; }
-bool  isAirBlock(uint blockType)     { return isBasicType(blockType) && blockType == k_airBl; }
+bool  isAirBlock(uint blockType)     { return blockType == k_airBl; }
 
 bool  isSolidWall(uint wallType)     { return isBasicType(wallType) && wallType < k_firstNonsolidWl; }
 bool  isNonsolidWall(uint wallType)  { return isBasicType(wallType) && wallType >= k_firstNonsolidWl; }
-bool  isAirWall(uint wallType)       { return isBasicType(wallType) && wallType == k_airWl; }
+bool  isAirWall(uint wallType)       { return wallType == k_airWl; }
 
 bvec2 isSolidTile(uvec2 tileType)    { return bvec2(uvec2(isBasicType(tileType)) & uvec2(lessThan(tileType, k_firstNonsolid))); }
 bvec2 isNonsolidTile(uvec2 tileType) { return bvec2(uvec2(isBasicType(tileType)) & uvec2(greaterThanEqual(tileType, k_firstNonsolid))); }
-bvec2 isAirTile(uvec2 tileType)      { return bvec2(uvec2(isBasicType(tileType)) & uvec2(equal(tileType, k_air))); }
+bvec2 isAirTile(uvec2 tileType)      { return equal(tileType, k_air); }
 
 const uint k_looseTypeBit = 0x100;
 bool  isLooseType(uint type)         { return bool(type & k_looseTypeBit); }

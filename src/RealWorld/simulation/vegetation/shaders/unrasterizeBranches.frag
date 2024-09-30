@@ -19,7 +19,7 @@ layout (location = 3) in flat uint i_branchIndex15wallType31;
 uint wallToWoodBasicState(uint prevWall, uint naturalWall){
     if (prevWall == naturalWall) {
         return k_woodBasicStateNatural;
-    } else if (isLooseType(prevWall)){
+    } else if (prevWall == (naturalWall | k_looseTypeBit)){
         return k_woodBasicStateRemoved;
     }
     switch (prevWall) {
