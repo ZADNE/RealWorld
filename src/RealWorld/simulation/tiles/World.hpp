@@ -55,11 +55,19 @@ public:
     );
 
     /**
-     * @brief Modifies tiles in the world
+     * @brief Places tiles into the world
      */
-    void modify(
+    void placeTiles(
         const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
         float radius, glm::ivec2 posTi, glm::uvec2 tile, int maxCount
+    );
+
+    /**
+     * @brief Mines tiles of the world
+     */
+    void mineTiles(
+        const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
+        float radius, glm::ivec2 posTi
     );
 
     /**
@@ -82,6 +90,11 @@ public:
     bool saveChunks(const ActionCmdBuf& acb);
 
 private:
+    void modifyTiles(
+        const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
+        float radius, glm::ivec2 posTi, glm::uvec2 tile, int maxCount
+    );
+
     void tileTransformationsStep(const ActionCmdBuf& acb);
 
     void fluidDynamicsStep(const ActionCmdBuf& acb);

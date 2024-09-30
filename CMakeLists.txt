@@ -1,18 +1,24 @@
 cmake_minimum_required(VERSION 3.24)
 project(RealWorld)
 
-#RealWorld library
-    add_library_with_shaders(RealWorld STATIC)
+# Find RealEngine
+if(NOT TARGET RealEngine)
+    find_package(RealEngine 2.0.0 CONFIG REQUIRED)
+endif()
+
+# RealWorld library
+    add_real_library(RealWorld STATIC)
+    real_target_init_file_sets(RealWorld BASE_DIR src)
     target_include_directories(RealWorld PRIVATE src)
     set_target_properties(RealWorld PROPERTIES
         CXX_STANDARD 23
-        REALSHADERS_CXX_NAMESPACE "rw"
+        realproject_shader_cxx_namespace "rw"
         INTERPROCEDURAL_OPTIMIZATION TRUE
     )
     target_link_libraries(RealWorld PUBLIC RealEngine)
 
-#RealWorld Game
-    add_executable(RealWorld_Game)
+# RealWorld Game
+    add_real_executable(RealWorld_Game)
     target_include_directories(RealWorld_Game PRIVATE src)
     set_target_properties(RealWorld_Game PROPERTIES
         CXX_STANDARD 23
@@ -24,8 +30,8 @@ project(RealWorld)
         ${CMAKE_CURRENT_SOURCE_DIR}/data/ .
     )
 
-#RealWorld PerfTest
-    add_executable(RealWorld_PerfTest)
+# RealWorld PerfTest
+    add_real_executable(RealWorld_PerfTest)
     target_include_directories(RealWorld_PerfTest PRIVATE src perf_test)
     set_target_properties(RealWorld_PerfTest PROPERTIES
         CXX_STANDARD 23
@@ -37,20 +43,20 @@ project(RealWorld)
         ${CMAKE_CURRENT_SOURCE_DIR}/data/ .
     )
 
-#Doxygen documentation
+# Doxygen documentation
     find_package(Doxygen)
-    if (DOXYGEN_FOUND)
+    if(DOXYGEN_FOUND)
         set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
         set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
         configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
 
-        add_custom_target(RealWorld_Documentation ALL
+        add_custom_target(RealWorld_Documentation
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
-    endif (DOXYGEN_FOUND)
+    endif()
 
-#Add subdirectories
+# Add subdirectories
     add_subdirectory(src)
     add_subdirectory(perf_test)

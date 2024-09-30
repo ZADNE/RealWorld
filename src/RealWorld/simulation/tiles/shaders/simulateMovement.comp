@@ -51,6 +51,17 @@ int randomStateToDirection1D(){
     return bool(g_randomState & 1) ? +1 : -1;
 }
 
+void looseTypeDynamics(uint layer, uvec2 typeVar, ivec2 posAt){
+    ivec2 belowAt = tiToAt(ivec2(posAt.x, posAt.y - 1), p_worldTexMaskTi);
+    uvec2 below = loadLayer(belowAt, layer);
+
+    if (isAirBlock(below.L_T) && below.L_T != typeVar.L_T){ // If can swap
+        storeLayer(belowAt, layer, typeVar);
+        storeLayer(posAt, layer, below);
+        return;
+    }
+}
+
 uint fluidIndex(uint fluid){ return fluid & ~k_firstNonsolidBl; }
 
 void leaningFluidDynamics(uvec2 fluid, ivec2 posAt, vec2 posTi){
@@ -166,17 +177,19 @@ void main(){
             ivec2 posAt = tiToAt(posTi, p_worldTexMaskTi);
             { // Block layer simulation
                 uvec2 block = loadBlock(posAt);
-                if (block.L_T >= k_waterBl && block.L_T <= k_droppedDryLeafBl){
+                if (isLooseType(block.L_T)){
+                    looseTypeDynamics(k_blockLayer, block, posAt);
+                } else if (block.L_T >= k_waterBl && block.L_T <= k_droppedDryLeafBl){
                     leaningFluidDynamics(block, posAt, posTi);
                 } else if (block.L_T == k_acidBl){
                     velocityFluidDynamics(block, posAt);
-                } else if (block.L_T == k_removeBl){
-                    storeBlock(posAt, uvec2(k_airBl, 0));
                 }
             }
             { // Wall layer simulation
                 uvec2 wall = loadWall(posAt);
-                if (isLeafWall(wall.L_T)){
+                if (isLooseType(wall.L_T)){
+                    looseTypeDynamics(k_wallLayer, wall, posAt);
+                } else if (isLeafWall(wall.L_T)){
                     if (wall.L_V > 8) {
                         leafGrowth(wall, posAt);
                     } else if (wall.L_V > 0){
@@ -184,8 +197,6 @@ void main(){
                     } else {
                         storeWall(posAt, uvec2(k_airWl, 0));
                     }
-                } else if (wall.L_T == k_removeWl){
-                    storeWall(posAt, uvec2(k_airWl, 0));
                 }
             }
         }

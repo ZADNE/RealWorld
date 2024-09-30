@@ -66,36 +66,41 @@ void main(){
 
     uvec4 tile = loadTile(centerAt);
     uvec2 edgeTile = uvec2(0);
+    uvec2 basicEdgeTile = uvec2(0);
     uvec2 nearbyProperties = uvec2(0);
-    for(int i = 0; i < k_nearbyOffsets.length(); ++i){ // Check all neighbors
+    for (int i = 0; i < k_nearbyOffsets.length(); ++i){ // Check all neighbors
         ivec2 nPosAt = tiToAt(centerAt + k_nearbyOffsets[i], p_worldTexMaskTi);
         uvec4 neighbor = loadTile(nPosAt);
         // Analyze the neighbor
-        nearbyProperties |= uvec2(u_blockProperties[neighbor.BL_T].x, u_wallProperties[neighbor.WL_T].x);
-        edgeTile |= uvec2(isNonsolidTile(neighbor.TL_T));
+        nearbyProperties |= uvec2(blockProperties(neighbor.BL_T), wallProperties(neighbor.WL_T));
+        edgeTile |= uvec2(greaterThanEqual(neighbor.TL_T, k_firstNonsolid));
+        basicEdgeTile |= uvec2(isNonsolidTile(neighbor.TL_T));
     }
 
-    // Transform block of the tile
-    uvec2 blockRuleIndices = u_blockProperties[tile.BL_T].yz;
-    for (uint i = blockRuleIndices.x; i <= blockRuleIndices.y;++i) {
-        if (layerTransition(tile, 0, 1, u_blockTransformationRules[i], nearbyProperties, edgeTile)){
-            break;
+    { // Transform block of the tile
+        uvec2 indices = blockRuleIndices(tile.BL_T);
+        for (uint i = indices.x; i <= indices.y;++i) {
+            if (layerTransition(tile, 0, 1, u_blockTransformationRules[i], nearbyProperties, edgeTile)){
+                break;
+            }
         }
     }
 
-    // Transform wall of the tile
-    uvec2 wallRuleIndices = u_wallProperties[tile.WL_T].yz;
-    for (uint i = wallRuleIndices.x; i <= wallRuleIndices.y;++i) {
-        if (layerTransition(tile, 1, 0, u_wallTransformationRules[i], nearbyProperties, edgeTile)){
-            break;
+    { // Transform wall of the tile
+        uvec2 indices = wallRuleIndices(tile.WL_T);
+        for (uint i = indices.x; i <= indices.y;++i) {
+            if (layerTransition(tile, 1, 0, u_wallTransformationRules[i], nearbyProperties, edgeTile)){
+                break;
+            }
         }
     }
 
     // Select variant
     uvec2 currentlyInner = uvec2(lessThan(tile.TL_V, uvec2(12)));
-    uvec2 isSolid = uvec2(isSolidTile(tile.TL_T));
-    uvec2 switchToInner = (~edgeTile & ~currentlyInner) & isSolid;
-    uvec2 switchToOuter = (edgeTile & currentlyInner) & isSolid;
+    uvec2 isSolid = uvec2(lessThan(basicType(tile.TL_T), k_firstNonsolid));
+    uvec2 edge = mix(edgeTile, basicEdgeTile, isLooseType(tile.TL_T));
+    uvec2 switchToInner = (~edge & ~currentlyInner) & isSolid;
+    uvec2 switchToOuter = (edge & currentlyInner) & isSolid;
     tile.TL_V =
         mix(tile.TL_V, uvec2(0), bvec2(switchToInner | switchToOuter))
         + mix(uvec2(0), random2() % 12, bvec2(switchToInner))

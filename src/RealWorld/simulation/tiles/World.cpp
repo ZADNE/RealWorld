@@ -194,7 +194,38 @@ void World::step(
     fluidDynamicsStep(acb);
 }
 
-void World::modify(
+void World::placeTiles(
+    const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
+    float radius, glm::ivec2 posTi, glm::uvec2 tile, int maxCount
+) {
+    modifyTiles(acb, layer, shape, radius, posTi, tile, maxCount);
+}
+
+void World::mineTiles(
+    const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
+    float radius, glm::ivec2 posTi
+) {
+    modifyTiles(
+        acb, layer, shape, radius, posTi, glm::uvec2{0xffffffff, 0},
+        std::numeric_limits<int>::max()
+    );
+}
+
+void World::prepareWorldForDrawing(const ActionCmdBuf& acb) {
+    acb.action(
+        [&](const re::CommandBuffer& cb) {
+            // Dummy (is implemented in world drawing classes)
+        },
+        ImageAccess{
+            .name   = ImageTrackName::World,
+            .stage  = S::eComputeShader | S::eFragmentShader,
+            .access = A::eShaderSampledRead,
+            .layout = eShaderReadOnlyOptimal
+        }
+    );
+}
+
+void World::modifyTiles(
     const ActionCmdBuf& acb, TileLayer layer, ModificationShape shape,
     float radius, glm::ivec2 posTi, glm::uvec2 tile, int maxCount
 ) {
@@ -221,20 +252,6 @@ void World::modify(
             .name   = BufferTrackName::ShaderMessage,
             .stage  = S::eComputeShader,
             .access = A::eShaderStorageRead | A::eShaderStorageWrite
-        }
-    );
-}
-
-void World::prepareWorldForDrawing(const ActionCmdBuf& acb) {
-    acb.action(
-        [&](const re::CommandBuffer& cb) {
-            // Dummy (is implemented in world drawing classes)
-        },
-        ImageAccess{
-            .name   = ImageTrackName::World,
-            .stage  = S::eComputeShader | S::eFragmentShader,
-            .access = A::eShaderSampledRead,
-            .layout = eShaderReadOnlyOptimal
         }
     );
 }
