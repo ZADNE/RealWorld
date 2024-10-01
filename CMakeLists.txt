@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.24)
 project(RealWorld)
 
-# Find RealEngine
+include("cmake/GetRealWorldVersion.cmake")
+
+# If not building RealEngine from source
 if(NOT TARGET RealEngine)
+    # Find installed RealEngine
     find_package(RealEngine 2.0.0 CONFIG REQUIRED)
 endif()
 
@@ -60,3 +63,27 @@ endif()
 # Add subdirectories
     add_subdirectory(src)
     add_subdirectory(perf_test)
+
+# Installation
+    get_realworld_version()
+    set(realworld_install_suffix "RealWorld-v${realworld_version}")
+    install(
+        DIRECTORY data/
+            DESTINATION ${realworld_install_suffix}
+            COMPONENT RealWorld_Runtime
+    )
+    install(
+        IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
+            DESTINATION ${realworld_install_suffix}
+            COMPONENT RealWorld_Runtime
+    )
+    install(
+        PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/RealWorld_Game${CMAKE_EXECUTABLE_SUFFIX}"
+            DESTINATION ${realworld_install_suffix}
+            COMPONENT RealWorld_Runtime
+    )
+    install(
+        DIRECTORY data/
+            DESTINATION ${realworld_install_suffix}
+            COMPONENT RealWorld_Runtime
+    )

@@ -1,5 +1,9 @@
 # RealWorld: A tile-based game world simulation demo
 
+[![CMake build](https://github.com/ZADNE/RealWorld/actions/workflows/build.yml/badge.svg)](https://github.com/ZADNE/RealWorld/actions/workflows/build.yml)
+[![C++ Core Guidelines](https://github.com/ZADNE/RealWorld/actions/workflows/cpp-core-guidelines.yml/badge.svg)](https://github.com/ZADNE/RealWorld/actions/workflows/cpp-core-guidelines.yml)
+[![Formatting](https://github.com/ZADNE/RealWorld/actions/workflows/formatting.yml/badge.svg)](https://github.com/ZADNE/RealWorld/actions/workflows/formatting.yml)
+
 ## Features:
 - 2D endless tile-based world; procedurally generated as the player moves in it
 - Falling-sand simulation of liquids, gases, fire and interaction among them
@@ -21,5 +25,5 @@ The project is developed in Vulkan using [RealEngine](https://github.com/ZADNE/R
 ![Biomes](readme_img/biomes.png)
 #### A burning oak
 ![Fire](readme_img/fire.png)
-#### Blight spreading from acacia to nearby cactus 
+#### Blight spreading from acacia to nearby cactus
 ![Blight](readme_img/mold.png)

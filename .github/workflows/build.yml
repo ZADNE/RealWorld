@@ -1,0 +1,122 @@
+name: CMake build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+        build_type: [Debug, Release]
+        c_compiler: [gcc-14, cl]
+        include:
+          - os: windows-2022
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: ubuntu-24.04
+            c_compiler: gcc-14
+            cpp_compiler: g++-14
+        exclude:
+          - os: windows-2022
+            c_compiler: gcc-14
+          - os: ubuntu-24.04
+            c_compiler: cl
+
+    steps:
+    - name: Set reusable strings
+      shell: bash
+      run: |
+        echo "repo-name=$(basename -- "${{ github.repository }}")" >> $GITHUB_ENV
+        echo "download-dir=${{ github.workspace }}/downloaded" >> "$GITHUB_ENV"
+        echo "build-dir=${{ github.workspace }}/Real/build" >> "$GITHUB_ENV"
+        echo "source-dir=${{ github.workspace }}/Real" >> "$GITHUB_ENV"
+        echo "install-dir=${{ github.workspace }}/Real/install" >> "$GITHUB_ENV"
+        echo "realengine-package=RealEngine-v2.0.0-${{ matrix.os }}-${{ matrix.build_type }}.7z" >> "$GITHUB_ENV"
+
+    - name: Clone Real
+      uses: actions/checkout@v4
+      with:
+        repository: ZADNE/Real
+        ref: main
+        path: 'Real'
+
+    - name: Download RealEngine
+      run: >
+        gh release download
+        --pattern ${{ env.realengine-package }}
+        --dir ${{ env.download-dir }}
+        ;
+        7z e ${{ env.realengine-package }} -o ${{ env.download-dir }}
+
+    - name: Clone RealWorld
+      uses: actions/checkout@v4
+      with:
+        path: 'Real/${{ env.repo-name }}'
+
+    - name: Set up Vulkan SDK
+      uses: humbletim/install-vulkan-sdk@v1.1.1
+      with:
+        version: 1.3.290.0
+        cache: true
+
+    - name: Set up SDL2 (Windows)
+      if: runner.os == 'Windows'
+      uses: libsdl-org/setup-sdl@main
+      id: sdl
+      with:
+        build-type: ${{ matrix.build_type }}
+        install-linux-dependencies: true
+        version: 2.30.7
+        version-sdl-ttf: 2.22.0
+
+    - name: Set up SDL2 (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install libsdl2-dev libsdl2-2.0-0 libsdl2-ttf-dev libsdl2-ttf-2.0-0 -y;
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ env.build-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DCMAKE_PREFIX_PATH=${{ env.download-dir }}
+        -S ${{ env.source-dir }}
+
+    - name: Build
+      run: >
+        cmake --build ${{ env.build-dir }}
+        --config ${{ matrix.build_type }}
+        --parallel 4
+
+    - name: Test
+      working-directory: ${{ env.build-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}
+
+    - name: Compose archive name
+      shell: bash
+      run: >
+        echo "archive-name=RealWorld-v$(cmake -P Real/RealWorld/cmake/GetRealWorldVersion.cmake)-${{ matrix.os }}-${{ matrix.build_type }}" >> "$GITHUB_ENV"
+
+    - name: Create release
+      run: >
+        cmake --install ${{ env.build-dir }}
+        --prefix ${{ env.install-dir }}/${{ env.archive-name }}
+        --config ${{ matrix.build_type }}
+        --component RealWorld_Runtime
+        --strip
+        ;
+        7z a ${{ env.install-dir }}/${{ env.archive-name }}.7z
+        ${{ env.install-dir }}/*
+        ;
+        gh release upload ${{ github.head_ref  }} --clobber
+        --repo ZADNE/RealWorld
+        ${{ env.install-dir }}/${{ env.archive-name }}.7z
+      env:
+        GH_TOKEN: ${{ github.token }}
