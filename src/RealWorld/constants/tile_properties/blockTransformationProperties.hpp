@@ -3,9 +3,12 @@
  */
 #pragma once
 #include <array>
+
 #include <glm/vec4.hpp>
 
 namespace rw {
+
+// clang-format off: Custom alignment of columns
 
 constexpr glm::uint STONEb          = 1 << 0;
 constexpr glm::uint DIRTb           = 1 << 1;
@@ -275,5 +278,7 @@ constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
 /*acid*/            glm::uvec4{ EXTINGUISHINGb,                             ~0,                         0,                          0},
 /*air*/             glm::uvec4{ 0,                                          ~0,                         0,                          0}
 };
+
+// clang-format on
 
 } // namespace rw

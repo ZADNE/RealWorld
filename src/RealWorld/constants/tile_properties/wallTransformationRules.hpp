@@ -6,8 +6,7 @@
 
 namespace rw {
 
-
-
+// clang-format off: Custom alignment of columns
 
 // x = The properties that neighbors MUST have to transform
 // y = The properties that neighbors MUST NOT have to transform
@@ -41,5 +40,7 @@ constexpr std::array<glm::uvec4, 25> k_wallTransformationRules = {
     glm::uvec4{ 0,                                      0,                                      383  | MIX_PROPSb,                   Wall::BurntWood},       // Extinguishing of wood
     glm::uvec4{ 0,                                      EXTINGUISHINGb,                         1023 | MIX_PROPSb | TO_OTHERb,       Block::Fire},           // Spark from burning of wood
 };
+
+// clang-format on
 
 } // namespace rw

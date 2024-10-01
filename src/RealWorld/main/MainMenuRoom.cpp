@@ -197,7 +197,9 @@ void MainMenuRoom::displaySettingsMenu() {
         engine().setWindowDims(*m_resolution, true);
     }
 
-    if (comboSelect(m_availableDevices, "Preferred device", width * 2.0f, m_preferredDevice)) {
+    if (comboSelect(
+            m_availableDevices, "Preferred device", width * 2.0f, m_preferredDevice
+        )) {
         engine().setPreferredDevice(*m_preferredDevice, true);
     }
 
