@@ -52,9 +52,7 @@ jobs:
         --pattern ${{ env.realengine-package }}
         --dir ${{ env.download-dir }}
         ;
-        ls ${{ env.download-dir }}
-        ;
-        7z e ${{ env.download-dir }}/${{ env.realengine-package }} -o${{ env.download-dir }}
+        7z x ${{ env.download-dir }}/${{ env.realengine-package }} -o${{ env.download-dir }}
       env:
         GH_TOKEN: ${{ github.token }}
 
