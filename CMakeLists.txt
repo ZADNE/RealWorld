@@ -65,25 +65,18 @@ endif()
     add_subdirectory(perf_test)
 
 # Installation
-    get_realworld_version()
-    set(realworld_install_suffix "RealWorld-v${realworld_version}")
-    install(
-        DIRECTORY data/
-            DESTINATION ${realworld_install_suffix}
+    install(TARGETS RealWorld_Game
+        RUNTIME
+            DESTINATION .
             COMPONENT RealWorld_Runtime
     )
     install(
         IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
-            DESTINATION ${realworld_install_suffix}
-            COMPONENT RealWorld_Runtime
-    )
-    install(
-        PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/RealWorld_Game${CMAKE_EXECUTABLE_SUFFIX}"
-            DESTINATION ${realworld_install_suffix}
+            DESTINATION .
             COMPONENT RealWorld_Runtime
     )
     install(
         DIRECTORY data/
-            DESTINATION ${realworld_install_suffix}
+            DESTINATION .
             COMPONENT RealWorld_Runtime
     )
