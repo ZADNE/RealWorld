@@ -70,8 +70,8 @@ endif()
             DESTINATION .
             COMPONENT RealWorld_Runtime
     )
-    install(
-        IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
+    install(IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
+        RUNTIME
             DESTINATION .
             COMPONENT RealWorld_Runtime
     )
