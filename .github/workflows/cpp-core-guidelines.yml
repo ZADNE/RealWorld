@@ -20,6 +20,7 @@ jobs:
       shell: bash
       run: |
         echo "repo-name=$(basename -- "${{ github.repository }}")" >> $GITHUB_ENV
+        echo "download-dir=${{ github.workspace }}/downloaded" >> "$GITHUB_ENV"
         echo "build-dir=${{ github.workspace }}/Real/build" >> "$GITHUB_ENV"
         echo "source-dir=${{ github.workspace }}/Real" >> "$GITHUB_ENV"
         echo "report-file=${{ github.workspace }}/clang-tidy-report.txt" >> "$GITHUB_ENV"
@@ -30,6 +31,17 @@ jobs:
         repository: ZADNE/Real
         ref: main
         path: 'Real'
+
+    - name: Download RealEngine
+      run: >
+        gh release download
+        --repo ZADNE/RealEngine
+        --pattern ${{ env.realengine-package }}
+        --dir ${{ env.download-dir }}
+        ;
+        7z e ${{ env.download-dir }}/${{ env.realengine-package }} -o${{ env.download-dir }}
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: Clone RealWorld
       uses: actions/checkout@v4
@@ -54,6 +66,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=g++-14
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        -DCMAKE_PREFIX_PATH=${{ env.download-dir }}
         -S ${{ env.source-dir }}
 
     - name: Compile shaders
