@@ -19,16 +19,12 @@ enum class ItemIdSection : uint16_t {
 
 enum class ItemId : uint16_t;
 
-constexpr ItemId toItemId(Block block) {
-    return static_cast<ItemId>(
-        std::to_underlying(ItemIdSection::Blocks) + std::to_underlying(block)
-    );
+constexpr std::underlying_type<ItemId>::type toItemId(Block block) {
+    return std::to_underlying(ItemIdSection::Blocks) + std::to_underlying(block);
 }
 
-constexpr ItemId toItemId(Wall wall) {
-    return static_cast<ItemId>(
-        std::to_underlying(ItemIdSection::Walls) + std::to_underlying(wall)
-    );
+constexpr std::underlying_type<ItemId>::type toItemId(Wall wall) {
+    return std::to_underlying(ItemIdSection::Walls) + std::to_underlying(wall);
 }
 
 /**
