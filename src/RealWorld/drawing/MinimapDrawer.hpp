@@ -25,10 +25,10 @@ public:
     void drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
 private:
-    glm::mat4 m_viewMat;
-    glm::vec2 m_viewSizePx;
-    glm::vec2 m_viewSizeTi;
-    glm::vec2 m_worldTexCh;
+    glm::mat4 m_viewMat{};
+    glm::vec2 m_viewSizePx{};
+    glm::vec2 m_viewSizeTi{};
+    glm::vec2 m_worldTexCh{};
     re::GeometryBatch m_geometryBatch;
     MinimapLayout m_layout;
 };
