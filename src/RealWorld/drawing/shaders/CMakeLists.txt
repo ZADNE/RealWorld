@@ -3,6 +3,7 @@
         addDynamicLights.comp       
         AnalysisPC.glsl             
         analyzeTiles.comp           
+        calcInputsPll.glsl          
         calculateShadows.comp       
         drawFullscreen.vert         
         drawMinimap.vert            drawMinimap.frag

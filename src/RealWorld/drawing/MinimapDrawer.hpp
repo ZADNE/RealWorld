@@ -30,7 +30,7 @@ private:
     glm::vec2 m_viewSizeTi{};
     glm::vec2 m_worldTexCh{};
     re::GeometryBatch m_geometryBatch;
-    MinimapLayout m_layout;
+    MinimapLayout m_layout{};
 };
 
 } // namespace rw

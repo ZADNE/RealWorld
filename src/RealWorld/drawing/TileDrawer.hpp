@@ -37,7 +37,7 @@ private:
     re::SharedTexture m_wallAtlasTex =
         re::RM::texture(re::TextureSeed{"wallAtlas"});
 
-    glm::vec2 m_viewSizePx;
+    glm::vec2 m_viewSizePx{};
 
     WorldDrawingPC& m_pc;
 

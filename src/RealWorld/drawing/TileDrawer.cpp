@@ -14,6 +14,7 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
+// NOLINTBEGIN : This is taken from a shader
 float hash12(glm::vec2 p) {
     glm::vec3 p3 = fract(glm::vec3(p.x, p.y, p.x) * .1031f);
     p3 += glm::dot(p3, glm::vec3(p3.y, p3.z, p3.x) + 33.33f);
@@ -25,7 +26,7 @@ glm::vec3 columnValues(float x, float seed) {
     float columnX     = floor(x);
     float columnFract = glm::fract(x);
     float a           = hash12(glm::vec2(columnX, seed));
-    float b           = hash12(glm::vec2(columnX + 1.0, seed));
+    float b           = hash12(glm::vec2(columnX + 1.0f, seed));
     return glm::vec3(a, b, columnFract);
 }
 
@@ -36,13 +37,13 @@ float linColumnValue(float x, float seed) {
 
 float biomeTemp(float xPx, float seed) {
     float res = 0.0f;
-    float x   = xPx * (1.0 / 8192.0);
-    float amp = 0.5;
+    float x   = xPx * (1.0f / 8192.0f);
+    float amp = 0.5f;
 
     for (int i = 0; i < 3; ++i) {
-        res += linColumnValue(x, seed + 11.0) * amp;
-        x *= 2.0;
-        amp *= 0.5;
+        res += linColumnValue(x, seed + 11.0f) * amp;
+        x *= 2.0f;
+        amp *= 0.5f;
     }
 
     return res;
@@ -68,6 +69,7 @@ glm::vec3 bcColor(float biomeTemp) {
     // Interpolate
     return glm::mix(b00, b01, frac);
 }
+// NOLINTEND
 
 TileDrawer::TileDrawer(
     re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx, WorldDrawingPC& pc

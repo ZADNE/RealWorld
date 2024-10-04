@@ -6,6 +6,7 @@
 #include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/light.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
+#include <RealWorld/drawing/shaders/calcInputsPll.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
 layout (local_size_x = k_analysisGroupSize,
@@ -13,15 +14,15 @@ layout (local_size_x = k_analysisGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = 0, r32ui)
+layout (set = 0, binding = k_lightImageBinding, r32ui)
     uniform restrict writeonly uimage2D u_lightImage;
-layout (set = 0, binding = 1, r8)
+layout (set = 0, binding = k_transluImageBinding, r8)
     uniform restrict writeonly image2D  u_transluImage;
-layout (set = 0, binding = 2)
+layout (set = 0, binding = k_worldSamplerBinding)
     uniform usampler2DArray             u_worldTex;
-layout (set = 0, binding = 3)
+layout (set = 0, binding = k_blockLightAtlasBinding)
     uniform sampler2D                   u_blockLightAtlas;
-layout (set = 0, binding = 4)
+layout (set = 0, binding = k_wallLightAtlasBinding)
     uniform sampler2D                   u_wallLightAtlas;
 
 const float TO_UNIT_SCALE = 1.0 / (k_iLightScale * k_iLightScale);
