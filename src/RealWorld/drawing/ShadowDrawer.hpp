@@ -97,7 +97,7 @@ private:
         re::ImageView lightTexR32ImageView;
         re::Texture transluTex; /**< R = translucency of the unit */
         re::Texture shadowsTex;
-        AnalysisPC analysisPC;
+        AnalysisPC analysisPC{};
         re::DescriptorSet calcInputsDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;

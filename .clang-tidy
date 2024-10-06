@@ -1,0 +1,5 @@
+---
+HeaderFilterRegex:      '^RealWorld\/.*\.hpp$'
+InheritParentConfig:    true
+...
+

@@ -14,7 +14,7 @@
 
 namespace rw {
 
-using PNGChunkName = std::array<char, 5>;
+using PNGChunkName = std::array<char, 5>; // NOLINT(*-magic-numbers)
 constexpr PNGChunkName k_branchPNGChunkName{'b', 'r', 'N', 'c', '\0'};
 
 std::optional<Chunk> ChunkLoader::loadChunk(
@@ -25,8 +25,8 @@ std::optional<Chunk> ChunkLoader::loadChunk(
     state.info_raw.bitdepth               = 16;
     state.decoder.remember_unknown_chunks = 1;
     state.decoder.color_convert           = 0;
-    glm::uvec2 realDims;
-    unsigned int err;
+    glm::uvec2 realDims{};
+    unsigned int err{};
     std::vector<uint8_t> encoded;
     std::string fullPath = folderPath + chunkToChunkFilename(posCh);
     std::vector<uint8_t> tiles;
@@ -46,7 +46,7 @@ std::optional<Chunk> ChunkLoader::loadChunk(
             &unknownData[state.info_png.unknown_chunks_size[unknownChunkPos]];
         for (auto chunk = unknownData; chunk != unknownDataEnd;
              chunk      = lodepng_chunk_next(chunk, unknownDataEnd)) {
-            PNGChunkName chunkName;
+            PNGChunkName chunkName{};
             lodepng_chunk_type(chunkName.data(), chunk);
             if (chunkName == k_branchPNGChunkName) {
                 // Successfully loaded chunk AND branches
@@ -71,12 +71,12 @@ void ChunkLoader::saveChunk(
         unsigned int err;
 
         // Create chunk with branches
-        if (err = lodepng_chunk_create(
-                &state.info_png.unknown_chunks_data[0],
-                &state.info_png.unknown_chunks_size[0],
-                static_cast<unsigned int>(branchesSerialized.size()),
-                k_branchPNGChunkName.data(), branchesSerialized.data()
-            )) {
+        if ((err = lodepng_chunk_create(
+                 &state.info_png.unknown_chunks_data[0],
+                 &state.info_png.unknown_chunks_size[0],
+                 static_cast<unsigned int>(branchesSerialized.size()),
+                 k_branchPNGChunkName.data(), branchesSerialized.data()
+             ))) {
             // Chunk creation failed
             throw std::runtime_error{lodepng_error_text(err)};
         }

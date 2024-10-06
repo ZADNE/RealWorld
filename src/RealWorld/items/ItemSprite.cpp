@@ -24,8 +24,4 @@ ItemSprite::ItemSprite(ItemId id)
       } {
 }
 
-ItemSprite::ItemSprite(ItemSample item)
-    : ItemSprite{item.id} {
-}
-
 } // namespace rw

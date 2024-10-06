@@ -27,6 +27,8 @@ public:
     void keybindCallback(re::Key newKey);
 
 private:
+    glm::vec2 windowDims() const { return glm::vec2{engine().windowDims()}; }
+
     enum class Menu {
         Main,
         NewWorld,

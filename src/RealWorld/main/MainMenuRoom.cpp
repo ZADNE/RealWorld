@@ -10,7 +10,7 @@ using namespace ImGui;
 
 namespace rw {
 
-const char* k_keybindNotice =
+constexpr const char* k_keybindNotice =
     "Press a key to change the keybind.\nOr press Delete to cancel.";
 
 glm::vec2 keybindNoticeSize() {
@@ -76,7 +76,7 @@ void MainMenuRoom::step() {
 void MainMenuRoom::render(const re::CommandBuffer& cb, double interpolationFactor) {
     engine().mainRenderPassBegin();
 
-    SetNextWindowSize(engine().windowDims());
+    SetNextWindowSize(windowDims());
     SetNextWindowPos({0.0f, 0.0f});
     PushFont(m_arial16);
 
@@ -92,7 +92,7 @@ void MainMenuRoom::render(const re::CommandBuffer& cb, double interpolationFacto
         }
 
         if (m_menu != Main) {
-            SetCursorPosY(engine().windowDims().y - GetFrameHeight() * 2.0f);
+            SetCursorPosY(windowDims().y - GetFrameHeight() * 2.0f);
             Separator();
             if (Button("Return to main menu") || keybindReleased(Quit))
                 m_menu = Main;
@@ -110,8 +110,7 @@ void MainMenuRoom::keybindCallback(re::Key newKey) {
 }
 
 void MainMenuRoom::mainMenu() {
-    SetNextItemWidth(400.0f);
-    if (Button("Create a new world"))
+    if (Button("Cr"))
         m_menu = NewWorld;
     if (Button("Load a saved world"))
         m_menu = LoadWorld;
@@ -120,7 +119,7 @@ void MainMenuRoom::mainMenu() {
     if (Button("Controls"))
         m_menu = Controls;
 
-    SetCursorPosY(engine().windowDims().y - GetFrameHeight() * 2.0f);
+    SetCursorPosY(windowDims().y - GetFrameHeight() * 2.0f);
     Separator();
     if (Button("Exit") || keybindPressed(Quit))
         engine().scheduleExit();
@@ -162,7 +161,7 @@ void MainMenuRoom::loadWorldMenu() {
     EndTable();
 
     if (m_worlds.empty()) {
-        Text("No saved worlds...");
+        TextUnformatted("No saved worlds...");
     }
 }
 
@@ -192,7 +191,7 @@ void MainMenuRoom::displaySettingsMenu() {
         engine().setWindowVSync(m_vSync, true);
     }
 
-    auto width = engine().windowDims().x * 0.2f;
+    float width = windowDims().x * 0.25f;
     if (comboSelect(k_resolutions, "Resolution", width, m_resolution, ivec2ToString)) {
         engine().setWindowDims(*m_resolution, true);
     }
@@ -217,7 +216,7 @@ void MainMenuRoom::controlsMenu() {
 
     BeginTable(
         "##controlsTable", 3, ImGuiTableFlags_ScrollY,
-        {0.0f, engine().windowDims().y - GetFrameHeight() * 4.125f}
+        {0.0f, windowDims().y - GetFrameHeight() * 4.125f} // NOLINT(*-magic-numbers)
     );
     for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::Count); i++) {
         PushID(static_cast<int>(i));
@@ -226,6 +225,7 @@ void MainMenuRoom::controlsMenu() {
         case ItemuserUsePrimary: controlsCategoryHeader("Item usage"); break;
         case PlayerLeft:         controlsCategoryHeader("Player movement"); break;
         case Quit:               controlsCategoryHeader("Other"); break;
+        default:                 break;
         }
 
         TableNextRow();

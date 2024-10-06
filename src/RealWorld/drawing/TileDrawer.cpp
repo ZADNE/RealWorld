@@ -14,7 +14,7 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
-// NOLINTBEGIN : This is taken from a shader
+// NOLINTBEGIN: This is taken from a shader
 float hash12(glm::vec2 p) {
     glm::vec3 p3 = fract(glm::vec3(p.x, p.y, p.x) * .1031f);
     p3 += glm::dot(p3, glm::vec3(p3.y, p3.z, p3.x) + 33.33f);

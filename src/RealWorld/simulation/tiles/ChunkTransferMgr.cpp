@@ -177,7 +177,9 @@ ChunkTransferMgr::UploadPlan ChunkTransferMgr::planUpload(
     glm::ivec2 posCh, glm::ivec2 posAt, const std::vector<uint8_t>& tiles,
     std::span<const uint8_t> branchesSerialized
 ) {
-    int branchCount = branchesSerialized.size_bytes() / sizeof(BranchSerialized);
+    int branchCount = static_cast<int>(
+        branchesSerialized.size_bytes() / sizeof(BranchSerialized)
+    );
     if (branchCount > 0) {
         if (int allocI = allocIndex(tiToCh(posAt)); allocI >= 0) {
             // Branches are already allocated for the chunk

@@ -32,6 +32,8 @@ constexpr re::RenderPassCreateInfo k_renderPassCreateInfo{
     .debugName    = "rw::WorldRoom::mainRenderpass"
 };
 
+constexpr float k_timedaySpeed = 0.00025f;
+
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
     : Room(
           1,
@@ -43,7 +45,7 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
           }
       )
     , m_gameSettings(gameSettings)
-    , m_playerInv({10, 4})
+    , m_playerInv(k_defaultPlayerInventorySize)
     , m_itemUser(m_world, m_playerInv)
     , m_messageBroker(m_acb, m_playerInv, m_itemUser)
     , m_world(m_messageBroker.messageBuffer())
@@ -193,14 +195,14 @@ void WorldRoom::analyzeWorldForDrawing() {
     auto dbg = m_acb->createDebugRegion("analysisForDrawing");
 
     // Analyze the world texture
-    m_timeDay += 0.00025f * static_cast<float>(!m_stopDaytime);
+    m_timeDay += k_timedaySpeed * static_cast<float>(!m_stopDaytime);
     m_worldDrawer.beginStep(*m_acb, m_timeDay);
 
     // Add external lights (these below are mostly for debug)
     m_worldDrawer.addExternalLight(
         m_worldView.cursorRel(), re::Color{0u, 0u, 0u, 255u}
     );
-    m_worldDrawer.addExternalLight(m_player.centerPx(), re::Color{0u, 0u, 0u, 100u});
+    m_worldDrawer.addExternalLight(m_player.centerPx(), re::Color{0u, 0u, 0u, 64u});
 
     // Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(*m_acb);
@@ -241,7 +243,7 @@ void WorldRoom::updateInventoryAndUI() {
         }
 
         int slot0 = static_cast<int>(InvSlot0);
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < m_playerInv.dims().x; ++i) {
             if (keybindPressed(static_cast<RealWorldKeyBindings>(slot0 + i))) {
                 m_invUI.selectSlot(AbsolutePos, i);
             }
@@ -279,13 +281,11 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
             "##topLeftMenu", nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
         )) {
-        ImGui::Text(
-            "FPS: %u\nMax FT: %i us", engine().framesPerSecond(),
-            static_cast<int>(
-                duration_cast<std::chrono::microseconds>(engine().maxFrameTime())
-                    .count()
-            )
+        std::string fpsFrameTimeStr = std::format(
+            "FPS: {}\nMax FT: {} us", engine().framesPerSecond(),
+            duration_cast<std::chrono::microseconds>(engine().maxFrameTime()).count()
         );
+        ImGui::TextUnformatted(fpsFrameTimeStr.c_str());
         ImGui::Separator();
         ImGui::TextUnformatted("Minimap:");
         ImGui::SameLine();

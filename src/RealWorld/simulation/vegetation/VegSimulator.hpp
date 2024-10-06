@@ -53,7 +53,7 @@ private:
         glm::ivec2 worldTexMaskTi;
         float timeSec;
         glm::uint readBuf;
-    } m_vegDynamicsPC;
+    } m_vegDynamicsPC{};
 
     re::PipelineLayout m_pipelineLayout;
     re::RenderPass m_rasterizationRenderPass;

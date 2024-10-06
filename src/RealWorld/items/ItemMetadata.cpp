@@ -7,6 +7,8 @@
 
 namespace rw {
 
+// NOLINTBEGIN(*-magic-numbers): This is the place to define the numbers
+
 ItemIdSection section(ItemId id) {
     return static_cast<ItemIdSection>(
         std::to_underlying(id) & std::to_underlying(ItemIdSection::Mask)
@@ -24,7 +26,7 @@ int maxStack(ItemId id) {
     case ItemIdSection::Walls:    return 100'000;
     case ItemIdSection::Pickaxes: return 1;
     case ItemIdSection::Hammers:  return 1;
-    default:                      assert(!"Unknown item"); std::unreachable();
+    default:                      std::unreachable();
     }
 }
 
@@ -35,7 +37,7 @@ char textureAtlas(ItemId id) {
     case ItemIdSection::Walls:    return 'W';
     case ItemIdSection::Pickaxes: return 'P';
     case ItemIdSection::Hammers:  return 'H';
-    default:                      assert(!"Unknown item"); std::unreachable();
+    default:                      std::unreachable();
     }
 }
 
@@ -54,8 +56,10 @@ float drawScale(ItemId id) {
     case ItemIdSection::Walls:    return 4.0f;
     case ItemIdSection::Pickaxes: return 1.0f;
     case ItemIdSection::Hammers:  return 1.0f;
-    default:                      assert(!"Unknown item"); std::unreachable();
+    default:                      std::unreachable();
     }
 }
+
+// NOLINTEND(*-magic-numbers)
 
 } // namespace rw

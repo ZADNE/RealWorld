@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     });
 
     rw::WorldSaveLoader::deleteWorld("test");
-    rw::WorldSaveLoader::createWorld("test", 101);
+    rw::WorldSaveLoader::createWorld("test", 101); // NOLINT(*-magic-numbers)
 
     rw::GameSettings gameSettings{};
 

@@ -6,13 +6,15 @@
 
 namespace rw {
 
+using WallTransformationRules = std::array<glm::uvec4, 25>;
+
 // clang-format off: Custom alignment of columns
 
 // x = The properties that neighbors MUST have to transform
 // y = The properties that neighbors MUST NOT have to transform
 // z = Properties of the transformation
 // w = The wall that it will be transformed into
-constexpr std::array<glm::uvec4, 25> k_wallTransformationRules = {
+constexpr WallTransformationRules k_wallTransformationRules = {
 //              REQUIRED properties of neighbors        FORBIDDEN properties of neighbors       RULE's properties                   TARGET tile
     glm::uvec4{ GRASSb,                                 BURNINGb,                               1023 | EDGEb | MIX_PROPSb,           Wall::Grass},           // Dirt to grass
     glm::uvec4{ HALLOWb,                                0,                                      1023 | MIX_PROPSb,                   Wall::HallowDirt},

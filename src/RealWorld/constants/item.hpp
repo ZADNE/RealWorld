@@ -98,4 +98,9 @@ enum class ItemId : uint16_t {
     HCreativeHammer = HammerSection,
 };
 
+/**
+ * @brief Default size in slots of player's inventory
+ */
+constexpr glm::ivec2 k_defaultPlayerInventorySize = glm::ivec2{10, 4};
+
 } // namespace rw

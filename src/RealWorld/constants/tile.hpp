@@ -15,6 +15,7 @@ namespace rw {
  * @brief The number of physics steps per second
  */
 constexpr int k_physicsStepsPerSecond = 100;
+constexpr int k_physicsStepsPerMinute = k_physicsStepsPerSecond * 60;
 
 /**
  * @brief Dimensions of a tile, in pixels

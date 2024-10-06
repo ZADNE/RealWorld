@@ -150,8 +150,9 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     m_worldTexSizeTi               = chToTi(worldTexSizeCh);
     m_vegDynamicsPC.worldTexSizeTi = m_worldTexSizeTi;
     m_vegDynamicsPC.worldTexMaskTi = m_worldTexSizeTi - 1u;
+    glm::vec2 worldTexSizeTi{m_worldTexSizeTi};
     m_vegDynamicsPC.mvpMat =
-        glm::ortho<float>(0.0f, m_worldTexSizeTi.x, 0.0f, m_worldTexSizeTi.y);
+        glm::ortho(0.0f, worldTexSizeTi.x, 0.0f, worldTexSizeTi.y);
 
     // Prepare branch buffer
     m_branchBuf = re::Buffer{re::BufferCreateInfo{
