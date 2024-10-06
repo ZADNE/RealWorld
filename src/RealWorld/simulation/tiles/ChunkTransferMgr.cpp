@@ -214,8 +214,8 @@ ChunkTransferMgr::DownloadPlan ChunkTransferMgr::planDownload(
     BranchRange range{};
     if (int allocI = allocIndex(tiToCh(posAt)); allocI >= 0) {
         const auto& alloc = m_regBuf->allocations[allocI];
-        range.begin       = alloc.firstBranch;
-        range.count       = alloc.branchCount;
+        range.begin       = static_cast<int>(alloc.firstBranch);
+        range.count       = static_cast<int>(alloc.branchCount);
     }
     if (m_stage->insertDownloadAndBranchDeallocation(posCh, posAt, range)) {
         return DownloadPlanned;
@@ -351,7 +351,7 @@ int ChunkTransferMgr::allocIndex(glm::ivec2 posAc) const {
 
 int ChunkTransferMgr::branchCount(glm::ivec2 posAc) const {
     if (int allocI = allocIndex(posAc); allocI >= 0) {
-        return m_regBuf->allocations[allocI].branchCount;
+        return static_cast<int>(m_regBuf->allocations[allocI].branchCount);
     }
     return 0;
 }

@@ -1,5 +1,5 @@
 ---
-HeaderFilterRegex:      '^RealWorld\/.*\.hpp$'
+HeaderFilterRegex:      'RealWorld\/(src\/RealWorld|perf_test\/RealWorld_perf_test)\/.*\.hpp$'
 InheritParentConfig:    true
 ...
 

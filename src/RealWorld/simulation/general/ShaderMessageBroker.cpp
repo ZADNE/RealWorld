@@ -31,6 +31,7 @@ void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
     for (int i = 0; i < intCount;) {
         auto msgId = static_cast<ShaderMessageId>(ints[i++]);
         switch (msgId) {
+        case ShaderMessageId::Reserved: break;
         case ShaderMessageId::RemoveFromSelSlot:
             m_itemUser.finishSpecRemoval(ints[i++]);
             break;

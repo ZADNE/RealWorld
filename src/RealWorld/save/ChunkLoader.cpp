@@ -68,7 +68,7 @@ void ChunkLoader::saveChunk(
 ) {
     if constexpr (re::k_buildType == re::BuildType::Release) {
         lodepng::State state{};
-        unsigned int err;
+        unsigned int err{};
 
         // Create chunk with branches
         if ((err = lodepng_chunk_create(
