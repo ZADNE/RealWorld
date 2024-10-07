@@ -12,13 +12,13 @@ namespace rw {
 
 struct MetadataSave {
     std::string path; // Includes ending slash
-    int seed;
+    int seed{};
     std::string worldName;
-    float timeDay;
+    float timeDay{};
 };
 
 struct PlayerSave {
-    glm::ivec2 pos;
+    glm::ivec2 pos{};
 };
 
 struct WorldSave {

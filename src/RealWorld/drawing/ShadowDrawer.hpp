@@ -93,15 +93,15 @@ private:
         glm::vec2 viewSizePx;
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
-        re::Texture lightTex; /**< RGB = color of the light, A = intensity of the light */
+        re::Texture lightTex; ///< RGB = color of the light, A = intensity of the light
         re::ImageView lightTexR32ImageView;
-        re::Texture transluTex; /**< R = translucency of the unit */
+        re::Texture transluTex; ///< R = translucency of the unit
         re::Texture shadowsTex;
         AnalysisPC analysisPC{};
         re::DescriptorSet calcInputsDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;
-        glm::vec2 shadowAreaPxInv; // 1 over the area where shadows are calculated
+        glm::vec2 shadowAreaPxInv; ///< 1 over the area where shadows are calculated
     };
 
     ViewSizeDependent m_;

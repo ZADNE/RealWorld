@@ -110,7 +110,7 @@ void MainMenuRoom::keybindCallback(re::Key newKey) {
 }
 
 void MainMenuRoom::mainMenu() {
-    if (Button("Cr"))
+    if (Button("Create a new world"))
         m_menu = NewWorld;
     if (Button("Load a saved world"))
         m_menu = LoadWorld;

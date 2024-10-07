@@ -24,11 +24,13 @@ public:
     const re::Buffer& adoptSave(glm::ivec2 worldTexSizeCh);
 
 private:
+
+    // NOLINTBEGIN: Shader mirror
     struct Body {
         glm::ivec2 bottomCenterPx;
         glm::ivec2 sizePx;
         glm::ivec2 velocityPx;
-        glm::vec2 rotationRad; /**< y component is unused */
+        glm::vec2 rotationRad; ///< y component is unused
     };
 
     struct BodiesSBHeader {
@@ -47,6 +49,7 @@ private:
         Body bodies[];
     };
 #pragma warning(pop)
+    // NOLINTEND
 
     /**
      * @brief Size of header is same as 1 body

@@ -47,9 +47,9 @@ public:
 
 private:
     struct PlayerHitboxSB {
-        glm::vec2 botLeftPx[2];
-        glm::vec2 dimsPx;
-        glm::vec2 velocityPx;
+        glm::vec2 botLeftPx[2]{};
+        glm::vec2 dimsPx{};
+        glm::vec2 velocityPx{};
     };
 
     Player(re::TextureShaped&& playerTex)
@@ -66,14 +66,14 @@ private:
     re::TextureShaped m_playerTex;
 
     struct PlayerMovementPC {
-        glm::ivec2 worldTexMaskTi;
+        glm::ivec2 worldTexMaskTi{};
         float acceleration    = 0.5f;
-        float maxWalkVelocity = 6.0f;
-        float jumpVelocity    = 7.0f;
-        float walkDirection;
-        float jump;
-        float autojump;
-        int writeIndex = 1; // Selects PlayerHitboxSB::botLeftPx, swings every step
+        float maxWalkVelocity = 6.0f; // NOLINT(*-magic-numbers)
+        float jumpVelocity    = 7.0f; // NOLINT(*-magic-numbers)
+        float walkDirection{};
+        float jump{};
+        float autojump{};
+        int writeIndex = 1; ///< Selects PlayerHitboxSB::botLeftPx, swings every step
     } m_pushConstants;
 
     re::Buffer m_hitboxBuf;

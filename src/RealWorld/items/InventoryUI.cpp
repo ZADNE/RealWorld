@@ -222,7 +222,7 @@ void InventoryUI::drawItemCount(
     re::SpriteBatch& spriteBatch, glm::vec2 pivotPx, int itemCount
 ) const {
     if (itemCount > 1) {
-        // NOLINTBEGIN(*-magic-numbers): Numbers to fir the design of slot
+        // NOLINTBEGIN(*-magic-numbers): Numbers to fit the design of a slot
         std::string str;
         if (itemCount > 1000) {
             str = std::to_string(itemCount / 1000) + 'k';

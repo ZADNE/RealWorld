@@ -7,6 +7,8 @@
 
 namespace rw {
 
+// NOLINTBEGIN: Shader mirror
+
 #pragma warning(push)
 #pragma warning(disable : 4200)
 struct ActiveChunksSB {
@@ -17,5 +19,7 @@ struct ActiveChunksSB {
     // Following indices: absolute positions of chunks, in chunks
 };
 #pragma warning(pop)
+
+// NOLINTEND
 
 } // namespace rw

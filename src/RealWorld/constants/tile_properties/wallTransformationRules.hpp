@@ -6,7 +6,7 @@
 
 namespace rw {
 
-using WallTransformationRules = std::array<glm::uvec4, 25>;
+using WallTransformationRules = std::array<glm::uvec4, 25>; // NOLINT(*-magic-numbers)
 
 // clang-format off: Custom alignment of columns
 

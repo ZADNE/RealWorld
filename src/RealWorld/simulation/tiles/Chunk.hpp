@@ -67,10 +67,10 @@ public:
     }
 
 private:
-    std::vector<uint8_t> m_tiles; /**< First block layer, then wall layer */
+    std::vector<uint8_t> m_tiles; ///< First block layer, then wall layer
     std::vector<uint8_t> m_branchesSerialized;
     glm::ivec2 m_posCh{0, 0};
-    mutable int m_stepsSinceLastOperation = 0; /**< Steps since last read/write op */
+    mutable int m_stepsSinceLastOperation = 0; ///< Steps since last read/write op
 };
 
 } // namespace rw

@@ -6,6 +6,7 @@
 
 namespace rw {
 
+// NOLINTBEGIN: Shader mirror
 struct BranchAllocReqUB {
     glm::ivec2 targetCh[k_chunkTransferSlots];
     int branchCount[k_chunkTransferSlots];
@@ -13,5 +14,6 @@ struct BranchAllocReqUB {
     int allocSlotsEnd;
     int deallocSlotsBegin;
 };
+// NOLINTEND
 
 } // namespace rw

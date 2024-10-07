@@ -28,10 +28,10 @@ public:
     explicit ChunkActivationMgr(const re::PipelineLayout& pipelineLayout);
 
     struct TargetInfo {
-        int seed;                      /**< Seed of the new world */
-        const std::string& folderPath; /**< Path to the folder that contains the new world */
-        const re::Texture& worldTex; /**< The world texture that will be managed */
-        glm::ivec2 worldTexCh; /**< Must be a multiple of k_minWorldTexSizeCh */
+        int seed;                      ///< Seed of the new world
+        const std::string& folderPath; ///< Path to the folder that contains the new world
+        const re::Texture& worldTex; ///< The world texture that will be managed
+        glm::ivec2 worldTexCh; ///< Must be a multiple of k_minWorldTexSizeCh
         re::DescriptorSet& descriptorSet;
         const re::Buffer& bodiesBuf;
         const re::Buffer& branchBuf;
@@ -90,7 +90,7 @@ private:
     void planDeactivation(glm::ivec2& activeCh, glm::ivec2 posAc);
     void analyzeAfterChanges(const ActionCmdBuf& acb);
 
-    int m_transparentChunkChanges = 0; /**< Number of changes in this step */
+    int m_transparentChunkChanges = 0; ///< Number of changes in this step
 
     /**
      * @brief Key: posCh, Val: inactive chunk

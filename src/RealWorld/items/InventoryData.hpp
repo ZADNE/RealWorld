@@ -53,8 +53,10 @@ public:
     const Item& operator()(int i) const { return m_items[i]; }
 
 protected:
+    // NOLINTBEGIN(*-non-private-member-variables-in-classes): Intentional
     glm::ivec2 m_dims{0, 0};
     std::vector<Item> m_items;
+    // NOLINTEND(*-non-private-member-variables-in-classes)
 };
 
 } // namespace rw

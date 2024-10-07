@@ -42,11 +42,11 @@ public:
      */
     explicit InventoryUI(glm::vec2 windowSize);
 
-    InventoryUI(const InventoryUI&)            = delete; /**< Noncopyable */
-    InventoryUI& operator=(const InventoryUI&) = delete; /**< Noncopyable */
+    InventoryUI(const InventoryUI&)            = delete; ///< Noncopyable
+    InventoryUI& operator=(const InventoryUI&) = delete; ///< Noncopyable
 
-    InventoryUI(InventoryUI&&)             = delete;     /**< Nonmovable */
-    InventoryUI&& operator=(InventoryUI&&) = delete;     /**< Nonmovable */
+    InventoryUI(InventoryUI&&)             = delete;     ///< Nonmovable
+    InventoryUI&& operator=(InventoryUI&&) = delete;     ///< Nonmovable
 
     ~InventoryUI();
 
@@ -137,13 +137,17 @@ private:
     int m_selSlot     = 0; ///< Signed but never should be negative
     int m_selSlotPrev = 0; ///< signed but never should be negative
 
-    Inventory* m_inv[static_cast<size_t>(Connection::Count)] = {
-        nullptr, nullptr, nullptr
-    };
-    std::vector<ItemSprite> m_invItemSprites[static_cast<size_t>(Connection::Count)];
+    template<typename T>
+    using PerConnection = std::array<T, static_cast<size_t>(Connection::Count)>;
+
+    PerConnection<Inventory*> m_inv{nullptr, nullptr, nullptr};
+    PerConnection<std::vector<ItemSprite>> m_invItemSprites;
     bool m_open = false;
 
-    re::RasterizedFont m_countFont{{.filePath = "fonts/arial.ttf", .pointSize = 26}};
+    re::RasterizedFont m_countFont{{
+        .filePath  = "fonts/arial.ttf",
+        .pointSize = 26 // NOLINT(*-magic-numbers): Matches slot design
+    }};
 };
 
 } // namespace rw

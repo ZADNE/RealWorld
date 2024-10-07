@@ -6,6 +6,8 @@
 
 namespace rw {
 
+// NOLINTBEGIN: Shader mirror
+
 /**
  * @brief Union of push constants used for simulation
  */
@@ -24,5 +26,7 @@ union SimulationPC {
         float timeSec         = static_cast<float>(time(nullptr) & 0xFFFF);
     } worldDynamics;
 };
+
+// NOLINTEND
 
 } // namespace rw
