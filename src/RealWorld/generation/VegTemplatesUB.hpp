@@ -14,7 +14,7 @@
 namespace rw {
 namespace veg_templates {
 
-// NOLINTBEGIN(*-avoid-magic-numbers)
+// NOLINTBEGIN: Executed only in compile time
 
 struct String {
     glm::uint sBegin{}; // Index of first symbol
@@ -533,7 +533,7 @@ constexpr VegTemplatesUB composeVegTemplates() {
                           std::span{tmplts},         std::span{rasterTmplts}};
 }
 
-// NOLINTEND(*-avoid-magic-numbers)
+// NOLINTEND
 
 } // namespace veg_templates
 

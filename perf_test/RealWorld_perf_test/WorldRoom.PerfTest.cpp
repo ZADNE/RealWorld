@@ -10,7 +10,7 @@ namespace rw {
  */
 glm::vec2 WorldRoom::newViewPos() const {
     static glm::vec2 pos{0.0f};
-    pos += glm::vec2{15.0f, 0.0f}; // NOLINT(*-magic-numbers)
+    pos += glm::vec2{15.0f, 0.0f};
     return pos;
 }
 

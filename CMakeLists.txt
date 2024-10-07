@@ -39,6 +39,9 @@ endif()
     set_target_properties(RealWorld_PerfTest PROPERTIES
         CXX_STANDARD 23
         INTERPROCEDURAL_OPTIMIZATION TRUE
+        COMPILE_WARNING_AS_ERROR OFF # Disable linting
+        EXPORT_COMPILE_COMMANDS OFF
+        CXX_CLANG_TIDY ""
     )
     target_link_libraries(RealWorld_PerfTest PUBLIC RealWorld)
     add_custom_command(TARGET RealWorld_PerfTest POST_BUILD
