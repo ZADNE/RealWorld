@@ -45,7 +45,7 @@ public:
 
     /**
      * @brief   Retargets the chunk manager to a new world.
-     * @detail  Frees all chunks of the previous world without saving them.
+     * @details Frees all chunks of the previous world without saving them.
      * @param targetInfo    Info about the new world
      * @return              Active chunks storage buffer
      */
@@ -60,7 +60,6 @@ public:
 
     /**
      * @brief Gets the number of inactive chunks held in memory.
-     *
      * @return The number of chunks held in CPU memory.
      */
     size_t numberOfInactiveChunks();

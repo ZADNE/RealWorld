@@ -25,7 +25,6 @@ class Chunk {
 public:
     /**
      * @brief Contructs chunk from raw bytes
-     * @param posCh Position of the chunk, in chunk coordinates.
      */
     Chunk(
         glm::ivec2 posCh, const uint8_t* tiles,

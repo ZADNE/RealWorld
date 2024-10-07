@@ -35,6 +35,7 @@ public:
 
     /**
      * @brief Moves the player based on its surroundings tiles and user input
+     * @param acb Command buffer that will be used to record the commands
      * @param dir Walking direction: -1 = go left, 0 = stay still, +1 = go right
      * @param jump The player jumps if this is true and if the player stands on
      * solid ground

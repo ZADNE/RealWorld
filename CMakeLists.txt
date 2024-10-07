@@ -50,6 +50,7 @@ endif()
     )
 
 # Doxygen documentation
+    get_realworld_version()
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
         set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)

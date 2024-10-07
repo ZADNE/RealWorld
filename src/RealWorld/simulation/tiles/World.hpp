@@ -39,15 +39,16 @@ public:
     explicit World(const re::Buffer& shaderMessageBuf);
 
     /**
-     * @copydoc ChunkHandler::numberOfInactiveChunks
+     * @copydoc ChunkActivationMgr::numberOfInactiveChunks
      */
     size_t numberOfInactiveChunks();
 
     /**
      * @brief Performs a simulation step of the world
-     * @param cb         Command buffer that will be used to record the commands
+     * @param acb        Command buffer that will be used to record the commands
      * @param botLeftTi  The most bottom-left tile that has to be active
      * @param topRightTi The most top-right tile that has to be active
+     * @param player     Items home to this hitbox's position
      */
     void step(
         const ActionCmdBuf& acb, glm::ivec2 botLeftTi, glm::ivec2 topRightTi,
@@ -77,9 +78,10 @@ public:
 
     /**
      * @brief Sets this world class to simulate the world inside the given save
-     * @param save          Save of the world to run
-     * @param worldTexSize  Must be multiples of 8
-     * @returns             The new world texture
+     * @param acb               Command buffer
+     * @param save              A save of the world to run
+     * @param worldTexSizeCh    Must be multiples of 8
+     * @returns                 The new world texture
      */
     const re::Texture& adoptSave(
         ActionCmdBuf& acb, const MetadataSave& save, glm::ivec2 worldTexSizeCh
