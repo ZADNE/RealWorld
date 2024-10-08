@@ -54,7 +54,7 @@ private:
     Inventory& m_inv;
 
     struct SelSlotState {
-        int slotIndex;
+        int slotIndex{};
         int specRemoved{};
     };
     re::StepDoubleBuffered<SelSlotState> m_selSlot{};
@@ -64,12 +64,12 @@ private:
 
     int specModifyCount() const;
 
-    // <  -1: steps not using
-    // == -1: just stopped using
-    // == +0: invalid state
-    // >  +1: steps using
-    // == +1: just started using
-    int m_using[2] = {-1, -1};
+    /// <  -1: steps not using
+    /// == -1: just stopped using
+    /// == +0: invalid state
+    /// >  +1: steps using
+    /// == +1: just started using
+    std::array<int, 2> m_using{-1, -1};
 };
 
 } // namespace rw

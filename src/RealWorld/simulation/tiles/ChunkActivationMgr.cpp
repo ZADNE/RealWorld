@@ -128,7 +128,7 @@ void ChunkActivationMgr::activateArea(
     // Check inactive chunks that have been inactive for too long
     for (auto it = m_inactiveChunks.begin(); it != m_inactiveChunks.end();) {
         // If the inactive chunk has not been used for a minute
-        if (it->second.step() >= k_physicsStepsPerSecond * 60) {
+        if (it->second.step() >= k_physicsStepsPerMinute) {
             // Save the chunk to disk
             saveChunk(
                 it->first, it->second.tiles().data(),
@@ -226,6 +226,9 @@ void ChunkActivationMgr::planActivation(
         case AllocationPlanned:
             // Chunk remains inactive
             activeCh = k_chunkBeingAllocated;
+            break;
+        case NoUploadSpace:
+            // Nothing can be done, will be planned next step
             break;
         }
     } else {

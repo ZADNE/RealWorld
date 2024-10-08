@@ -20,11 +20,11 @@ public:
     explicit Inventory(glm::ivec2 size)
         : InventoryData{size} {}
 
-    Inventory(const Inventory&)            = delete; /**< Noncopyable */
-    Inventory& operator=(const Inventory&) = delete; /**< Noncopyable */
+    Inventory(const Inventory&)            = delete; ///< Noncopyable
+    Inventory& operator=(const Inventory&) = delete; ///< Noncopyable
 
-    Inventory(Inventory&&)            = delete;      /**< Nonmovable */
-    Inventory& operator=(Inventory&&) = delete;      /**< Nonmovable */
+    Inventory(Inventory&&)            = delete;      ///< Nonmovable
+    Inventory& operator=(Inventory&&) = delete;      ///< Nonmovable
 
     ~Inventory();
 
@@ -77,7 +77,7 @@ private:
     void connectToUI(InventoryUI* ui, InventoryUI::Connection connection);
 
     InventoryUI* m_ui = nullptr;
-    InventoryUI::Connection m_uiConnection; // Defines the type of connection to UI
+    InventoryUI::Connection m_uiConnection{}; ///< The type of connection to UI
 };
 
 } // namespace rw

@@ -6,14 +6,7 @@
 
 namespace rw {
 
-
-
-
-
-
-
-
-
+// clang-format off: Custom alignment of columns
 
 constexpr std::array<glm::uvec4, 256> k_wallTransformationProperties = {
 //                              Properties                                  The first applicable rule   The last applicable rule    Padding
@@ -274,5 +267,7 @@ constexpr std::array<glm::uvec4, 256> k_wallTransformationProperties = {
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
 /*air*/             glm::uvec4{ 0,                                          ~0,                         0,                          0}
 };
+
+// clang-format on
 
 } // namespace rw

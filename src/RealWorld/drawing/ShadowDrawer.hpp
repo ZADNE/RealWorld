@@ -60,7 +60,7 @@ private:
 
     WorldDrawingPC& m_pc;
 
-    re::PipelineLayout m_analysisPll;
+    re::PipelineLayout m_calcInputsPll;
     re::Pipeline m_analyzeTilesPl;
     re::Pipeline m_addLightsPl;
 
@@ -83,7 +83,7 @@ private:
     struct ViewSizeDependent {
         ViewSizeDependent(
             glm::vec2 viewSizePx, glm::ivec2 viewSizeTi,
-            const re::PipelineLayout& analysisPll,
+            const re::PipelineLayout& shadowInputsPll,
             const re::PipelineLayout& calculationPll,
             const re::PipelineLayout& shadowDrawingPll,
             const re::Texture& blockLightAtlasTex,
@@ -93,15 +93,15 @@ private:
         glm::vec2 viewSizePx;
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
-        re::Texture lightTex; /**< RGB = color of the light, A = intensity of the light */
+        re::Texture lightTex; ///< RGB = color of the light, A = intensity of the light
         re::ImageView lightTexR32ImageView;
-        re::Texture transluTex; /**< R = translucency of the unit */
+        re::Texture transluTex; ///< R = translucency of the unit
         re::Texture shadowsTex;
-        AnalysisPC analysisPC;
-        re::DescriptorSet analysisDS;
+        AnalysisPC analysisPC{};
+        re::DescriptorSet calcInputsDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;
-        glm::vec2 shadowAreaPxInv; // 1 over the area where shadows are calculated
+        glm::vec2 shadowAreaPxInv; ///< 1 over the area where shadows are calculated
     };
 
     ViewSizeDependent m_;

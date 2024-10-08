@@ -25,7 +25,6 @@ class Chunk {
 public:
     /**
      * @brief Contructs chunk from raw bytes
-     * @param posCh Position of the chunk, in chunk coordinates.
      */
     Chunk(
         glm::ivec2 posCh, const uint8_t* tiles,
@@ -67,10 +66,10 @@ public:
     }
 
 private:
-    std::vector<uint8_t> m_tiles; /**< First block layer, then wall layer */
+    std::vector<uint8_t> m_tiles; ///< First block layer, then wall layer
     std::vector<uint8_t> m_branchesSerialized;
     glm::ivec2 m_posCh{0, 0};
-    mutable int m_stepsSinceLastOperation = 0; /**< Steps since last read/write op */
+    mutable int m_stepsSinceLastOperation = 0; ///< Steps since last read/write op
 };
 
 } // namespace rw

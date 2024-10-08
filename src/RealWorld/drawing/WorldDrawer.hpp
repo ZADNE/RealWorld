@@ -53,10 +53,10 @@ public:
     void drawMinimap(const re::CommandBuffer& cb);
 
 private:
-    glm::vec2 m_botLeftPx;  // Bottom-left corner of the view
-    glm::ivec2 m_botLeftTi; // Bottom-left corner of the view in tiles
+    glm::vec2 m_botLeftPx{};  ///< Bottom-left corner of the view
+    glm::ivec2 m_botLeftTi{}; ///< Bottom-left corner of the view in tiles
 
-    glm::uvec2 m_viewSizeTi;
+    glm::uvec2 m_viewSizeTi{};
     glm::uvec2 viewSizeTi(glm::vec2 viewSizePx) const;
 
     float m_skyLightPower = 1.0f;

@@ -5,6 +5,8 @@
 
 namespace rw {
 
+constexpr int k_byteBits = CHAR_BIT;
+
 enum class ShaderMessageId {
     Reserved,
     RemoveFromSelSlot,
@@ -25,10 +27,11 @@ ShaderMessageBroker::ShaderMessageBroker(
 void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
     // Process received messages
     int intCount = m_messageBufMapped->read().totalInts;
-    int* ints    = m_messageBufMapped->read().messages;
+    int* ints    = m_messageBufMapped->read().messages.data();
     for (int i = 0; i < intCount;) {
         auto msgId = static_cast<ShaderMessageId>(ints[i++]);
         switch (msgId) {
+        case ShaderMessageId::Reserved: break;
         case ShaderMessageId::RemoveFromSelSlot:
             m_itemUser.finishSpecRemoval(ints[i++]);
             break;
@@ -44,9 +47,10 @@ void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
             while (count--) {
                 int bits = ints[i++];
                 glm::ivec2 posTi{
-                    baseXTi + (bits >> 24) & 0xff, baseYTi + (bits >> 16) & 0xff
+                    baseXTi + (bits >> (k_byteBits * 3)) & 0xff,
+                    baseYTi + (bits >> (k_byteBits * 2)) & 0xff
                 };
-                int tileType = (bits >> 8) & 0xff;
+                int tileType = (bits >> k_byteBits) & 0xff;
                 Item item{static_cast<ItemId>(section | tileType), 1};
                 m_playerInv.fill(item, 1.0f, glm::ivec2{}, false);
             }

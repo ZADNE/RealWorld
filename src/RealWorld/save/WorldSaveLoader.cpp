@@ -34,13 +34,13 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.metadata.timeDay   = 0.0f;
 
     // Player data
-    save.player.pos = iChunkTi * glm::ivec2(0, 5) * iTilePx;
-    save.inventory.resize({10, 4});
+    save.player.pos = iChunkTi * glm::ivec2(0, 4) * iTilePx;
+    save.inventory.resize(k_defaultPlayerInventorySize);
 
     int slot               = 0;
     save.inventory(slot++) = Item{ItemId::PCreativePickaxe, 1};
     save.inventory(slot++) = Item{ItemId::HCreativeHammer, 1};
-    save.inventory(slot++) = Item{ItemId::BWater, 100'000};
+    save.inventory(slot++) = Item{ItemId::BWater, maxStack(ItemId::BWater)};
 
     return saveWorld(save, worldName, true);
 }

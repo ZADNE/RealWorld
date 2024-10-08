@@ -9,6 +9,7 @@
 
 namespace rw {
 
+// NOLINTBEGIN: Shader mirror
 struct alignas(sizeof(glm::vec2)) VegInstance {
     glm::vec2 rootPosTi;
     glm::uint templateIndex;
@@ -37,5 +38,6 @@ struct VegPrepSB {
     float lengthTi[k_branchGenSlots];
     glm::vec2 densityStiffness[k_branchGenSlots];
 };
+// NOLINTEND
 
 } // namespace rw

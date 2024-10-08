@@ -33,7 +33,6 @@ public:
     /**
      * @brief Saves chunk to file in standard location.
      *
-     * @param folderPath Path to the world folder, including the file separator
      * @throws std::runtime_error unable to encode bytes or save file
      */
     static void saveChunk(

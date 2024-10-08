@@ -14,6 +14,8 @@
 namespace rw {
 namespace veg_templates {
 
+// NOLINTBEGIN: Executed only in compile time
+
 struct String {
     glm::uint sBegin{}; // Index of first symbol
     glm::uint sCount{}; // Number of symbols
@@ -530,6 +532,9 @@ constexpr VegTemplatesUB composeVegTemplates() {
                           std::span{probs},          std::span{bodies},
                           std::span{tmplts},         std::span{rasterTmplts}};
 }
+
+// NOLINTEND
+
 } // namespace veg_templates
 
 constexpr veg_templates::VegTemplatesUB k_vegTemplatesUB{

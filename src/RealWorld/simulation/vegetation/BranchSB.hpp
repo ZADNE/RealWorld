@@ -11,6 +11,7 @@
 
 namespace rw {
 
+// NOLINTBEGIN: Shader mirror
 struct BranchSB {
     // Double-buffered params
     glm::vec2 absPosTi[2][k_maxBranchCount];
@@ -53,5 +54,6 @@ struct BranchSerialized {
         return 9;
     }
 };
+// NOLINTEND
 
 } // namespace rw

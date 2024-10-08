@@ -16,7 +16,8 @@ class ItemSprite {
 public:
     ItemSprite();
     explicit ItemSprite(ItemId id);
-    explicit ItemSprite(ItemSample item);
+    explicit ItemSprite(Item item)
+        : ItemSprite{item.id} {}
 
     const re::SpriteComplex& sprite() const { return m_sprite; }
     re::SpriteComplex& sprite() { return m_sprite; }

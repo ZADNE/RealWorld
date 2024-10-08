@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    glm::ivec2 m_worldTexSize;
+    glm::ivec2 m_worldTexSize{};
 };
 
 } // namespace rw

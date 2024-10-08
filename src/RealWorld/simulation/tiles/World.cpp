@@ -10,7 +10,8 @@ using enum vk::ImageAspectFlagBits;
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
-#define member(var, m0) offsetof(decltype(var), m0), sizeof(var.m0), &var.m0
+// NOLINTNEXTLINE(*-macro-usage): Very messy but used only here...
+#define MEMBER(var, m0) offsetof(decltype(var), m0), sizeof(var.m0), &var.m0
 
 namespace rw {
 
@@ -24,16 +25,22 @@ constexpr glm::uint k_shaderMessageBinding  = 6;
 
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
-// Xorshift algorithm by George Marsaglia
+/// Xorshift algorithm by George Marsaglia
 uint32_t xorshift32(uint32_t& state) {
-    state ^= state << 13;
-    state ^= state >> 17;
-    state ^= state << 5;
+    state ^= state << 13; // NOLINT(*-magic-numbers)
+    state ^= state >> 17; // NOLINT(*-magic-numbers)
+    state ^= state << 5;  // NOLINT(*-magic-numbers)
     return state;
 }
 
+consteval uint32_t factorial(uint32_t n) {
+    uint32_t fact = 1;
+    for (uint32_t i = 1; i <= n; ++i) fact *= i;
+    return fact;
+}
+
 uint32_t permuteOrder(uint32_t& state) {
-    uint32_t permutationIndex = xorshift32(state) % 24;
+    uint32_t permutationIndex = xorshift32(state) % factorial(4);
     uint32_t order            = 0;
     std::array<uint32_t, 4> offsets{0b00, 0b01, 0b10, 0b11};
     for (uint32_t i = 4; i > 0; i--) {
@@ -57,8 +64,8 @@ constexpr static struct TilePropertiesUB {
     // y = The properties that neighbors MUST NOT have to transform
     // z = Properties of the transformation
     // w = The wall that it will be transformed into
-    std::array<glm::uvec4, 16> blockTransformationRules = k_blockTransformationRules;
-    std::array<glm::uvec4, 25> wallTransformationRules = k_wallTransformationRules;
+    BlockTransformationRules blockTransformationRules = k_blockTransformationRules;
+    WallTransformationRules wallTransformationRules = k_wallTransformationRules;
 } k_tileProperties;
 
 World::World(const re::Buffer& shaderMessageBuf)
@@ -285,8 +292,7 @@ void World::tileTransformationsStep(const ActionCmdBuf& acb) {
 void World::fluidDynamicsStep(const ActionCmdBuf& acb) {
     auto dbg = acb->createDebugRegion("fluid dynamics");
     // Permute the orders
-    uint32_t order;
-    order                         = 0;
+    uint32_t order                = 0;
     m_worldDynamicsPC.updateOrder = 0;
     // 4 random orders, the threads randomly select from these
     for (unsigned int i = 0; i < 4; i++) {
@@ -294,7 +300,7 @@ void World::fluidDynamicsStep(const ActionCmdBuf& acb) {
                                          << (i * 8);
     }
     (*acb)->pushConstants(
-        *m_simulationPL, eCompute, member(m_worldDynamicsPC, updateOrder)
+        *m_simulationPL, eCompute, MEMBER(m_worldDynamicsPC, updateOrder)
     );
     // Randomize order of dispatches
     order = permuteOrder(m_worldDynamicsPC.timeHash);
@@ -309,7 +315,7 @@ void World::fluidDynamicsStep(const ActionCmdBuf& acb) {
                 m_worldDynamicsPC.globalOffsetTi = offset * iChunkTi / 2;
                 cb->pushConstants(
                     *m_simulationPL, eCompute,
-                    member(m_worldDynamicsPC, globalOffsetTi)
+                    MEMBER(m_worldDynamicsPC, globalOffsetTi)
                 );
                 cb->dispatchIndirect(
                     **m_activeChunksBuf, offsetof(ActiveChunksSB, dynamicsGroupSize)

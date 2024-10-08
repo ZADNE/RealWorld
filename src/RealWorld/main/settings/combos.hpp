@@ -15,24 +15,16 @@
 namespace rw {
 
 constexpr std::array k_resolutions = {
-    glm::ivec2{1280, 1024},
-    glm::ivec2{1360, 768},
-    glm::ivec2{1366, 768},
-    glm::ivec2{1440, 900},
-    glm::ivec2{1600, 900},
-    glm::ivec2{1680, 1050},
-    glm::ivec2{1920, 1080},
-    glm::ivec2{2560, 1080},
-    glm::ivec2{2560, 1440},
-    glm::ivec2{3440, 1440},
-    glm::ivec2{3840, 2160}};
+    glm::ivec2{1280, 1024}, glm::ivec2{1360, 768},  glm::ivec2{1366, 768},
+    glm::ivec2{1440, 900},  glm::ivec2{1600, 900},  glm::ivec2{1680, 1050},
+    glm::ivec2{1920, 1080}, glm::ivec2{2560, 1080}, glm::ivec2{2560, 1440},
+    glm::ivec2{3440, 1440}, glm::ivec2{3840, 2160}
+};
 
 constexpr std::array k_worldTexSizes = {
-    k_minWorldTexSizeCh,
-    glm::ivec2{32, 16},
-    glm::ivec2{32, 32},
-    glm::ivec2{64, 32},
-    k_maxWorldTexSizeCh};
+    k_minWorldTexSizeCh, glm::ivec2{32, 16}, glm::ivec2{32, 32},
+    glm::ivec2{64, 32}, k_maxWorldTexSizeCh
+};
 
 inline std::string ivec2ToString(glm::ivec2 vec) {
     return std::to_string(vec.x) + "x" + std::to_string(vec.y);

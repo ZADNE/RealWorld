@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.24)
 project(RealWorld)
 
-# Find RealEngine
+include("cmake/GetRealWorldVersion.cmake")
+
+# If not building RealEngine from source
 if(NOT TARGET RealEngine)
+    # Find installed RealEngine
     find_package(RealEngine 2.0.0 CONFIG REQUIRED)
 endif()
 
@@ -36,6 +39,9 @@ endif()
     set_target_properties(RealWorld_PerfTest PROPERTIES
         CXX_STANDARD 23
         INTERPROCEDURAL_OPTIMIZATION TRUE
+        COMPILE_WARNING_AS_ERROR OFF # Disable linting
+        EXPORT_COMPILE_COMMANDS OFF
+        CXX_CLANG_TIDY ""
     )
     target_link_libraries(RealWorld_PerfTest PUBLIC RealWorld)
     add_custom_command(TARGET RealWorld_PerfTest POST_BUILD
@@ -44,6 +50,7 @@ endif()
     )
 
 # Doxygen documentation
+    get_realworld_version()
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
         set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
@@ -60,3 +67,20 @@ endif()
 # Add subdirectories
     add_subdirectory(src)
     add_subdirectory(perf_test)
+
+# Installation
+    install(TARGETS RealWorld_Game
+        RUNTIME
+            DESTINATION .
+            COMPONENT RealWorld_Runtime
+    )
+    install(IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
+        RUNTIME
+            DESTINATION .
+            COMPONENT RealWorld_Runtime
+    )
+    install(
+        DIRECTORY data/
+            DESTINATION .
+            COMPONENT RealWorld_Runtime
+    )

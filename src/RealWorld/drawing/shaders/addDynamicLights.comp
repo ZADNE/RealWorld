@@ -5,7 +5,7 @@
 #include <RealWorld/constants/tile.glsl>
 #include <RealWorld/constants/light.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
-const uint k_dynamicLightsBinding = 5u;
+#include <RealWorld/drawing/shaders/calcInputsPll.glsl>
 #include <RealWorld/drawing/shaders/DynamicLightsSB.glsl>
 
 layout (local_size_x = 8,
@@ -13,7 +13,8 @@ layout (local_size_x = 8,
         local_size_z = 2
 ) in;
 
-layout (set = 0, binding = 0, r32ui) uniform restrict uimage2D u_lightImage;
+layout (set = 0, binding = k_lightImageBinding, r32ui)
+    uniform restrict uimage2D u_lightImage;
 
 const int k_toUnitBits = k_lightScaleBits + 2;
 const vec2 k_toUnitScale = vec2(1.0, 1.0) / k_iLightScale / TilePx;

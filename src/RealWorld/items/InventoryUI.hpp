@@ -42,11 +42,11 @@ public:
      */
     explicit InventoryUI(glm::vec2 windowSize);
 
-    InventoryUI(const InventoryUI&)            = delete; /**< Noncopyable */
-    InventoryUI& operator=(const InventoryUI&) = delete; /**< Noncopyable */
+    InventoryUI(const InventoryUI&)            = delete; ///< Noncopyable
+    InventoryUI& operator=(const InventoryUI&) = delete; ///< Noncopyable
 
-    InventoryUI(InventoryUI&&)             = delete;     /**< Nonmovable */
-    InventoryUI&& operator=(InventoryUI&&) = delete;     /**< Nonmovable */
+    InventoryUI(InventoryUI&&)             = delete;     ///< Nonmovable
+    InventoryUI&& operator=(InventoryUI&&) = delete;     ///< Nonmovable
 
     ~InventoryUI();
 
@@ -93,8 +93,8 @@ public:
 private:
     constexpr static glm::vec2 k_slotPadding = glm::vec2(8.0f, 8.0f);
 
-    inline glm::vec2 slotDims() const { return m_slotTex.subimageDims(); }
-    inline glm::vec2 slotPivot() const { return m_slotTex.pivot(); }
+    glm::vec2 slotDims() const { return m_slotTex.subimageDims(); }
+    glm::vec2 slotPivot() const { return m_slotTex.pivot(); }
 
     inline glm::ivec2 invSize(Connection c) const;
     inline int invSlotCount(Connection c) const;
@@ -127,23 +127,27 @@ private:
         }
     }
 
-    glm::vec2 m_windowSize;
+    glm::vec2 m_windowSize{};
     re::TextureShaped m_slotTex{re::TextureSeed{"slot"}};
-    glm::vec2 m_invBotLeftPx; /**< Bottom left corner of slot (0, 0) */
+    glm::vec2 m_invBotLeftPx{}; ///< Bottom left corner of slot (0, 0)
 
     Item m_heldItem{};
     ItemSprite m_heldSprite{};
 
-    int m_selSlot     = 0; /**< Signed but never should be negative */
-    int m_selSlotPrev = 0; /**< signed but never should be negative */
+    int m_selSlot     = 0; ///< Signed but never should be negative
+    int m_selSlotPrev = 0; ///< signed but never should be negative
 
-    Inventory* m_inv[static_cast<size_t>(Connection::Count)] = {
-        nullptr, nullptr, nullptr
-    };
-    std::vector<ItemSprite> m_invItemSprites[static_cast<size_t>(Connection::Count)];
+    template<typename T>
+    using PerConnection = std::array<T, static_cast<size_t>(Connection::Count)>;
+
+    PerConnection<Inventory*> m_inv{nullptr, nullptr, nullptr};
+    PerConnection<std::vector<ItemSprite>> m_invItemSprites;
     bool m_open = false;
 
-    re::RasterizedFont m_countFont{{.filePath = "fonts/arial.ttf", .pointSize = 26}};
+    re::RasterizedFont m_countFont{{
+        .filePath  = "fonts/arial.ttf",
+        .pointSize = 26 // NOLINT(*-magic-numbers): Matches slot design
+    }};
 };
 
 } // namespace rw

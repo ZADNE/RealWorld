@@ -34,7 +34,7 @@ private:
     constexpr static int k_messageBufferSize = 511;
     struct ShaderMessageSB {
         int totalInts{};
-        int messages[k_messageBufferSize];
+        std::array<int, k_messageBufferSize> messages{};
     };
 
     using enum vk::BufferUsageFlagBits;

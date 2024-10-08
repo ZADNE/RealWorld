@@ -29,10 +29,10 @@ public:
     ChunkGenerator();
 
     struct TargetInfo {
-        int seed;                    /**< Controls how generated chunks look */
-        const re::Texture& worldTex; /**< Receives the generated tiles */
+        int seed;                    ///< Controls how generated chunks look
+        const re::Texture& worldTex; ///< Receives the generated tiles
         glm::ivec2 worldTexSizeCh;
-        const re::Buffer& bodiesBuf; /**< Receives the generated bodies */
+        const re::Buffer& bodiesBuf; ///< Receives the generated bodies
         const re::Buffer& branchBuf;
         const re::Buffer& branchAllocRegBuf;
     };
@@ -54,7 +54,7 @@ public:
      */
     int generate(const ActionCmdBuf& acb);
 
-protected:
+private:
     void generateBasicTerrain(const re::CommandBuffer& cb);
     void consolidateEdges(const re::CommandBuffer& cb);
     void selectVariant(const re::CommandBuffer& cb);
@@ -69,6 +69,7 @@ protected:
     const re::Buffer* m_bodiesBuf = nullptr;
     const re::Buffer* m_branchBuf = nullptr;
 
+    // NOLINTBEGIN: Shader mirror
     struct GenerationPC {
         glm::ivec2 chunkTi[k_chunkGenSlots];
         glm::ivec2 worldTexSizeCh;
@@ -77,8 +78,9 @@ protected:
         glm::uint edgeConsolidationPromote;
         glm::uint edgeConsolidationReduce;
     } m_genPC;
+    // NOLINTEND
     static_assert(sizeof(GenerationPC) <= 128, "PC min size guarantee");
-    int m_chunksPlanned = 0; /**< Number of chunks planned to generate this step */
+    int m_chunksPlanned = 0; ///< Number of chunks planned to generate this step
 
     re::StepDoubleBuffered<re::CommandBuffer> m_cb{
         re::CommandBuffer{

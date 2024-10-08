@@ -8,7 +8,7 @@ struct Body {
     ivec2 bottomCenterPx;
     ivec2 sizePx;
     ivec2 velocityPx;
-    vec2  rotationRad; /**< y component is unused */
+    vec2  rotationRad; ///< y component is unused
 };
 
 layout (set = 0, binding = k_bodiesBinding, std430)

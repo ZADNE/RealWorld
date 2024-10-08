@@ -81,7 +81,7 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cb) {
         };
 
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_consolidateEdgesPl);
-    doublePass({3, 4}, {4, 5}, 4);
+    doublePass({3, 4}, {4, 5}, 4); // NOLINT(*-magic-numbers)
 }
 
 void ChunkGenerator::selectVariant(const re::CommandBuffer& cb) {

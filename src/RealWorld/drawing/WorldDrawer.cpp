@@ -17,6 +17,8 @@ using enum vk::ShaderStageFlagBits;
 
 namespace rw {
 
+constexpr float k_maxDaylightPower = 0.14f;
+
 WorldDrawer::WorldDrawer(
     re::RenderPassSubpass renderPassSubpass, glm::uvec2 viewSizePx,
     glm::uint maxNumberOfExternalLights
@@ -53,9 +55,9 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
 }
 
 void WorldDrawer::beginStep(const re::CommandBuffer& cb, float timeDay) {
-    m_skyLightPower     = timeToSkyLightPower(timeDay);
-    float skyLightPower = m_skyLightPower * m_skyLightPower * 0.14f;
-    glm::vec4 skyLight  = glm::vec4{0.0f, 0.0f, 0.0f, skyLightPower};
+    m_skyLightPower = timeToSkyLightPower(timeDay);
+    float skyLightPower = m_skyLightPower * m_skyLightPower * k_maxDaylightPower;
+    glm::vec4 skyLight = glm::vec4{0.0f, 0.0f, 0.0f, skyLightPower};
     m_shadowDrawer.analyze(cb, m_botLeftTi, skyLight);
 }
 
@@ -68,6 +70,7 @@ void WorldDrawer::endStep(const re::CommandBuffer& cb) {
 }
 
 void WorldDrawer::drawTiles(const re::CommandBuffer& cb) {
+    // NOLINTNEXTLINE(*-magic-numbers)
     float skyLight = 0.0625f + glm::sqrt(m_skyLightPower) * 0.9375f;
     m_tileDrawer.drawTiles(cb, m_botLeftPx, skyLight);
 }

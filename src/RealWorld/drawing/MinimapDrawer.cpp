@@ -50,9 +50,8 @@ void MinimapDrawer::drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botL
     // Horizontal lines
     v[0].position.x = m_layout.offsetPx.x;
     v[1].position.x = m_layout.offsetPx.x + m_layout.sizePx.x;
-    for (int y = 0; y <= m_worldTexCh.y; ++y) {
-        float fy = m_layout.offsetPx.y +
-                   (static_cast<float>(y) / m_worldTexCh.y) * m_layout.sizePx.y;
+    for (float y = 0; y <= m_worldTexCh.y; ++y) {
+        float fy = m_layout.offsetPx.y + (y / m_worldTexCh.y) * m_layout.sizePx.y;
         v[0].position.y = fy;
         v[1].position.y = fy;
         m_geometryBatch.addVertices(v);
@@ -61,9 +60,8 @@ void MinimapDrawer::drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botL
     // Vertical lines
     v[0].position.y = m_layout.offsetPx.y;
     v[1].position.y = m_layout.offsetPx.y + m_layout.sizePx.y;
-    for (int x = 0; x <= m_worldTexCh.x; ++x) {
-        float fx = m_layout.offsetPx.x +
-                   (static_cast<float>(x) / m_worldTexCh.x) * m_layout.sizePx.x;
+    for (float x = 0; x <= m_worldTexCh.x; ++x) {
+        float fx = m_layout.offsetPx.x + (x / m_worldTexCh.x) * m_layout.sizePx.x;
         v[0].position.x = fx;
         v[1].position.x = fx;
         m_geometryBatch.addVertices(v);

@@ -58,6 +58,7 @@ struct BindingInfo {
     const char* desc;
 };
 
+// clang-format off: Custom alignment of columns
 constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBindings::Count)> k_keybindingInfo = {
     BindingInfo{re::Key::E,         "INV_OPEN_CLOSE",           "Open/close"},
     BindingInfo{re::Key::LMB,       "INV_MOVE_ALL",             "Take/put all"},
@@ -93,6 +94,7 @@ constexpr static std::array<BindingInfo, static_cast<size_t>(RealWorldKeyBinding
     BindingInfo{re::Key::Numpad2,   "SHADOWS",                  "Draw shadows"},
     BindingInfo{re::Key::Numpad3,   "PERMUTE",                  "Permute order"}
 };
+// clang-format on
 
 using KeybinderType =
     re::KeyBinder<RealWorldKeyBindings, BindingInfo, k_keybindingInfo>;

@@ -35,6 +35,7 @@ public:
 
     /**
      * @brief Moves the player based on its surroundings tiles and user input
+     * @param acb Command buffer that will be used to record the commands
      * @param dir Walking direction: -1 = go left, 0 = stay still, +1 = go right
      * @param jump The player jumps if this is true and if the player stands on
      * solid ground
@@ -46,11 +47,25 @@ public:
     void draw(re::SpriteBatch& spriteBatch);
 
 private:
+
+    // NOLINTBEGIN: Shader mirror
     struct PlayerHitboxSB {
-        glm::vec2 botLeftPx[2];
-        glm::vec2 dimsPx;
-        glm::vec2 velocityPx;
+        glm::vec2 botLeftPx[2]{};
+        glm::vec2 dimsPx{};
+        glm::vec2 velocityPx{};
     };
+
+    struct PlayerMovementPC {
+        glm::ivec2 worldTexMaskTi{};
+        float acceleration    = 0.5f;
+        float maxWalkVelocity = 6.0f;
+        float jumpVelocity    = 7.0f;
+        float walkDirection{};
+        float jump{};
+        float autojump{};
+        int writeIndex = 1; ///< Selects PlayerHitboxSB::botLeftPx, swings every step
+    } m_pushConstants;
+    // NOLINTEND
 
     Player(re::TextureShaped&& playerTex)
         : Player(
@@ -64,17 +79,6 @@ private:
     Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
 
     re::TextureShaped m_playerTex;
-
-    struct PlayerMovementPC {
-        glm::ivec2 worldTexMaskTi;
-        float acceleration    = 0.5f;
-        float maxWalkVelocity = 6.0f;
-        float jumpVelocity    = 7.0f;
-        float walkDirection;
-        float jump;
-        float autojump;
-        int writeIndex = 1; // Selects PlayerHitboxSB::botLeftPx, swings every step
-    } m_pushConstants;
 
     re::Buffer m_hitboxBuf;
     re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;

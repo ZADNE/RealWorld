@@ -173,7 +173,10 @@ void InventoryUI::draw(re::SpriteBatch& spriteBatch, glm::vec2 cursorPx) {
         };
         spriteBatch.addSubimage( // The selected slot indicator
             m_slotTex,
-            glm::vec2(slot0Px.x + slotOffsetPx.x * m_selSlot, slot0Px.y),
+            glm::vec2(
+                slot0Px.x + slotOffsetPx.x * static_cast<float>(m_selSlot),
+                slot0Px.y
+            ),
             glm::vec2(1.0f, 0.0f)
         );
     }
@@ -219,6 +222,7 @@ void InventoryUI::drawItemCount(
     re::SpriteBatch& spriteBatch, glm::vec2 pivotPx, int itemCount
 ) const {
     if (itemCount > 1) {
+        // NOLINTBEGIN(*-magic-numbers): Numbers to fit the design of a slot
         std::string str;
         if (itemCount > 1000) {
             str = std::to_string(itemCount / 1000) + 'k';
@@ -230,6 +234,7 @@ void InventoryUI::drawItemCount(
         };
         pivotPx += glm::vec2{slotPivot().x - 3.0f, -slotPivot().y + 6.0f};
         m_countFont.add(spriteBatch, sv, pivotPx, re::HorAlign::Right);
+        // NOLINTEND(*-magic-numbers)
     }
 }
 

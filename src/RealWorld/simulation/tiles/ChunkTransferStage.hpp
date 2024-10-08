@@ -17,7 +17,7 @@ namespace rw {
 
 template<uint32_t k_stageSlotCount, uint32_t k_branchStageCount>
 struct StageBuf {
-    std::array<uint8_t, k_chunkByteSize> tiles[k_stageSlotCount];
+    std::array<std::array<uint8_t, k_chunkByteSize>, k_stageSlotCount> tiles;
     std::array<uint8_t, k_branchStageCount * sizeof(BranchSerialized)> branches;
     BranchAllocReqUB branchAllocReq;
 };
@@ -36,21 +36,17 @@ class ChunkTransferStage {
 public:
     using StgBuf = StageBuf<k_stageSlotCount, k_branchStageCount>;
 
-    ChunkTransferStage() { reset(); }
+    ChunkTransferStage() {
+        m_buf->branchAllocReq.allocSlotsEnd     = 0;
+        m_buf->branchAllocReq.deallocSlotsBegin = k_stageSlotCount;
+    }
 
     void setTarget(glm::ivec2 worldTexCh) {
         m_buf->branchAllocReq.worldTexCh = worldTexCh;
     }
 
     void reset() {
-        m_upSlotsEnd                            = 0;
-        m_downSlotsBegin                        = k_stageSlotCount;
-        m_buf->branchAllocReq.allocSlotsEnd     = 0;
-        m_buf->branchAllocReq.deallocSlotsBegin = k_stageSlotCount;
-        m_branchUpSlotsEnd                      = 0;
-        m_branchDownSlotsBegin                  = m_branchCopyRegions.size();
-        m_branchUpBytesEnd                      = 0;
-        m_branchDownBytesBegin                  = sizeof(StgBuf::branches);
+        *this = ChunkTransferStage<k_stageSlotCount, k_branchStageCount>{};
     }
 
     bool allocsOrDeallocsPlanned() {
@@ -326,15 +322,6 @@ private:
                m_buf->branchAllocReq.deallocSlotsBegin;
     }
 
-    int m_upSlotsEnd;
-    int m_downSlotsBegin;
-    int m_allocSlotsEnd;
-    int m_deallocSlotsBegin;
-    int m_branchUpSlotsEnd;
-    int m_branchDownSlotsBegin;
-    int m_branchUpBytesEnd;
-    int m_branchDownBytesBegin;
-
     std::array<TransferSlot, k_stageSlotCount> m_slots;
 
     /**
@@ -359,6 +346,13 @@ private:
      */
     std::array<vk::BufferCopy2, k_stageSlotCount * BranchSerialized::memberCount()>
         m_branchCopyRegions;
+
+    int m_upSlotsEnd           = 0;
+    int m_downSlotsBegin       = k_stageSlotCount;
+    int m_branchUpSlotsEnd     = 0;
+    int m_branchDownSlotsBegin = m_branchCopyRegions.size();
+    int m_branchUpBytesEnd     = 0;
+    int m_branchDownBytesBegin = sizeof(StgBuf::branches);
 };
 
 } // namespace rw
