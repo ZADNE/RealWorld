@@ -31,7 +31,8 @@ const Biome k_desert =      {k_sand,        {0., 500.},         {0., 0.},       
 const Biome k_savanna =     {k_dryGrass,    {250., 800.},       {100., 100.},       {200., 200.}};
 const Biome k_rainforest =  {k_mudGrass,    {250., 1000.},      {150., 160.},       {240., 280.}};
 
-const Biome k_biomes[3][3] = {
+const ivec2 k_biomesMatrixSize = {3, 3};
+const Biome k_biomes[k_biomesMatrixSize.y][k_biomesMatrixSize.x] = {
 //humidity> |low                |normal             |high           temperature \/
     {       k_mountain,         k_tundra,           k_taiga         },  //-low
     {       k_grassland,        k_forest,           k_swamp         },  //-normal
@@ -41,10 +42,10 @@ const Biome k_biomes[3][3] = {
 /**
  * @param biomeClimate x = temperature, y = humidity
  */
-Biome biomeStructure(vec2 biomeClimate){
+Biome calcBiomeStructure(vec2 biomeClimate){
     // Calculate coords
     biomeClimate = fract(biomeClimate);
-    biomeClimate *= vec2(k_biomes.length() - 1, k_biomes[0].length() - 1);
+    biomeClimate *= vec2(k_biomesMatrixSize - 1);
     ivec2 ll = ivec2(biomeClimate);
     vec2 frac = fract(biomeClimate);
 

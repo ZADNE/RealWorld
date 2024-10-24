@@ -96,7 +96,9 @@ TileDrawer::TileDrawer(
               .renderPassSubpass = renderPassSubpass,
               .debugName         = "rw::TileDrawer::drawTiles"
           },
-          re::PipelineGraphicsSources{.vert = drawFullscreen_vert, .frag = drawTiles_frag}
+          re::PipelineGraphicsSources{
+              .vert = glsl::drawFullscreen_vert, .frag = glsl::drawTiles_frag
+          }
       )
     , m_drawMinimapPl(
           re::PipelineGraphicsCreateInfo{
@@ -105,7 +107,9 @@ TileDrawer::TileDrawer(
               .renderPassSubpass = renderPassSubpass,
               .debugName         = "rw::TileDrawer::drawMinimap"
           },
-          re::PipelineGraphicsSources{.vert = drawMinimap_vert, .frag = drawMinimap_frag}
+          re::PipelineGraphicsSources{
+              .vert = glsl::drawMinimap_vert, .frag = glsl::drawMinimap_frag
+          }
       ) {
     m_descriptorSet.write(
         eCombinedImageSampler, 1u, 0u, *m_blockAtlasTex, eShaderReadOnlyOptimal

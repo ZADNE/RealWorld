@@ -71,12 +71,12 @@ ShadowDrawer::ShadowDrawer(
     , m_analyzeTilesPl(
           {.pipelineLayout = *m_calcInputsPll,
            .debugName      = "rw::ShadowDrawer::analyzeTiles"},
-          {.comp = analyzeTiles_comp}
+          {.comp = glsl::analyzeTiles_comp}
       )
     , m_addLightsPl(
           {.pipelineLayout = *m_calcInputsPll,
            .debugName      = "rw::ShadowDrawer::addLights"},
-          {.comp = addDynamicLights_comp}
+          {.comp = glsl::addDynamicLights_comp}
       )
     , m_calculationPll(
           {},
@@ -91,9 +91,11 @@ ShadowDrawer::ShadowDrawer(
     , m_calculateShadowsPl(
           {.pipelineLayout = *m_calculationPll,
            .debugName      = "rw::ShadowDrawer::calculateShadows"},
-          {.comp = calculateShadows_comp}
+          {.comp = glsl::calculateShadows_comp}
       )
-    , m_shadowDrawingPll({}, {.vert = drawFullscreen_vert, .frag = drawShadows_frag})
+    , m_shadowDrawingPll(
+          {}, {.vert = glsl::drawFullscreen_vert, .frag = glsl::drawShadows_frag}
+      )
     , m_drawShadowsPl(
           re::PipelineGraphicsCreateInfo{
               .topology          = vk::PrimitiveTopology::eTriangleStrip,
@@ -101,7 +103,7 @@ ShadowDrawer::ShadowDrawer(
               .renderPassSubpass = renderPassSubpass,
               .debugName         = "rw::ShadowDrawer::drawShadows"
           },
-          {.vert = drawFullscreen_vert, .frag = drawShadows_frag}
+          {.vert = glsl::drawFullscreen_vert, .frag = glsl::drawShadows_frag}
       )
     , m_lightsBuf(re::BufferCreateInfo{
           .allocFlags  = eMapped | eHostAccessSequentialWrite,

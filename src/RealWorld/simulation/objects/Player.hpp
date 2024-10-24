@@ -84,10 +84,10 @@ private:
     re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
     glm::vec2 m_oldBotLeftPx{};
 
-    re::PipelineLayout m_pipelineLayout{{}, {.comp = movePlayer_comp}};
+    re::PipelineLayout m_pipelineLayout{{}, {.comp = glsl::movePlayer_comp}};
     re::Pipeline m_movePlayerPl{
         {.pipelineLayout = *m_pipelineLayout, .debugName = "rw::Player::movePlayer"},
-        {.comp = movePlayer_comp}
+        {.comp = glsl::movePlayer_comp}
     };
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),

@@ -15,7 +15,7 @@ endif()
     target_include_directories(RealWorld PRIVATE src)
     set_target_properties(RealWorld PROPERTIES
         CXX_STANDARD 23
-        realproject_shader_cxx_namespace "rw"
+        realproject_shader_cxx_namespace "rw::glsl"
         INTERPROCEDURAL_OPTIMIZATION TRUE
     )
     target_link_libraries(RealWorld PUBLIC RealEngine)

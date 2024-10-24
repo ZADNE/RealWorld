@@ -4,6 +4,7 @@
 #version 460
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/generationPll.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
 
 layout (local_size_x = k_genGroupSize,
         local_size_y = k_genGroupSize,
@@ -17,25 +18,28 @@ layout (set = 0, binding = k_materialImageBinding, r8ui)
 
 void main(){
     // Compute position
-    ivec2 pTi = p_chunkTi[gl_WorkGroupID.z] + ivec2(gl_GlobalInvocationID.xy) - k_genBorderWidth;
+    ivec2 pTi = p_chunkTi[gl_WorkGroupID.z]
+                + ivec2(gl_GlobalInvocationID.xy)
+                - k_genBorderWidth;
     vec2 pPx = vec2(pTi) * TilePx;
 
     // Compute terrain
-    uvec4 tile;
-    uvec4 material;
-    basicTerrain(pPx, tile, material);
+    GeneratedTile gen = calcBasicTerrain(pPx, p_seed);
 
     // Store the terrain
     imageStore(u_layerImage,
         ivec3(gl_GlobalInvocationID),
-        tile.xyxy // Block
+        gen.tile.xyxy // Block
     );
     imageStore(u_layerImage,
-        ivec3(gl_GlobalInvocationID.xy, gl_GlobalInvocationID.z + 2 * k_chunkGenSlots),
-        tile.zwzw // Wall
+        ivec3(
+            gl_GlobalInvocationID.xy,
+            gl_GlobalInvocationID.z + 2 * k_chunkGenSlots
+        ),
+        gen.tile.zwzw // Wall
     );
     imageStore(u_materialImage,
         ivec3(gl_GlobalInvocationID),
-        material.rrrr // Material
+        gen.material.rrrr // Material
     );
 }

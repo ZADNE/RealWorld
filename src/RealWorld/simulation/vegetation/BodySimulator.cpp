@@ -12,7 +12,7 @@ namespace rw {
 
 BodySimulator::BodySimulator(const re::PipelineLayout& simulationPL)
     : m_simulateBodiesPl{
-          {.pipelineLayout = *simulationPL}, {.comp = simulateBodies_comp}
+          {.pipelineLayout = *simulationPL}, {.comp = glsl::simulateBodies_comp}
       } {
 }
 

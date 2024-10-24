@@ -28,7 +28,7 @@ ChunkActivationMgr::ChunkActivationMgr(const re::PipelineLayout& pipelineLayout)
     : m_analyzeContinuityPl(
           {.pipelineLayout = *pipelineLayout,
            .debugName      = "rw::ChunkActivationMgr::analyzeContinuity"},
-          {.comp = analyzeContinuity_comp}
+          {.comp = glsl::analyzeContinuity_comp}
       )
     , m_chunkTransferMgr(pipelineLayout) {
 }

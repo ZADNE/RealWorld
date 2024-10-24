@@ -117,10 +117,10 @@ const uvec2 k_firstNonsolid   = {k_firstNonsolidBl, k_firstNonsolidWl};
 const uvec2 k_air             = {k_airBl,           k_airWl};
 const uvec2 k_never           = {k_neverBl,         k_neverWl};
 
-uint  basicType(uint type)           { return type & 0xff; }
-uvec2 basicType(uvec2 tileType)      { return tileType & 0xff; }
-uint  extendedType(uint type)        { return type & 0xff00; }
-uvec2 extendedType(uvec2 tileType)   { return tileType & 0xff; }
+uint  basicType(uint type)           { return type & 0xffu; }
+uvec2 basicType(uvec2 tileType)      { return tileType & 0xffu; }
+uint  extendedType(uint type)        { return type & 0xff00u; }
+uvec2 extendedType(uvec2 tileType)   { return tileType & 0xffu; }
 
 bool  isBasicType(uint type)         { return basicType(type) == type; }
 bvec2 isBasicType(uvec2 tileType)    { return equal(basicType(tileType), tileType); }

@@ -39,9 +39,9 @@ void expandGrass(){
     for (uint i = gl_LocalInvocationID.x; i < s_branchCount; i += gl_WorkGroupSize.x){
         ivec2 pTi = ivec2(s_inst.rootPosTi.x + randomOffset(), 0);
         float xPx = tiToPx(pTi.x);
-        vec2 biomeClimate = biomeClimate(xPx, p_seed);
-        Biome biome = biomeStructure(biomeClimate);
-        float horizonPx = horizon(xPx, biome, p_seed).r;
+        vec2 biomeClimate = calcBiomeClimate(xPx, p_seed);
+        Biome biome = calcBiomeStructure(biomeClimate);
+        float horizonPx = calcHorizon(xPx, biome, p_seed).r;
         pTi.y = int(pxToTi(horizonPx));
 
         bool stemBranch = bool(i & 1);

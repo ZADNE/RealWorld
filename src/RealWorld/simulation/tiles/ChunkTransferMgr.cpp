@@ -26,7 +26,7 @@ ChunkTransferMgr::ChunkTransferMgr(const re::PipelineLayout& pipelineLayout)
     : m_reallocBranchesPl(
           {.pipelineLayout = *pipelineLayout,
            .debugName      = "rw::ChunkTransferMgr::reallocBranches"},
-          {.comp = reallocBranches_comp}
+          {.comp = glsl::reallocBranches_comp}
       ) {
 }
 

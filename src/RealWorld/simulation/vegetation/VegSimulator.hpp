@@ -67,11 +67,11 @@ private:
          .pipelineLayout     = *m_pipelineLayout,
          .renderPassSubpass  = m_rasterizationRenderPass.subpass(0),
          .debugName          = "rw::VegSimulator::unrasterizeBranches"},
-        {.vert = unrasterizeBranches_vert,
-         .tesc = tessellateBranches_tesc,
-         .tese = tessellateBranches_tese,
-         .geom = duplicateBranches_geom,
-         .frag = unrasterizeBranches_frag}
+        {.vert = glsl::unrasterizeBranches_vert,
+         .tesc = glsl::tessellateBranches_tesc,
+         .tese = glsl::tessellateBranches_tese,
+         .geom = glsl::duplicateBranches_geom,
+         .frag = glsl::unrasterizeBranches_frag}
     };
     re::Pipeline m_rasterizeBranchesPl{
         {.topology           = vk::PrimitiveTopology::ePatchList,
@@ -80,11 +80,11 @@ private:
          .pipelineLayout     = *m_pipelineLayout,
          .renderPassSubpass  = m_rasterizationRenderPass.subpass(0),
          .debugName          = "rw::VegSimulator::rasterizeBranches"},
-        {.vert = rasterizeBranches_vert,
-         .tesc = tessellateBranches_tesc,
-         .tese = tessellateBranches_tese,
-         .geom = duplicateBranches_geom,
-         .frag = rasterizeBranches_frag}
+        {.vert = glsl::rasterizeBranches_vert,
+         .tesc = glsl::tessellateBranches_tesc,
+         .tese = glsl::tessellateBranches_tese,
+         .geom = glsl::duplicateBranches_geom,
+         .frag = glsl::rasterizeBranches_frag}
     };
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
         .layout    = m_pipelineLayout.descriptorSetLayout(0),

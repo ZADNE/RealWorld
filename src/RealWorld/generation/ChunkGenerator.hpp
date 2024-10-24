@@ -103,17 +103,17 @@ private:
     re::Pipeline m_generateStructurePl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::generateStructure"},
-        {.comp = generateStructure_comp}
+        {.comp = glsl::generateStructure_comp}
     };
     re::Pipeline m_consolidateEdgesPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::consolidateEdges"},
-        {.comp = consolidateEdges_comp}
+        {.comp = glsl::consolidateEdges_comp}
     };
     re::Pipeline m_selectVariantPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::selectVariant"},
-        {.comp = selectVariant_comp}
+        {.comp = glsl::selectVariant_comp}
     };
     re::Texture m_layerTex{re::TextureCreateInfo{
         .format = vk::Format::eR16G16Uint,
@@ -137,22 +137,22 @@ private:
     re::Pipeline m_selectVegSpeciesPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::selectVegSpecies"},
-        {.comp = selectVegSpecies_comp}
+        {.comp = glsl::selectVegSpecies_comp}
     };
     re::Pipeline m_expandVegInstancesPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::expandVegInstances"},
-        {.comp = expandVegInstances_comp}
+        {.comp = glsl::expandVegInstances_comp}
     };
     re::Pipeline m_allocBranchesPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::allocBranches"},
-        {.comp = allocBranches_comp}
+        {.comp = glsl::allocBranches_comp}
     };
     re::Pipeline m_outputBranchesPl{
         {.pipelineLayout = *m_pipelineLayout,
          .debugName      = "rw::ChunkGenerator::outputBranches"},
-        {.comp = outputBranches_comp}
+        {.comp = glsl::outputBranches_comp}
     };
     re::Buffer m_vegTemplatesBuf;
     re::Buffer m_vegPrepBuf;

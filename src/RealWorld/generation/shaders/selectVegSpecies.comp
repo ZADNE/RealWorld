@@ -9,6 +9,7 @@
 #include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
 #define VegPrepSB_ACCESS writeonly
 #include <RealWorld/generation/shaders/VegPrepSB.glsl>
+#include <RealWorld/generation/shaders/GenerationPC.glsl>
 
 layout (local_size_x = k_maxVegPerChunk,
         local_size_y = 1,
@@ -27,8 +28,8 @@ int invocXPosTi(ivec2 chunkTi){
 shared uint s_vegPrepI;
 
 float horizonNormalNorm(float xPx, Biome biome){
-    float leftY = horizon(xPx - 20.0, biome, p_seed).r;
-    float rightY = horizon(xPx + 20.0, biome, p_seed).r;
+    float leftY = calcHorizon(xPx - 20.0, biome, p_seed).r;
+    float rightY = calcHorizon(xPx + 20.0, biome, p_seed).r;
     const float k_1Over2Pi = 0.15915494309;
     return fract(atan(rightY - leftY, 40.0) * k_1Over2Pi + 0.25);
 }
@@ -47,9 +48,9 @@ void main(){
         uint(p_seed);
     ivec2 pTi = ivec2(invocXPosTi(chunkTi), 0);
     float xPx = tiToPx(pTi.x);
-    vec2 biomeClimate = biomeClimate(xPx, p_seed);
-    Biome biome = biomeStructure(biomeClimate);
-    float horizonPx = horizon(xPx, biome, p_seed).r;
+    vec2 biomeClimate = calcBiomeClimate(xPx, p_seed);
+    Biome biome = calcBiomeStructure(biomeClimate);
+    float horizonPx = calcHorizon(xPx, biome, p_seed).r;
     pTi.y = int(pxToTi(horizonPx));
 
     uint speciesIndex = ~0;

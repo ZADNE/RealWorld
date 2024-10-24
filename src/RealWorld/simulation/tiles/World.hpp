@@ -117,16 +117,16 @@ private:
     re::Pipeline m_simulateMovementPl{
         {.pipelineLayout = *m_simulationPL,
          .debugName      = "rw::World::simulateMovement"},
-        {.comp = simulateMovement_comp}
+        {.comp = glsl::simulateMovement_comp}
     };
     re::Pipeline m_transformTilesPl{
         {.pipelineLayout = *m_simulationPL,
          .debugName      = "rw::World::transformTiles"},
-        {.comp = transformTiles_comp}
+        {.comp = glsl::transformTiles_comp}
     };
     re::Pipeline m_modifyTilesPl{
         {.pipelineLayout = *m_simulationPL, .debugName = "rw::World::modifyTiles"},
-        {.comp = modifyTiles_comp}
+        {.comp = glsl::modifyTiles_comp}
     };
 
     ChunkActivationMgr m_chunkActivationMgr{m_simulationPL};
