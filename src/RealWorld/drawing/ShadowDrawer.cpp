@@ -51,7 +51,8 @@ glm::uvec3 getShadowsCalculationGroupCount(glm::vec2 viewSizeTi) {
 
 ShadowDrawer::ShadowDrawer(
     re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
-    glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights, WorldDrawingPC& pc
+    glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights,
+    glsl::WorldDrawingPC& pc
 )
     : m_pc(pc)
     , m_calcInputsPll(
@@ -65,7 +66,7 @@ ShadowDrawer::ShadowDrawer(
                   {k_wallLightAtlasBinding, eCombinedImageSampler, 1u, eCompute},
                   {k_dynamicLightsBinding, eStorageBuffer, 1u, eCompute},
               }},
-              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(AnalysisPC)}}
+              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(glsl::AnalysisPC)}}
           }
       )
     , m_analyzeTilesPl(
@@ -107,7 +108,7 @@ ShadowDrawer::ShadowDrawer(
       )
     , m_lightsBuf(re::BufferCreateInfo{
           .allocFlags  = eMapped | eHostAccessSequentialWrite,
-          .sizeInBytes = maxNumberOfExternalLights * sizeof(ExternalLight),
+          .sizeInBytes = maxNumberOfExternalLights * sizeof(glsl::DynamicLight),
           .usage       = vk::BufferUsageFlagBits::eStorageBuffer,
           .debugName   = "rw::ShadowDrawer::lights"
       })
@@ -141,7 +142,7 @@ void ShadowDrawer::analyze(
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_calcInputsPll, 0u, *m_.calcInputsDS, {}
     );
-    cb->pushConstants<AnalysisPC>(*m_calcInputsPll, eCompute, 0u, m_.analysisPC);
+    cb->pushConstants<glsl::AnalysisPC>(*m_calcInputsPll, eCompute, 0u, m_.analysisPC);
     cb->dispatch(
         m_.analysisGroupCount.x, m_.analysisGroupCount.y, m_.analysisGroupCount.z
     );
@@ -149,8 +150,8 @@ void ShadowDrawer::analyze(
 }
 
 void ShadowDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
-    ExternalLight light{posPx, col};
-    std::memcpy(&m_lightsBuf[m_.analysisPC.lightCount], &light, sizeof(ExternalLight));
+    glsl::DynamicLight light{posPx, std::bit_cast<glm::uint>(col), {}};
+    std::memcpy(&m_lightsBuf->lights[m_.analysisPC.lightCount], &light, sizeof(light));
     m_.analysisPC.lightCount++;
 }
 
@@ -173,7 +174,7 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
             ((botLeftPx - k_lightMaxRangeTi * iTilePx) & k_unitMask) +
             k_halfUnitOffset;
         cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
-        cb->pushConstants<AnalysisPC>(*m_calcInputsPll, eCompute, 0u, m_.analysisPC);
+        cb->pushConstants<glsl::AnalysisPC>(*m_calcInputsPll, eCompute, 0u, m_.analysisPC);
         cb->dispatch(re::ceilDiv(m_.analysisPC.lightCount, 8u), 1u, 1u);
     }
 
@@ -265,7 +266,7 @@ void ShadowDrawer::draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
         vk::PipelineBindPoint::eGraphics, *m_shadowDrawingPll, 0u,
         *m_.shadowDrawingDS, {}
     );
-    cb->pushConstants<WorldDrawingPC>(*m_shadowDrawingPll, eVertex, 0u, m_pc);
+    cb->pushConstants<glsl::WorldDrawingPC>(*m_shadowDrawingPll, eVertex, 0u, m_pc);
     cb->draw(3u, 1u, 0u, 0u);
 }
 

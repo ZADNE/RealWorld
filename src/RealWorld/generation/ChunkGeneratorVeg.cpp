@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/generation/VegPrepSB.hpp>
+#include <RealWorld/generation/shaders/VegPrepSB.glsl.hpp>
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
@@ -12,20 +12,20 @@ namespace rw {
 void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
     { // Clear count
         (*acb)->fillBuffer(
-            *m_vegPrepBuf, offsetof(VegPrepSB, vegDispatchSize.x),
-            sizeof(VegPrepSB::vegDispatchSize.x), 0
+            *m_vegPrepBuf, offsetof(glsl::VegPrepSB, vegDispatchSize.x),
+            sizeof(glsl::VegPrepSB::vegDispatchSize.x), 0
         );
         (*acb)->fillBuffer(
-            *m_vegPrepBuf, offsetof(VegPrepSB, branchDispatchSize.x),
-            sizeof(VegPrepSB::branchDispatchSize.x), 0
+            *m_vegPrepBuf, offsetof(glsl::VegPrepSB, branchDispatchSize.x),
+            sizeof(glsl::VegPrepSB::branchDispatchSize.x), 0
         );
         (*acb)->fillBuffer(
-            *m_vegPrepBuf, offsetof(VegPrepSB, vegOffsetWithinChunk),
-            sizeof(VegPrepSB::vegOffsetWithinChunk), 0
+            *m_vegPrepBuf, offsetof(glsl::VegPrepSB, vegOffsetWithinChunk),
+            sizeof(glsl::VegPrepSB::vegOffsetWithinChunk), 0
         );
         (*acb)->fillBuffer(
-            *m_vegPrepBuf, offsetof(VegPrepSB, branchOfChunk),
-            sizeof(VegPrepSB::branchOfChunk), 0
+            *m_vegPrepBuf, offsetof(glsl::VegPrepSB, branchOfChunk),
+            sizeof(glsl::VegPrepSB::branchOfChunk), 0
         );
         auto barrier = re::bufferMemoryBarrier(
             S::eTransfer,                                   // Src stage mask
@@ -55,7 +55,7 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
 
     // Expand species instances
     (*acb)->bindPipeline(vk::PipelineBindPoint::eCompute, *m_expandVegInstancesPl);
-    (*acb)->dispatchIndirect(*m_vegPrepBuf, offsetof(VegPrepSB, vegDispatchSize));
+    (*acb)->dispatchIndirect(*m_vegPrepBuf, offsetof(glsl::VegPrepSB, vegDispatchSize));
 
     acb.action(
         [&](const re::CommandBuffer& cb) {
@@ -91,7 +91,9 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
 
             // Output branches
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_outputBranchesPl);
-            cb->dispatchIndirect(*m_vegPrepBuf, offsetof(VegPrepSB, branchDispatchSize));
+            cb->dispatchIndirect(
+                *m_vegPrepBuf, offsetof(glsl::VegPrepSB, branchDispatchSize)
+            );
         },
         BufferAccess{
             .name   = BufferTrackName::Branch,

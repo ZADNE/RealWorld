@@ -33,7 +33,7 @@ void main(){
     vec2 diaOffsetTi = normal * i_sizeTi.x * (gl_TessCoord.x - 0.5);
 
     // Final position
-    gl_Position = p_mvpMat * vec4(pTi + diaOffsetTi, 0.0, 1.0);
+    gl_Position = p_.mvpMat * vec4(pTi + diaOffsetTi, 0.0, 1.0);
 
     // Other attributes
     o_uv = gl_TessCoord.xy;

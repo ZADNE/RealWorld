@@ -3,27 +3,32 @@
  */
 #ifndef GENERATION_PC_GLSL
 #define GENERATION_PC_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
-layout (push_constant, std430)
+layout (push_constant, scalar)
 uniform GenerationPC {
-    ivec2 p_chunkTi[k_chunkGenSlots];
-    ivec2 p_worldTexSizeCh;
-    int   p_seed;
-    uint  p_storeSegment;
-    uint  p_edgeConsolidationPromote;
-    uint  p_edgeConsolidationReduce;
-};
+    ivec2 chunkTi[k_chunkGenSlots];
+    ivec2 worldTexSizeCh;
+    int   seed;
+    uint  storeSegment;
+    uint  edgeConsolidationPromote;
+    uint  edgeConsolidationReduce;
+} RE_SHADER_INSTANCE(p_);
+
+#ifdef VULKAN
 
 uint blockImgLoadLayer(){
-    return (1 - p_storeSegment) * k_chunkGenSlots + gl_WorkGroupID.z;
+    return (1 - p_.storeSegment) * k_chunkGenSlots + gl_WorkGroupID.z;
 }
 
 uint blockImgStoreLayer(){
-    return p_storeSegment * k_chunkGenSlots + gl_WorkGroupID.z;
+    return p_.storeSegment * k_chunkGenSlots + gl_WorkGroupID.z;
 }
 
 uint wallImgLayer(){
     return 2 * k_chunkGenSlots + gl_WorkGroupID.z;
 }
+
+#endif
 
 #endif // !GENERATION_PC_GLSL

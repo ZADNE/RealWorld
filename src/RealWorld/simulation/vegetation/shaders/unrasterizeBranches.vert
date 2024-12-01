@@ -18,14 +18,14 @@ void main(){
     const uvec2 parentOffsetWallType = loadBranchParentOffsetWallType(id);
     const float radiusTi = b_branch.radiusTi[id];
     const float lengthTi = b_branch.lengthTi[id];
-    const float absAngNorm = b_branch.absAngNorm[p_readBuf][id];
+    const float absAngNorm = b_branch.absAngNorm[p_.readBuf][id];
 
     // Load parent
     const uint pId = id - int(parentOffsetWallType.x);
-    const float pAbsAngNorm = b_branch.absAngNorm[p_readBuf][pId];
+    const float pAbsAngNorm = b_branch.absAngNorm[p_.readBuf][pId];
 
     // Outputs for next stage
-    o_posTi = b_branch.absPosTi[p_readBuf][id];
+    o_posTi = b_branch.absPosTi[p_.readBuf][id];
     o_sizeTi = vec2(radiusTi * 2.0, lengthTi);
     o_endAngleNorm = absAngNorm;
     o_startAngleNorm = pAbsAngNorm;

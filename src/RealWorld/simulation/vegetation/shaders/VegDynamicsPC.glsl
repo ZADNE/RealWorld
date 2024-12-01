@@ -4,13 +4,15 @@
 #ifndef VEG_DYNAMICS_PC_GLSL
 #define VEG_DYNAMICS_PC_GLSL
 
-layout (push_constant, std430)
+#include <RealShaders/CppIntegration.glsl>
+
+layout (push_constant, scalar)
 restrict uniform VegDynamicsPC {
-    mat4  p_mvpMat;
-    vec2  p_worldTexSizeTi;
-    ivec2 p_worldTexMaskTi;
-    float p_timeSec;
-    uint  p_readBuf;
-};
+    mat4  mvpMat;
+    vec2  worldTexSizeTi;
+    ivec2 worldTexMaskTi;
+    float timeSec;
+    uint  readBuf;
+} RE_SHADER_INSTANCE(p_);
 
 #endif // !VEG_DYNAMICS_PC_GLSL

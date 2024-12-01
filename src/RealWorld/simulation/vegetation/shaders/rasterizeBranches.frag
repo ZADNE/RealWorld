@@ -46,7 +46,7 @@ void main(){
             uv /= i_sizeTi;
             vec2 normal = vec2(i_tipDir.y, -i_tipDir.x);
             vec2 dir = (uv.x - 0.5) * normal + (uv.y * 0.5) * i_tipDir;
-            ivec2 leafPosAt = tiToAt(ivec2(gl_FragCoord.xy + dir * float(bud * 3)), p_worldTexMaskTi);
+            ivec2 leafPosAt = tiToAt(ivec2(gl_FragCoord.xy + dir * float(bud * 3)), p_.worldTexMaskTi);
             uvec2 leaf = loadWall(leafPosAt);
             uint leafType = wallType + k_woodToLeafTypeOffset;
             if (leaf.L_T == k_airWl){

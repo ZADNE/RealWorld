@@ -3,13 +3,16 @@
  */
 #ifndef SHADER_MESSAGE_SB_GLSL
 #define SHADER_MESSAGE_SB_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
 const int k_messageBufferSize = 511;
 layout (set = 0, binding = k_shaderMessageBinding, std430)
 restrict buffer ShaderMessageSB {
     int totalInts;
     int messages[k_messageBufferSize];
-} b_message;
+} RE_SHADER_INSTANCE(b_message);
+
+#ifdef VULKAN
 
 const int k_messageIdRemoveFromSelSlot = 1;
 const int k_messageIdDropBlocks        = 2;
@@ -38,5 +41,7 @@ int messageInsertTilesToInventory(uint layer, ivec2 basePosTi, int count){
         return -1;
     }
 }
+
+#endif
 
 #endif // !SHADER_MESSAGE_SB_GLSL

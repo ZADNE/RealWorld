@@ -3,16 +3,20 @@
  */
 #ifndef DYNAMIC_LIGHTS_SB_GLSL
 #define DYNAMIC_LIGHTS_SB_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
-struct DynamicLight{
-    ivec2 posPx;
-    uint col;
+/**
+ * @brief Represents a dynamic light that can be added into the world.
+ */
+struct DynamicLight {
+    ivec2 posPx; ///< Position of the center of the light in pixels
+    uint col;    ///< RGB = color of the light, A = intensity of the light
     uint padding;
 };
 
-layout (set = 0, binding = k_dynamicLightsBinding, std430)
+layout (set = 0, binding = k_dynamicLightsBinding, scalar)
 readonly restrict buffer DynamicLightsSB {
-    DynamicLight b_dynamicLights[];
-};
+    DynamicLight lights[];
+} RE_SHADER_INSTANCE(b_dynamicLights);
 
 #endif // !DYNAMIC_LIGHTS_SB_GLSL

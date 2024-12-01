@@ -15,26 +15,26 @@ layout (local_size_x = 1,
 ) in;
 
 void tryJump(vec2 posPx, float jumpPower, vec2 dimsPx, inout vec2 velPx) {
-    if (p_jump != 0.0 || // Jump
-        (p_autojump != 0.0 && p_walkDirection != 0.0 &&
-         overlapsBlocks(posPx + vec2(velPx.x * 4.0, 0.0), dimsPx, p_worldTexMaskTi))) { // Autojump
-        velPx.y = p_jumpVelocity * jumpPower;
+    if (p_.jump != 0.0 || // Jump
+        (p_.autojump != 0.0 && p_.walkDirection != 0.0 &&
+         overlapsBlocks(posPx + vec2(velPx.x * 4.0, 0.0), dimsPx, p_.worldTexMaskTi))) { // Autojump
+        velPx.y = p_.jumpVelocity * jumpPower;
     }
 }
 
 void main() {
     const vec2 dimsPx = b_player.dimsPx;
           vec2 velPx = b_player.velocityPx;
-    if (p_walkDirection != 0.0) {
-        velPx.x += p_walkDirection * p_acceleration; // Walk
-        velPx.x = clamp(velPx.x, -p_maxWalkVelocity, p_maxWalkVelocity);
+    if (p_.walkDirection != 0.0) {
+        velPx.x += p_.walkDirection * p_.acceleration; // Walk
+        velPx.x = clamp(velPx.x, -p_.maxWalkVelocity, p_.maxWalkVelocity);
     } else {
         velPx.x -= sign(velPx.x); // Friction
     }
     // Read previous botLeft from buffer
-    vec2 botLeftPx = b_player.botLeftPx[1 - p_writeIndex];
+    vec2 botLeftPx = b_player.botLeftPx[1 - p_.writeIndex];
 
-    uint grnd = ground(botLeftPx, dimsPx, p_worldTexMaskTi);
+    uint grnd = ground(botLeftPx, dimsPx, p_.worldTexMaskTi);
     if (isSolidBlock(grnd)) { // Standing on solid ground
         tryJump(botLeftPx, 1.0, dimsPx, velPx);
     } else if (!isAirBlock(grnd)) { // Floating in a fluid
@@ -46,9 +46,9 @@ void main() {
     }
 
     // Move the hitbox
-    moveFinely(botLeftPx, dimsPx, velPx, p_worldTexMaskTi);
+    moveFinely(botLeftPx, dimsPx, velPx, p_.worldTexMaskTi);
 
     // Write output back to the buffer
-    b_player.botLeftPx[p_writeIndex] = botLeftPx;
+    b_player.botLeftPx[p_.writeIndex] = botLeftPx;
     b_player.velocityPx = velPx;
 }

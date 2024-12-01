@@ -10,9 +10,9 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/simulation/tiles/ActiveChunksSB.hpp>
 #include <RealWorld/simulation/tiles/Chunk.hpp>
 #include <RealWorld/simulation/tiles/ChunkTransferMgr.hpp>
+#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl.hpp>
 
 namespace rw {
 
@@ -107,7 +107,7 @@ private:
     glm::ivec2 m_worldTexMaskCh{};
 
     re::Buffer m_activeChunksBuf;
-    re::BufferMapped<ActiveChunksSB> m_activeChunksStageBuf;
+    re::BufferMapped<glsl::ActiveChunksSB> m_activeChunksStageBuf;
 
     ChunkGenerator m_chunkGen;
     ChunkTransferMgr m_chunkTransferMgr;

@@ -7,7 +7,7 @@
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
-#include <RealWorld/drawing/WorldDrawingPC.hpp>
+#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl.hpp>
 
 namespace rw {
 
@@ -62,7 +62,7 @@ private:
     float m_skyLightPower = 1.0f;
     float timeToSkyLightPower(float timeDay) const;
 
-    WorldDrawingPC m_pc{};
+    glsl::WorldDrawingPC m_pc{};
 
     TileDrawer m_tileDrawer;
     ShadowDrawer m_shadowDrawer;

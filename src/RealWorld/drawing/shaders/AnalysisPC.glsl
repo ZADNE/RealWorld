@@ -3,15 +3,15 @@
  */
 #ifndef ANALYSIS_PC_GLSL
 #define ANALYSIS_PC_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
-#extension GL_EXT_scalar_block_layout : require
-layout (push_constant, std430)
+layout (push_constant, scalar)
 uniform AnalysisPC {
-    vec4    p_skyLight;
-    ivec2   p_worldTexMask;
-    ivec2   p_analysisOffsetTi;
-    ivec2   p_addLightOffsetPx;
-    uint    p_lightCount;
-};
+    vec4    skyLight;
+    ivec2   worldTexMask;
+    ivec2   analysisOffsetTi;
+    ivec2   addLightOffsetPx;
+    uint    lightCount;
+} RE_SHADER_INSTANCE(p_);
 
 #endif // !ANALYSIS_PC_GLSL

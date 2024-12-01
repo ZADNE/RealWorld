@@ -48,7 +48,7 @@ void main() {
     // Determine the variant
     vec2 variantRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
     uvec2 variantOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
-    uvec2 variant = uvec2(hash22(vec2(p_chunkTi[gl_WorkGroupID.z] + pTi)) * variantRange)
+    uvec2 variant = uvec2(hash22(vec2(p_.chunkTi[gl_WorkGroupID.z] + pTi)) * variantRange)
                     + variantOffset;
 
     // Store the new tile

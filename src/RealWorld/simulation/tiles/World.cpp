@@ -80,7 +80,7 @@ World::World(const re::Buffer& shaderMessageBuf)
                     {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute},
                     {k_shaderMessageBinding, eStorageBuffer, 1, eCompute}}},
-              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(SimulationPC)}}
+              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(glsl::WorldDynamicsPC)}}
           }
       )
     , m_tilePropertiesBuf(re::BufferCreateInfo{
@@ -245,7 +245,7 @@ void World::modifyTiles(
             m_worldDynamicsPC.modifySetValue = tile;
             m_worldDynamicsPC.modifyMaxCount = maxCount;
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_modifyTilesPl);
-            cb->pushConstants<SimulationPC::WorldDynamics>(
+            cb->pushConstants<glsl::WorldDynamicsPC>(
                 *m_simulationPL, eCompute, 0, m_worldDynamicsPC
             );
             cb->dispatch(1, 1, 1);
@@ -268,12 +268,13 @@ void World::tileTransformationsStep(const ActionCmdBuf& acb) {
     acb.action(
         [&](const re::CommandBuffer& cb) {
             xorshift32(m_worldDynamicsPC.timeHash);
-            cb->pushConstants<SimulationPC::WorldDynamics>(
+            cb->pushConstants<glsl::WorldDynamicsPC>(
                 *m_simulationPL, eCompute, 0, m_worldDynamicsPC
             );
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_transformTilesPl);
             cb->dispatchIndirect(
-                **m_activeChunksBuf, offsetof(ActiveChunksSB, dynamicsGroupSize)
+                **m_activeChunksBuf,
+                offsetof(glsl::ActiveChunksSB, dynamicsGroupSize)
             );
         },
         ImageAccess{
@@ -318,7 +319,8 @@ void World::fluidDynamicsStep(const ActionCmdBuf& acb) {
                     MEMBER(m_worldDynamicsPC, globalOffsetTi)
                 );
                 cb->dispatchIndirect(
-                    **m_activeChunksBuf, offsetof(ActiveChunksSB, dynamicsGroupSize)
+                    **m_activeChunksBuf,
+                    offsetof(glsl::ActiveChunksSB, dynamicsGroupSize)
                 );
             },
             ImageAccess{

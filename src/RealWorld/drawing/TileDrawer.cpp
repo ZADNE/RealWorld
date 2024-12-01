@@ -72,7 +72,8 @@ glm::vec3 bcColor(float biomeTemp) {
 // NOLINTEND
 
 TileDrawer::TileDrawer(
-    re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx, WorldDrawingPC& pc
+    re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
+    glsl::WorldDrawingPC& pc
 )
     : m_pc(pc)
     , m_pipelineLayout(
@@ -84,7 +85,7 @@ TileDrawer::TileDrawer(
                   {2u, eCombinedImageSampler, 1u, eFragment}  // wallAtlas
               }},
               .ranges   = {vk::PushConstantRange{
-                  eVertex | eFragment, 0u, sizeof(WorldDrawingPC)
+                  eVertex | eFragment, 0u, sizeof(glsl::WorldDrawingPC)
               }}
           }
       )
@@ -155,7 +156,9 @@ void TileDrawer::drawTiles(
         *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
-    cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);
+    cb->pushConstants<glsl::WorldDrawingPC>(
+        *m_pipelineLayout, eVertex | eFragment, 0u, m_pc
+    );
     cb->draw(3u, 1u, 0u, 0u);
 }
 
@@ -165,7 +168,9 @@ void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {
         *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
-    cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);
+    cb->pushConstants<glsl::WorldDrawingPC>(
+        *m_pipelineLayout, eVertex | eFragment, 0u, m_pc
+    );
     cb->draw(4u, 1u, 0u, 0u);
 }
 

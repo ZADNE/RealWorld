@@ -19,12 +19,12 @@ layout (local_size_x = 16,
 ) in;
 
 ivec2 updateOrderOffset(uint index){
-    return ivec2((p_updateOrder >> (index * 2u + 1u)) & 1, (p_updateOrder >> (index * 2u)) & 1);
+    return ivec2((p_.updateOrder >> (index * 2u + 1u)) & 1, (p_.updateOrder >> (index * 2u)) & 1);
 }
 
 uint invocHash(){
     uint globalIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
-    return globalIndex ^ p_timeHash;
+    return globalIndex ^ p_.timeHash;
 }
 
 uvec2 blockRandomVariant(uint blockType){
@@ -52,7 +52,7 @@ int randomStateToDirection1D(){
 }
 
 void looseTypeDynamics(uint layer, uvec2 typeVar, ivec2 posAt){
-    ivec2 belowAt = tiToAt(ivec2(posAt.x, posAt.y - 1), p_worldTexMaskTi);
+    ivec2 belowAt = tiToAt(ivec2(posAt.x, posAt.y - 1), p_.worldTexMaskTi);
     uvec2 below = loadLayer(belowAt, layer);
 
     if (isAirBlock(below.L_T) && below.L_T != typeVar.L_T){ // If can swap
@@ -70,9 +70,9 @@ void leaningFluidDynamics(uvec2 fluid, ivec2 posAt, vec2 posTi){
     uint fi = fluidIndex(fluid.L_T);
     // Compute surroundings positions
     ivec2 surrPosAt[3] = {
-        tiToAt(posAt + ivec2(+0, k_primMoveDir[fi]), p_worldTexMaskTi),
-        tiToAt(posAt + ivec2(leaningSide, k_primMoveDir[fi]), p_worldTexMaskTi),
-        tiToAt(posAt + ivec2(leaningSide, 0), p_worldTexMaskTi)
+        tiToAt(posAt + ivec2(+0, k_primMoveDir[fi]), p_.worldTexMaskTi),
+        tiToAt(posAt + ivec2(leaningSide, k_primMoveDir[fi]), p_.worldTexMaskTi),
+        tiToAt(posAt + ivec2(leaningSide, 0), p_.worldTexMaskTi)
     };
     int first_move = probTest1023(k_primMoveProb[fi]) ? 0 : 2;
     int last_move = probTest1023(k_fluidity[fi]) ? 2 : 0;
@@ -102,14 +102,14 @@ void leaningFluidDynamics(uvec2 fluid, ivec2 posAt, vec2 posTi){
         fluid.L_V ^= 1; // Invert the leaning side
     } else if (!probTest1023(k_density[fi])) {
         // Lean according to the wind
-        fluid.L_V = (fluid.L_V & ~1) | uint(windStrength(posTi, p_timeSec) > 0.0);
+        fluid.L_V = (fluid.L_V & ~1) | uint(windStrength(posTi, p_.timeSec) > 0.0);
     }
     storeBlock(posAt, fluid);
 }
 
 void velocityFluidDynamics(uvec2 fluid, ivec2 posAt){
     ivec2 velocity = extractVelocity(fluid.y);
-    uvec2 blockBelow = loadBlock(tiToAt(posAt + ivec2(+0, -1), p_worldTexMaskTi));
+    uvec2 blockBelow = loadBlock(tiToAt(posAt + ivec2(+0, -1), p_.worldTexMaskTi));
     if (blockBelow.L_T == k_airBl){
         velocity.y -= 1;// bool(random() & 3) ? 0 : 1;
         velocity.x -= sign(velocity.x);// bool(random() & 3) ? 0 : sign(velocity.x);
@@ -119,7 +119,7 @@ void velocityFluidDynamics(uvec2 fluid, ivec2 posAt){
     ivec2 shift = ivec2(greaterThan(abs(velocity), ivec2(random() % 7, random() % 7))) * sign(velocity);
 
     if (shift != ivec2(0, 0)){// If the particle should shift
-        ivec2 nPosAt = tiToAt(posAt + shift, p_worldTexMaskTi);
+        ivec2 nPosAt = tiToAt(posAt + shift, p_.worldTexMaskTi);
         uvec2 neighbor = loadBlock(nPosAt);
         if (neighbor.L_T == k_airBl){// Can move
             storeBlock(posAt, uvec2(k_airBl, 0));
@@ -150,7 +150,7 @@ void leafGrowth(uvec2 leaf, ivec2 posAt){
     uint strength = leaf.L_V - 5;
     uint neighborhood = bool(strength & 3) ? 4 : 8;
     for (int i = 0; i < neighborhood; i++){
-        ivec2 nPosAt = tiToAt(posAt + k_neighborhood[i], p_worldTexMaskTi);
+        ivec2 nPosAt = tiToAt(posAt + k_neighborhood[i], p_.worldTexMaskTi);
         uvec2 n = loadWall(nPosAt);
         if (n.L_T == k_airWl || (isWoodWall(n.L_T) && (n.L_V & 7) > 1)){
             storeWall(nPosAt, uvec2(leaf.L_T, strength));
@@ -166,7 +166,7 @@ void main(){
 
     const ivec2 invocOffset =
                       b_acChunks.offsets[gl_WorkGroupID.x]  // Offset of the chunk
-                    + p_globalOffsetTi                      // Offset within 4 rounds
+                    + p_.globalOffsetTi                      // Offset within 4 rounds
                     + ivec2(gl_LocalInvocationID.xy) * 4;
 
     for (uint inGroup = 0; inGroup < 4; inGroup++){
@@ -174,7 +174,7 @@ void main(){
         uint inCoreOrderOffset = (random() & 3) * 4;
         for (uint inCore = 0; inCore < 4; inCore++){
             ivec2 posTi = invocOffset + inGroupOffset + updateOrderOffset(inCore + inCoreOrderOffset);
-            ivec2 posAt = tiToAt(posTi, p_worldTexMaskTi);
+            ivec2 posAt = tiToAt(posTi, p_.worldTexMaskTi);
             { // Block layer simulation
                 uvec2 block = loadBlock(posAt);
                 if (isLooseType(block.L_T)){

@@ -11,6 +11,7 @@
 
 #include <RealWorld/constants/generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
+#include <RealWorld/generation/shaders/GenerationPC.glsl.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 
 namespace rw {
@@ -63,23 +64,12 @@ private:
 
     void copyToDestination(const ActionCmdBuf& acb);
 
-    static re::Buffer createVegTemplatesBuffer();
-
     const re::Texture* m_worldTex = nullptr;
     const re::Buffer* m_bodiesBuf = nullptr;
     const re::Buffer* m_branchBuf = nullptr;
 
-    // NOLINTBEGIN: Shader mirror
-    struct GenerationPC {
-        glm::ivec2 chunkTi[k_chunkGenSlots];
-        glm::ivec2 worldTexSizeCh;
-        int seed;
-        glm::uint storeSegment{}; // Always 0 or 1
-        glm::uint edgeConsolidationPromote;
-        glm::uint edgeConsolidationReduce;
-    } m_genPC;
-    // NOLINTEND
-    static_assert(sizeof(GenerationPC) <= 128, "PC min size guarantee");
+    glsl::GenerationPC m_genPC{.storeSegment = 0};
+    static_assert(sizeof(glsl::GenerationPC) <= 128, "PC min size guarantee");
     int m_chunksPlanned = 0; ///< Number of chunks planned to generate this step
 
     re::StepDoubleBuffered<re::CommandBuffer> m_cb{
