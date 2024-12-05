@@ -17,6 +17,6 @@ struct DynamicLight {
 layout (set = 0, binding = k_dynamicLightsBinding, scalar)
 readonly restrict buffer DynamicLightsSB {
     DynamicLight lights[];
-} RE_SHADER_INSTANCE(b_dynamicLights);
+} RE_GLSL_ONLY(b_dynamicLights);
 
 #endif // !DYNAMIC_LIGHTS_SB_GLSL

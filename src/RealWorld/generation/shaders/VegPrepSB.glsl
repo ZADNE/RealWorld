@@ -39,6 +39,6 @@ VegPrepSB_ACCESS restrict buffer VegPrepSB {
     float   radiusTi[k_branchGenSlots];
     float   lengthTi[k_branchGenSlots];
     vec2    densityStiffness[k_branchGenSlots];
-} RE_SHADER_INSTANCE(b_vegPrep);
+} RE_GLSL_ONLY(b_vegPrep);
 
 #endif // !VEG_PREP_SB_GLSL

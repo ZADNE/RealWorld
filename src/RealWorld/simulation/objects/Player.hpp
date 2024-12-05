@@ -11,6 +11,8 @@
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
 #include <RealWorld/simulation/objects/shaders/AllShaders.hpp>
+#include <RealWorld/simulation/objects/shaders/PlayerHitboxSB.glsl.hpp>
+#include <RealWorld/simulation/objects/shaders/PlayerMovementPC.glsl.hpp>
 
 namespace rw {
 
@@ -48,40 +50,27 @@ public:
 
 private:
 
-    // NOLINTBEGIN: Shader mirror
-    struct PlayerHitboxSB {
-        glm::vec2 botLeftPx[2]{};
-        glm::vec2 dimsPx{};
-        glm::vec2 velocityPx{};
+    glsl::PlayerMovementPC m_pc{
+        .acceleration    = 0.5f,
+        .maxWalkVelocity = 6.0f,
+        .jumpVelocity    = 7.0f,
+        .writeIndex      = 1
     };
-
-    struct PlayerMovementPC {
-        glm::ivec2 worldTexMaskTi{};
-        float acceleration    = 0.5f;
-        float maxWalkVelocity = 6.0f;
-        float jumpVelocity    = 7.0f;
-        float walkDirection{};
-        float jump{};
-        float autojump{};
-        int writeIndex = 1; ///< Selects PlayerHitboxSB::botLeftPx, swings every step
-    } m_pushConstants;
-    // NOLINTEND
 
     Player(re::TextureShaped&& playerTex)
         : Player(
               std::move(playerTex),
-              PlayerHitboxSB{
-                  .dimsPx = glm::ivec2(playerTex.subimageDims()) - glm::ivec2(1),
-                  .velocityPx = glm::vec2(0.0f, 0.0f)
+              glsl::PlayerHitboxSB{
+                  .dimsPx = glm::ivec2(playerTex.subimageDims()) - 1,
               }
           ) {}
 
-    Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb);
+    Player(re::TextureShaped&& playerTex, const glsl::PlayerHitboxSB& initSb);
 
     re::TextureShaped m_playerTex;
 
     re::Buffer m_hitboxBuf;
-    re::BufferMapped<PlayerHitboxSB> m_hitboxStageBuf;
+    re::BufferMapped<glsl::PlayerHitboxSB> m_hitboxStageBuf;
     glm::vec2 m_oldBotLeftPx{};
 
     re::PipelineLayout m_pipelineLayout{{}, {.comp = glsl::movePlayer_comp}};

@@ -8,8 +8,8 @@
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/simulation/vegetation/BranchAllocRegSB.hpp>
-#include <RealWorld/simulation/vegetation/BranchSB.hpp>
 #include <RealWorld/simulation/vegetation/VegSimulator.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -34,7 +34,7 @@ VegSimulator::VegSimulator()
                     {k_worldTexBinding, D::eStorageImage, 1, eFragment}}},
               .ranges = {vk::PushConstantRange{
                   eVertex | eTessellationControl | eTessellationEvaluation | eFragment,
-                  0u, sizeof(VegDynamicsPC)
+                  0u, sizeof(glsl::VegDynamicsPC)
               }}
           }
       )
@@ -80,8 +80,9 @@ void VegSimulator::unrasterizeVegetation(const ActionCmdBuf& acb) {
             // Unrasterize branches from previous step
             cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_unrasterizeBranchesPl);
             cb->drawIndirect(
-                *m_branchAllocRegBuf, offsetof(BranchAllocRegSB, allocations),
-                k_maxBranchAllocCount, sizeof(BranchAllocation)
+                *m_branchAllocRegBuf,
+                offsetof(glsl::BranchAllocRegSB, allocations),
+                k_maxBranchAllocCount, sizeof(glsl::BranchAllocation)
             );
             cb->endRenderPass2(vk::SubpassEndInfo{});
         },
@@ -118,8 +119,9 @@ void VegSimulator::rasterizeVegetation(const ActionCmdBuf& acb, float timeSec) {
             // Simulate and rasterize branches
             cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_rasterizeBranchesPl);
             cb->drawIndirect(
-                *m_branchAllocRegBuf, offsetof(BranchAllocRegSB, allocations),
-                k_maxBranchAllocCount, sizeof(BranchAllocation)
+                *m_branchAllocRegBuf,
+                offsetof(glsl::BranchAllocRegSB, allocations),
+                k_maxBranchAllocCount, sizeof(glsl::BranchAllocation)
             );
             cb->endRenderPass2(vk::SubpassEndInfo{});
         },
@@ -157,20 +159,20 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     // Prepare branch buffer
     m_branchBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(BranchSB),
+        .sizeInBytes = sizeof(glsl::BranchSB),
         .usage       = eStorageBuffer | eTransferSrc | eTransferDst,
         .debugName   = "rw:VegSimulator::branch"
     }};
 
     // Prepare branch allocation register buffer
-    auto allocReg = std::make_unique<BranchAllocRegSB>(); // Quite big for stack...
-    allocReg->allocations[0] = BranchAllocation{.capacity = k_maxBranchCount};
-    m_branchAllocRegBuf      = re::Buffer{re::BufferCreateInfo{
-             .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-             .sizeInBytes = sizeof(BranchAllocRegSB),
-             .usage       = eStorageBuffer | eIndirectBuffer | eTransferSrc,
-             .initData    = re::objectToByteSpan(*allocReg),
-             .debugName   = "rw:VegSimulator::branchAllocReg"
+    std::unique_ptr<glsl::BranchAllocRegSB> allocReg = createBranchAllocRegSB();
+    allocReg->allocations[0] = glsl::BranchAllocation{.capacity = k_maxBranchCount};
+    m_branchAllocRegBuf = re::Buffer{re::BufferCreateInfo{
+        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+        .sizeInBytes = sizeof(glsl::BranchAllocRegSB),
+        .usage       = eStorageBuffer | eIndirectBuffer | eTransferSrc,
+        .initData    = re::objectToByteSpan(*allocReg),
+        .debugName   = "rw:VegSimulator::branchAllocReg"
     }};
 
     // Prepare framebuffers
@@ -222,7 +224,7 @@ void VegSimulator::beginWorldTextureRenderPass(const re::CommandBuffer& cb) cons
     glm::vec2 viewport{m_worldTexSizeTi};
     cb->setViewport(0u, vk::Viewport{0.0f, 0.0, viewport.x, viewport.y, 0.0f, 1.0f});
     cb->setScissor(0u, vk::Rect2D{{0, 0}, {m_worldTexSizeTi.x, m_worldTexSizeTi.y}});
-    cb->pushConstants<VegDynamicsPC>(
+    cb->pushConstants<glsl::VegDynamicsPC>(
         *m_pipelineLayout,
         eVertex | eTessellationControl | eTessellationEvaluation | eFragment,
         0u, m_vegDynamicsPC

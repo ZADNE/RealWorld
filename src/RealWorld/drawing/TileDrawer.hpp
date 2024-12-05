@@ -23,7 +23,7 @@ public:
         glsl::WorldDrawingPC& pc
     );
 
-    void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
+    void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize, float seed);
 
     void resizeView(glm::vec2 viewSizePx);
 
@@ -47,6 +47,7 @@ private:
         .debugName = "rw::TileDrawer::descriptorSet"
     }};
     re::Pipeline m_drawTilesPl;
+    float m_seed{};
 
     // Minimap
     re::Pipeline m_drawMinimapPl;

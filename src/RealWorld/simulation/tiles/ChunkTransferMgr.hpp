@@ -96,16 +96,16 @@ private:
     glm::ivec2 m_worldTexCh{};
 
     re::Pipeline m_reallocBranchesPl;
-    re::BufferMapped<BranchAllocRegSB> m_regBuf{re::BufferCreateInfo{
+    re::BufferMapped<glsl::BranchAllocRegSB> m_regBuf{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
-        .sizeInBytes = sizeof(BranchAllocRegSB),
+        .sizeInBytes = sizeof(glsl::BranchAllocRegSB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst,
         .debugName   = "rw::ChunkTransferMgr::reg"
     }};
 
     re::Buffer m_allocReqBuf{re::BufferCreateInfo{
-        .sizeInBytes = sizeof(BranchAllocReqUB),
+        .sizeInBytes = sizeof(glsl::BranchAllocReqUB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst |
                  vk::BufferUsageFlagBits::eUniformBuffer,
         .debugName = "rw::ChunkTransferMgr::allocReq"

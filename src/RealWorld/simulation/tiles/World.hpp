@@ -109,8 +109,7 @@ private:
     re::Buffer m_tilePropertiesBuf;
 
     glsl::WorldDynamicsPC m_worldDynamicsPC{
-        .updateOrder = 0b00011011'00011011'00011011'00011011,
-        .timeSec     = static_cast<float>(time(nullptr) & 0xFFFF)
+        .timeSec = static_cast<float>(time(nullptr) & 0xFFFF)
     };
 
     re::PipelineLayout m_simulationPL;

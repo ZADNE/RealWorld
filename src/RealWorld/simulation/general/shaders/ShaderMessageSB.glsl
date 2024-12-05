@@ -6,11 +6,11 @@
 #include <RealShaders/CppIntegration.glsl>
 
 const int k_messageBufferSize = 511;
-layout (set = 0, binding = k_shaderMessageBinding, std430)
+layout (set = 0, binding = k_shaderMessageBinding, scalar)
 restrict buffer ShaderMessageSB {
     int totalInts;
     int messages[k_messageBufferSize];
-} RE_SHADER_INSTANCE(b_message);
+} RE_GLSL_ONLY(b_message);
 
 #ifdef VULKAN
 

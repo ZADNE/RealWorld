@@ -19,7 +19,8 @@ const uint MIX_PROPSb = 2048;
 const uint TO_OTHERb  = 4096;
 const uint LOW_VARb   = 8192;
 
-layout (set = 0, binding = k_tilePropertiesBinding, std140)
+#extension GL_EXT_scalar_block_layout : require
+layout (set = 0, binding = k_tilePropertiesBinding, scalar)
 restrict uniform TilePropertiesUB {
     // x = properties
     // yz = indices of first and last transformation rule

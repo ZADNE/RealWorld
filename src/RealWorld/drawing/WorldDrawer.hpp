@@ -21,7 +21,7 @@ public:
         glm::uint maxNumberOfExternalLights
     );
 
-    void setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi);
+    void setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi, float seed);
     void resizeView(glm::uvec2 viewSizePx);
 
     struct ViewEnvelope {

@@ -68,7 +68,7 @@ private:
     const re::Buffer* m_bodiesBuf = nullptr;
     const re::Buffer* m_branchBuf = nullptr;
 
-    glsl::GenerationPC m_genPC{.storeSegment = 0};
+    glsl::GenerationPC m_genPC{};
     static_assert(sizeof(glsl::GenerationPC) <= 128, "PC min size guarantee");
     int m_chunksPlanned = 0; ///< Number of chunks planned to generate this step
 

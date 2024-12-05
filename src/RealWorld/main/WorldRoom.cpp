@@ -314,7 +314,9 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     m_playerInv.adoptInventoryData(save.inventory);
     m_timeDay = save.metadata.timeDay;
 
-    m_worldDrawer.setTarget(worldTex, m_gameSettings.worldTexSize() * iChunkTi);
+    m_worldDrawer.setTarget(
+        worldTex, m_gameSettings.worldTexSize() * iChunkTi, save.metadata.seed
+    );
     return true;
 }
 

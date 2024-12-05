@@ -89,8 +89,7 @@ World::World(const re::Buffer& shaderMessageBuf)
           .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
           .initData    = re::objectToByteSpan(k_tileProperties),
           .debugName   = "rw::World::tileProperties"
-      })
-    , m_worldDynamicsPC{.timeHash = static_cast<uint32_t>(time(nullptr))} {
+      }) {
     m_simulationDS.write(eUniformBuffer, k_tilePropertiesBinding, 0, m_tilePropertiesBuf);
     m_simulationDS.write(eStorageBuffer, k_shaderMessageBinding, 0, shaderMessageBuf);
 }

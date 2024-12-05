@@ -12,6 +12,6 @@ uniform AnalysisPC {
     ivec2   analysisOffsetTi;
     ivec2   addLightOffsetPx;
     uint    lightCount;
-} RE_SHADER_INSTANCE(p_);
+} RE_GLSL_ONLY(p_);
 
 #endif // !ANALYSIS_PC_GLSL

@@ -35,9 +35,9 @@ const re::Buffer& BodySimulator::adoptSave(glm::ivec2 worldTexSizeCh) {
 
     m_bodiesBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(BodiesSBHeader) + sizeof(Body) * maxBodyCount,
-        .usage       = eStorageBuffer | eIndirectBuffer,
-        .initData    = re::objectToByteSpan(initHeader)
+        .sizeInBytes = sizeof(BodiesSBHeader) + sizeof(glsl::Body) * maxBodyCount,
+        .usage    = eStorageBuffer | eIndirectBuffer,
+        .initData = re::objectToByteSpan(initHeader)
     }};
 
     return m_bodiesBuf;

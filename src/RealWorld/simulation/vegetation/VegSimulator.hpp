@@ -18,6 +18,7 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/simulation/vegetation/shaders/AllShaders.hpp>
+#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC.glsl.hpp>
 
 namespace rw {
 
@@ -47,13 +48,7 @@ public:
     VegStorage adoptSave(const re::Texture& worldTex, glm::ivec2 worldTexSizeCh);
 
 private:
-    struct VegDynamicsPC {
-        glm::mat4 mvpMat;
-        glm::vec2 worldTexSizeTi;
-        glm::ivec2 worldTexMaskTi;
-        float timeSec;
-        glm::uint readBuf;
-    } m_vegDynamicsPC{};
+    glsl::VegDynamicsPC m_vegDynamicsPC{};
 
     re::PipelineLayout m_pipelineLayout;
     re::RenderPass m_rasterizationRenderPass;

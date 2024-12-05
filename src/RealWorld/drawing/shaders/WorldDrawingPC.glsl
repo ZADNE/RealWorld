@@ -15,6 +15,6 @@ uniform WorldDrawingPC {
     vec2    minimapOffset;
     vec2    minimapSize;
     vec4    skyColor;
-} RE_SHADER_INSTANCE(p_);
+} RE_GLSL_ONLY(p_);
 
 #endif // !WORLD_DRAWING_PC_GLSL

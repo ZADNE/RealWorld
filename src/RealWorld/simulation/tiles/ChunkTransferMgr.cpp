@@ -10,6 +10,7 @@
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
 #include <RealWorld/simulation/tiles/ChunkTransferMgr.hpp>
 #include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>
+#include <RealWorld/simulation/vegetation/shaders/reallocBranches_comp.hpp>
 
 using enum vk::CommandBufferUsageFlagBits;
 using enum vk::ImageAspectFlagBits;
@@ -33,7 +34,7 @@ ChunkTransferMgr::ChunkTransferMgr(const re::PipelineLayout& pipelineLayout)
 void ChunkTransferMgr::setTarget(glm::ivec2 worldTexCh) {
     m_worldTexCh = worldTexCh;
     m_stage.forEach([&](auto& st) { st.setTarget(worldTexCh); });
-    *m_regBuf = BranchAllocRegSB{};
+    *m_regBuf = *createBranchAllocRegSB();
 }
 
 bool ChunkTransferMgr::saveChunks(
@@ -305,7 +306,7 @@ void ChunkTransferMgr::endStep(
                 // Copy (de)allocation request
                 vk::BufferCopy2 copyRegion{
                     offsetof(decltype(m_stage)::Type::StgBuf, branchAllocReq),
-                    0, sizeof(BranchAllocReqUB)
+                    0, sizeof(glsl::BranchAllocReqUB)
                 };
                 cb->copyBuffer2({*m_stage->buffer(), *m_allocReqBuf, copyRegion});
                 auto barrier = re::bufferMemoryBarrier(
@@ -333,7 +334,7 @@ void ChunkTransferMgr::endStep(
         acb.action(
             [&](const re::CommandBuffer& cb) {
                 // Download new state of branch allocation register
-                vk::BufferCopy2 region{0, 0, sizeof(BranchAllocRegSB)};
+                vk::BufferCopy2 region{0, 0, sizeof(glsl::BranchAllocRegSB)};
                 cb->copyBuffer2({*branchAllocRegBuf, m_regBuf.buffer(), region});
             },
             BufferAccess{

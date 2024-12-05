@@ -13,7 +13,7 @@ uniform GenerationPC {
     uint  storeSegment;
     uint  edgeConsolidationPromote;
     uint  edgeConsolidationReduce;
-} RE_SHADER_INSTANCE(p_);
+} RE_GLSL_ONLY(p_);
 
 #ifdef VULKAN
 

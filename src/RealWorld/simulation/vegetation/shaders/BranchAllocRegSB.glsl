@@ -3,6 +3,8 @@
  */
 #ifndef BRANCH_ALLOC_REG_SB_GLSL
 #define BRANCH_ALLOC_REG_SB_GLSL
+#include <RealShaders/CppIntegration.glsl>
+
 #include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/vegetation.glsl>
 
@@ -16,14 +18,15 @@ struct BranchAllocation {
     uint capacity;
 };
 
-layout (set = 0, binding = k_branchAllocRegBinding, std430)
+layout (set = 0, binding = k_branchAllocRegBinding, scalar)
 restrict coherent buffer BranchAllocRegSB {
     int              allocIndexOfTheChunk[k_maxWorldTexChunkCount];
     BranchAllocation allocations[k_maxBranchAllocCount];
     int              nextAllocIter;
     int              lock;
-} b_branchAllocReg;
+} RE_GLSL_ONLY(b_branchAllocReg);
 
+#ifdef VULKAN
 
 void lockAllocRegister(){
     while (atomicCompSwap(b_branchAllocReg.lock, 0, 1) == 1){
@@ -52,7 +55,6 @@ bool isLastAllocIndex(uint allocIndex){
 uint roundUpToPowerOf2(uint n){
     return 2u << findMSB(n - 1);
 }
-
 
 /**
  * @brief Allocates space for branches
@@ -144,5 +146,7 @@ void deallocateBranches(
     // Store the accumulated allocation at the swept index
     b_branchAllocReg.allocations[allocIndex + 1] = alloc;
 }
+
+#endif
 
 #endif // !BRANCH_ALLOC_REG_SB_GLSL

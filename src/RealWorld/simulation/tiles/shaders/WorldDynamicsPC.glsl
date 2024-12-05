@@ -18,6 +18,6 @@ restrict uniform WorldDynamicsPC {
     uint    timeHash;
     uint    updateOrder;
     float   timeSec;
-} RE_SHADER_INSTANCE(p_);
+} RE_GLSL_ONLY(p_);
 
 #endif // !WORLD_DYNAMICS_PC_GLSL
