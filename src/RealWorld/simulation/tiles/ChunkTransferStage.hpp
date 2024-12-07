@@ -11,7 +11,7 @@
 
 #include <RealWorld/simulation/vegetation/BranchRange.hpp>
 #include <RealWorld/simulation/vegetation/BranchSerialized.hpp>
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocReqUB.glsl.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchAllocReqUB_glsl.hpp>
 
 namespace rw {
 

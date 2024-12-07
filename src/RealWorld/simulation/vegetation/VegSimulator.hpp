@@ -18,7 +18,7 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/simulation/vegetation/shaders/AllShaders.hpp>
-#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC.glsl.hpp>
+#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC_glsl.hpp>
 
 namespace rw {
 

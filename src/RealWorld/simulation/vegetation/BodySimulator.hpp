@@ -9,7 +9,7 @@
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/simulation/vegetation/shaders/BodiesSB.glsl.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BodiesSB_glsl.hpp>
 
 namespace rw {
 

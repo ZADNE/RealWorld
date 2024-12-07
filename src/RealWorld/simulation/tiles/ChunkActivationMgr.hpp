@@ -12,7 +12,7 @@
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/simulation/tiles/Chunk.hpp>
 #include <RealWorld/simulation/tiles/ChunkTransferMgr.hpp>
-#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl.hpp>
+#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB_glsl.hpp>
 
 namespace rw {
 

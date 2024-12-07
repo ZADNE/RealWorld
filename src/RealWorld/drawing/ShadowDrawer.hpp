@@ -12,9 +12,9 @@
 #include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
-#include <RealWorld/drawing/shaders/AnalysisPC.glsl.hpp>
-#include <RealWorld/drawing/shaders/DynamicLightsSB.glsl.hpp>
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl.hpp>
+#include <RealWorld/drawing/shaders/AnalysisPC_glsl.hpp>
+#include <RealWorld/drawing/shaders/DynamicLightsSB_glsl.hpp>
+#include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
 
 namespace rw {
 

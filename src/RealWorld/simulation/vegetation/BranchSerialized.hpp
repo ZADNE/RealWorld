@@ -8,7 +8,7 @@
 #include <glm/vec4.hpp>
 
 #include <RealWorld/constants/vegetation.hpp>
-#include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchSB_glsl.hpp>
 
 namespace rw {
 

@@ -8,7 +8,7 @@
 #include <RealWorld/drawing/MinimapLayout.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
-#include <RealWorld/generation/shaders/generateStructure.glsl.hpp>
+#include <RealWorld/generation/shaders/generateStructure_glsl.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;

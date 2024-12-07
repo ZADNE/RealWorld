@@ -11,7 +11,7 @@
 
 #include <RealWorld/constants/generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
-#include <RealWorld/generation/shaders/GenerationPC.glsl.hpp>
+#include <RealWorld/generation/shaders/GenerationPC_glsl.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 
 namespace rw {

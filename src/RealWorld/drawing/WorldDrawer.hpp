@@ -7,7 +7,7 @@
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl.hpp>
+#include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
 
 namespace rw {
 

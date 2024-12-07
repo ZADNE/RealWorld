@@ -9,7 +9,7 @@
 #include <RealWorld/constants/vegetation.hpp>
 #include <RealWorld/simulation/vegetation/BranchAllocRegSB.hpp>
 #include <RealWorld/simulation/vegetation/VegSimulator.hpp>
-#include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchSB_glsl.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;

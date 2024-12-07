@@ -6,7 +6,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB_glsl.hpp>
 
 namespace rw {
 

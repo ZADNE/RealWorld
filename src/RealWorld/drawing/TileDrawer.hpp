@@ -9,7 +9,7 @@
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
 
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl.hpp>
+#include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
 
 namespace rw {
 
