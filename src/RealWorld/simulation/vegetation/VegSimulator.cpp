@@ -166,7 +166,6 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
 
     // Prepare branch allocation register buffer
     std::unique_ptr<glsl::BranchAllocRegSB> allocReg = createBranchAllocRegSB();
-    allocReg->allocations[0] = glsl::BranchAllocation{.capacity = k_maxBranchCount};
     m_branchAllocRegBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
         .sizeInBytes = sizeof(glsl::BranchAllocRegSB),

@@ -46,7 +46,14 @@ public:
     }
 
     void reset() {
-        *this = ChunkTransferStage<k_stageSlotCount, k_branchStageCount>{};
+        m_upSlotsEnd                            = 0;
+        m_downSlotsBegin                        = k_stageSlotCount;
+        m_buf->branchAllocReq.allocSlotsEnd     = 0;
+        m_buf->branchAllocReq.deallocSlotsBegin = k_stageSlotCount;
+        m_branchUpSlotsEnd                      = 0;
+        m_branchDownSlotsBegin                  = m_branchCopyRegions.size();
+        m_branchUpBytesEnd                      = 0;
+        m_branchDownBytesBegin                  = sizeof(StgBuf::branches);
     }
 
     bool allocsOrDeallocsPlanned() {
