@@ -2,6 +2,7 @@
     PUBLIC
         BodiesSB.glsl               
         BranchAllocRegSB.glsl       
+        BranchAllocRegSBDebugging.glsl
         BranchAllocReqUB.glsl       
         branchRasterizationPll.glsl 
         BranchSB.glsl               
