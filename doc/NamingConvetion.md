@@ -1,12 +1,12 @@
-# RealWorld Naming Convention
+## RealWorld Naming Convention
 
 RealWorld adheres to [Real Naming Convention](https://github.com/ZADNE/Real/blob/main/doc/NamingConvetion.md) which codifies naming of types, variables, files and many more.
 
 Naming conventions specific to RealWorld follow.
 
-## Units of distance
+### Units of distance
 
-Variables, both in C++ and GLSL, representing measures of length use a suffix denoting the unit of the measurement: 
+Variables, both in C++ and GLSL, representing measures of length use a suffix denoting the unit of the measurement:
 
 * `Px` stands for measurement in pixels of the main framebuffer in the default zoom
 * `Ti` stands for measurement in tiles of the world (1 Ti = 4 Px)
