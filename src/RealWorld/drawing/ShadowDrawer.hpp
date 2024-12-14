@@ -72,7 +72,7 @@ private:
     re::PipelineLayout m_shadowDrawingPll;
     re::Pipeline m_drawShadowsPl;
 
-    re::BufferMapped<glsl::DynamicLightsSB> m_lightsBuf;
+    re::BufferMapped<glsl::DynamicLight> m_lightsBuf;
 
     struct ViewSizeDependent {
         ViewSizeDependent(

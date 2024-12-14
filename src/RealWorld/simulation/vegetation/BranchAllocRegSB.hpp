@@ -19,7 +19,9 @@ namespace rw {
  */
 inline std::unique_ptr<glsl::BranchAllocRegSB> createBranchAllocRegSB() {
     auto ptr = std::make_unique<glsl::BranchAllocRegSB>();
-    for (auto& index : ptr->allocIndexOfTheChunk) { index = -1; }
+    for (auto& index : ptr->allocIndexOfTheChunk) { // NOLINT(*-pointer-decay)
+        index = -1;
+    }
     ptr->allocations[0].capacity = k_maxBranchCount;
     return ptr;
 }

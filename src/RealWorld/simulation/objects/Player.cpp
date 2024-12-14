@@ -22,9 +22,8 @@ namespace rw {
 constexpr glm::uint k_worldTexBinding = 0;
 constexpr glm::uint k_playerBinding   = 1;
 
-Player::Player(re::TextureShaped&& playerTex, const glsl::PlayerHitboxSB& initSb)
-    : m_playerTex(std::move(playerTex))
-    , m_hitboxBuf(re::BufferCreateInfo{
+Player::Player(const glsl::PlayerHitboxSB& initSb)
+    : m_hitboxBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
           .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
           .usage       = eStorageBuffer | eTransferDst | eTransferSrc,
@@ -50,8 +49,8 @@ void Player::adoptSave(
     m_oldBotLeftPx    = save.pos;
     *m_hitboxStageBuf = glsl::PlayerHitboxSB{
         .botLeftPx  = {save.pos, save.pos},
-        .dimsPx     = m_playerTex.subimageDims() - 1.0f,
-        .velocityPx = glm::vec2(0.0f, 0.0f)
+        .dimsPx     = k_playerDimsPx - 1.0f,
+        .velocityPx = glm::vec2{0.0f, 0.0f}
     };
     m_descriptorSet.write(
         D::eStorageImage, k_worldTexBinding, 0u, worldTexture, vk::ImageLayout::eGeneral

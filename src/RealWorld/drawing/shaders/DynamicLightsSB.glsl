@@ -14,9 +14,13 @@ struct DynamicLight {
     uint padding;
 };
 
+#ifdef VULKAN
+
 layout (set = 0, binding = k_dynamicLightsBinding, scalar)
 readonly restrict buffer DynamicLightsSB {
     DynamicLight lights[];
 } RE_GLSL_ONLY(b_dynamicLights);
+
+#endif
 
 #endif // !DYNAMIC_LIGHTS_SB_GLSL

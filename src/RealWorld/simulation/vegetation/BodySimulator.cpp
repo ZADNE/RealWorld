@@ -25,17 +25,17 @@ const re::Buffer& BodySimulator::adoptSave(glm::ivec2 worldTexSizeCh) {
     auto maxBodyCount = k_bodiesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                         k_bodyHeaderSize;
 
-    BodiesSBHeader initHeader{
-        .dispatchX        = 0,
-        .dispatchY        = 1,
-        .dispatchZ        = 1,
+    glsl::BodiesSB initHeader{
+        .bodiesDispatchX  = 0,
+        .bodiesDispatchY  = 1,
+        .bodiesDispatchZ  = 1,
         .currentBodyCount = 0,
         .maxBodyCount     = maxBodyCount
     };
 
     m_bodiesBuf = re::Buffer{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(BodiesSBHeader) + sizeof(glsl::Body) * maxBodyCount,
+        .sizeInBytes = sizeof(glsl::BodiesSB) + sizeof(glsl::Body) * maxBodyCount,
         .usage    = eStorageBuffer | eIndirectBuffer,
         .initData = re::objectToByteSpan(initHeader)
     }};

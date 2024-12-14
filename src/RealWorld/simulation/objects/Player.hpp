@@ -17,12 +17,19 @@
 namespace rw {
 
 /**
+ * @brief Dimensions of player's hitbox
+ */
+constexpr glm::vec2 k_playerDimsPx{28.0f, 48.0f}; // NOLINT(*-magic-numbers)
+
+/**
  * @brief Simulates and draws the user-controlled character
  */
 class Player {
 public:
     Player()
-        : Player(re::TextureShaped{re::TextureSeed{"player"}}) {}
+        : Player{glsl::PlayerHitboxSB{
+              .dimsPx = glm::ivec2(k_playerDimsPx) - 1,
+          }} {}
 
     void adoptSave(
         const PlayerSave& save, const re::Texture& worldTexture, glm::ivec2 worldTexCh
@@ -31,9 +38,7 @@ public:
 
     glm::vec2 centerPx() const;
 
-    Hitbox hitbox() const {
-        return Hitbox{botLeftPx(), m_hitboxStageBuf->dimsPx};
-    }
+    Hitbox hitbox() const { return Hitbox{botLeftPx(), k_playerDimsPx}; }
 
     /**
      * @brief Moves the player based on its surroundings tiles and user input
@@ -52,22 +57,14 @@ private:
 
     glsl::PlayerMovementPC m_pc{
         .acceleration    = 0.5f,
-        .maxWalkVelocity = 6.0f,
-        .jumpVelocity    = 7.0f,
+        .maxWalkVelocity = 6.0f, // NOLINT(*-magic-numbers)
+        .jumpVelocity    = 7.0f, // NOLINT(*-magic-numbers)
         .writeIndex      = 1
     };
 
-    Player(re::TextureShaped&& playerTex)
-        : Player(
-              std::move(playerTex),
-              glsl::PlayerHitboxSB{
-                  .dimsPx = glm::ivec2(playerTex.subimageDims()) - 1,
-              }
-          ) {}
+    Player(const glsl::PlayerHitboxSB& initSB);
 
-    Player(re::TextureShaped&& playerTex, const glsl::PlayerHitboxSB& initSb);
-
-    re::TextureShaped m_playerTex;
+    re::TextureShaped m_playerTex = re::TextureShaped{re::TextureSeed{"player"}};
 
     re::Buffer m_hitboxBuf;
     re::BufferMapped<glsl::PlayerHitboxSB> m_hitboxStageBuf;

@@ -151,7 +151,7 @@ void ShadowDrawer::analyze(
 
 void ShadowDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
     glsl::DynamicLight light{posPx, std::bit_cast<glm::uint>(col), {}};
-    std::memcpy(&m_lightsBuf->lights[m_.analysisPC.lightCount], &light, sizeof(light));
+    std::memcpy(&m_lightsBuf[m_.analysisPC.lightCount], &light, sizeof(light));
     m_.analysisPC.lightCount++;
 }
 

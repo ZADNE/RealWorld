@@ -25,21 +25,13 @@ public:
     const re::Buffer& adoptSave(glm::ivec2 worldTexSizeCh);
 
 private:
-    struct BodiesSBHeader {
-        glm::uint dispatchX{};
-        glm::uint dispatchY{};
-        glm::uint dispatchZ{};
-        int currentBodyCount{};
-        int maxBodyCount{};
-        int padding[3]{};
-    };
 
     /**
      * @brief Size of header is same as 1 body
      */
-    static constexpr int k_bodyHeaderSize = sizeof(BodiesSBHeader) /
+    static constexpr int k_bodyHeaderSize = sizeof(glsl::BodiesSB) /
                                             sizeof(glsl::Body);
-    static_assert(k_bodyHeaderSize * sizeof(glsl::Body) == sizeof(BodiesSBHeader));
+    static_assert(k_bodyHeaderSize * sizeof(glsl::Body) == sizeof(glsl::BodiesSB));
 
     re::Buffer m_bodiesBuf;
     re::Pipeline m_simulateBodiesPl;

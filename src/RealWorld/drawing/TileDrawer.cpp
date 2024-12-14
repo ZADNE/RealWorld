@@ -20,18 +20,18 @@ constexpr glm::vec3 k_cold{0.2625, 0.851, 0.952};
 constexpr glm::vec3 k_normal{0.25411764705, 0.7025490196, 0.90470588235};
 constexpr glm::vec3 k_hot{0.2895, 0.698, 0.7583};
 
-constexpr glm::vec3 k_color[3] = {k_cold, k_normal, k_hot};
+constexpr std::array<glm::vec3, 3> k_skyColors{k_cold, k_normal, k_hot};
 
-glm::vec3 bcColor(float biomeTemp) {
+glm::vec3 skyColor(float biomeTemp) {
     // Calculate coords
     biomeTemp = glm::fract(biomeTemp);
     biomeTemp *= 2.0f;
-    int ll     = biomeTemp;
+    int ll     = static_cast<int>(biomeTemp);
     float frac = glm::fract(biomeTemp);
 
     // Gather
-    glm::vec3 b00 = k_color[ll];
-    glm::vec3 b01 = k_color[ll + 1];
+    glm::vec3 b00 = k_skyColors[ll];
+    glm::vec3 b01 = k_skyColors[ll + 1];
 
     // Interpolate
     return glm::mix(b00, b01, frac);
@@ -118,7 +118,7 @@ void TileDrawer::drawTiles(
     m_pc.uvRectOffset = glm::mod(botLeftPx, TilePx);
     m_pc.botLeftTi    = glm::ivec2(pxToTi(botLeftPx));
     m_pc.skyColor     = glm::vec4(
-        bcColor(
+        skyColor(
             glsl::calcBiomeClimate(botLeftPx.x + m_viewSizePx.x * 0.5f, m_seed).x
         ) * skyLight,
         1.0

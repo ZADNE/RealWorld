@@ -12,6 +12,8 @@
 
 namespace rw {
 
+// NOLINTBEGIN: Poor man's reflection
+
 struct BranchSerialized {
     static_assert(
         sizeof(glsl::BranchSB) == 11796480,
@@ -40,5 +42,7 @@ struct BranchSerialized {
         return 9;
     }
 };
+
+// NOLINTEND
 
 } // namespace rw

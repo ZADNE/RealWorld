@@ -43,7 +43,7 @@ constexpr Biome k_biomes[k_biomesMatrixSize.y][k_biomesMatrixSize.x] = {
 /**
  * @param biomeClimate x = temperature, y = humidity
  */
-Biome calcBiomeStructure(vec2 biomeClimate){
+inline Biome calcBiomeStructure(vec2 biomeClimate){
     // Calculate coords
     biomeClimate = fract(biomeClimate);
     biomeClimate *= vec2(k_biomesMatrixSize - 1);

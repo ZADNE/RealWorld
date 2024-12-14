@@ -27,7 +27,7 @@ ShaderMessageBroker::ShaderMessageBroker(
 void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
     // Process received messages
     int intCount = m_messageBufMapped->read().totalInts;
-    int* ints    = m_messageBufMapped->read().messages;
+    int* ints = m_messageBufMapped->read().messages; // NOLINT(*-pointer-decay)
     for (int i = 0; i < intCount;) {
         auto msgId = static_cast<ShaderMessageId>(ints[i++]);
         switch (msgId) {
