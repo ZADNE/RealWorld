@@ -12,14 +12,18 @@ struct Body {
     vec2  rotationRad; ///< y component is unused
 };
 
-layout (set = 0, binding = k_bodiesBinding, scalar)
-restrict buffer BodiesSB {
+struct BodiesSBHeader {
     uint bodiesDispatchX;
     uint bodiesDispatchY;
     uint bodiesDispatchZ;
     int  currentBodyCount;
     int  maxBodyCount;
     int  bodiesPadding[3];
+};
+
+layout (set = 0, binding = k_bodiesBinding, scalar)
+restrict buffer BodiesSB {
+    BodiesSBHeader header;
     Body bodies[];
 } RE_GLSL_ONLY(b_bodies);
 

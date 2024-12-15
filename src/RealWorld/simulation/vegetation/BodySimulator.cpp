@@ -25,7 +25,7 @@ const re::Buffer& BodySimulator::adoptSave(glm::ivec2 worldTexSizeCh) {
     auto maxBodyCount = k_bodiesPerChunk * worldTexSizeCh.x * worldTexSizeCh.y -
                         k_bodyHeaderSize;
 
-    glsl::BodiesSB initHeader{
+    glsl::BodiesSBHeader initHeader{
         .bodiesDispatchX  = 0,
         .bodiesDispatchY  = 1,
         .bodiesDispatchZ  = 1,

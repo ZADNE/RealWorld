@@ -315,7 +315,8 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     m_timeDay = save.metadata.timeDay;
 
     m_worldDrawer.setTarget(
-        worldTex, m_gameSettings.worldTexSize() * iChunkTi, save.metadata.seed
+        worldTex, m_gameSettings.worldTexSize() * iChunkTi,
+        static_cast<float>(save.metadata.seed)
     );
     return true;
 }
