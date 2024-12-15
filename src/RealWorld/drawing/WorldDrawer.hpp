@@ -14,7 +14,7 @@ namespace rw {
 /**
  * @brief Renders the world (i.e. tiles, shadows, minimap)
  */
-class WorldDrawer {
+class    WorldDrawer {
 public:
     WorldDrawer(
         re::RenderPassSubpass renderPassSubpass, glm::uvec2 viewSizePx,
