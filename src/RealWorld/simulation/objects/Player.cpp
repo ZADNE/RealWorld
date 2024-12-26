@@ -22,11 +22,10 @@ namespace rw {
 constexpr glm::uint k_worldTexBinding = 0;
 constexpr glm::uint k_playerBinding   = 1;
 
-Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
-    : m_playerTex(std::move(playerTex))
-    , m_hitboxBuf(re::BufferCreateInfo{
+Player::Player(const glsl::PlayerHitboxSB& initSb)
+    : m_hitboxBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(PlayerHitboxSB),
+          .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
           .usage       = eStorageBuffer | eTransferDst | eTransferSrc,
           .initData    = re::objectToByteSpan(initSb),
           .debugName   = "rw::Player::hitbox"
@@ -34,7 +33,7 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
     , m_hitboxStageBuf(re::BufferCreateInfo{
           .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                         vma::AllocationCreateFlagBits::eHostAccessRandom,
-          .sizeInBytes = sizeof(PlayerHitboxSB),
+          .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
           .usage       = eTransferDst | eTransferSrc,
           .initData    = re::objectToByteSpan(initSb),
           .debugName   = "rw::Player::hitboxStage"
@@ -45,19 +44,19 @@ Player::Player(re::TextureShaped&& playerTex, const PlayerHitboxSB& initSb)
 void Player::adoptSave(
     const PlayerSave& save, const re::Texture& worldTexture, glm::ivec2 worldTexCh
 ) {
-    m_pushConstants.worldTexMaskTi = chToTi(worldTexCh) - 1;
+    m_pc.worldTexMaskTi = chToTi(worldTexCh) - 1;
 
     m_oldBotLeftPx    = save.pos;
-    *m_hitboxStageBuf = PlayerHitboxSB{
+    *m_hitboxStageBuf = glsl::PlayerHitboxSB{
         .botLeftPx  = {save.pos, save.pos},
-        .dimsPx     = m_playerTex.subimageDims() - 1.0f,
-        .velocityPx = glm::vec2(0.0f, 0.0f)
+        .dimsPx     = k_playerDimsPx - 1.0f,
+        .velocityPx = glm::vec2{0.0f, 0.0f}
     };
     m_descriptorSet.write(
         D::eStorageImage, k_worldTexBinding, 0u, worldTexture, vk::ImageLayout::eGeneral
     );
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cb) {
-        vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(PlayerHitboxSB)};
+        vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(glsl::PlayerHitboxSB)};
         cb->copyBuffer2(vk::CopyBufferInfo2{
             m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion
         });
@@ -80,8 +79,8 @@ void Player::step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump) 
     m_oldBotLeftPx = m_hitboxStageBuf->botLeftPx[readIndex];
 
     // Copy back results of previous step
-    size_t bufOffset = offsetof(PlayerHitboxSB, botLeftPx[0]) +
-                       sizeof(PlayerHitboxSB::botLeftPx[0]) * readIndex;
+    size_t bufOffset = offsetof(glsl::PlayerHitboxSB, botLeftPx[0]) +
+                       sizeof(glsl::PlayerHitboxSB::botLeftPx[0]) * readIndex;
     auto copyRegion = vk::BufferCopy2{bufOffset, bufOffset, sizeof(glm::vec2)};
     (*acb)->copyBuffer2(
         vk::CopyBufferInfo2{*m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion}
@@ -90,17 +89,17 @@ void Player::step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump) 
     // Simulate the movement
     acb.action(
         [&](const re::CommandBuffer& cb) {
-            m_pushConstants.writeIndex = re::StepDoubleBufferingState::writeIndex();
-            m_pushConstants.walkDirection = glm::sign(dir);
-            m_pushConstants.jump          = jump;
-            m_pushConstants.autojump      = autojump;
+            m_pc.writeIndex    = re::StepDoubleBufferingState::writeIndex();
+            m_pc.walkDirection = glm::sign(dir);
+            m_pc.jump          = jump;
+            m_pc.autojump      = autojump;
             cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_movePlayerPl);
             cb->bindDescriptorSets(
                 vk::PipelineBindPoint::eCompute, *m_pipelineLayout, 0u,
                 *m_descriptorSet, {}
             );
-            cb->pushConstants<PlayerMovementPC>(
-                *m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pushConstants
+            cb->pushConstants<glsl::PlayerMovementPC>(
+                *m_pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0u, m_pc
             );
             cb->dispatch(1u, 1u, 1u);
         },

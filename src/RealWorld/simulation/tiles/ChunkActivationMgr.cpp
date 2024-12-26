@@ -18,7 +18,7 @@ namespace rw {
 namespace {
 vk::DeviceSize calcActiveChunksBufSize(glm::ivec2 worldTexSizeCh) {
     glm::ivec2 maxContinuous = worldTexSizeCh - 1;
-    return sizeof(ActiveChunksSB) +
+    return sizeof(glsl::ActiveChunksSB) +
            sizeof(glm::ivec2) * (maxContinuous.x * maxContinuous.y +
                                  worldTexSizeCh.x * worldTexSizeCh.y);
 }
@@ -53,14 +53,14 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
              .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
              .debugName   = "rw::ChunkActivationMgr::activeChunks"
     }};
-    m_activeChunksStageBuf = re::BufferMapped<ActiveChunksSB>{re::BufferCreateInfo{
+    m_activeChunksStageBuf = re::BufferMapped<glsl::ActiveChunksSB>{re::BufferCreateInfo{
         .allocFlags = vma::AllocationCreateFlagBits::eMapped |
                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = bufSize,
         .usage       = eTransferSrc,
         .debugName   = "rw::ChunkActivationMgr::activeChunksStage"
     }};
-    m_activeChunksStageBuf->activeChunksMask  = m_worldTexMaskCh;
+    m_activeChunksStageBuf->worldTexSizeMask  = m_worldTexMaskCh;
     m_activeChunksStageBuf->worldTexSizeCh    = targetInfo.worldTexCh;
     m_activeChunksStageBuf->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_worldTexMaskCh.x * m_worldTexMaskCh.y;
@@ -280,16 +280,16 @@ void ChunkActivationMgr::analyzeAfterChanges(const ActionCmdBuf& acb) {
             auto texSizeCh   = m_worldTexMaskCh + 1;
             auto copyRegions = std::to_array<vk::BufferCopy2>(
                 {vk::BufferCopy2{
-                     offsetof(ActiveChunksSB, dynamicsGroupSize),
-                     offsetof(ActiveChunksSB, dynamicsGroupSize),
+                     offsetof(glsl::ActiveChunksSB, dynamicsGroupSize),
+                     offsetof(glsl::ActiveChunksSB, dynamicsGroupSize),
                      sizeof(m_activeChunksStageBuf->dynamicsGroupSize.x)
                  },
                  vk::BufferCopy2{
-                     offsetof(ActiveChunksSB, offsets[0]) +
-                         sizeof(ActiveChunksSB::offsets[0]) *
+                     offsetof(glsl::ActiveChunksSB, offsets[0]) +
+                         sizeof(glsl::ActiveChunksSB::offsets[0]) *
                              m_worldTexMaskCh.x * m_worldTexMaskCh.y,
-                     offsetof(ActiveChunksSB, offsets[0]) +
-                         sizeof(ActiveChunksSB::offsets[0]) *
+                     offsetof(glsl::ActiveChunksSB, offsets[0]) +
+                         sizeof(glsl::ActiveChunksSB::offsets[0]) *
                              m_worldTexMaskCh.x * m_worldTexMaskCh.y,
                      sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)
                  }}

@@ -4,8 +4,7 @@ real_target_sources(RealWorld
     PUBLIC
         BodySimulator.hpp           BodySimulator.cpp
         BranchAllocRegSB.hpp        
-        BranchAllocReqUB.hpp        
         BranchRange.hpp             
-        BranchSB.hpp                
+        BranchSerialized.hpp        
         VegSimulator.hpp            VegSimulator.cpp
 )

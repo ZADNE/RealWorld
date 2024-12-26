@@ -38,12 +38,12 @@ void main() {
 
     // Determine new block
     if (block.L_T == k_airBl){
-        if (neighborsN > p_edgeConsolidationPromote){
+        if (neighborsN > p_.edgeConsolidationPromote){
             // Surrounded air -> promote to material
             block.L_T = imageLoad(u_materialImage, ivec3(pTi, gl_WorkGroupID.z)).r;
         }
     } else {
-        if (neighborsN < p_edgeConsolidationReduce){
+        if (neighborsN < p_.edgeConsolidationReduce){
             // Lonely solid -> reduce to air
             block.L_T = k_airBl;
         }

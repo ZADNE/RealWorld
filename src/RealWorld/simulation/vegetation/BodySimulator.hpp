@@ -9,6 +9,7 @@
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 
 #include <RealWorld/save/WorldSave.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BodiesSB_glsl.hpp>
 
 namespace rw {
 
@@ -25,37 +26,12 @@ public:
 
 private:
 
-    // NOLINTBEGIN: Shader mirror
-    struct Body {
-        glm::ivec2 bottomCenterPx;
-        glm::ivec2 sizePx;
-        glm::ivec2 velocityPx;
-        glm::vec2 rotationRad; ///< y component is unused
-    };
-
-    struct BodiesSBHeader {
-        glm::uint dispatchX;
-        glm::uint dispatchY;
-        glm::uint dispatchZ;
-        int currentBodyCount;
-        int maxBodyCount;
-        int padding[3];
-    };
-
-#pragma warning(push)
-#pragma warning(disable : 4200)
-    struct BodiesSB {
-        BodiesSBHeader header;
-        Body bodies[];
-    };
-#pragma warning(pop)
-    // NOLINTEND
-
     /**
      * @brief Size of header is same as 1 body
      */
-    static constexpr int k_bodyHeaderSize = sizeof(BodiesSBHeader) / sizeof(Body);
-    static_assert(k_bodyHeaderSize * sizeof(Body) == sizeof(BodiesSBHeader));
+    static constexpr int k_bodyHeaderSize = sizeof(glsl::BodiesSB) /
+                                            sizeof(glsl::Body);
+    static_assert(k_bodyHeaderSize * sizeof(glsl::Body) == sizeof(glsl::BodiesSB));
 
     re::Buffer m_bodiesBuf;
     re::Pipeline m_simulateBodiesPl;

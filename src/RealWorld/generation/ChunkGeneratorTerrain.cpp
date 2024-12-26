@@ -18,7 +18,7 @@ constexpr glm::uvec2 k_dispatchSize = k_genChunkSize / k_groupSize;
 void ChunkGenerator::generateBasicTerrain(const re::CommandBuffer& cb) {
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_generateStructurePl);
     m_genPC.storeSegment = 0;
-    cb->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+    cb->pushConstants<glsl::GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
     cb->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
 
     std::array barriers = std::to_array(
@@ -64,7 +64,9 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cb) {
         for (size_t i = 0; i < passes; i++) {
             // Consolidate
             m_genPC.storeSegment = 1 - m_genPC.storeSegment;
-            cb->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+            cb->pushConstants<glsl::GenerationPC>(
+                *m_pipelineLayout, eCompute, 0u, m_genPC
+            );
             cb->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
             // Put barrier for next pass
             barrier.subresourceRange.baseArrayLayer = m_genPC.storeSegment *
@@ -87,7 +89,7 @@ void ChunkGenerator::consolidateEdges(const re::CommandBuffer& cb) {
 void ChunkGenerator::selectVariant(const re::CommandBuffer& cb) {
     // Barrier to wait for the edge consolidation to finish is already there
     m_genPC.storeSegment = 1 - m_genPC.storeSegment;
-    cb->pushConstants<GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
+    cb->pushConstants<glsl::GenerationPC>(*m_pipelineLayout, eCompute, 0u, m_genPC);
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_selectVariantPl);
     cb->dispatch(k_dispatchSize.x, k_dispatchSize.y, m_chunksPlanned);
 }

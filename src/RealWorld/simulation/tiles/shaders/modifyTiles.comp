@@ -27,28 +27,28 @@ void main(){
     s_threadActive[id] = true;
     ivec2 offset = ivec2(gl_LocalInvocationID.xy) - ivec2(gl_WorkGroupSize.xy) / 2;
     // Construct the shape
-    switch (p_modifyShape){
+    switch (p_.modifyShape){
         case k_square:
-        if (abs(offset.x) > p_modifyRadius || abs(offset.y) > p_modifyRadius){
+        if (abs(offset.x) > p_.modifyRadius || abs(offset.y) > p_.modifyRadius){
             s_threadActive[id] = false; // Outside of the shape
         }
         break;
         case k_disk:
-        if (dot(offset, offset) > p_modifyRadius * p_modifyRadius){
+        if (dot(offset, offset) > p_.modifyRadius * p_.modifyRadius){
             s_threadActive[id] = false; // Outside of the shape
         }
         break;
     }
 
     // Load the tile
-    ivec2 posTi = p_globalOffsetTi + offset;
-    ivec2 posAt = tiToAt(posTi, p_worldTexMaskTi);
-    uvec2 orig = loadLayer(posAt, p_modifyLayer);
+    ivec2 posTi = p_.globalOffsetTi + offset;
+    ivec2 posAt = tiToAt(posTi, p_.worldTexMaskTi);
+    uvec2 orig = loadLayer(posAt, p_.modifyLayer);
     uint  blockType = loadBlock(posAt).L_T;
 
     // See if can modify the tile
-    bool airInAboveLayer = p_modifyLayer == k_blockLayer ? true : isNonsolidBlock(blockType);
-    bool removing = p_modifySetValue.x == 0xffffffff;
+    bool airInAboveLayer = p_.modifyLayer == k_blockLayer ? true : isNonsolidBlock(blockType);
+    bool removing = p_.modifySetValue.x == 0xffffffff;
     if ((removing == isNonsolidBlock(orig.L_T)) || !airInAboveLayer){
         s_threadActive[id] = false; // Setting already occupied or removing already empty
     }
@@ -61,22 +61,22 @@ void main(){
     }
 
     // If not culled and within maximum
-    if (s_threadActive[id] && activeBelowMe <= p_modifyMaxCount){
+    if (s_threadActive[id] && activeBelowMe <= p_.modifyMaxCount){
         // Modify the tile
-        g_randomState = (posAt.x * posAt.y) ^ p_timeHash;
+        g_randomState = (posAt.x * posAt.y) ^ p_.timeHash;
         uvec2 toSet = removing 
                         ? uvec2(orig.x | k_looseTypeBit, orig.y)
-                        : (p_modifySetValue.y != 0xffffffff
-                            ? p_modifySetValue
-                            : uvec2(p_modifySetValue.x, random() % 12));
+                        : (p_.modifySetValue.y != 0xffffffff
+                            ? p_.modifySetValue
+                            : uvec2(p_.modifySetValue.x, random() % 12));
 
         // Store the modified tile
-        storeLayer(posAt, p_modifyLayer, toSet);
+        storeLayer(posAt, p_.modifyLayer, toSet);
     }
 
     if (gl_LocalInvocationIndex == k_groupSize - 1){
         if (!removing) { // Message the number of modifications back to CPU
-            int placed = min(activeBelowMe, p_modifyMaxCount);
+            int placed = min(activeBelowMe, p_.modifyMaxCount);
             if (placed > 0){
                 messageRemoveFromSelSlot(placed);
             }

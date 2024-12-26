@@ -3,10 +3,14 @@
  */
 #ifndef BRANCH_SB_GLSL
 #define BRANCH_SB_GLSL
-#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#include <RealShaders/CppIntegration.glsl>
 #include <RealWorld/constants/vegetation.glsl>
 
-layout (set = 0, binding = k_branchBinding, std430)
+#ifdef VULKAN
+#   extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#endif
+
+layout (set = 0, binding = k_branchBinding, scalar)
 restrict buffer BranchSB {
     // Double-buffered params
     vec2    absPosTi[2][k_maxBranchCount];
@@ -20,10 +24,12 @@ restrict buffer BranchSB {
     float   lengthTi[k_maxBranchCount];
     vec2    densityStiffness[k_maxBranchCount];
     uint8_t raster[k_maxBranchCount][k_branchRasterByteCount];
-} b_branch;
+} RE_GLSL_ONLY(b_branch);
 
 // parentOffset15wallType31[ 0..15] = negative index offset to parent
 // parentOffset15wallType31[16..31] = wall type
+
+#ifdef VULKAN
 
 uint packBranchParentOffsetWallType(uint parentOffset, uint wallType){
     return (parentOffset & 0xffff) | (wallType << 16);
@@ -68,5 +74,7 @@ const uint k_woodBasicStateBurning = 1;
 const uint k_woodBasicStateBurnt   = 2;
 const uint k_woodBasicStateHallow  = 3;
 const uint k_woodBasicStateRemoved = 4;
+
+#endif
 
 #endif // !BRANCH_SB_GLSL

@@ -7,6 +7,7 @@
 
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
+#include <RealWorld/simulation/general/shaders/ShaderMessageSB_glsl.hpp>
 
 namespace rw {
 
@@ -31,22 +32,17 @@ public:
     const re::Buffer& messageBuffer() const { return m_messageBuf; }
 
 private:
-    constexpr static int k_messageBufferSize = 511;
-    struct ShaderMessageSB {
-        int totalInts{};
-        std::array<int, k_messageBufferSize> messages{};
-    };
 
     using enum vk::BufferUsageFlagBits;
     re::Buffer m_messageBuf{re::BufferCreateInfo{
         .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-        .sizeInBytes = sizeof(ShaderMessageSB),
+        .sizeInBytes = sizeof(glsl::ShaderMessageSB),
         .usage       = eStorageBuffer | eTransferSrc | eTransferDst,
         .debugName   = "rw::ShaderMessageBroker::messageBuf"
     }};
 
     using enum vma::AllocationCreateFlagBits;
-    using MappedType = re::StepDoubleBuffered<ShaderMessageSB>;
+    using MappedType = re::StepDoubleBuffered<glsl::ShaderMessageSB>;
     re::BufferMapped<MappedType> m_messageBufMapped{re::BufferCreateInfo{
         .allocFlags  = eMapped | eHostAccessRandom,
         .memoryUsage = vma::MemoryUsage::eAutoPreferHost,

@@ -16,10 +16,10 @@ const uint k_firstLeafWl            = k_leafWl;
 const uint k_lastLeafWl             = k_palmLeafWl;
 const uint k_woodToLeafTypeOffset   = k_firstLeafWl - k_firstWoodWl;
 
-bool isWoodWall(uint wallType){
+inline bool isWoodWall(uint wallType){
     return wallType >= k_firstWoodWl && wallType <= k_lastWoodWl;
 }
-bool isLeafWall(uint wallType){
+inline bool isLeafWall(uint wallType){
     return wallType >= k_firstLeafWl && wallType <= k_lastLeafWl;
 }
 

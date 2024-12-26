@@ -9,9 +9,9 @@
 #include <RealEngine/graphics/buffers/BufferMapped.hpp>
 #include <RealEngine/utility/OffsetOfArr.hpp>
 
-#include <RealWorld/simulation/vegetation/BranchAllocReqUB.hpp>
 #include <RealWorld/simulation/vegetation/BranchRange.hpp>
-#include <RealWorld/simulation/vegetation/BranchSB.hpp>
+#include <RealWorld/simulation/vegetation/BranchSerialized.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchAllocReqUB_glsl.hpp>
 
 namespace rw {
 
@@ -19,7 +19,7 @@ template<uint32_t k_stageSlotCount, uint32_t k_branchStageCount>
 struct StageBuf {
     std::array<std::array<uint8_t, k_chunkByteSize>, k_stageSlotCount> tiles;
     std::array<uint8_t, k_branchStageCount * sizeof(BranchSerialized)> branches;
-    BranchAllocReqUB branchAllocReq;
+    glsl::BranchAllocReqUB branchAllocReq{};
 };
 
 struct TransferSlot {
@@ -46,7 +46,14 @@ public:
     }
 
     void reset() {
-        *this = ChunkTransferStage<k_stageSlotCount, k_branchStageCount>{};
+        m_upSlotsEnd                            = 0;
+        m_downSlotsBegin                        = k_stageSlotCount;
+        m_buf->branchAllocReq.allocSlotsEnd     = 0;
+        m_buf->branchAllocReq.deallocSlotsBegin = k_stageSlotCount;
+        m_branchUpSlotsEnd                      = 0;
+        m_branchDownSlotsBegin                  = m_branchCopyRegions.size();
+        m_branchUpBytesEnd                      = 0;
+        m_branchDownBytesBegin                  = sizeof(StgBuf::branches);
     }
 
     bool allocsOrDeallocsPlanned() {
@@ -129,57 +136,59 @@ public:
             vk::DeviceSize sizeBytes = sizeof(BranchSerialized::raster) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, raster, range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, raster, range.begin), sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::densityStiffness) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, densityStiffness, range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, densityStiffness, range.begin),
+                sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::lengthTi) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, lengthTi, range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, lengthTi, range.begin), sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::radiusTi) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, radiusTi, range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, radiusTi, range.begin), sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::angVel) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, angVel, range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, angVel, range.begin), sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::relRestAngNorm) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, relRestAngNorm, range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, relRestAngNorm, range.begin),
+                sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::parentOffset15wallType31) *
                         range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, parentOffset15wallType31, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, parentOffset15wallType31, range.begin),
                 sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::absAngNorm) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, absAngNorm[0], range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, absAngNorm[0], range.begin), sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
             sizeBytes = sizeof(BranchSerialized::absPosTi) * range.count;
             m_branchCopyRegions[m_branchUpSlotsEnd++] = vk::BufferCopy2{
                 offsetof(StgBuf, branches) + m_branchUpBytesEnd,
-                RE_OFFSET_OF_ARR(BranchSB, absPosTi[0], range.begin), sizeBytes
+                RE_OFFSET_OF_ARR(glsl::BranchSB, absPosTi[0], range.begin), sizeBytes
             };
             m_branchUpBytesEnd += sizeBytes;
         }
@@ -226,56 +235,56 @@ public:
                                        range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, absPosTi[0], range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, absPosTi[0], range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::absAngNorm) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, absAngNorm[0], range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, absAngNorm[0], range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::parentOffset15wallType31) *
                         range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, parentOffset15wallType31, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, parentOffset15wallType31, range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::relRestAngNorm) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, relRestAngNorm, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, relRestAngNorm, range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::angVel) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, angVel, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, angVel, range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::radiusTi) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, radiusTi, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, radiusTi, range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::lengthTi) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, lengthTi, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, lengthTi, range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::densityStiffness) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, densityStiffness, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, densityStiffness, range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
             sizeBytes = sizeof(BranchSerialized::raster) * range.count;
             m_branchDownBytesBegin -= sizeBytes;
             m_branchCopyRegions[--m_branchDownSlotsBegin] = vk::BufferCopy2{
-                RE_OFFSET_OF_ARR(BranchSB, raster, range.begin),
+                RE_OFFSET_OF_ARR(glsl::BranchSB, raster, range.begin),
                 offsetof(StgBuf, branches) + m_branchDownBytesBegin, sizeBytes
             };
 

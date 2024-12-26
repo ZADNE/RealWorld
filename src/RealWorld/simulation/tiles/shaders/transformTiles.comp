@@ -27,7 +27,7 @@ layout (local_size_x = k_transformGroupSize,
 
 uint invocHash(){
     uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
-    return globalIndex ^ p_timeHash;
+    return globalIndex ^ p_.timeHash;
 }
 
 const ivec2 k_nearbyOffsets[] = {
@@ -62,14 +62,14 @@ void main(){
         b_acChunks.offsets[gl_WorkGroupID.x]
             + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
             + (ivec2(random(), random()) & (k_invocDisplacement - 1)),
-        p_worldTexMaskTi);
+        p_.worldTexMaskTi);
 
     uvec4 tile = loadTile(centerAt);
     uvec2 edgeTile = uvec2(0);
     uvec2 basicEdgeTile = uvec2(0);
     uvec2 nearbyProperties = uvec2(0);
     for (int i = 0; i < k_nearbyOffsets.length(); ++i){ // Check all neighbors
-        ivec2 nPosAt = tiToAt(centerAt + k_nearbyOffsets[i], p_worldTexMaskTi);
+        ivec2 nPosAt = tiToAt(centerAt + k_nearbyOffsets[i], p_.worldTexMaskTi);
         uvec4 neighbor = loadTile(nPosAt);
         // Analyze the neighbor
         nearbyProperties |= uvec2(blockProperties(neighbor.BL_T), wallProperties(neighbor.WL_T));

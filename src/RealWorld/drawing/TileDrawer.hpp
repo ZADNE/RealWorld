@@ -9,7 +9,7 @@
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
 
-#include <RealWorld/drawing/WorldDrawingPC.hpp>
+#include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
 
 namespace rw {
 
@@ -20,10 +20,10 @@ class TileDrawer {
 public:
     TileDrawer(
         re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
-        WorldDrawingPC& pc
+        glsl::WorldDrawingPC& pc
     );
 
-    void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
+    void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize, float seed);
 
     void resizeView(glm::vec2 viewSizePx);
 
@@ -39,7 +39,7 @@ private:
 
     glm::vec2 m_viewSizePx{};
 
-    WorldDrawingPC& m_pc;
+    glsl::WorldDrawingPC& m_pc;
 
     re::PipelineLayout m_pipelineLayout;
     re::DescriptorSet m_descriptorSet{re::DescriptorSetCreateInfo{
@@ -47,6 +47,7 @@ private:
         .debugName = "rw::TileDrawer::descriptorSet"
     }};
     re::Pipeline m_drawTilesPl;
+    float m_seed{};
 
     // Minimap
     re::Pipeline m_drawMinimapPl;

@@ -19,7 +19,7 @@ layout (location = 4) in uint  i_branchIndex15wallType31[];
 #include <RealWorld/simulation/vegetation/shaders/normAngles.glsl>
 
 vec2 imPos(vec2 posTi){
-    return fract(posTi / p_worldTexSizeTi) * p_worldTexSizeTi;
+    return fract(posTi / p_.worldTexSizeTi) * p_.worldTexSizeTi;
 }
 
 void main() {

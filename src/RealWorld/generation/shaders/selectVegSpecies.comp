@@ -28,8 +28,8 @@ int invocXPosTi(ivec2 chunkTi){
 shared uint s_vegPrepI;
 
 float horizonNormalNorm(float xPx, Biome biome){
-    float leftY = calcHorizon(xPx - 20.0, biome, p_seed).r;
-    float rightY = calcHorizon(xPx + 20.0, biome, p_seed).r;
+    float leftY = calcHorizon(xPx - 20.0, biome, p_.seed).r;
+    float rightY = calcHorizon(xPx + 20.0, biome, p_.seed).r;
     const float k_1Over2Pi = 0.15915494309;
     return fract(atan(rightY - leftY, 40.0) * k_1Over2Pi + 0.25);
 }
@@ -41,16 +41,16 @@ void main(){
     }
     barrier();
 
-    ivec2 chunkTi = p_chunkTi[gl_WorkGroupID.z];
+    ivec2 chunkTi = p_.chunkTi[gl_WorkGroupID.z];
     g_randomState =
         uint(chunkTi.y << 16 | chunkTi.x) ^
         uint(gl_LocalInvocationID.x * 2713) ^
-        uint(p_seed);
+        uint(p_.seed);
     ivec2 pTi = ivec2(invocXPosTi(chunkTi), 0);
     float xPx = tiToPx(pTi.x);
-    vec2 biomeClimate = calcBiomeClimate(xPx, p_seed);
+    vec2 biomeClimate = calcBiomeClimate(xPx, p_.seed);
     Biome biome = calcBiomeStructure(biomeClimate);
-    float horizonPx = calcHorizon(xPx, biome, p_seed).r;
+    float horizonPx = calcHorizon(xPx, biome, p_.seed).r;
     pTi.y = int(pxToTi(horizonPx));
 
     uint speciesIndex = ~0;

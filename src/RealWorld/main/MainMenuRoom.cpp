@@ -143,7 +143,7 @@ void MainMenuRoom::newWorldMenu() {
 }
 
 void MainMenuRoom::loadWorldMenu() {
-    TextUnformatted("Choose a saved world to load");
+    TextUnformatted("Select a saved world to load");
     Separator();
 
     BeginTable("##worldsTable", 2);

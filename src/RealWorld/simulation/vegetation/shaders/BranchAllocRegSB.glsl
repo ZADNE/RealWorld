@@ -3,6 +3,8 @@
  */
 #ifndef BRANCH_ALLOC_REG_SB_GLSL
 #define BRANCH_ALLOC_REG_SB_GLSL
+#include <RealShaders/CppIntegration.glsl>
+
 #include <RealWorld/constants/world.glsl>
 #include <RealWorld/constants/vegetation.glsl>
 
@@ -16,14 +18,17 @@ struct BranchAllocation {
     uint capacity;
 };
 
-layout (set = 0, binding = k_branchAllocRegBinding, std430)
+layout (set = 0, binding = k_branchAllocRegBinding, scalar)
 restrict coherent buffer BranchAllocRegSB {
     int              allocIndexOfTheChunk[k_maxWorldTexChunkCount];
     BranchAllocation allocations[k_maxBranchAllocCount];
     int              nextAllocIter;
     int              lock;
-} b_branchAllocReg;
+} RE_GLSL_ONLY(b_branchAllocReg);
 
+#ifdef VULKAN
+
+#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSBDebugging.glsl>
 
 void lockAllocRegister(){
     while (atomicCompSwap(b_branchAllocReg.lock, 0, 1) == 1){
@@ -52,7 +57,6 @@ bool isLastAllocIndex(uint allocIndex){
 uint roundUpToPowerOf2(uint n){
     return 2u << findMSB(n - 1);
 }
-
 
 /**
  * @brief Allocates space for branches
@@ -87,8 +91,10 @@ int allocateBranches(
             alloc.branchCount = branchCount;
             b_branchAllocReg.allocations[allocIndex] = alloc;
             int chunkIndex = chToIndex(chunkCh, worldTexSizeCh);
+            assert(b_branchAllocReg.allocIndexOfTheChunk[chunkIndex] == -1, __LINE__);
             b_branchAllocReg.allocIndexOfTheChunk[chunkIndex] = allocIndex;
             b_branchAllocReg.nextAllocIter = nextAllocIndex(allocIndex);
+            assertIntegrity();
             return int(alloc.firstBranch);
         }
         allocIndex = nextAllocIndex(allocIndex);
@@ -108,6 +114,7 @@ void deallocateBranches(
     int chunkIndex = chToIndex(chunkCh, worldTexSizeCh);
     int allocIndex = b_branchAllocReg.allocIndexOfTheChunk[chunkIndex];
     if (allocIndex < 0){
+        assert(false, __LINE__);
         return; // No branches allocated for the chunk
     }
 
@@ -129,20 +136,26 @@ void deallocateBranches(
 
     // Sweep and accumulate allocations to the left
     BranchAllocation prevAlloc;
-    while (--allocIndex >= 0) {
-        prevAlloc = b_branchAllocReg.allocations[allocIndex];
+    while (allocIndex > 0) {
+        int prevAllocI = allocIndex - 1;
+        prevAlloc = b_branchAllocReg.allocations[prevAllocI];
         if (prevAlloc.branchCount == 0) { // If previous is empty too
             // Accumulate its capacity
             alloc.capacity += prevAlloc.capacity;
             alloc.firstBranch -= prevAlloc.capacity;
-            b_branchAllocReg.allocations[allocIndex].capacity = 0;
+            b_branchAllocReg.allocations[prevAllocI].capacity = 0;
+            allocIndex = prevAllocI;
         } else {
             break; // Sweep finished
         }
     };
 
     // Store the accumulated allocation at the swept index
-    b_branchAllocReg.allocations[allocIndex + 1] = alloc;
+    b_branchAllocReg.allocations[allocIndex] = alloc;
+
+    assertIntegrity();
 }
+
+#endif
 
 #endif // !BRANCH_ALLOC_REG_SB_GLSL

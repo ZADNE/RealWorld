@@ -21,8 +21,8 @@ void main(){
         if (branchesNeeded > 0){
             b_vegPrep.branchOfChunk[i] = allocateBranches(
                 branchesNeeded,
-                tiToCh(p_chunkTi[i]),
-                p_worldTexSizeCh);
+                tiToCh(p_.chunkTi[i]),
+                p_.worldTexSizeCh);
         }
     }
 

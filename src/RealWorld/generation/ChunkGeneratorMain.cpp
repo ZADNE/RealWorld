@@ -3,8 +3,8 @@
  */
 #include <RealWorld/constants/world.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/generation/VegPrepSB.hpp>
 #include <RealWorld/generation/VegTemplatesUB.hpp>
+#include <RealWorld/generation/shaders/VegPrepSB_glsl.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -19,7 +19,7 @@ using B = vk::BufferUsageFlagBits;
 namespace rw {
 
 namespace {
-using SB = VegPrepSB;
+using SB = glsl::VegPrepSB;
 struct VegPrepSBInitHelper {
     decltype(SB::vegDispatchSize) vegDispatchSize{0, 1, 1, 0};
     decltype(SB::branchDispatchSize) branchDispatchSize{0, 1, 1, 0};
@@ -54,7 +54,7 @@ ChunkGenerator::ChunkGenerator()
                     {k_branchBinding, eStorageBuffer, 1, eCompute},
                     {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
                     {k_vegPrepBinding, eStorageBuffer, 1, eCompute}}},
-              .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(GenerationPC)}}
+              .ranges = {vk::PushConstantRange{eCompute, 0, sizeof(glsl::GenerationPC)}}
           }
       )
     , m_vegTemplatesBuf{re::Buffer{re::BufferCreateInfo{
@@ -66,7 +66,7 @@ ChunkGenerator::ChunkGenerator()
       }}}
     , m_vegPrepBuf(re::BufferCreateInfo{
           .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(VegPrepSB),
+          .sizeInBytes = sizeof(glsl::VegPrepSB),
           .usage     = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
           .initData  = re::objectToByteSpan(k_vegPrepSBInitHelper),
           .debugName = "rw::ChunkGenerator::vegPrep"

@@ -31,8 +31,10 @@ WorldDrawer::WorldDrawer(
     , m_minimapDawer(renderPassSubpass, viewSizePx, m_viewSizeTi) {
 }
 
-void WorldDrawer::setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi) {
-    m_tileDrawer.setTarget(worldTex, worldTexSizeTi);
+void WorldDrawer::setTarget(
+    const re::Texture& worldTex, glm::ivec2 worldTexSizeTi, float seed
+) {
+    m_tileDrawer.setTarget(worldTex, worldTexSizeTi, seed);
     m_shadowDrawer.setTarget(worldTex, worldTexSizeTi);
     m_minimapDawer.setTarget(worldTexSizeTi);
 }

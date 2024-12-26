@@ -3,6 +3,7 @@
  */
 #ifndef BODIES_SB_GLSL
 #define BODIES_SB_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
 struct Body {
     ivec2 bottomCenterPx;
@@ -11,15 +12,19 @@ struct Body {
     vec2  rotationRad; ///< y component is unused
 };
 
-layout (set = 0, binding = k_bodiesBinding, std430)
-restrict buffer BodiesSB {
-    uint b_bodiesDispatchX;
-    uint b_bodiesDispatchY;
-    uint b_bodiesDispatchZ;
-    int  b_currentBodyCount;
-    int  b_maxBodyCount;
-    int  b_bodiesPadding[3];
-    Body b_bodies[];
+struct BodiesSBHeader {
+    uint bodiesDispatchX;
+    uint bodiesDispatchY;
+    uint bodiesDispatchZ;
+    int  currentBodyCount;
+    int  maxBodyCount;
+    int  bodiesPadding[3];
 };
+
+layout (set = 0, binding = k_bodiesBinding, scalar)
+restrict buffer BodiesSB {
+    BodiesSBHeader header;
+    Body bodies[];
+} RE_GLSL_ONLY(b_bodies);
 
 #endif // !BODIES_SB_GLSL

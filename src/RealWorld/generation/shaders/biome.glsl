@@ -3,6 +3,7 @@
  */
 #ifndef BIOME_GLSL
 #define BIOME_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
 #include <RealWorld/constants/tile.glsl>
 
@@ -19,20 +20,20 @@ struct Biome {
 };
 
 //                          tile            elevation           roughness           surfaceWidth
-const Biome k_mountain =    {k_coldStone,   {1000., 2000.},     {400., 250.},       {800., 200.}};
-const Biome k_tundra =      {k_coldDirt,    {0., 1000.},        {0., 250.},         {50., 250.}};
-const Biome k_taiga =       {k_coldGrass,   {500., 1200.},      {0., 150.},         {50., 200.}};
+constexpr Biome k_mountain =    {k_coldStone,   {1000., 2000.},     {400., 250.},       {800., 200.}};
+constexpr Biome k_tundra =      {k_coldDirt,    {0., 1000.},        {0., 250.},         {50., 250.}};
+constexpr Biome k_taiga =       {k_coldGrass,   {500., 1200.},      {0., 150.},         {50., 200.}};
 
-const Biome k_grassland =   {k_grass,       {0., 1000.},        {100., 150.},       {50., 200.}};
-const Biome k_forest =      {k_grass,       {0., 800.},         {100., 200.},       {50., 200.}};
-const Biome k_swamp =       {k_mud,         {-1500., 400.},     {0., 100.},         {500., 100.}};
+constexpr Biome k_grassland =   {k_grass,       {0., 1000.},        {100., 150.},       {50., 200.}};
+constexpr Biome k_forest =      {k_grass,       {0., 800.},         {100., 200.},       {50., 200.}};
+constexpr Biome k_swamp =       {k_mud,         {-1500., 400.},     {0., 100.},         {500., 100.}};
 
-const Biome k_desert =      {k_sand,        {0., 500.},         {0., 0.},           {600., 100.}};
-const Biome k_savanna =     {k_dryGrass,    {250., 800.},       {100., 100.},       {200., 200.}};
-const Biome k_rainforest =  {k_mudGrass,    {250., 1000.},      {150., 160.},       {240., 280.}};
+constexpr Biome k_desert =      {k_sand,        {0., 500.},         {0., 0.},           {600., 100.}};
+constexpr Biome k_savanna =     {k_dryGrass,    {250., 800.},       {100., 100.},       {200., 200.}};
+constexpr Biome k_rainforest =  {k_mudGrass,    {250., 1000.},      {150., 160.},       {240., 280.}};
 
-const ivec2 k_biomesMatrixSize = {3, 3};
-const Biome k_biomes[k_biomesMatrixSize.y][k_biomesMatrixSize.x] = {
+constexpr ivec2 k_biomesMatrixSize = {3, 3};
+constexpr Biome k_biomes[k_biomesMatrixSize.y][k_biomesMatrixSize.x] = {
 //humidity> |low                |normal             |high           temperature \/
     {       k_mountain,         k_tundra,           k_taiga         },  //-low
     {       k_grassland,        k_forest,           k_swamp         },  //-normal
@@ -42,7 +43,7 @@ const Biome k_biomes[k_biomesMatrixSize.y][k_biomesMatrixSize.x] = {
 /**
  * @param biomeClimate x = temperature, y = humidity
  */
-Biome calcBiomeStructure(vec2 biomeClimate){
+inline Biome calcBiomeStructure(vec2 biomeClimate){
     // Calculate coords
     biomeClimate = fract(biomeClimate);
     biomeClimate *= vec2(k_biomesMatrixSize - 1);

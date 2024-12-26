@@ -1,13 +1,14 @@
 // License in file: snoise-License.txt
 #ifndef SNOISE_GLSL
 #define SNOISE_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
-vec2 hash(vec2 p){
+inline vec2 hash(vec2 p){
     p = vec2(dot(p,vec2(127.1f, 311.7f)), dot(p,vec2(269.5f, 183.3f)));
     return -1.0f + 2.0f*fract(sin(p) * 43758.5453123f);
 }
 
-float snoise(in vec2 p, float seed){
+inline float snoise(in vec2 p, float seed){
     const float K1 = 0.366025404f; // (sqrt(3)-1)/2;
     const float K2 = 0.211324865f; // (3-sqrt(3))/6;
 

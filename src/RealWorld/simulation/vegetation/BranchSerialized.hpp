@@ -8,33 +8,20 @@
 #include <glm/vec4.hpp>
 
 #include <RealWorld/constants/vegetation.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchSB_glsl.hpp>
 
 namespace rw {
 
-// NOLINTBEGIN: Shader mirror
-struct BranchSB {
-    // Double-buffered params
-    glm::vec2 absPosTi[2][k_maxBranchCount];
-    float absAngNorm[2][k_maxBranchCount];
-
-    // Single-buffered params
-    glm::uint parentOffset15wallType31[k_maxBranchCount];
-    float relRestAngNorm[k_maxBranchCount];
-    float angVel[k_maxBranchCount];
-    float radiusTi[k_maxBranchCount];
-    float lengthTi[k_maxBranchCount];
-    glm::vec2 densityStiffness[k_maxBranchCount];
-    uint8_t raster[k_maxBranchCount][k_branchRasterByteCount];
-};
+// NOLINTBEGIN: Poor man's reflection
 
 struct BranchSerialized {
     static_assert(
-        sizeof(BranchSB) == 11796480,
+        sizeof(glsl::BranchSB) == 11796480,
         "Layout of branch members probably changed - fix me"
     );
     template<typename T>
     using NoRef = std::remove_reference_t<T>;
-    using B     = BranchSB;
+    using B     = glsl::BranchSB;
 
     NoRef<decltype(*B::absPosTi[0])> absPosTi;
     NoRef<decltype(*B::absAngNorm[0])> absAngNorm;
@@ -49,11 +36,13 @@ struct BranchSerialized {
 
     static constexpr size_t memberCount() {
         static_assert(
-            sizeof(BranchSB) == 11796480, "Also fix the count of members here"
+            sizeof(glsl::BranchSB) == 11796480,
+            "Also fix the count of members here"
         );
         return 9;
     }
 };
+
 // NOLINTEND
 
 } // namespace rw

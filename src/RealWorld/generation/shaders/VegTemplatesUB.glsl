@@ -69,7 +69,7 @@ const int k_vegTemplatesSymbolCount     = 384;
 const int k_totalRewriteRuleBodyCount   = 48;
 
 #extension GL_EXT_scalar_block_layout : require
-layout (set = 0, binding = k_vegTemplatesBinding, std430)
+layout (set = 0, binding = k_vegTemplatesBinding, scalar)
 restrict uniform VegTemplatesUB {
     uint8_t             symbols[k_vegTemplatesSymbolCount];
     float               symbolParams[k_vegTemplatesSymbolCount];

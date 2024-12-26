@@ -1,12 +1,14 @@
 ﻿/*!
  *  @author    Dubsky Tomas
  */
+#define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealWorld/constants/tile.hpp>
 #include <RealWorld/drawing/MinimapLayout.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
+#include <RealWorld/generation/shaders/generateStructure_glsl.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -14,65 +16,30 @@ using enum vk::ImageLayout;
 
 namespace rw {
 
-// NOLINTBEGIN: This is taken from a shader
-float hash12(glm::vec2 p) {
-    glm::vec3 p3 = fract(glm::vec3(p.x, p.y, p.x) * .1031f);
-    p3 += glm::dot(p3, glm::vec3(p3.y, p3.z, p3.x) + 33.33f);
-    return glm::fract((p3.x + p3.y) * p3.z);
-}
-
-// x = left val, y = right val, z = 0 to 1 interp. factor between the two
-glm::vec3 columnValues(float x, float seed) {
-    float columnX     = floor(x);
-    float columnFract = glm::fract(x);
-    float a           = hash12(glm::vec2(columnX, seed));
-    float b           = hash12(glm::vec2(columnX + 1.0f, seed));
-    return glm::vec3(a, b, columnFract);
-}
-
-float linColumnValue(float x, float seed) {
-    glm::vec3 vals = columnValues(x, seed);
-    return glm::mix(vals.x, vals.y, vals.z);
-}
-
-float biomeTemp(float xPx, float seed) {
-    float res = 0.0f;
-    float x   = xPx * (1.0f / 8192.0f);
-    float amp = 0.5f;
-
-    for (int i = 0; i < 3; ++i) {
-        res += linColumnValue(x, seed + 11.0f) * amp;
-        x *= 2.0f;
-        amp *= 0.5f;
-    }
-
-    return res;
-}
-
 constexpr glm::vec3 k_cold{0.2625, 0.851, 0.952};
 constexpr glm::vec3 k_normal{0.25411764705, 0.7025490196, 0.90470588235};
 constexpr glm::vec3 k_hot{0.2895, 0.698, 0.7583};
 
-constexpr glm::vec3 k_color[3] = {k_cold, k_normal, k_hot};
+constexpr std::array<glm::vec3, 3> k_skyColors{k_cold, k_normal, k_hot};
 
-glm::vec3 bcColor(float biomeTemp) {
+glm::vec3 skyColor(float biomeTemp) {
     // Calculate coords
     biomeTemp = glm::fract(biomeTemp);
     biomeTemp *= 2.0f;
-    int ll     = biomeTemp;
+    int ll     = static_cast<int>(biomeTemp);
     float frac = glm::fract(biomeTemp);
 
     // Gather
-    glm::vec3 b00 = k_color[ll];
-    glm::vec3 b01 = k_color[ll + 1];
+    glm::vec3 b00 = k_skyColors[ll];
+    glm::vec3 b01 = k_skyColors[ll + 1];
 
     // Interpolate
     return glm::mix(b00, b01, frac);
 }
-// NOLINTEND
 
 TileDrawer::TileDrawer(
-    re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx, WorldDrawingPC& pc
+    re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
+    glsl::WorldDrawingPC& pc
 )
     : m_pc(pc)
     , m_pipelineLayout(
@@ -84,7 +51,7 @@ TileDrawer::TileDrawer(
                   {2u, eCombinedImageSampler, 1u, eFragment}  // wallAtlas
               }},
               .ranges   = {vk::PushConstantRange{
-                  eVertex | eFragment, 0u, sizeof(WorldDrawingPC)
+                  eVertex | eFragment, 0u, sizeof(glsl::WorldDrawingPC)
               }}
           }
       )
@@ -121,7 +88,9 @@ TileDrawer::TileDrawer(
     resizeView(viewSizePx);
 }
 
-void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
+void TileDrawer::setTarget(
+    const re::Texture& worldTexture, glm::ivec2 worldTexSize, float seed
+) {
     m_descriptorSet.write(
         eCombinedImageSampler, 0u, 0u, worldTexture, eShaderReadOnlyOptimal
     );
@@ -130,6 +99,7 @@ void TileDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexS
         glm::vec2(2.0f, 2.0f) /
         glm::vec2(m_pc.minimapViewMat[0][0], m_pc.minimapViewMat[1][1]);
     resizeView(viewSizePx);
+    m_seed = seed;
 }
 
 void TileDrawer::resizeView(glm::vec2 viewSizePx) {
@@ -148,14 +118,19 @@ void TileDrawer::drawTiles(
     m_pc.uvRectOffset = glm::mod(botLeftPx, TilePx);
     m_pc.botLeftTi    = glm::ivec2(pxToTi(botLeftPx));
     m_pc.skyColor     = glm::vec4(
-        bcColor(biomeTemp(botLeftPx.x + m_viewSizePx.x * 0.5f, 1.0f)) * skyLight, 1.0
+        skyColor(
+            glsl::calcBiomeClimate(botLeftPx.x + m_viewSizePx.x * 0.5f, m_seed).x
+        ) * skyLight,
+        1.0
     );
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u,
         *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawTilesPl);
-    cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);
+    cb->pushConstants<glsl::WorldDrawingPC>(
+        *m_pipelineLayout, eVertex | eFragment, 0u, m_pc
+    );
     cb->draw(3u, 1u, 0u, 0u);
 }
 
@@ -165,7 +140,9 @@ void TileDrawer::drawMinimap(const re::CommandBuffer& cb) {
         *m_descriptorSet, {}
     );
     cb->bindPipeline(vk::PipelineBindPoint::eGraphics, *m_drawMinimapPl);
-    cb->pushConstants<WorldDrawingPC>(*m_pipelineLayout, eVertex | eFragment, 0u, m_pc);
+    cb->pushConstants<glsl::WorldDrawingPC>(
+        *m_pipelineLayout, eVertex | eFragment, 0u, m_pc
+    );
     cb->draw(4u, 1u, 0u, 0u);
 }
 

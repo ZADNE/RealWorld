@@ -8,11 +8,13 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
+#include <RealEngine/graphics/pipelines/Vertex.hpp>
 #include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
-#include <RealWorld/drawing/ExternalLight.hpp>
-#include <RealWorld/drawing/WorldDrawingPC.hpp>
+#include <RealWorld/drawing/shaders/AnalysisPC_glsl.hpp>
+#include <RealWorld/drawing/shaders/DynamicLightsSB_glsl.hpp>
+#include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
 
 namespace rw {
 
@@ -24,7 +26,7 @@ public:
     ShadowDrawer(
         re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
         glm::ivec2 viewSizeTi, glm::uint maxNumberOfExternalLights,
-        WorldDrawingPC& pc
+        glsl::WorldDrawingPC& pc
     );
 
     void setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize);
@@ -58,7 +60,7 @@ private:
     re::TextureShaped m_blockLightAtlasTex{re::TextureSeed{"blockLightAtlas"}};
     re::TextureShaped m_wallLightAtlasTex{re::TextureSeed{"wallLightAtlas"}};
 
-    WorldDrawingPC& m_pc;
+    glsl::WorldDrawingPC& m_pc;
 
     re::PipelineLayout m_calcInputsPll;
     re::Pipeline m_analyzeTilesPl;
@@ -70,15 +72,7 @@ private:
     re::PipelineLayout m_shadowDrawingPll;
     re::Pipeline m_drawShadowsPl;
 
-    re::BufferMapped<ExternalLight> m_lightsBuf;
-
-    struct AnalysisPC {
-        glm::vec4 skyLight;
-        glm::ivec2 worldTexMask;
-        glm::ivec2 analysisOffsetTi;
-        glm::ivec2 addLightOffsetPx;
-        glm::uint lightCount;
-    };
+    re::BufferMapped<glsl::DynamicLight> m_lightsBuf;
 
     struct ViewSizeDependent {
         ViewSizeDependent(
@@ -97,7 +91,7 @@ private:
         re::ImageView lightTexR32ImageView;
         re::Texture transluTex; ///< R = translucency of the unit
         re::Texture shadowsTex;
-        AnalysisPC analysisPC{};
+        glsl::AnalysisPC analysisPC{};
         re::DescriptorSet calcInputsDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;

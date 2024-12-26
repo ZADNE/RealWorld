@@ -3,6 +3,7 @@
  */
 #ifndef GENERATE_STRUCTURE_GLSL
 #define GENERATE_STRUCTURE_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
@@ -10,7 +11,7 @@
 #include <RealWorld/constants/generation.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
 
-float calcAge(vec2 posPx, float seed){
+inline float calcAge(vec2 posPx, float seed){
     float age = snoise(posPx * (1.0f / 8192.0f), seed);
     return clamp(age * 2.0f, -0.5f, +0.5f) + 0.5f; // Oversaturate the age
 }
@@ -18,7 +19,7 @@ float calcAge(vec2 posPx, float seed){
 /**
  * @return x = temperature, y = humidity
  */
-vec2 calcBiomeClimate(float xPx, float seed){
+inline vec2 calcBiomeClimate(float xPx, float seed){
     vec2 res = vec2(0.5f);
     float x = xPx * (1.0f / 8192.0f);
     float amp = 1.0f;
@@ -33,7 +34,7 @@ vec2 calcBiomeClimate(float xPx, float seed){
     return clamp(res, 0.0f, 0.99999f);
 }
 
-vec2 calcHorizon(float xPx, Biome biome, float seed){
+inline vec2 calcHorizon(float xPx, Biome biome, float seed){
     // Elevation
     float der = 0.0f;
     float totalElev = biome.elevation.x;
@@ -60,7 +61,7 @@ vec2 calcHorizon(float xPx, Biome biome, float seed){
 }
 
 
-float calcSolidity(vec2 posPx, float age, float seed){
+inline float calcSolidity(vec2 posPx, float age, float seed){
     const vec2 k_caveWidthFactor = vec2(0.2f, 0.8f);
 
     vec2 p = vec2(posPx * (1.0f / 1536.0f));
@@ -79,7 +80,7 @@ float calcSolidity(vec2 posPx, float age, float seed){
     return mix(hash13(vec3(posPx, seed)), solidity_weight[0], solidity_weight[1]);
 }
 
-uvec2 calcStoneTile(vec2 posPx, float age, float baseSolidity, float seed){
+inline uvec2 calcStoneTile(vec2 posPx, float age, float baseSolidity, float seed){
     float depthFactor = smoothstep(-32768.0f, -8192.0f, posPx.y);
     float lavaFactor = snoise(posPx * (1.0f / 400.0f), -seed) + depthFactor;
     float dither = hash13(vec3(posPx, seed)) * 0.3f - 0.15f;
@@ -87,14 +88,14 @@ uvec2 calcStoneTile(vec2 posPx, float age, float baseSolidity, float seed){
     return (lavaFactor <= 0.0f && baseSolidity > 0.45f) ? uvec2(k_lavaBl, stoneTile.y) : stoneTile;
 }
 
-uvec2 calcSurfaceTile(vec2 posPx, float seed){
+inline uvec2 calcSurfaceTile(vec2 posPx, float seed){
     float posDither = (hash13(vec3(posPx, seed)) - 0.5f) * 2048.0f;
     vec2 climate = calcBiomeClimate(posPx.x + posDither, seed);
     ivec2 indices = ivec2(vec2(k_biomesMatrixSize) * climate);
     return k_biomes[indices.x][indices.y].tiles;
 }
 
-float caclHorizonProximityFactor(float horizon, float y, float width, float low, float high){
+inline float caclHorizonProximityFactor(float horizon, float y, float width, float low, float high){
     return clamp(1.0f - (horizon - y) / width, low, high);
 }
 
@@ -103,7 +104,7 @@ struct GeneratedTile{
     uvec4 material;
 };
 
-GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
+inline GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
     float age = calcAge(pPx, seed);
     float solidity = calcSolidity(pPx, age, seed);
     uvec2 stoneTile = calcStoneTile(pPx, age, solidity, seed); // Decides which underground tile to use 

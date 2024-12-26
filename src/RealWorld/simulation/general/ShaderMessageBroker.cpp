@@ -27,7 +27,7 @@ ShaderMessageBroker::ShaderMessageBroker(
 void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
     // Process received messages
     int intCount = m_messageBufMapped->read().totalInts;
-    int* ints    = m_messageBufMapped->read().messages.data();
+    int* ints = m_messageBufMapped->read().messages; // NOLINT(*-pointer-decay)
     for (int i = 0; i < intCount;) {
         auto msgId = static_cast<ShaderMessageId>(ints[i++]);
         switch (msgId) {
@@ -62,7 +62,7 @@ void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
     // Clear message buffer buffer
     acb.action(
         [&](const re::CommandBuffer& cb) {
-            cb->fillBuffer(*m_messageBuf, 0ull, sizeof(ShaderMessageSB), 0);
+            cb->fillBuffer(*m_messageBuf, 0ull, sizeof(glsl::ShaderMessageSB), 0);
         },
         BufferAccess{
             .name   = BufferTrackName::ShaderMessage,
@@ -77,8 +77,9 @@ void ShaderMessageBroker::endStep(ActionCmdBuf& acb) {
         [&](const re::CommandBuffer& cb) {
             vk::BufferCopy2 bufferCopy{
                 0ull,
-                sizeof(ShaderMessageSB) * re::StepDoubleBufferingState::readIndex(),
-                sizeof(ShaderMessageSB)
+                sizeof(glsl::ShaderMessageSB) *
+                    re::StepDoubleBufferingState::readIndex(),
+                sizeof(glsl::ShaderMessageSB)
             };
             cb->copyBuffer2(vk::CopyBufferInfo2{
                 m_messageBuf.buffer(),       // Src buffer

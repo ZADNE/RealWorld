@@ -3,6 +3,8 @@
  */
 #ifndef VEG_PREP_SB_GLSL
 #define VEG_PREP_SB_GLSL
+#include <RealShaders/CppIntegration.glsl>
+
 #include <RealWorld/constants/generation.glsl>
 
 struct VegInstance{
@@ -15,7 +17,11 @@ struct VegInstance{
     float tropismDirNorm;
 };
 
-layout (binding = k_vegPrepBinding, std430)
+#ifndef VegPrepSB_ACCESS
+#    define VegPrepSB_ACCESS readonly
+#endif
+
+layout (binding = k_vegPrepBinding, scalar)
 VegPrepSB_ACCESS restrict buffer VegPrepSB {
     uvec4       vegDispatchSize;
     uvec4       branchDispatchSize;
@@ -33,6 +39,6 @@ VegPrepSB_ACCESS restrict buffer VegPrepSB {
     float   radiusTi[k_branchGenSlots];
     float   lengthTi[k_branchGenSlots];
     vec2    densityStiffness[k_branchGenSlots];
-} b_vegPrep;
+} RE_GLSL_ONLY(b_vegPrep);
 
 #endif // !VEG_PREP_SB_GLSL

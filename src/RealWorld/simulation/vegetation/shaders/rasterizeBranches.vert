@@ -23,14 +23,14 @@ void main(){
     const uvec2 parentOffsetWallType = loadBranchParentOffsetWallType(id);
     const float radiusTi = b_branch.radiusTi[id];
     const float lengthTi = b_branch.lengthTi[id];
-    float absAngNorm = b_branch.absAngNorm[p_readBuf][id];
-    vec2  posTi = b_branch.absPosTi[p_readBuf][id];
+    float absAngNorm = b_branch.absAngNorm[p_.readBuf][id];
+    vec2  posTi = b_branch.absPosTi[p_.readBuf][id];
     const vec2 densityStiffness = b_branch.densityStiffness[id];
     float  angVel = b_branch.angVel[id];
 
     // Load parent
     const uint pId = id - int(parentOffsetWallType.x);
-    float pAbsAngNorm = b_branch.absAngNorm[p_readBuf][pId];
+    float pAbsAngNorm = b_branch.absAngNorm[p_.readBuf][pId];
 
     // Outputs for next stage
     o_posTi = posTi;
@@ -40,7 +40,7 @@ void main(){
     o_branchIndex15wallType31 = id | (parentOffsetWallType.y << 16);
 
     // Simulation
-    float wind = windStrength(posTi, p_timeSec);
+    float wind = windStrength(posTi, p_.timeSec);
 
     float volume = k_pi * radiusTi * radiusTi * lengthTi;
     float weight = volume * densityStiffness.x;
@@ -73,12 +73,12 @@ void main(){
     }
 
     // Shift branch
-    const vec2  pPosTi = b_branch.absPosTi[p_readBuf][pId];
+    const vec2  pPosTi = b_branch.absPosTi[p_.readBuf][pId];
     const float pLengthTi = b_branch.lengthTi[pId];
     posTi = pPosTi + toCartesian(pLengthTi, pAbsAngNorm);
 
     // Store the modified branch
-    const uint writeBuf = 1 - p_readBuf;
+    const uint writeBuf = 1 - p_.readBuf;
     b_branch.absPosTi[writeBuf][id] = posTi;
     b_branch.absAngNorm[writeBuf][id] = absAngNorm;
     b_branch.angVel[id] = angVel;

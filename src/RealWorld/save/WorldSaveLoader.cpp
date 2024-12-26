@@ -5,10 +5,15 @@
 #include <fstream>
 #include <iostream>
 
+#define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl
+#include <glm/glm.hpp>
+
 #include <RealEngine/utility/Error.hpp>
 
 #include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/generation/shaders/generateStructure_glsl.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
+#include <RealWorld/simulation/objects/Player.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -26,6 +31,20 @@ void readBinary(std::ifstream& file, T& x) {
 
 const std::string k_worldInfoFilename = "world_info.json";
 
+float calcHorizonPx(float xPx, float seed) {
+    glm::vec2 climate = glsl::calcBiomeClimate(xPx, seed);
+    glsl::Biome biome = glsl::calcBiomeStructure(climate);
+    return glsl::calcHorizon(xPx, biome, seed).x;
+}
+
+glm::vec2 calcPlayerStartPosition(float seed) {
+    float yPx = std::numeric_limits<float>::min();
+    for (float xPx : {0.0f, k_playerDimsPx.x * 0.5f, k_playerDimsPx.x}) {
+        yPx = std::max(yPx, calcHorizonPx(xPx, seed));
+    }
+    return glm::vec2{0.0f, yPx};
+}
+
 bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     WorldSave save;
     // World info
@@ -34,7 +53,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.metadata.timeDay   = 0.0f;
 
     // Player data
-    save.player.pos = iChunkTi * glm::ivec2(0, 4) * iTilePx;
+    save.player.pos = calcPlayerStartPosition(static_cast<float>(seed));
     save.inventory.resize(k_defaultPlayerInventorySize);
 
     int slot               = 0;

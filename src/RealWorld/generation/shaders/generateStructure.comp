@@ -18,13 +18,13 @@ layout (set = 0, binding = k_materialImageBinding, r8ui)
 
 void main(){
     // Compute position
-    ivec2 pTi = p_chunkTi[gl_WorkGroupID.z]
+    ivec2 pTi = p_.chunkTi[gl_WorkGroupID.z]
                 + ivec2(gl_GlobalInvocationID.xy)
                 - k_genBorderWidth;
     vec2 pPx = vec2(pTi) * TilePx;
 
     // Compute terrain
-    GeneratedTile gen = calcBasicTerrain(pPx, p_seed);
+    GeneratedTile gen = calcBasicTerrain(pPx, p_.seed);
 
     // Store the terrain
     imageStore(u_layerImage,

@@ -12,10 +12,10 @@
 #include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
 #include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
 #include <RealWorld/save/WorldSave.hpp>
-#include <RealWorld/simulation/general/SimulationPC.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
 #include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>
+#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC_glsl.hpp>
 #include <RealWorld/simulation/vegetation/BodySimulator.hpp>
 #include <RealWorld/simulation/vegetation/VegSimulator.hpp>
 
@@ -108,7 +108,10 @@ private:
 
     re::Buffer m_tilePropertiesBuf;
 
-    SimulationPC::WorldDynamics m_worldDynamicsPC;
+    glsl::WorldDynamicsPC m_worldDynamicsPC{
+        .timeHash = static_cast<uint32_t>(time(nullptr)),
+        .timeSec  = static_cast<float>(time(nullptr) & 0xFFFF)
+    };
 
     re::PipelineLayout m_simulationPL;
     re::DescriptorSet m_simulationDS{re::DescriptorSetCreateInfo{

@@ -4,5 +4,4 @@ real_target_sources(RealWorld
     PUBLIC
         ActionCmdBuf.hpp            
         ShaderMessageBroker.hpp     ShaderMessageBroker.cpp
-        SimulationPC.hpp            
 )
