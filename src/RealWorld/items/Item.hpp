@@ -14,7 +14,7 @@ struct Item: public ItemSample {
     /**
      * @brief Constructs empty item
      */
-    Item(){};
+    Item() = default;
 
     /**
      * @brief Constructs item from ItemSample and count

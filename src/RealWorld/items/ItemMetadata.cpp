@@ -32,8 +32,11 @@ int maxStack(ItemId id) {
 
 char textureAtlas(ItemId id) {
     switch (section(id)) {
-    case ItemIdSection::Mixed:    return 'B';
-    case ItemIdSection::Blocks:   return 'B';
+    case ItemIdSection::Mixed: return 'B';
+    case ItemIdSection::Blocks:
+        return offsetInSection(id) >= std::to_underlying(Block::FirstNonsolid)
+                   ? 'F'
+                   : 'B';
     case ItemIdSection::Walls:    return 'W';
     case ItemIdSection::Pickaxes: return 'P';
     case ItemIdSection::Hammers:  return 'H';
@@ -42,7 +45,18 @@ char textureAtlas(ItemId id) {
 }
 
 float spriteIndex(ItemId id) {
-    return offsetInSection(id);
+    auto offset = offsetInSection(id);
+    switch (section(id)) {
+    case ItemIdSection::Mixed: return offset;
+    case ItemIdSection::Blocks:
+        return offset >= std::to_underlying(Block::FirstNonsolid)
+                   ? offset & k_nonSolidsMask
+                   : offset;
+    case ItemIdSection::Walls:    return offset;
+    case ItemIdSection::Pickaxes: return offset;
+    case ItemIdSection::Hammers:  return offset;
+    default:                      std::unreachable();
+    }
 }
 
 float subimageIndex(ItemId id) {
