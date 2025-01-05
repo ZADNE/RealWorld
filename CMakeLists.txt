@@ -28,8 +28,8 @@ real_target_package_data(
     OUTPUT_DIR
         ${CMAKE_CURRENT_BINARY_DIR}
     INPUT_DIRS
-        "${CMAKE_CURRENT_BINARY_DIR}/fonts/"
-        "${CMAKE_CURRENT_BINARY_DIR}/textures/"
+        "${CMAKE_CURRENT_BINARY_DIR}/fonts"
+        "${CMAKE_CURRENT_BINARY_DIR}/textures"
 )
 add_dependencies(RealWorld_PackageData DataCooker_Cook)
 

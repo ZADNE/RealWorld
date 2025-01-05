@@ -8,6 +8,7 @@
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/fonts/RasterizedFont.hpp>
+#include <RealEngine/resources/ResourceIndex.hpp>
 
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
@@ -128,7 +129,7 @@ private:
     }
 
     glm::vec2 m_windowSize{};
-    re::TextureShaped m_slotTex{re::TextureSeed{"slot"}};
+    re::TextureShaped m_slotTex = re::RM::textureUnmanaged(re::textureID("slot"));
     glm::vec2 m_invBotLeftPx{}; ///< Bottom left corner of slot (0, 0)
 
     Item m_heldItem{};

@@ -11,6 +11,7 @@
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 #include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
+#include <RealEngine/resources/ResourceIndex.hpp>
 
 #include <RealWorld/drawing/shaders/AnalysisPC_glsl.hpp>
 #include <RealWorld/drawing/shaders/DynamicLightsSB_glsl.hpp>
@@ -57,8 +58,10 @@ public:
     void draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx);
 
 private:
-    re::TextureShaped m_blockLightAtlasTex{re::TextureSeed{"blockLightAtlas"}};
-    re::TextureShaped m_wallLightAtlasTex{re::TextureSeed{"wallLightAtlas"}};
+    re::TextureShaped m_blockLightAtlasTex =
+        re::RM::textureUnmanaged(re::textureID("blockLightAtlas"));
+    re::TextureShaped m_wallLightAtlasTex =
+        re::RM::textureUnmanaged(re::textureID("wallLightAtlas"));
 
     glsl::WorldDrawingPC& m_pc;
 

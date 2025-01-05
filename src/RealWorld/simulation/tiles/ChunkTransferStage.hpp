@@ -4,8 +4,6 @@
 #pragma once
 #include <concepts>
 
-#include <vulkan/vulkan.hpp>
-
 #include <RealEngine/graphics/buffers/BufferMapped.hpp>
 #include <RealEngine/utility/OffsetOfArr.hpp>
 

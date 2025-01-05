@@ -13,7 +13,7 @@ ItemSprite::ItemSprite()
 }
 
 ItemSprite::ItemSprite(ItemId id)
-    : m_tex(re::RM::texture(re::TextureSeed{k_atlasPrefix + textureAtlas(id)}))
+    : m_tex(re::RM::texture(re::ResourceID{1, ""})) // TODO
     , m_sprite{
           *m_tex,
           spriteIndex(id),
