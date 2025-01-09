@@ -6,8 +6,8 @@
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
-#include <RealEngine/resources/ResourceIndex.hpp>
 
+#include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
@@ -65,8 +65,8 @@ private:
 
     Player(const glsl::PlayerHitboxSB& initSB);
 
-    re::TextureShaped m_playerTex =
-        re::RM::textureUnmanaged(re::textureID("player"));
+    re::TextureShaped m_playerTex = re::RM::textureUnmanaged(textureID<"playe"
+                                                                       "r">());
 
     re::Buffer m_hitboxBuf;
     re::BufferMapped<glsl::PlayerHitboxSB> m_hitboxStageBuf;

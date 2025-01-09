@@ -11,8 +11,8 @@
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 #include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
-#include <RealEngine/resources/ResourceIndex.hpp>
 
+#include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/drawing/shaders/AnalysisPC_glsl.hpp>
 #include <RealWorld/drawing/shaders/DynamicLightsSB_glsl.hpp>
 #include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
@@ -59,9 +59,9 @@ public:
 
 private:
     re::TextureShaped m_blockLightAtlasTex =
-        re::RM::textureUnmanaged(re::textureID("blockLightAtlas"));
+        re::RM::textureUnmanaged(textureID<"blockLightAtlas">());
     re::TextureShaped m_wallLightAtlasTex =
-        re::RM::textureUnmanaged(re::textureID("wallLightAtlas"));
+        re::RM::textureUnmanaged(textureID<"wallLightAtlas">());
 
     glsl::WorldDrawingPC& m_pc;
 

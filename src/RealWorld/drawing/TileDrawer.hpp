@@ -7,8 +7,8 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
-#include <RealEngine/resources/ResourceIndex.hpp>
 
+#include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
 
 namespace rw {
@@ -33,9 +33,9 @@ public:
 
 private:
     re::TextureShaped m_blockAtlasTex =
-        re::RM::textureUnmanaged(re::textureID("blockAtlas"));
+        re::RM::textureUnmanaged(textureID<"blockAtlas">());
     re::TextureShaped m_wallAtlasTex =
-        re::RM::textureUnmanaged(re::textureID("wallAtlas"));
+        re::RM::textureUnmanaged(textureID<"wallAtlas">());
 
     glm::vec2 m_viewSizePx{};
 

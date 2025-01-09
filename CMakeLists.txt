@@ -23,15 +23,16 @@ target_link_libraries(RealWorld PUBLIC RealEngine)
 # Data cooking and packaging for RealWorld
 include("cmake/DataCooking.cmake")
 add_dependencies(RealWorld DataCooker_Cook)
-real_target_package_data(
-    TARGET RealWorld
+real_target_package_resources(
+    TARGET
+        RealWorld
     OUTPUT_DIR
         ${CMAKE_CURRENT_BINARY_DIR}
     INPUT_DIRS
         "${CMAKE_CURRENT_BINARY_DIR}/fonts"
         "${CMAKE_CURRENT_BINARY_DIR}/textures"
 )
-add_dependencies(RealWorld_PackageData DataCooker_Cook)
+add_dependencies(RealWorld_PackageResources DataCooker_Cook)
 
 # RealWorld Game
 add_real_executable(RealWorld_Game)

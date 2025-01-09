@@ -23,7 +23,7 @@ public:
     re::SpriteComplex& sprite() { return m_sprite; }
 
 private:
-    re::SharedTexture m_tex;
+    re::SharedTextureShaped m_tex;
     re::SpriteComplex m_sprite;
 
     /**

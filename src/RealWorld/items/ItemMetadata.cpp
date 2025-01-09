@@ -3,6 +3,7 @@
  */
 #include <cassert>
 
+#include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/items/ItemMetadata.hpp>
 
 namespace rw {
@@ -30,16 +31,16 @@ int maxStack(ItemId id) {
     }
 }
 
-char textureAtlas(ItemId id) {
+re::ResourceID textureID(ItemId id) {
     switch (section(id)) {
-    case ItemIdSection::Mixed: return 'B';
+    case ItemIdSection::Mixed: return textureID<"itemAtlasB">();
     case ItemIdSection::Blocks:
         return offsetInSection(id) >= std::to_underlying(Block::FirstNonsolid)
-                   ? 'F'
-                   : 'B';
-    case ItemIdSection::Walls:    return 'W';
-    case ItemIdSection::Pickaxes: return 'P';
-    case ItemIdSection::Hammers:  return 'H';
+                   ? textureID<"itemAtlasF">()
+                   : textureID<"itemAtlasB">();
+    case ItemIdSection::Walls:    return textureID<"itemAtlasW">();
+    case ItemIdSection::Pickaxes: return textureID<"itemAtlasP">();
+    case ItemIdSection::Hammers:  return textureID<"itemAtlasH">();
     default:                      std::unreachable();
     }
 }

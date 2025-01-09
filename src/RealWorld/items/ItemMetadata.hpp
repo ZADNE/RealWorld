@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <string>
 
+#include <RealEngine/resources/ResourceID.hpp>
+
 #include <RealWorld/constants/item.hpp>
 
 namespace rw {
@@ -20,9 +22,9 @@ uint16_t offsetInSection(ItemId id);
 int maxStack(ItemId id);
 
 /**
- * @brief Returns suffix of the texture atlas
+ * @brief Returns resource ID of the texture that should be used to render the item.
  */
-char textureAtlas(ItemId id);
+re::ResourceID textureID(ItemId id);
 
 /**
  * @brief Returns sprite index in the texture atlas

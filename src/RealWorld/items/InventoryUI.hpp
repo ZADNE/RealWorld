@@ -8,8 +8,8 @@
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/fonts/RasterizedFont.hpp>
-#include <RealEngine/resources/ResourceIndex.hpp>
 
+#include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/items/Item.hpp>
 #include <RealWorld/items/ItemSprite.hpp>
 
@@ -129,7 +129,7 @@ private:
     }
 
     glm::vec2 m_windowSize{};
-    re::TextureShaped m_slotTex = re::RM::textureUnmanaged(re::textureID("slot"));
+    re::TextureShaped m_slotTex = re::RM::textureUnmanaged(textureID<"slot">());
     glm::vec2 m_invBotLeftPx{}; ///< Bottom left corner of slot (0, 0)
 
     Item m_heldItem{};
@@ -146,7 +146,7 @@ private:
     bool m_open = false;
 
     re::RasterizedFont m_countFont{{
-        .filePath  = "fonts/arial.ttf",
+        .ttfBytes  = re::RM::dataUnmanaged(fontID<"arial">()),
         .pointSize = 26 // NOLINT(*-magic-numbers): Matches slot design
     }};
 };
