@@ -1,4 +1,4 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
 #ifndef EXPAND_GRASS_GLSL

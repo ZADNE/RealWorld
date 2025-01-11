@@ -1,4 +1,4 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
 #ifndef EXPANSION_HELPERS_GLSL

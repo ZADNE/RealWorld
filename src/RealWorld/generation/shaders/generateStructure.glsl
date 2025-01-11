@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef GENERATE_STRUCTURE_GLSL

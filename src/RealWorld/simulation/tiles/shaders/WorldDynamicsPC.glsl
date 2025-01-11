@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef WORLD_DYNAMICS_PC_GLSL

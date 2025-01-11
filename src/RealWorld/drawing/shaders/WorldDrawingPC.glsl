@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef WORLD_DRAWING_PC_GLSL

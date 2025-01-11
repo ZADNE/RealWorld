@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl

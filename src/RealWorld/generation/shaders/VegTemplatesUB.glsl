@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef VEG_TEMPLATES_UB_GLSL

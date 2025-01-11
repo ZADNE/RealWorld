@@ -1,4 +1,4 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
 #ifndef WORLD_GLSL

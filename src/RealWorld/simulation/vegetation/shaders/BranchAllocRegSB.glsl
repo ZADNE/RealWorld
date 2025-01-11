@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef BRANCH_ALLOC_REG_SB_GLSL

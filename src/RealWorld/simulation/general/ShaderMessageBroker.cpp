@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/simulation/general/ShaderMessageBroker.hpp>

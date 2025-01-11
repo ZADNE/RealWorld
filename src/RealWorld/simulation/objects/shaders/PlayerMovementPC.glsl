@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef PLAYER_MOVEMENT_PC_GLSL

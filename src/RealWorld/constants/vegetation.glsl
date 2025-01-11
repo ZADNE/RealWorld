@@ -1,4 +1,4 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
 #ifndef VEGETATION_GLSL

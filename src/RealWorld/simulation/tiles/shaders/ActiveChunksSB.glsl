@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef ACTIVE_CHUNKS_SB_GLSL

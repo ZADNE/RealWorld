@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef DYNAMIC_LIGHTS_SB_GLSL

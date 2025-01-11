@@ -1,4 +1,4 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #ifndef BRANCH_RASTERIZATION_PLL_GLSL
