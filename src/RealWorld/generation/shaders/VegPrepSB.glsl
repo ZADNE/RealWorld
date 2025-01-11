@@ -5,7 +5,7 @@
 #define VEG_PREP_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/constants/Generation.glsl>
 
 struct VegInstance{
     vec2  rootPosTi;

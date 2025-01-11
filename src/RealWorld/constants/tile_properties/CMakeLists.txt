@@ -1,6 +1,6 @@
 ﻿real_target_sources(RealWorld
     PUBLIC
-        blockTransformationProperties.hpp         blockTransformationRules.hpp
-        fluidProperties.glsl        
-        wallTransformationProperties.hpp          wallTransformationRules.hpp
+        BlockTransformationProperties.hpp         BlockTransformationRules.hpp
+        FluidProperties.glsl        
+        WallTransformationProperties.hpp          WallTransformationRules.hpp
 )

@@ -6,7 +6,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/constants/Chunk.hpp>
 
 namespace rw {
 

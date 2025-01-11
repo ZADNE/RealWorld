@@ -8,8 +8,8 @@
 #include <string_view>
 #include <vector>
 
-#include <RealWorld/constants/generation.hpp>
-#include <RealWorld/constants/tile.hpp>
+#include <RealWorld/constants/Generation.hpp>
+#include <RealWorld/constants/Tile.hpp>
 
 namespace rw {
 namespace veg_templates {

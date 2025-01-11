@@ -3,7 +3,7 @@
  */
 #ifndef VEG_DISTRIBUTION_GLSL
 #define VEG_DISTRIBUTION_GLSL
-#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/constants/Generation.glsl>
 
 // Describes vegetation distribution
 struct VegDistr {

@@ -7,10 +7,10 @@
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/constants/tile_properties/blockTransformationProperties.hpp>
-#include <RealWorld/constants/tile_properties/blockTransformationRules.hpp>
-#include <RealWorld/constants/tile_properties/wallTransformationProperties.hpp>
-#include <RealWorld/constants/tile_properties/wallTransformationRules.hpp>
+#include <RealWorld/constants/tile_properties/BlockTransformationProperties.hpp>
+#include <RealWorld/constants/tile_properties/BlockTransformationRules.hpp>
+#include <RealWorld/constants/tile_properties/WallTransformationProperties.hpp>
+#include <RealWorld/constants/tile_properties/WallTransformationRules.hpp>
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>

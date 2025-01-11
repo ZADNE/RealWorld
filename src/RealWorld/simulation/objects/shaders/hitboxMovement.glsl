@@ -4,8 +4,8 @@
 #ifndef HITBOX_MOVEMENT_GLSL
 #define HITBOX_MOVEMENT_GLSL
 
-#include <RealWorld/constants/tile.glsl>
-#include <RealWorld/constants/world.glsl>
+#include <RealWorld/constants/Tile.glsl>
+#include <RealWorld/constants/World.glsl>
 #include <RealWorld/simulation/tiles/shaders/tileLoad.glsl>
 
 uint ground(vec2 posPx, vec2 dimsPx, ivec2 worldTexMaskTi) {

@@ -5,8 +5,8 @@
 
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
 
-#include <RealWorld/constants/chunk.hpp>
-#include <RealWorld/constants/light.hpp>
+#include <RealWorld/constants/Chunk.hpp>
+#include <RealWorld/constants/Light.hpp>
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 
 namespace rw {

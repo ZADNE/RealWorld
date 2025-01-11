@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealWorld/constants/tile_properties/blockTransformationRules.hpp>
+#include <RealWorld/constants/tile_properties/BlockTransformationRules.hpp>
 
 namespace rw {
 

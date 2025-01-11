@@ -2,8 +2,8 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/tile.glsl>
-#include <RealWorld/constants/world.glsl>
+#include <RealWorld/constants/Tile.glsl>
+#include <RealWorld/constants/World.glsl>
 #include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout (location = 0) out vec4  o_color;

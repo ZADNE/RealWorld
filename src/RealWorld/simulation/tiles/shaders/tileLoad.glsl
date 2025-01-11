@@ -3,7 +3,7 @@
  */
 #ifndef TILE_LOAD_GLSL
 #define TILE_LOAD_GLSL
-#include <RealWorld/constants/world.glsl>
+#include <RealWorld/constants/World.glsl>
 
 layout (set = 0, binding = k_worldTexBinding, rg16ui)
 uniform restrict readonly uimage2DArray u_worldImage;

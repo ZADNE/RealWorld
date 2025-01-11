@@ -3,7 +3,7 @@
  */
 #ifndef VEGETATION_GLSL
 #define VEGETATION_GLSL
-#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/Tile.glsl>
 
 const uint k_maxBranchCount         = 65536;
 const uint k_maxBranchAllocCount    = 256;

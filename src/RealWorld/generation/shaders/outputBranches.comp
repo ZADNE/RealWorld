@@ -2,7 +2,7 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/Tile.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/simulation/general/shaders/random.glsl>
 #include <RealWorld/simulation/vegetation/shaders/normAngles.glsl>

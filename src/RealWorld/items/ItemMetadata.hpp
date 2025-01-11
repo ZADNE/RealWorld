@@ -8,7 +8,7 @@
 
 #include <RealEngine/resources/ResourceID.hpp>
 
-#include <RealWorld/constants/item.hpp>
+#include <RealWorld/constants/Item.hpp>
 
 namespace rw {
 

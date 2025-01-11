@@ -2,8 +2,8 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/tile.glsl>
-#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/constants/Tile.glsl>
+#include <RealWorld/constants/Generation.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 #include <RealWorld/generation/shaders/generationPll.glsl>
 

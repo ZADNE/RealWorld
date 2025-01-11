@@ -5,7 +5,7 @@
 #define BIOME_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/Tile.glsl>
 
 const uvec2 k_stoneTiles[] = {
     k_stone,

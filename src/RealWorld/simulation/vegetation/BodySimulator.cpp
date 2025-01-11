@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 
-#include <RealWorld/constants/body.hpp>
+#include <RealWorld/constants/Body.hpp>
 #include <RealWorld/simulation/vegetation/BodySimulator.hpp>
 #include <RealWorld/simulation/vegetation/shaders/simulateBodies_comp.hpp>
 

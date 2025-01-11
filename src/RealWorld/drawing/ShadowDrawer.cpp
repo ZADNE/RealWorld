@@ -5,8 +5,8 @@
 
 #include <RealEngine/utility/Math.hpp>
 
-#include <RealWorld/constants/light.hpp>
-#include <RealWorld/constants/tile.hpp>
+#include <RealWorld/constants/Light.hpp>
+#include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
 

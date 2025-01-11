@@ -5,7 +5,7 @@
 #define BRANCH_ALLOC_REQ_UB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/constants/world.glsl>
+#include <RealWorld/constants/World.glsl>
 
 layout (set = 0, binding = k_branchAllocReqBinding, scalar)
 restrict uniform BranchAllocReqUB {

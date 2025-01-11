@@ -9,7 +9,7 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/constants/world.hpp>
+#include <RealWorld/constants/World.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/simulation/tiles/ChunkTransferStage.hpp>
 #include <RealWorld/simulation/vegetation/BranchAllocRegSB.hpp>

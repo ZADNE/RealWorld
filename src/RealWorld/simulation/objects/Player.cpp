@@ -7,7 +7,7 @@
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 
-#include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/constants/Chunk.hpp>
 #include <RealWorld/simulation/objects/Player.hpp>
 
 using enum vk::BufferUsageFlagBits;

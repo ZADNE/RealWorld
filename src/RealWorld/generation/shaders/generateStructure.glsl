@@ -8,7 +8,7 @@
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/generation/shaders/biome.glsl>
-#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/constants/Generation.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
 
 inline float calcAge(vec2 posPx, float seed){
