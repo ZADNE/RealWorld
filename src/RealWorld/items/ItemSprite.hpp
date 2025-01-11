@@ -23,13 +23,8 @@ public:
     re::SpriteComplex& sprite() { return m_sprite; }
 
 private:
-    re::SharedTextureShaped m_tex;
+    std::shared_ptr<re::TextureShaped> m_tex;
     re::SpriteComplex m_sprite;
-
-    /**
-     * @brief Filenames of all item atlases must begin with this prefix
-     */
-    static inline const std::string k_atlasPrefix = "itemAtlas";
 };
 
 } // namespace rw
