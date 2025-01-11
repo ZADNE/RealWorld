@@ -14,7 +14,7 @@ Item::Item(const ItemSample& sample, int count)
     , count(count) {
 }
 
-Item::Item(ItemId id, int count, float special /* = 0.0f*/)
+Item::Item(ItemID id, int count, float special /* = 0.0f*/)
     : ItemSample(id, special)
     , count(count) {
 }
@@ -34,12 +34,12 @@ void Item::merge(Item& item, float portion) {
     count += temp;
     item.count -= temp;
     if (item.count <= 0) {
-        item.id = ItemId::Empty;
+        item.id = ItemID::Empty;
     }
 }
 
 void Item::insert(Item& item, float portion) {
-    if (id != ItemId::Empty) {
+    if (id != ItemID::Empty) {
         // This is not empty item, cannot insert
         return;
     }
@@ -49,21 +49,21 @@ void Item::insert(Item& item, float portion) {
     count += temp;
     item.count -= temp;
     if (item.count <= 0) {
-        item.id = ItemId::Empty;
+        item.id = ItemID::Empty;
     }
 }
 
 int Item::operator--() {
     int tmp = count;
     if (--count <= 0) {
-        id = ItemId::Empty;
+        id = ItemID::Empty;
     }
     return tmp;
 }
 
 int Item::operator--(int) {
     if (--count <= 0) {
-        id = ItemId::Empty;
+        id = ItemID::Empty;
     }
     return count;
 }
@@ -71,7 +71,7 @@ int Item::operator--(int) {
 int Item::operator+=(int number) {
     count += number;
     if (count <= 0) {
-        id = ItemId::Empty;
+        id = ItemID::Empty;
     }
     return count;
 }
@@ -79,7 +79,7 @@ int Item::operator+=(int number) {
 int Item::operator-=(int number) {
     count -= number;
     if (count <= 0) {
-        id = ItemId::Empty;
+        id = ItemID::Empty;
     }
     return count;
 }

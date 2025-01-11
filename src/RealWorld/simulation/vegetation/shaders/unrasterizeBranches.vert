@@ -21,8 +21,8 @@ void main(){
     const float absAngNorm = b_branch.absAngNorm[p_.readBuf][id];
 
     // Load parent
-    const uint pId = id - int(parentOffsetWallType.x);
-    const float pAbsAngNorm = b_branch.absAngNorm[p_.readBuf][pId];
+    const uint pID = id - int(parentOffsetWallType.x);
+    const float pAbsAngNorm = b_branch.absAngNorm[p_.readBuf][pID];
 
     // Outputs for next stage
     o_posTi = b_branch.absPosTi[p_.readBuf][id];

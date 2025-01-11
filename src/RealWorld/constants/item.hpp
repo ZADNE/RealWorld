@@ -8,7 +8,7 @@
 
 namespace rw {
 
-enum class ItemIdSection : uint16_t {
+enum class ItemIDSection : uint16_t {
     Mask     = 0xff00,
     Mixed    = 0x0000,
     Blocks   = 0x0100,
@@ -17,84 +17,84 @@ enum class ItemIdSection : uint16_t {
     Hammers  = 0x0400
 };
 
-enum class ItemId : uint16_t;
+enum class ItemID : uint16_t;
 
-constexpr std::underlying_type<ItemId>::type toItemId(Block block) {
-    return std::to_underlying(ItemIdSection::Blocks) + std::to_underlying(block);
+constexpr std::underlying_type<ItemID>::type toItemID(Block block) {
+    return std::to_underlying(ItemIDSection::Blocks) + std::to_underlying(block);
 }
 
-constexpr std::underlying_type<ItemId>::type toItemId(Wall wall) {
-    return std::to_underlying(ItemIdSection::Walls) + std::to_underlying(wall);
+constexpr std::underlying_type<ItemID>::type toItemID(Wall wall) {
+    return std::to_underlying(ItemIDSection::Walls) + std::to_underlying(wall);
 }
 
 /**
  * @brief Item ids are divided into sections of 256 ids
- * @see rw::ItemIdSection
+ * @see rw::ItemIDSection
  */
-enum class ItemId : uint16_t {
+enum class ItemID : uint16_t {
     // Mixed section
     Empty,
     // Block section
-    BlockSection    = std::to_underlying(ItemIdSection::Blocks),
-    BStone          = toItemId(Block::Stone),
-    BDirt           = toItemId(Block::Dirt),
-    BGrass          = toItemId(Block::Grass),
-    BColdStone      = toItemId(Block::ColdStone),
-    BSand           = toItemId(Block::Sand),
-    BColdDirt       = toItemId(Block::ColdDirt),
-    BColdGrass      = toItemId(Block::ColdGrass),
-    BMud            = toItemId(Block::Mud),
-    BMudGrass       = toItemId(Block::MudGrass),
-    BDryGrass       = toItemId(Block::DryGrass),
-    BHallowStone    = toItemId(Block::HallowStone),
-    BHallowDirt     = toItemId(Block::HallowDirt),
-    BHallowGrass    = toItemId(Block::HallowGrass),
-    BHighlighter    = toItemId(Block::Highlighter),
-    BWater          = toItemId(Block::Water),
-    BLava           = toItemId(Block::Lava),
-    BSteam          = toItemId(Block::Steam),
-    BFire           = toItemId(Block::Fire),
-    BSmoke          = toItemId(Block::Smoke),
-    BDroppedLeaf    = toItemId(Block::DroppedLeaf),
-    BDroppedDryLeaf = toItemId(Block::DroppedDryLeaf),
-    BAcid           = toItemId(Block::Acid),
+    BlockSection    = std::to_underlying(ItemIDSection::Blocks),
+    BStone          = toItemID(Block::Stone),
+    BDirt           = toItemID(Block::Dirt),
+    BGrass          = toItemID(Block::Grass),
+    BColdStone      = toItemID(Block::ColdStone),
+    BSand           = toItemID(Block::Sand),
+    BColdDirt       = toItemID(Block::ColdDirt),
+    BColdGrass      = toItemID(Block::ColdGrass),
+    BMud            = toItemID(Block::Mud),
+    BMudGrass       = toItemID(Block::MudGrass),
+    BDryGrass       = toItemID(Block::DryGrass),
+    BHallowStone    = toItemID(Block::HallowStone),
+    BHallowDirt     = toItemID(Block::HallowDirt),
+    BHallowGrass    = toItemID(Block::HallowGrass),
+    BHighlighter    = toItemID(Block::Highlighter),
+    BWater          = toItemID(Block::Water),
+    BLava           = toItemID(Block::Lava),
+    BSteam          = toItemID(Block::Steam),
+    BFire           = toItemID(Block::Fire),
+    BSmoke          = toItemID(Block::Smoke),
+    BDroppedLeaf    = toItemID(Block::DroppedLeaf),
+    BDroppedDryLeaf = toItemID(Block::DroppedDryLeaf),
+    BAcid           = toItemID(Block::Acid),
     // Wall section
-    WallSection     = std::to_underlying(ItemIdSection::Walls),
-    WStone          = toItemId(Wall::Stone),
-    WDirt           = toItemId(Wall::Dirt),
-    WGrass          = toItemId(Wall::Grass),
-    WColdStone      = toItemId(Wall::ColdStone),
-    WSand           = toItemId(Wall::Sand),
-    WColdDirt       = toItemId(Wall::ColdDirt),
-    WColdGrass      = toItemId(Wall::ColdGrass),
-    WMud            = toItemId(Wall::Mud),
-    WMudGrass       = toItemId(Wall::MudGrass),
-    WDryGrass       = toItemId(Wall::DryGrass),
-    WHallowStone    = toItemId(Wall::HallowStone),
-    WHallowDirt     = toItemId(Wall::HallowDirt),
-    WHallowGrass    = toItemId(Wall::HallowGrass),
-    WHighlighter    = toItemId(Wall::Highlighter),
-    WOakWood        = toItemId(Wall::OakWood),
-    WAcaciaWood     = toItemId(Wall::AcaciaWood),
-    WConiferousWood = toItemId(Wall::ConiferousWood),
-    WTallGrass      = toItemId(Wall::TallGrass),
-    WColdTallGrass  = toItemId(Wall::ColdTallGrass),
-    WMudTallGrass   = toItemId(Wall::MudTallGrass),
-    WDryTallGrass   = toItemId(Wall::DryTallGrass),
-    WLeaf           = toItemId(Wall::Leaf),
-    WDryLeaf        = toItemId(Wall::DryLeaf),
-    WNeedle         = toItemId(Wall::Needle),
-    WPalmLeaf       = toItemId(Wall::PalmLeaf),
-    WWithy          = toItemId(Wall::Withy),
-    WCactus         = toItemId(Wall::Cactus),
-    WBurningWood    = toItemId(Wall::BurningWood),
-    WBurntWood      = toItemId(Wall::BurntWood),
-    WHallowWood     = toItemId(Wall::HallowWood),
+    WallSection     = std::to_underlying(ItemIDSection::Walls),
+    WStone          = toItemID(Wall::Stone),
+    WDirt           = toItemID(Wall::Dirt),
+    WGrass          = toItemID(Wall::Grass),
+    WColdStone      = toItemID(Wall::ColdStone),
+    WSand           = toItemID(Wall::Sand),
+    WColdDirt       = toItemID(Wall::ColdDirt),
+    WColdGrass      = toItemID(Wall::ColdGrass),
+    WMud            = toItemID(Wall::Mud),
+    WMudGrass       = toItemID(Wall::MudGrass),
+    WDryGrass       = toItemID(Wall::DryGrass),
+    WHallowStone    = toItemID(Wall::HallowStone),
+    WHallowDirt     = toItemID(Wall::HallowDirt),
+    WHallowGrass    = toItemID(Wall::HallowGrass),
+    WHighlighter    = toItemID(Wall::Highlighter),
+    WOakWood        = toItemID(Wall::OakWood),
+    WAcaciaWood     = toItemID(Wall::AcaciaWood),
+    WConiferousWood = toItemID(Wall::ConiferousWood),
+    WTallGrass      = toItemID(Wall::TallGrass),
+    WColdTallGrass  = toItemID(Wall::ColdTallGrass),
+    WMudTallGrass   = toItemID(Wall::MudTallGrass),
+    WDryTallGrass   = toItemID(Wall::DryTallGrass),
+    WLeaf           = toItemID(Wall::Leaf),
+    WDryLeaf        = toItemID(Wall::DryLeaf),
+    WNeedle         = toItemID(Wall::Needle),
+    WPalmLeaf       = toItemID(Wall::PalmLeaf),
+    WWithy          = toItemID(Wall::Withy),
+    WCactus         = toItemID(Wall::Cactus),
+    WBurningWood    = toItemID(Wall::BurningWood),
+    WBurntWood      = toItemID(Wall::BurntWood),
+    WHallowWood     = toItemID(Wall::HallowWood),
     // Pickaxe section
-    PickaxeSection   = std::to_underlying(ItemIdSection::Pickaxes),
+    PickaxeSection   = std::to_underlying(ItemIDSection::Pickaxes),
     PCreativePickaxe = PickaxeSection,
     // Hammer section
-    HammerSection   = std::to_underlying(ItemIdSection::Hammers),
+    HammerSection   = std::to_underlying(ItemIDSection::Hammers),
     HCreativeHammer = HammerSection,
 };
 

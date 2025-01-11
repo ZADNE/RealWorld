@@ -199,10 +199,10 @@ void main(){
 
             // Update the total number of symbols
             if (id == 0) {
-                uint lastValidId = min(gl_WorkGroupSize.x, s_symbolCount[read] - wi) - 1;
-                s_symbolCount[write] += s_symbolsOfThread[lastValidId];
-                s_headParamDispl     += s_headParamsOfThread[lastValidId];
-                s_bodyParamDispl     += s_bodyParamsOfThread[lastValidId];
+                uint lastValidID = min(gl_WorkGroupSize.x, s_symbolCount[read] - wi) - 1;
+                s_symbolCount[write] += s_symbolsOfThread[lastValidID];
+                s_headParamDispl     += s_headParamsOfThread[lastValidID];
+                s_bodyParamDispl     += s_bodyParamsOfThread[lastValidID];
             }
         }
     }

@@ -9,10 +9,10 @@
 namespace rw {
 
 ItemSprite::ItemSprite()
-    : ItemSprite{ItemId::Empty} {
+    : ItemSprite{ItemID::Empty} {
 }
 
-ItemSprite::ItemSprite(ItemId id)
+ItemSprite::ItemSprite(ItemID id)
     : m_tex(re::RM::texture(textureID(id)))
     , m_sprite{
           *m_tex,

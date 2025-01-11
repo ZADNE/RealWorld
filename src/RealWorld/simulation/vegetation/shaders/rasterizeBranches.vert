@@ -29,8 +29,8 @@ void main(){
     float  angVel = b_branch.angVel[id];
 
     // Load parent
-    const uint pId = id - int(parentOffsetWallType.x);
-    float pAbsAngNorm = b_branch.absAngNorm[p_.readBuf][pId];
+    const uint pID = id - int(parentOffsetWallType.x);
+    float pAbsAngNorm = b_branch.absAngNorm[p_.readBuf][pID];
 
     // Outputs for next stage
     o_posTi = posTi;
@@ -73,8 +73,8 @@ void main(){
     }
 
     // Shift branch
-    const vec2  pPosTi = b_branch.absPosTi[p_.readBuf][pId];
-    const float pLengthTi = b_branch.lengthTi[pId];
+    const vec2  pPosTi = b_branch.absPosTi[p_.readBuf][pID];
+    const float pLengthTi = b_branch.lengthTi[pID];
     posTi = pPosTi + toCartesian(pLengthTi, pAbsAngNorm);
 
     // Store the modified branch

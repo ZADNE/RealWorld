@@ -24,7 +24,7 @@ struct Item: public ItemSample {
     /**
      * @brief Constructs item from its ID count and special value
      */
-    Item(ItemId id, int count, float special = 0.0f);
+    Item(ItemID id, int count, float special = 0.0f);
 
     // Merge with another item of same ID and special (checks are done inside
     // this function) Both items may be changed Action is done only with partion

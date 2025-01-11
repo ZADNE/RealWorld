@@ -15,7 +15,7 @@ namespace rw {
 class ItemSprite {
 public:
     ItemSprite();
-    explicit ItemSprite(ItemId id);
+    explicit ItemSprite(ItemID id);
     explicit ItemSprite(Item item)
         : ItemSprite{item.id} {}
 

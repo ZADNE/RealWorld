@@ -7,7 +7,7 @@ namespace rw {
 
 constexpr int k_byteBits = CHAR_BIT;
 
-enum class ShaderMessageId {
+enum class ShaderMessageID {
     Reserved,
     RemoveFromSelSlot,
     DropBlocks,
@@ -29,17 +29,17 @@ void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
     int intCount = m_messageBufMapped->read().totalInts;
     int* ints = m_messageBufMapped->read().messages; // NOLINT(*-pointer-decay)
     for (int i = 0; i < intCount;) {
-        auto msgId = static_cast<ShaderMessageId>(ints[i++]);
-        switch (msgId) {
-        case ShaderMessageId::Reserved: break;
-        case ShaderMessageId::RemoveFromSelSlot:
+        auto msgID = static_cast<ShaderMessageID>(ints[i++]);
+        switch (msgID) {
+        case ShaderMessageID::Reserved: break;
+        case ShaderMessageID::RemoveFromSelSlot:
             m_itemUser.finishSpecRemoval(ints[i++]);
             break;
-        case ShaderMessageId::DropBlocks:
-        case ShaderMessageId::DropWalls:
+        case ShaderMessageID::DropBlocks:
+        case ShaderMessageID::DropWalls:
             int section = static_cast<int>(
-                msgId == ShaderMessageId::DropBlocks ? ItemIdSection::Blocks
-                                                     : ItemIdSection::Walls
+                msgID == ShaderMessageID::DropBlocks ? ItemIDSection::Blocks
+                                                     : ItemIDSection::Walls
             );
             int count   = ints[i++];
             int baseXTi = ints[i++];
@@ -51,7 +51,7 @@ void ShaderMessageBroker::beginStep(ActionCmdBuf& acb) {
                     baseYTi + (bits >> (k_byteBits * 2)) & 0xff
                 };
                 int tileType = (bits >> k_byteBits) & 0xff;
-                Item item{static_cast<ItemId>(section | tileType), 1};
+                Item item{static_cast<ItemID>(section | tileType), 1};
                 m_playerInv.fill(item, 1.0f, glm::ivec2{}, false);
             }
             m_playerInv.wasChanged();

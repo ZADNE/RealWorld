@@ -48,13 +48,13 @@ void ItemUser::step(
     }
 
     const Item& item  = selItem();
-    ItemIdSection sec = section(item.id);
+    ItemIDSection sec = section(item.id);
 
     if (m_using[k_primaryUse] > 0) { // Main
         switch (sec) {
-        case ItemIdSection::Pickaxes:
-        case ItemIdSection::Hammers:  {
-            auto layer = sec == ItemIdSection::Pickaxes ? TileLayer::Block
+        case ItemIDSection::Pickaxes:
+        case ItemIDSection::Hammers:  {
+            auto layer = sec == ItemIDSection::Pickaxes ? TileLayer::Block
                                                         : TileLayer::Wall;
             m_world.mineTiles(acb, layer, m_shape, m_radiusTi, pxToTi(relCursorPosPx));
             break;
@@ -65,9 +65,9 @@ void ItemUser::step(
 
     if (m_using[k_secondaryUse] > 0) { // Alternative
         switch (sec) {
-        case ItemIdSection::Blocks:
-        case ItemIdSection::Walls:  {
-            auto layer    = sec == ItemIdSection::Blocks ? TileLayer::Block
+        case ItemIDSection::Blocks:
+        case ItemIDSection::Walls:  {
+            auto layer    = sec == ItemIDSection::Blocks ? TileLayer::Block
                                                          : TileLayer::Wall;
             int specCount = selItemSpecCount();
             if (specCount > 0) {
@@ -85,7 +85,7 @@ void ItemUser::step(
 }
 
 void ItemUser::render(glm::vec2 relCursorPosPx, re::GeometryBatch& gb) {
-    if (selItem().id != ItemId::Empty) {
+    if (selItem().id != ItemID::Empty) {
         re::Color col{255, 255, 255, 255};
         glm::vec2 center = tiToPx(pxToTi(relCursorPosPx)) + TilePx * 0.5f;
         float radPx      = m_radiusTi * TilePx.x;
