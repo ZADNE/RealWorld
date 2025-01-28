@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef BRANCH_ALLOC_REQ_UB_GLSL
-#define BRANCH_ALLOC_REQ_UB_GLSL
+#ifndef RW_BRANCH_ALLOC_REQ_UB_GLSL
+#define RW_BRANCH_ALLOC_REQ_UB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 #include <RealWorld/constants/World.glsl>
@@ -16,4 +16,4 @@ restrict uniform BranchAllocReqUB {
     int     deallocSlotsBegin;
 } RE_GLSL_ONLY(u_branchAllocReq);
 
-#endif // !BRANCH_ALLOC_REQ_UB_GLSL
+#endif // !RW_BRANCH_ALLOC_REQ_UB_GLSL

@@ -1,8 +1,8 @@
 /** 
  *  @author    Dubsky Tomas
  */
-#ifndef WORLD_GLSL
-#define WORLD_GLSL
+#ifndef RW_WORLD_GLSL
+#define RW_WORLD_GLSL
 #include <RealWorld/constants/Chunk.glsl>
 
 constexpr uvec2 k_minWorldTexSizeCh = uvec2(16, 16);
@@ -27,4 +27,4 @@ inline int chToIndex(ivec2 posCh, ivec2 worldTexSizeCh) {
     return posAc.y * worldTexSizeCh.x + posAc.x;
 }
 
-#endif // !WORLD_GLSL
+#endif // !RW_WORLD_GLSL

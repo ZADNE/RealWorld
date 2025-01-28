@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef BRANCH_SB_GLSL
-#define BRANCH_SB_GLSL
+#ifndef RW_BRANCH_SB_GLSL
+#define RW_BRANCH_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 #include <RealWorld/constants/Vegetation.glsl>
 
@@ -77,4 +77,4 @@ const uint k_woodBasicStateRemoved = 4;
 
 #endif
 
-#endif // !BRANCH_SB_GLSL
+#endif // !RW_BRANCH_SB_GLSL

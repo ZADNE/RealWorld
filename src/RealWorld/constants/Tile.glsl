@@ -1,8 +1,8 @@
 /** 
  *  @author    Dubsky Tomas
  */
-#ifndef TILE_GLSL
-#define TILE_GLSL
+#ifndef RW_TILE_GLSL
+#define RW_TILE_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 constexpr int k_physicsStepsPerSecond = 100;
@@ -142,4 +142,4 @@ const uint k_looseTypeBit = 0x100;
 inline bool  isLooseType(uint type)         { return bool(type & k_looseTypeBit); }
 inline bvec2 isLooseType(uvec2 tileType)    { return bvec2(tileType & k_looseTypeBit); }
 
-#endif // !TILE_GLSL
+#endif // !RW_TILE_GLSL

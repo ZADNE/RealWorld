@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef HITBOX_MOVEMENT_GLSL
-#define HITBOX_MOVEMENT_GLSL
+#ifndef RW_HITBOX_MOVEMENT_GLSL
+#define RW_HITBOX_MOVEMENT_GLSL
 
 #include <RealWorld/constants/Tile.glsl>
 #include <RealWorld/constants/World.glsl>
@@ -59,4 +59,4 @@ bool overlapsPoint(vec2 posPx, vec2 dimsPx, vec2 pointPx) {
     return all(lessThan(posPx, pointPx)) && all(greaterThanEqual(posPx + dimsPx, pointPx));
 }
 
-#endif // !HITBOX_MOVEMENT_GLSL
+#endif // !RW_HITBOX_MOVEMENT_GLSL

@@ -1,8 +1,8 @@
 /** 
  *  @author    Dubsky Tomas
  */
-#ifndef GENERATION_GLSL
-#define GENERATION_GLSL
+#ifndef RW_GENERATION_GLSL
+#define RW_GENERATION_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 constexpr int k_genBorderWidth = 8;
@@ -15,4 +15,4 @@ constexpr int k_lSystemSpeciesCount = 6;
 constexpr int k_grassSpeciesCount = 4;
 constexpr int k_vegSpeciesCount = k_lSystemSpeciesCount + k_grassSpeciesCount;
 
-#endif // !GENERATION_GLSL
+#endif // !RW_GENERATION_GLSL

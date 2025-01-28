@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef BRANCH_ALLOC_REG_SB_DEBUGGING_GLSL
-#define BRANCH_ALLOC_REG_SB_DEBUGGING_GLSL
+#ifndef RW_BRANCH_ALLOC_REG_SB_DEBUGGING_GLSL
+#define RW_BRANCH_ALLOC_REG_SB_DEBUGGING_GLSL
 
 #ifndef NDEBUG
 
@@ -69,4 +69,4 @@ void assertIntegrity() {
 
 #endif
 
-#endif // !BRANCH_ALLOC_REG_SB_DEBUGGING_GLSL
+#endif // !RW_BRANCH_ALLOC_REG_SB_DEBUGGING_GLSL

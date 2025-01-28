@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef TILE_LOAD_STORE_GLSL
-#define TILE_LOAD_STORE_GLSL
+#ifndef RW_TILE_LOAD_STORE_GLSL
+#define RW_TILE_LOAD_STORE_GLSL
 #include <RealWorld/constants/World.glsl>
 
 layout (set = 0, binding = k_worldTexBinding, rg16ui)
@@ -41,4 +41,4 @@ void storeTile(ivec2 posAt, uvec4 tile){
     storeWall(posAt, tile.ba);
 }
 
-#endif // !TILE_LOAD_STORE_GLSL
+#endif // !RW_TILE_LOAD_STORE_GLSL

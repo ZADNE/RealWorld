@@ -1,8 +1,8 @@
 /** 
  *  @author    Dubsky Tomas
  */
-#ifndef VEGETATION_GLSL
-#define VEGETATION_GLSL
+#ifndef RW_VEGETATION_GLSL
+#define RW_VEGETATION_GLSL
 #include <RealWorld/constants/Tile.glsl>
 
 const uint k_maxBranchCount         = 65536;
@@ -23,4 +23,4 @@ inline bool isLeafWall(uint wallType){
     return wallType >= k_firstLeafWl && wallType <= k_lastLeafWl;
 }
 
-#endif // !VEGETATION_GLSL
+#endif // !RW_VEGETATION_GLSL

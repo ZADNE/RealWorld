@@ -1,8 +1,8 @@
 /** 
  *  @author    Dubsky Tomas
  */
-#ifndef CHUNK_GLSL
-#define CHUNK_GLSL
+#ifndef RW_CHUNK_GLSL
+#define RW_CHUNK_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 const uvec2 uChunkTi = {128, 128};
@@ -20,4 +20,4 @@ inline float chToTi(float posCh) { return posCh * ChunkTi.x; }
 inline ivec2 chToTi(ivec2 posCh) { return posCh << k_chunkLowZeroBits; }
 inline int   chToTi(int posCh)   { return posCh << k_chunkLowZeroBits.x; }
 
-#endif // !CHUNK_GLSL
+#endif // !RW_CHUNK_GLSL

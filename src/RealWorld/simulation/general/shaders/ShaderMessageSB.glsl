@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef SHADER_MESSAGE_SB_GLSL
-#define SHADER_MESSAGE_SB_GLSL
+#ifndef RW_SHADER_MESSAGE_SB_GLSL
+#define RW_SHADER_MESSAGE_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 const int k_messageBufferSize = 511;
@@ -44,4 +44,4 @@ int messageInsertTilesToInventory(uint layer, ivec2 basePosTi, int count){
 
 #endif
 
-#endif // !SHADER_MESSAGE_SB_GLSL
+#endif // !RW_SHADER_MESSAGE_SB_GLSL

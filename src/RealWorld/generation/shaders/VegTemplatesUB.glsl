@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef VEG_TEMPLATES_UB_GLSL
-#define VEG_TEMPLATES_UB_GLSL
+#ifndef RW_VEG_TEMPLATES_UB_GLSL
+#define RW_VEG_TEMPLATES_UB_GLSL
 #include <RealWorld/constants/Generation.glsl>
 
 struct String {
@@ -79,4 +79,4 @@ restrict uniform VegTemplatesUB {
     VegRasterTemplate   rasterTmplts[k_lSystemSpeciesCount];
 } u_vegTmplts;
 
-#endif // !VEG_TEMPLATES_UB_GLSL
+#endif // !RW_VEG_TEMPLATES_UB_GLSL

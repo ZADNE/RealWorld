@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef PLAYER_MOVEMENT_PC_GLSL
-#define PLAYER_MOVEMENT_PC_GLSL
+#ifndef RW_PLAYER_MOVEMENT_PC_GLSL
+#define RW_PLAYER_MOVEMENT_PC_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 layout (push_constant, scalar)
@@ -17,4 +17,4 @@ uniform PlayerMovementPC {
     int     writeIndex;///< Selects PlayerHitboxSB::botLeftPx, swings every step
 } RE_GLSL_ONLY(p_);
 
-#endif // !PLAYER_MOVEMENT_PC_GLSL
+#endif // !RW_PLAYER_MOVEMENT_PC_GLSL

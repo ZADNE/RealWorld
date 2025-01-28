@@ -1,6 +1,6 @@
 // License in file: float_GLSLash-License.txt
-#ifndef FLOAT_HASH_GLSL
-#define FLOAT_HASH_GLSL
+#ifndef RW_FLOAT_HASH_GLSL
+#define RW_FLOAT_HASH_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 //  1 out, 1 in...
@@ -83,4 +83,4 @@ inline vec4 hash44(vec4 p4){
     return fract((p4.xxyz+p4.yzzw)*p4.zywx);
 }
 
-#endif // !FLOAT_HASH_GLSL
+#endif // !RW_FLOAT_HASH_GLSL

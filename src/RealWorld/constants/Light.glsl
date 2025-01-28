@@ -1,8 +1,8 @@
 /** 
  *  @author    Dubsky Tomas
  */
-#ifndef LIGHT_GLSL
-#define LIGHT_GLSL
+#ifndef RW_LIGHT_GLSL
+#define RW_LIGHT_GLSL
 
 const int k_lightMaxRangeTi =   160;
 
@@ -15,4 +15,4 @@ const int k_lightScaleBits = 2;
 const float k_iLightScaleInv = 0.25;
 const int k_lightMaxRangeUn = k_lightMaxRangeTi >> k_lightScaleBits;
 
-#endif // !LIGHT_GLSL
+#endif // !RW_LIGHT_GLSL

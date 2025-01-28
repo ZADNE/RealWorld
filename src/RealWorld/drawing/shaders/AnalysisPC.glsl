@@ -1,8 +1,8 @@
 /**
  *  @author     Dubsky Tomas
  */
-#ifndef ANALYSIS_PC_GLSL
-#define ANALYSIS_PC_GLSL
+#ifndef RW_ANALYSIS_PC_GLSL
+#define RW_ANALYSIS_PC_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 layout (push_constant, scalar)
@@ -14,4 +14,4 @@ uniform AnalysisPC {
     uint    lightCount;
 } RE_GLSL_ONLY(p_);
 
-#endif // !ANALYSIS_PC_GLSL
+#endif // !RW_ANALYSIS_PC_GLSL
