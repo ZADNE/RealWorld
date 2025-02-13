@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+﻿cmake_minimum_required(VERSION 3.24)
 project(RealWorld)
 
 include("cmake/GetRealWorldVersion.cmake")
@@ -86,8 +86,16 @@ install(IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
         DESTINATION .
         COMPONENT RealWorld_Runtime
 )
-install(
-    DIRECTORY data/
-        DESTINATION .
-        COMPONENT RealWorld_Runtime
+install( # Unpackaged data (Debug builds)
+    DIRECTORY
+        "$<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/textures>"
+        "$<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/fonts>"
+    DESTINATION .
+    COMPONENT RealWorld_Runtime
+)
+install( # Packaged data (Release builds)
+    FILES
+        "$<$<CONFIG:Release,RelWithDebInfo>:${CMAKE_CURRENT_BINARY_DIR}/package.dat>"
+    DESTINATION .
+    COMPONENT RealWorld_Runtime
 )
