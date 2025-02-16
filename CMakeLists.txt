@@ -76,26 +76,28 @@ add_subdirectory(tools)
 add_subdirectory(perf_test)
 
 # Installation
-install(TARGETS RealWorld_Game
+install(
+    TARGETS RealWorld_Game
     RUNTIME
         DESTINATION .
         COMPONENT RealWorld_Runtime
 )
-install(IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
+install(
+    IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
     RUNTIME
         DESTINATION .
         COMPONENT RealWorld_Runtime
 )
-install( # Unpackaged data (Debug builds)
+install( # Install unpackaged data (in Debug builds)
     DIRECTORY
         "$<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/textures>"
         "$<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/fonts>"
     DESTINATION .
     COMPONENT RealWorld_Runtime
 )
-install( # Packaged data (Release builds)
+install( # Install packaged data (in non-Debug builds)
     FILES
-        "$<$<CONFIG:Release,RelWithDebInfo>:${CMAKE_CURRENT_BINARY_DIR}/package.dat>"
+        "$<$<NOT:$<CONFIG:Debug>>:${CMAKE_CURRENT_BINARY_DIR}/package.dat>"
     DESTINATION .
     COMPONENT RealWorld_Runtime
 )
