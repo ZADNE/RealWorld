@@ -26,8 +26,10 @@ add_dependencies(RealWorld DataCooker_Cook)
 real_target_package_resources(
     TARGET
         RealWorld
-    OUTPUT_DIR
+    PACKAGE_DIR
         ${CMAKE_CURRENT_BINARY_DIR}
+    INDEX_FILE
+        "${CMAKE_CURRENT_BINARY_DIR}/src/RealWorld/constants/GeneratedResourceIndex.hpp"
     INPUT_DIRS
         "${CMAKE_CURRENT_BINARY_DIR}/fonts"
         "${CMAKE_CURRENT_BINARY_DIR}/textures"

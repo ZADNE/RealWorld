@@ -2,8 +2,9 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealEngine/resources/ResourceIndex.hpp>
 #include <RealEngine/resources/ResourceManager.hpp>
+
+#include <RealWorld/constants/GeneratedResourceIndex.hpp>
 
 namespace rw {
 

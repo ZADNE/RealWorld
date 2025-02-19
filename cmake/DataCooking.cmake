@@ -1,4 +1,4 @@
-# author     Dubsky Tomas
+﻿# author     Dubsky Tomas
 
 # DataCooker
 add_real_executable(DataCooker)
@@ -10,7 +10,7 @@ target_include_directories(DataCooker PRIVATE src)
 target_link_libraries(DataCooker
     PRIVATE
         argparse
-        glm::glm-header-only
+        glm-header-only
         RealEngine
 )
 
