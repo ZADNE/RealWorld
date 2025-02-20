@@ -85,7 +85,7 @@ install(
         COMPONENT RealWorld_Runtime
 )
 install(
-    IMPORTED_RUNTIME_ARTIFACTS SDL2::SDL2 SDL2_ttf::SDL2_ttf
+    IMPORTED_RUNTIME_ARTIFACTS ${REALENGINE_RUNTIME_ARTIFACTS}
     RUNTIME
         DESTINATION .
         COMPONENT RealWorld_Runtime
