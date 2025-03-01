@@ -2,8 +2,10 @@ name: CMake build
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [ "main" ]
+    inputs:
+      realengine-tag:
+        description: 'Tag of RealEngine to build against. Latest release is used if not provided.'
+        default: ''
 
 jobs:
   build:
@@ -48,6 +50,7 @@ jobs:
     - name: Download RealEngine
       run: >
         gh release download
+        ${{ input.realengine-tag }}
         --repo ZADNE/RealEngine
         --pattern ${{ env.realengine-package }}
         --dir ${{ env.download-dir }}
