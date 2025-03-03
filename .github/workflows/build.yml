@@ -90,7 +90,7 @@ jobs:
       with:
         vulkan-query-version: 1.3.290.0
         vulkan-use-cache: true
-        vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang, SPIRV-Cross
+        vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang, SPIRV-Tools, SPIRV-Cross
 
     - name: Set up SDL2 (Windows)
       if: runner.os == 'Windows'
