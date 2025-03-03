@@ -10,7 +10,7 @@
 #include <RealEngine/resources/PNGLoader.hpp>
 #include <RealEngine/utility/Endianness.hpp>
 
-#include <RealWorld/constants/item.hpp>
+#include <RealWorld/constants/Item.hpp>
 
 #include <DataCooker/TileItemTextures.hpp>
 

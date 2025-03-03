@@ -37,19 +37,21 @@ jobs:
       id: parse-pull-request-inputs
       uses: ZADNE/pull-request-inputs@v0.1
       with:
-        workflow-yml-file: ${{ github.workspace }}/Real/RealWorld/.github/workflows/build.yml
+        repository: ${{ github.repository }}
+        ref: ${{ github.head_ref }}
+        workflow: .github/workflows/build.yml
 
     - name: Alias pull request inputs
       if: ${{ github.event_name == 'pull_request' }}
       shell: bash
       run: |
-        echo "inputs=${{ fromJSON(steps.parse-pull-request-inputs.outputs.parsed) }}" >> $GITHUB_ENV
+        echo "${{ steps.parse-pull-request-inputs.outputs.parsed }}" | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
 
     - name: Alias pull request inputs
       if: ${{ github.event_name != 'pull_request' }}
       shell: bash
       run: |
-        echo "inputs=${{ inputs }}" >> $GITHUB_ENV
+        echo "${{ toJSON(inputs) }}" | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
 
     - name: Set reusable strings
       shell: bash
@@ -71,7 +73,7 @@ jobs:
     - name: Download RealEngine
       run: >
         gh release download
-        ${{ env.inputs.realengine-tag }}
+        ${{ env.realengine-tag }}
         --repo ZADNE/RealEngine
         --pattern ${{ env.realengine-package }}
         --dir ${{ env.download-dir }}
@@ -86,11 +88,10 @@ jobs:
         path: 'Real/${{ env.repo-name }}'
 
     - name: Set up Vulkan SDK
-      uses: humbletim/setup-vulkan-sdk@main
+      uses: humbletim/install-vulkan-sdk@main
       with:
-        vulkan-query-version: 1.3.290.0
-        vulkan-use-cache: true
-        vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang, SPIRV-Tools, SPIRV-Cross
+        version: 1.3.290.0
+        cache: true
 
     - name: Set up SDL2 (Windows)
       if: runner.os == 'Windows'
