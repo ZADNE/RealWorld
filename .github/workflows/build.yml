@@ -1,6 +1,8 @@
 name: CMake build
 
 on:
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
     inputs:
       realengine-tag:
@@ -30,6 +32,25 @@ jobs:
             c_compiler: cl
 
     steps:
+    - name: Parse pull request inputs
+      if: github.event_name == 'pull_request'
+      id: parse-pull-request-inputs
+      uses: ZADNE/pull-request-inputs@v0.1
+      with:
+        workflow-yml-file: ${{ github.workspace }}/Real/RealWorld/.github/workflows/build.yml
+
+    - name: Alias pull request inputs
+      if: ${{ github.event_name == 'pull_request' }}
+      shell: bash
+      run: |
+        echo "inputs=${{ fromJSON(steps.parse-pull-request-inputs.outputs.parsed) }}" >> $GITHUB_ENV
+
+    - name: Alias pull request inputs
+      if: ${{ github.event_name != 'pull_request' }}
+      shell: bash
+      run: |
+        echo "inputs=${{ inputs }}" >> $GITHUB_ENV
+
     - name: Set reusable strings
       shell: bash
       run: |
@@ -50,7 +71,7 @@ jobs:
     - name: Download RealEngine
       run: >
         gh release download
-        ${{ input.realengine-tag }}
+        ${{ env.inputs.realengine-tag }}
         --repo ZADNE/RealEngine
         --pattern ${{ env.realengine-package }}
         --dir ${{ env.download-dir }}
