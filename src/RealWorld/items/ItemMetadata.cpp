@@ -50,9 +50,11 @@ float spriteIndex(ItemID id) {
     switch (section(id)) {
     case ItemIDSection::Mixed: return offset;
     case ItemIDSection::Blocks:
-        return offset >= std::to_underlying(Block::FirstNonsolid)
-                   ? offset & k_nonSolidsMask
-                   : offset;
+        return static_cast<float>(
+            offset >= std::to_underlying(Block::FirstNonsolid)
+                ? offset & k_nonSolidsMask
+                : offset
+        );
     case ItemIDSection::Walls:    return offset;
     case ItemIDSection::Pickaxes: return offset;
     case ItemIDSection::Hammers:  return offset;

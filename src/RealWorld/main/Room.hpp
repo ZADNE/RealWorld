@@ -38,8 +38,7 @@ protected:
         auto* ptr = static_cast<unsigned char*>(IM_ALLOC(vec.size()));
         std::memcpy(ptr, vec.data(), vec.size());
         return ImGui::GetIO().Fonts->AddFontFromMemoryTTF(
-            ptr, vec.size(),
-            size // NOLINT(*-magic-numbers)
+            ptr, static_cast<int>(vec.size()), size
         );
         // ptr will be freed by ImGui
     }

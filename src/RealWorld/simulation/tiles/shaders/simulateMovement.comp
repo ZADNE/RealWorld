@@ -28,7 +28,12 @@ uint invocHash(){
 }
 
 uvec2 blockRandomVariant(uint blockType){
-    return uvec2(blockType, isNonsolidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
+    return uvec2(
+        blockType,
+        isNonsolidBlock(blockType)
+            ? random() & k_nonsolidTileVariantMask
+            : k_solidTileInnerVariantCount + (random() & k_nonsolidTileVariantMask)
+    );
 }
 
 ivec2 extractVelocity(uint var){

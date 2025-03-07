@@ -118,6 +118,15 @@ constexpr uvec2 k_firstNonsolid   = {k_firstNonsolidBl, k_firstNonsolidWl};
 constexpr uvec2 k_air             = {k_airBl,           k_airWl};
 constexpr uvec2 k_never           = {k_neverBl,         k_neverWl};
 
+// Ranges for variants
+constexpr uint k_solidTileInnerVariantCount = 12;
+constexpr uint k_solidTileOuterVariantCount = 4;
+constexpr uint k_solidTileOuterVariantMask  = k_solidTileOuterVariantCount - 1;
+
+constexpr uint k_nonsolidTileVariantCount   = 16;
+constexpr uint k_nonsolidTileVariantMask    = k_nonsolidTileVariantCount - 1;
+
+// Test functions
 inline uint  basicType(uint type)           { return type & 0xffu; }
 inline uvec2 basicType(uvec2 tileType)      { return tileType & 0xffu; }
 inline uint  extendedType(uint type)        { return type & 0xff00u; }

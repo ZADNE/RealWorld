@@ -7,7 +7,7 @@
 
 namespace rw::dc {
 
-CLIArguments parseArguments(int argc, char* argv[]) {
+CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays)
     argparse::ArgumentParser parser("DataCooker", "0.1.0");
 
     parser.add_argument("-i")

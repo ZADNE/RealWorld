@@ -59,10 +59,18 @@ void composeTileItemTexture(
     };
 
     // Initialize random number generation
-    std::default_random_engine rng{1'735'399'038u};
-    std::uniform_int_distribution<int> solidInnerDist{0, 11};
-    std::uniform_int_distribution<int> solidOuterDist{12, 15};
-    std::uniform_int_distribution<int> fluidDist{0, 15};
+    std::default_random_engine rng{
+        // Deliberately a constant to have deterministic output independent of time
+        1'735'399'038u // NOLINT(*-magic-numbers)
+    };
+    std::uniform_int_distribution<int> solidInnerDist{
+        0, rw::k_solidTileInnerVariantCount - 1
+    };
+    std::uniform_int_distribution<int> solidOuterDist{
+        rw::k_solidTileInnerVariantCount,
+        rw::k_solidTileInnerVariantCount + k_solidTileOuterVariantCount - 1
+    };
+    std::uniform_int_distribution<int> fluidDist{0, k_nonsolidTileVariantCount - 1};
 
     // For each tile (reversed because of down-pointing Y axis)
     for (int tile = last; tile >= first; --tile) {

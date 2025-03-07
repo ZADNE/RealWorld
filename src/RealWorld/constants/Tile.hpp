@@ -30,6 +30,27 @@ static_assert(std::has_single_bit(uTilePx.x) && std::has_single_bit(uTilePx.y));
 constexpr glm::ivec2 k_tileLowZeroBits =
     glm::ivec2(std::countr_zero(uTilePx.x), std::countr_zero(uTilePx.y));
 
+/**
+ * @brief Converts a position in pixels to position in tiles
+ */
+constexpr glm::vec2 pxToTi(glm::vec2 posPx) {
+    glm::vec2 posTiFrac = posPx / TilePx;
+    return {std::floor(posTiFrac.x), std::floor(posTiFrac.y)};
+}
+constexpr glm::ivec2 pxToTi(glm::ivec2 posPx) {
+    return posPx >> k_tileLowZeroBits;
+}
+
+/**
+ * @brief Converts a position in tiles to position in pixels
+ */
+constexpr glm::vec2 tiToPx(glm::vec2 posTi) {
+    return posTi * TilePx;
+}
+constexpr glm::ivec2 tiToPx(glm::ivec2 posTi) {
+    return posTi << k_tileLowZeroBits;
+}
+
 constexpr uint8_t k_nonSolidsMask = 0b0001'1111;
 
 enum class Block : uint8_t {
@@ -128,25 +149,12 @@ enum class TileAttrib : uint32_t {
     WallVar   = 1
 };
 
-/**
- * @brief Converts a position in pixels to position in tiles
- */
-constexpr glm::vec2 pxToTi(glm::vec2 posPx) {
-    glm::vec2 posTiFrac = posPx / TilePx;
-    return {std::floor(posTiFrac.x), std::floor(posTiFrac.y)};
-}
-constexpr glm::ivec2 pxToTi(glm::ivec2 posPx) {
-    return posPx >> k_tileLowZeroBits;
-}
+// Ranges for variants
+constexpr glm::uint k_solidTileInnerVariantCount = 12;
+constexpr glm::uint k_solidTileOuterVariantCount = 4;
+constexpr glm::uint k_solidTileOuterVariantMask = k_solidTileOuterVariantCount - 1;
 
-/**
- * @brief Converts a position in tiles to position in pixels
- */
-constexpr glm::vec2 tiToPx(glm::vec2 posTi) {
-    return posTi * TilePx;
-}
-constexpr glm::ivec2 tiToPx(glm::ivec2 posTi) {
-    return posTi << k_tileLowZeroBits;
-}
+constexpr glm::uint k_nonsolidTileVariantCount = 16;
+constexpr glm::uint k_nonsolidTileVariantMask  = k_nonsolidTileVariantCount - 1;
 
 } // namespace rw

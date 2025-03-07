@@ -65,8 +65,9 @@ private:
 
     Player(const glsl::PlayerHitboxSB& initSB);
 
-    re::TextureShaped m_playerTex = re::RM::textureUnmanaged(textureID<"playe"
-                                                                       "r">());
+    // clang-format off: Do not cut "player" literal in half...
+    re::TextureShaped m_playerTex = re::RM::textureUnmanaged(textureID<"player">());
+    // clang-format on
 
     re::Buffer m_hitboxBuf;
     re::BufferMapped<glsl::PlayerHitboxSB> m_hitboxStageBuf;

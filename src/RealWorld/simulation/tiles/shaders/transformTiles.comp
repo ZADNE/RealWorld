@@ -96,15 +96,17 @@ void main(){
     }
 
     // Select variant
-    uvec2 currentlyInner = uvec2(lessThan(tile.TL_V, uvec2(12)));
+    uvec2 currentlyInner = uvec2(lessThan(tile.TL_V, uvec2(k_solidTileInnerVariantCount)));
     uvec2 isSolid = uvec2(lessThan(basicType(tile.TL_T), k_firstNonsolid));
     uvec2 edge = mix(edgeTile, basicEdgeTile, isLooseType(tile.TL_T));
     uvec2 switchToInner = (~edge & ~currentlyInner) & isSolid;
     uvec2 switchToOuter = (edge & currentlyInner) & isSolid;
+    uvec2 inner = random2() % k_solidTileInnerVariantCount;
+    uvec2 outer = random2() % k_solidTileOuterVariantCount + k_solidTileInnerVariantCount;
     tile.TL_V =
         mix(tile.TL_V, uvec2(0), bvec2(switchToInner | switchToOuter))
-        + mix(uvec2(0), random2() % 12, bvec2(switchToInner))
-        + mix(uvec2(0), random2() % 4 + 12, bvec2(switchToOuter));
+        + mix(uvec2(0), inner, bvec2(switchToInner))
+        + mix(uvec2(0), outer, bvec2(switchToOuter));
 
     // Store the transformed tile
     storeTile(centerAt, tile);
