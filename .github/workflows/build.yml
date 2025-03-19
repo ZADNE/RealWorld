@@ -1,4 +1,4 @@
-name: CMake build
+﻿name: CMake build
 
 on:
   pull_request:
@@ -61,7 +61,7 @@ jobs:
         echo "build-dir=${{ github.workspace }}/Real/build" >> "$GITHUB_ENV"
         echo "source-dir=${{ github.workspace }}/Real" >> "$GITHUB_ENV"
         echo "install-dir=${{ github.workspace }}/Real/install" >> "$GITHUB_ENV"
-        echo "realengine-package=RealEngine-v2.0.0-${{ matrix.os }}-${{ matrix.build_type }}.7z" >> "$GITHUB_ENV"
+        echo "realengine-package=RealEngine-v*.*.*-${{ matrix.os }}-${{ matrix.build_type }}.7z" >> "$GITHUB_ENV"
 
     - name: Clone Real
       uses: actions/checkout@v4
