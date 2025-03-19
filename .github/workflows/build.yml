@@ -109,6 +109,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install libsdl2-dev libsdl2-2.0-0 libsdl2-ttf-dev libsdl2-ttf-2.0-0 -y;
 
+    - name: Set up p7zip
+      if: ${{ runner.os == 'Linux' && matrix.build_type == 'Release' }}
+      run: |
+        sudo apt-get install p7zip -y;
+
     - name: Configure CMake
       run: >
         cmake -B ${{ env.build-dir }}
