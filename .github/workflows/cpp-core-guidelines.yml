@@ -20,6 +20,18 @@ jobs:
         clang_tidy: [clang-tidy-18]
 
     steps:
+    - name: Test runner environment
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt-get install p7zip
+        if [ -s "/usr/lib/p7zip/7z.so" ]; then
+          echo "7z.so DOES exist"
+        else
+          echo "7z.so does NOT exist"
+          exit 1
+        fi
+
     - name: Parse pull request inputs
       if: github.event_name == 'pull_request'
       id: parse-pull-request-inputs
