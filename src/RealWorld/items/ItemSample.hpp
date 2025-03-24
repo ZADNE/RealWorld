@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -11,16 +11,16 @@ namespace rw {
  */
 struct ItemSample {
     ItemSample() {}
-    ItemSample(ItemId id, float special)
+    ItemSample(ItemID id, float special)
         : id(id)
         , special(special) {}
 
     friend auto operator<=>(const ItemSample&, const ItemSample&) = default;
 
-    // ItemSample is considered empty if its ItemId == ItemId::Empty
-    bool isEmpty() const { return id == ItemId::Empty; }
+    // ItemSample is considered empty if its ItemID == ItemID::Empty
+    bool isEmpty() const { return id == ItemID::Empty; }
 
-    ItemId id     = ItemId::Empty;
+    ItemID id     = ItemID::Empty;
     float special = 0.0f;
 };
 

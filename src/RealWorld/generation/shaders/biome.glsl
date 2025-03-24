@@ -1,11 +1,11 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
-#ifndef BIOME_GLSL
-#define BIOME_GLSL
+#ifndef RW_BIOME_GLSL
+#define RW_BIOME_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/constants/tile.glsl>
+#include <RealWorld/constants/Tile.glsl>
 
 const uvec2 k_stoneTiles[] = {
     k_stone,
@@ -71,4 +71,4 @@ inline Biome calcBiomeStructure(vec2 biomeClimate){
     return b00;
 }
 
-#endif // !BIOME_GLSL
+#endif // !RW_BIOME_GLSL

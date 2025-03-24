@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef DYNAMIC_LIGHTS_SB_GLSL
-#define DYNAMIC_LIGHTS_SB_GLSL
+#ifndef RW_DYNAMIC_LIGHTS_SB_GLSL
+#define RW_DYNAMIC_LIGHTS_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 /**
@@ -23,4 +23,4 @@ readonly restrict buffer DynamicLightsSB {
 
 #endif
 
-#endif // !DYNAMIC_LIGHTS_SB_GLSL
+#endif // !RW_DYNAMIC_LIGHTS_SB_GLSL

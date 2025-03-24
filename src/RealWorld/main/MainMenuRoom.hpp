@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -41,9 +41,7 @@ private:
     GameSettings& m_gameSettings;
     Menu m_menu = Main;                ///< The currently open menu
     std::vector<std::string> m_worlds; ///< Names of all worlds that can be loaded
-    ImFont* m_arial16 = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-        "fonts/arial.ttf", 28.0f       // NOLINT(*-magic-numbers)
-    );
+    ImFont* m_arial = createFont<"arial">(28.0f); // NOLINT(*-magic-numbers)
     std::string m_newWorldName; ///< Name of the world that will be created
     int m_newWorldSeed = 0;     ///< Seed of the world that will be created
 

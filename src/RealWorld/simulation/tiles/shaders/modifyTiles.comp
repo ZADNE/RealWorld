@@ -1,9 +1,9 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/tile.glsl>
-#include <RealWorld/constants/world.glsl>
+#include <RealWorld/constants/Tile.glsl>
+#include <RealWorld/constants/World.glsl>
 #include <RealWorld/simulation/general/shaders/random.glsl>
 #include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
 #include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
@@ -68,7 +68,7 @@ void main(){
                         ? uvec2(orig.x | k_looseTypeBit, orig.y)
                         : (p_.modifySetValue.y != 0xffffffff
                             ? p_.modifySetValue
-                            : uvec2(p_.modifySetValue.x, random() % 12));
+                            : uvec2(p_.modifySetValue.x, random() % k_solidTileInnerVariantCount));
 
         // Store the modified tile
         storeLayer(posAt, p_.modifyLayer, toSet);

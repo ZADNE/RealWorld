@@ -1,10 +1,10 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RealWorld/constants/tile.hpp>
+#include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/MinimapLayout.hpp>
 #include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.hpp>
@@ -79,10 +79,10 @@ TileDrawer::TileDrawer(
           }
       ) {
     m_descriptorSet.write(
-        eCombinedImageSampler, 1u, 0u, *m_blockAtlasTex, eShaderReadOnlyOptimal
+        eCombinedImageSampler, 1u, 0u, m_blockAtlasTex, eShaderReadOnlyOptimal
     );
     m_descriptorSet.write(
-        eCombinedImageSampler, 2u, 0u, *m_wallAtlasTex, eShaderReadOnlyOptimal
+        eCombinedImageSampler, 2u, 0u, m_wallAtlasTex, eShaderReadOnlyOptimal
     );
 
     resizeView(viewSizePx);

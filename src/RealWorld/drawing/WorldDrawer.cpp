@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #include <glm/gtc/constants.hpp>
@@ -7,9 +7,9 @@
 
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 
-#include <RealWorld/constants/chunk.hpp>
-#include <RealWorld/constants/light.hpp>
-#include <RealWorld/constants/tile.hpp>
+#include <RealWorld/constants/Chunk.hpp>
+#include <RealWorld/constants/Light.hpp>
+#include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
 
 using enum vk::DescriptorType;

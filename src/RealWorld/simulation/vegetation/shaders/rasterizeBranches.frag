@@ -1,9 +1,9 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/tile.glsl>
-#include <RealWorld/constants/world.glsl>
+#include <RealWorld/constants/Tile.glsl>
+#include <RealWorld/constants/World.glsl>
 #include <RealWorld/simulation/vegetation/shaders/branchRasterizationPll.glsl>
 #include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl>
 #include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>

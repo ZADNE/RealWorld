@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -10,7 +10,7 @@
 
 #include <RealEngine/window/WindowSubsystems.hpp>
 
-#include <RealWorld/constants/world.hpp>
+#include <RealWorld/constants/World.hpp>
 
 namespace rw {
 

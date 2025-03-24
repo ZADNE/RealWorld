@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef TILE_PROPERTIES_UB_GLSL
-#define TILE_PROPERTIES_UB_GLSL
+#ifndef RW_TILE_PROPERTIES_UB_GLSL
+#define RW_TILE_PROPERTIES_UB_GLSL
 
 // Tile properties
 const uint STONEb     = 1 << 0;
@@ -55,4 +55,4 @@ uvec2 wallRuleIndices(uint wallType){
             : u_wallProperties[basicType(wallType)].yz;
 }
 
-#endif // !TILE_PROPERTIES_UB_GLSL
+#endif // !RW_TILE_PROPERTIES_UB_GLSL

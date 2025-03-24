@@ -1,9 +1,9 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/vegetation.glsl>
-#include <RealWorld/constants/chunk.glsl>
+#include <RealWorld/constants/Vegetation.glsl>
+#include <RealWorld/constants/Chunk.glsl>
 #include <RealWorld/simulation/general/shaders/random.glsl>
 #include <RealWorld/simulation/vegetation/shaders/wind.glsl>
 #include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
@@ -11,7 +11,7 @@
 #include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl>
 #include <RealWorld/simulation/tiles/shaders/TilePropertiesUB.glsl>
 #include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
-#include <RealWorld/constants/tile_properties/fluidProperties.glsl>
+#include <RealWorld/constants/tile_properties/FluidProperties.glsl>
 
 layout (local_size_x = 16,
         local_size_y = 16,
@@ -28,7 +28,12 @@ uint invocHash(){
 }
 
 uvec2 blockRandomVariant(uint blockType){
-    return uvec2(blockType, isNonsolidBlock(blockType) ? random() & 15 : 12 + (random() & 3));
+    return uvec2(
+        blockType,
+        isNonsolidBlock(blockType)
+            ? random() & k_nonsolidTileVariantMask
+            : k_solidTileInnerVariantCount + (random() & k_nonsolidTileVariantMask)
+    );
 }
 
 ivec2 extractVelocity(uint var){

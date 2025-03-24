@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef ACTIVE_CHUNKS_SB_GLSL
-#define ACTIVE_CHUNKS_SB_GLSL
+#ifndef RW_ACTIVE_CHUNKS_SB_GLSL
+#define RW_ACTIVE_CHUNKS_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 layout (set = 0, binding = k_acChunksBinding, scalar)
@@ -26,4 +26,4 @@ ivec2 activeChunkAtPos(ivec2 posAc){
 
 #endif
 
-#endif // !ACTIVE_CHUNKS_SB_GLSL
+#endif // !RW_ACTIVE_CHUNKS_SB_GLSL

@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef VEG_DYNAMICS_PC_GLSL
-#define VEG_DYNAMICS_PC_GLSL
+#ifndef RW_VEG_DYNAMICS_PC_GLSL
+#define RW_VEG_DYNAMICS_PC_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 layout (push_constant, scalar)
@@ -14,4 +14,4 @@ restrict uniform VegDynamicsPC {
     uint  readBuf;
 } RE_GLSL_ONLY(p_);
 
-#endif // !VEG_DYNAMICS_PC_GLSL
+#endif // !RW_VEG_DYNAMICS_PC_GLSL

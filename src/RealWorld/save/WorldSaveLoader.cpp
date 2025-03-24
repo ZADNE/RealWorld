@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #include <filesystem>
@@ -10,7 +10,7 @@
 
 #include <RealEngine/utility/Error.hpp>
 
-#include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/constants/Chunk.hpp>
 #include <RealWorld/generation/shaders/generateStructure_glsl.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 #include <RealWorld/simulation/objects/Player.hpp>
@@ -57,9 +57,9 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.inventory.resize(k_defaultPlayerInventorySize);
 
     int slot               = 0;
-    save.inventory(slot++) = Item{ItemId::PCreativePickaxe, 1};
-    save.inventory(slot++) = Item{ItemId::HCreativeHammer, 1};
-    save.inventory(slot++) = Item{ItemId::BWater, maxStack(ItemId::BWater)};
+    save.inventory(slot++) = Item{ItemID::PCreativePickaxe, 1};
+    save.inventory(slot++) = Item{ItemID::HCreativeHammer, 1};
+    save.inventory(slot++) = Item{ItemID::BWater, maxStack(ItemID::BWater)};
 
     return saveWorld(save, worldName, true);
 }

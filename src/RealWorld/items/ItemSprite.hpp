@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -15,7 +15,7 @@ namespace rw {
 class ItemSprite {
 public:
     ItemSprite();
-    explicit ItemSprite(ItemId id);
+    explicit ItemSprite(ItemID id);
     explicit ItemSprite(Item item)
         : ItemSprite{item.id} {}
 
@@ -23,13 +23,8 @@ public:
     re::SpriteComplex& sprite() { return m_sprite; }
 
 private:
-    re::SharedTexture m_tex;
+    std::shared_ptr<re::TextureShaped> m_tex;
     re::SpriteComplex m_sprite;
-
-    /**
-     * @brief Filenames of all item atlases must begin with this prefix
-     */
-    static inline const std::string k_atlasPrefix = "itemAtlas";
 };
 
 } // namespace rw

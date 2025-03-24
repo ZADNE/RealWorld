@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef PLAYER_HITBOX_SB_GLSL
-#define PLAYER_HITBOX_SB_GLSL
+#ifndef RW_PLAYER_HITBOX_SB_GLSL
+#define RW_PLAYER_HITBOX_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 layout (binding = k_playerBinding, scalar)
@@ -12,4 +12,4 @@ restrict buffer PlayerHitboxSB {
     vec2 velocityPx;
 } RE_GLSL_ONLY(b_player);
 
-#endif // !PLAYER_HITBOX_SB_GLSL
+#endif // !RW_PLAYER_HITBOX_SB_GLSL

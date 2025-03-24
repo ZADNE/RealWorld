@@ -1,9 +1,9 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef TILE_LOAD_GLSL
-#define TILE_LOAD_GLSL
-#include <RealWorld/constants/world.glsl>
+#ifndef RW_TILE_LOAD_GLSL
+#define RW_TILE_LOAD_GLSL
+#include <RealWorld/constants/World.glsl>
 
 layout (set = 0, binding = k_worldTexBinding, rg16ui)
 uniform restrict readonly uimage2DArray u_worldImage;
@@ -24,4 +24,4 @@ uvec4 loadTile(ivec2 posAt){
     return uvec4(loadBlock(posAt), loadWall(posAt));
 }
 
-#endif // !TILE_LOAD_GLSL
+#endif // !RW_TILE_LOAD_GLSL

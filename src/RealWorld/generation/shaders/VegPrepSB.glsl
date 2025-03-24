@@ -1,11 +1,11 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef VEG_PREP_SB_GLSL
-#define VEG_PREP_SB_GLSL
+#ifndef RW_VEG_PREP_SB_GLSL
+#define RW_VEG_PREP_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/constants/Generation.glsl>
 
 struct VegInstance{
     vec2  rootPosTi;
@@ -41,4 +41,4 @@ VegPrepSB_ACCESS restrict buffer VegPrepSB {
     vec2    densityStiffness[k_branchGenSlots];
 } RE_GLSL_ONLY(b_vegPrep);
 
-#endif // !VEG_PREP_SB_GLSL
+#endif // !RW_VEG_PREP_SB_GLSL

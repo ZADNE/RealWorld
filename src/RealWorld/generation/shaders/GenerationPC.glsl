@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef GENERATION_PC_GLSL
-#define GENERATION_PC_GLSL
+#ifndef RW_GENERATION_PC_GLSL
+#define RW_GENERATION_PC_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 layout (push_constant, scalar)
@@ -31,4 +31,4 @@ uint wallImgLayer(){
 
 #endif
 
-#endif // !GENERATION_PC_GLSL
+#endif // !RW_GENERATION_PC_GLSL

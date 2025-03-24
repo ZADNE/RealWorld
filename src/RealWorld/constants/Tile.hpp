@@ -1,10 +1,11 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
 #include <bit>
 #include <cmath>
 #include <cstdint>
+#include <utility>
 
 #include <glm/common.hpp>
 #include <glm/vec2.hpp>
@@ -29,86 +30,6 @@ static_assert(std::has_single_bit(uTilePx.x) && std::has_single_bit(uTilePx.y));
 constexpr glm::ivec2 k_tileLowZeroBits =
     glm::ivec2(std::countr_zero(uTilePx.x), std::countr_zero(uTilePx.y));
 
-enum class Block : uint8_t {
-    Stone,
-    Dirt,
-    Grass,
-    ColdStone,
-    Sand,
-    ColdDirt,
-    ColdGrass,
-    Mud,
-    MudGrass,
-    DryGrass,
-    HallowStone,
-    HallowDirt,
-    HallowGrass,
-
-    Highlighter = 223,
-    Water       = 224,
-    Lava,
-    Steam,
-    Fire,
-    Smoke,
-    DroppedLeaf,
-    DroppedDryLeaf,
-
-    Acid = 253,
-
-    Air = 255
-};
-
-enum class Wall : uint8_t {
-    Stone,
-    Dirt,
-    Grass,
-    ColdStone,
-    Sand,
-    ColdDirt,
-    ColdGrass,
-    Mud,
-    MudGrass,
-    DryGrass,
-    HallowStone,
-    HallowDirt,
-    HallowGrass,
-
-    Highlighter = 223,
-    OakWood     = 224, // 0b1110'0000
-    AcaciaWood,
-    ConiferousWood,
-    PalmWood,
-
-    TallGrass = 240,
-    ColdTallGrass,
-    MudTallGrass,
-    DryTallGrass,
-    Leaf,
-    DryLeaf,
-    Needle,
-    PalmLeaf,
-    Withy,
-    Cactus,
-    BurningWood,
-    BurntWood,
-    HallowWood,
-
-    Air = 255
-};
-
-enum class TileLayer : uint32_t {
-    Block = 0,
-    Wall  = 1
-};
-constexpr uint32_t k_tileLayerCount = 2;
-
-enum class TileAttrib : uint32_t {
-    BlockType = 0,
-    BlockVar  = 1,
-    WallType  = 0,
-    WallVar   = 1
-};
-
 /**
  * @brief Converts a position in pixels to position in tiles
  */
@@ -129,5 +50,111 @@ constexpr glm::vec2 tiToPx(glm::vec2 posTi) {
 constexpr glm::ivec2 tiToPx(glm::ivec2 posTi) {
     return posTi << k_tileLowZeroBits;
 }
+
+constexpr uint8_t k_nonSolidsMask = 0b0001'1111;
+
+enum class Block : uint8_t {
+    Stone,
+    Dirt,
+    Grass,
+    ColdStone,
+    Sand,
+    ColdDirt,
+    ColdGrass,
+    Mud,
+    MudGrass,
+    DryGrass,
+    HallowStone,
+    HallowDirt,
+    HallowGrass,
+    LastUsedSolid = HallowGrass,
+
+    Highlighter   = 223,
+    FirstNonsolid = 224,
+    Water         = FirstNonsolid,
+    Lava,
+    Steam,
+    Fire,
+    Smoke,
+    DroppedLeaf,
+    DroppedDryLeaf,
+    LastUsedNonsolid = DroppedDryLeaf,
+
+    Acid = 253,
+
+    Air = 255
+};
+static_assert(
+    (std::to_underlying(Block::FirstNonsolid) ^ k_nonSolidsMask) ==
+        std::underlying_type_t<Block>(~0),
+    "Nonsolids outside bitmask"
+);
+
+enum class Wall : uint8_t {
+    Stone,
+    Dirt,
+    Grass,
+    ColdStone,
+    Sand,
+    ColdDirt,
+    ColdGrass,
+    Mud,
+    MudGrass,
+    DryGrass,
+    HallowStone,
+    HallowDirt,
+    HallowGrass,
+    LastUsedSolid = HallowGrass,
+
+    Highlighter   = 223,
+    FirstNonsolid = 224, // 0b1110'0000
+    OakWood       = FirstNonsolid,
+    AcaciaWood,
+    ConiferousWood,
+    PalmWood,
+
+    TallGrass = 240,
+    ColdTallGrass,
+    MudTallGrass,
+    DryTallGrass,
+    Leaf,
+    DryLeaf,
+    Needle,
+    PalmLeaf,
+    Withy,
+    Cactus,
+    BurningWood,
+    BurntWood,
+    HallowWood,
+    LastUsedNonsolid = HallowWood,
+
+    Air = 255
+};
+static_assert(
+    (std::to_underlying(Wall::FirstNonsolid) ^ k_nonSolidsMask) ==
+        std::underlying_type_t<Wall>(~0),
+    "Nonsolids outside bitmask"
+);
+
+enum class TileLayer : uint32_t {
+    Block = 0,
+    Wall  = 1
+};
+constexpr uint32_t k_tileLayerCount = 2;
+
+enum class TileAttrib : uint32_t {
+    BlockType = 0,
+    BlockVar  = 1,
+    WallType  = 0,
+    WallVar   = 1
+};
+
+// Ranges for variants
+constexpr glm::uint k_solidTileInnerVariantCount = 12;
+constexpr glm::uint k_solidTileOuterVariantCount = 4;
+constexpr glm::uint k_solidTileOuterVariantMask = k_solidTileOuterVariantCount - 1;
+
+constexpr glm::uint k_nonsolidTileVariantCount = 16;
+constexpr glm::uint k_nonsolidTileVariantMask  = k_nonsolidTileVariantCount - 1;
 
 } // namespace rw

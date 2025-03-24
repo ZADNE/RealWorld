@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #include <ctime>
@@ -78,7 +78,7 @@ void MainMenuRoom::render(const re::CommandBuffer& cb, double interpolationFacto
 
     SetNextWindowSize(windowDims());
     SetNextWindowPos({0.0f, 0.0f});
-    PushFont(m_arial16);
+    PushFont(m_arial);
 
     if (Begin("##wholeMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
         Indent();

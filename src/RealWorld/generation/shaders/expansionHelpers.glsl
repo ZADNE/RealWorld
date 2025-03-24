@@ -1,8 +1,8 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
-#ifndef EXPANSION_HELPERS_GLSL
-#define EXPANSION_HELPERS_GLSL
+#ifndef RW_EXPANSION_HELPERS_GLSL
+#define RW_EXPANSION_HELPERS_GLSL
 
 void emitBranch(
     uint outIndex, vec2 posTi, float tipAbsAngNorm, float relRestAngNorm,
@@ -26,4 +26,4 @@ uint reserveSpaceInPrepBuf(uint instanceIndex, uint chunkIndex, uint branchCount
     return outIndex;
 }
 
-#endif // !EXPANSION_HELPERS_GLSL
+#endif // !RW_EXPANSION_HELPERS_GLSL

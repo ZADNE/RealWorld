@@ -1,14 +1,14 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef GENERATE_STRUCTURE_GLSL
-#define GENERATE_STRUCTURE_GLSL
+#ifndef RW_GENERATE_STRUCTURE_GLSL
+#define RW_GENERATE_STRUCTURE_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/generation/shaders/biome.glsl>
-#include <RealWorld/constants/generation.glsl>
+#include <RealWorld/constants/Generation.glsl>
 #include <RealWorld/generation/shaders/generateColumnValues.glsl>
 
 inline float calcAge(vec2 posPx, float seed){
@@ -131,4 +131,4 @@ inline GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
     return rval;
 }
 
-#endif // !GENERATE_STRUCTURE_GLSL
+#endif // !RW_GENERATE_STRUCTURE_GLSL

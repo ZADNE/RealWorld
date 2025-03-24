@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #include <RealEngine/resources/ResourceManager.hpp>
@@ -9,11 +9,11 @@
 namespace rw {
 
 ItemSprite::ItemSprite()
-    : ItemSprite{ItemId::Empty} {
+    : ItemSprite{ItemID::Empty} {
 }
 
-ItemSprite::ItemSprite(ItemId id)
-    : m_tex(re::RM::texture(re::TextureSeed{k_atlasPrefix + textureAtlas(id)}))
+ItemSprite::ItemSprite(ItemID id)
+    : m_tex(re::RM::texture(textureID(id)))
     , m_sprite{
           *m_tex,
           spriteIndex(id),

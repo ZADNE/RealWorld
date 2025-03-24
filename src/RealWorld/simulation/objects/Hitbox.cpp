@@ -1,9 +1,9 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #include <algorithm>
 
-#include <RealWorld/constants/tile.hpp>
+#include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
 
 namespace rw {

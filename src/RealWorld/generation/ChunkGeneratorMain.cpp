@@ -1,7 +1,7 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
-#include <RealWorld/constants/world.hpp>
+#include <RealWorld/constants/World.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/VegTemplatesUB.hpp>
 #include <RealWorld/generation/shaders/VegPrepSB_glsl.hpp>

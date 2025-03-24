@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/light.glsl>
+#include <RealWorld/constants/Light.glsl>
 
 layout (local_size_x = k_calcGroupSize,
         local_size_y = k_calcGroupSize,

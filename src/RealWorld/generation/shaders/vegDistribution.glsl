@@ -1,9 +1,9 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
-#ifndef VEG_DISTRIBUTION_GLSL
-#define VEG_DISTRIBUTION_GLSL
-#include <RealWorld/constants/generation.glsl>
+#ifndef RW_VEG_DISTRIBUTION_GLSL
+#define RW_VEG_DISTRIBUTION_GLSL
+#include <RealWorld/constants/Generation.glsl>
 
 // Describes vegetation distribution
 struct VegDistr {
@@ -61,4 +61,4 @@ VegDistr biomeVegDistr(vec2 biomeClimate){
     return b00;
 }
 
-#endif // !VEG_DISTRIBUTION_GLSL
+#endif // !RW_VEG_DISTRIBUTION_GLSL

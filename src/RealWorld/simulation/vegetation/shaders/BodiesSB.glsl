@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef BODIES_SB_GLSL
-#define BODIES_SB_GLSL
+#ifndef RW_BODIES_SB_GLSL
+#define RW_BODIES_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 struct Body {
@@ -27,4 +27,4 @@ restrict buffer BodiesSB {
     Body bodies[];
 } RE_GLSL_ONLY(b_bodies);
 
-#endif // !BODIES_SB_GLSL
+#endif // !RW_BODIES_SB_GLSL

@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -9,7 +9,7 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 #include <RealEngine/graphics/textures/Texture.hpp>
 
-#include <RealWorld/constants/generation.hpp>
+#include <RealWorld/constants/Generation.hpp>
 #include <RealWorld/generation/shaders/AllShaders.hpp>
 #include <RealWorld/generation/shaders/GenerationPC_glsl.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>

@@ -1,8 +1,8 @@
-/*! 
+/** 
  *  @author    Dubsky Tomas
  */
-#ifndef EXPAND_GRASS_GLSL
-#define EXPAND_GRASS_GLSL
+#ifndef RW_EXPAND_GRASS_GLSL
+#define RW_EXPAND_GRASS_GLSL
 
 shared uint s_outIndex;
 
@@ -62,4 +62,4 @@ void expandGrass(){
     }
 }
 
-#endif // !EXPAND_GRASS_GLSL
+#endif // !RW_EXPAND_GRASS_GLSL

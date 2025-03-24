@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/world.glsl>
+#include <RealWorld/constants/World.glsl>
 
 layout (location = 0) out vec4   o_tileColor;
 

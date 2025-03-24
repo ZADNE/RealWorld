@@ -1,12 +1,12 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef BRANCH_ALLOC_REG_SB_GLSL
-#define BRANCH_ALLOC_REG_SB_GLSL
+#ifndef RW_BRANCH_ALLOC_REG_SB_GLSL
+#define RW_BRANCH_ALLOC_REG_SB_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/constants/world.glsl>
-#include <RealWorld/constants/vegetation.glsl>
+#include <RealWorld/constants/World.glsl>
+#include <RealWorld/constants/Vegetation.glsl>
 
 // All branches of a chunk belong to one allocation
 struct BranchAllocation {
@@ -158,4 +158,4 @@ void deallocateBranches(
 
 #endif
 
-#endif // !BRANCH_ALLOC_REG_SB_GLSL
+#endif // !RW_BRANCH_ALLOC_REG_SB_GLSL

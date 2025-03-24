@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef WORLD_DYNAMICS_PC_GLSL
-#define WORLD_DYNAMICS_PC_GLSL
+#ifndef RW_WORLD_DYNAMICS_PC_GLSL
+#define RW_WORLD_DYNAMICS_PC_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 layout (push_constant, scalar)
@@ -20,4 +20,4 @@ restrict uniform WorldDynamicsPC {
     float   timeSec;
 } RE_GLSL_ONLY(p_);
 
-#endif // !WORLD_DYNAMICS_PC_GLSL
+#endif // !RW_WORLD_DYNAMICS_PC_GLSL

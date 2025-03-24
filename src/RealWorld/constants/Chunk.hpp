@@ -1,10 +1,10 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
 #include <bit>
 
-#include <RealWorld/constants/tile.hpp>
+#include <RealWorld/constants/Tile.hpp>
 
 namespace rw {
 

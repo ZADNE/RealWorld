@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -67,9 +67,7 @@ private:
     glm::mat4 calculateWindowViewMat(glm::vec2 windowDims) const;
 
     const GameSettings& m_gameSettings;
-    ImFont* m_arial = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-        "fonts/arial.ttf", 20.0f // NOLINT(*-magic-numbers)
-    );
+    ImFont* m_arial = createFont<"arial">(20.0f); // NOLINT(*-magic-numbers)
 
     re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},

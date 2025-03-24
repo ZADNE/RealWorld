@@ -1,8 +1,8 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
-#include <RealWorld/constants/chunk.hpp>
+#include <RealWorld/constants/Chunk.hpp>
 
 namespace rw {
 

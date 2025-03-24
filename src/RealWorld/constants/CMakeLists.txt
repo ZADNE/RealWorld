@@ -2,12 +2,13 @@ add_subdirectory(tile_properties)
 
 real_target_sources(RealWorld
     PUBLIC
-        body.hpp                    body.glsl
-        chunk.hpp                   chunk.glsl
-        generation.hpp              generation.glsl
-        item.hpp                    
-        light.hpp                   light.glsl
-        tile.hpp                    tile.glsl
-        vegetation.hpp              vegetation.glsl
-        world.hpp                   world.glsl
+        Body.hpp                    Body.glsl
+        Chunk.hpp                   Chunk.glsl
+        Generation.hpp              Generation.glsl
+        Item.hpp                    
+        Light.hpp                   Light.glsl
+        ResourceIndex.hpp           
+        Tile.hpp                    Tile.glsl
+        Vegetation.hpp              Vegetation.glsl
+        World.hpp                   World.glsl
 )

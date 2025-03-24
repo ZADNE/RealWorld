@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #include <future>
@@ -6,7 +6,7 @@
 #include <RealEngine/graphics/synchronization/Fence.hpp>
 #include <RealEngine/utility/Math.hpp>
 
-#include <RealWorld/constants/vegetation.hpp>
+#include <RealWorld/constants/Vegetation.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
 #include <RealWorld/simulation/tiles/ChunkTransferMgr.hpp>
 #include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>

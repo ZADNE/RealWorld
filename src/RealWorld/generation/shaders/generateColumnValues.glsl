@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
-#ifndef GENERATE_COLUMN_VALUES_GLSL
-#define GENERATE_COLUMN_VALUES_GLSL
+#ifndef RW_GENERATE_COLUMN_VALUES_GLSL
+#define RW_GENERATE_COLUMN_VALUES_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
 // x = left val, y = right val, z = 0 to 1 interp. factor between the two
@@ -71,4 +71,4 @@ inline vec2 smootherColumnValue_x_dx(float x, float seed){
     return vec2(mix(vals.x, vals.y, step.x), step.y * (vals.y - vals.x));
 }
 
-#endif // !GENERATE_COLUMN_VALUES_GLSL
+#endif // !RW_GENERATE_COLUMN_VALUES_GLSL

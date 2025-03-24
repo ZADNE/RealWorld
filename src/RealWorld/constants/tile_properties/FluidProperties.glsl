@@ -1,3 +1,8 @@
+/** 
+ *  @author    Dubsky Tomas
+ */
+#ifndef RW_FLUID_PROPERTIES_GLSL
+#define RW_FLUID_PROPERTIES_GLSL
 /*
     1: water, 2: lava,  3: steam,
     4: fire,  5: smoke, 6: droppedLeaf
@@ -51,3 +56,5 @@ const uvec4 k_randomConv[] = {
     {800, k_smokeBl, 0, k_airBl},   {384, k_airBl, 0, k_airBl},     {256, k_airBl, 0, k_airBl},
     {256, k_airBl, 0, k_airBl}
 };
+
+#endif // !RW_FLUID_PROPERTIES_GLSL

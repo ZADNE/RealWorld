@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -6,37 +6,39 @@
 #include <cstdint>
 #include <string>
 
-#include <RealWorld/constants/item.hpp>
+#include <RealEngine/resources/ResourceID.hpp>
+
+#include <RealWorld/constants/Item.hpp>
 
 namespace rw {
 
-ItemIdSection section(ItemId id);
+ItemIDSection section(ItemID id);
 
-uint16_t offsetInSection(ItemId id);
+uint16_t offsetInSection(ItemID id);
 
 /**
  * @brief Returns the maximum number of items of this id that can be stacked in a slot
  */
-int maxStack(ItemId id);
+int maxStack(ItemID id);
 
 /**
- * @brief Returns suffix of the texture atlas
+ * @brief Returns resource ID of the texture that should be used to render the item.
  */
-char textureAtlas(ItemId id);
+re::ResourceID textureID(ItemID id);
 
 /**
  * @brief Returns sprite index in the texture atlas
  */
-float spriteIndex(ItemId id);
+float spriteIndex(ItemID id);
 
 /**
  * @brief Returns subimage index of the sprite
  */
-float subimageIndex(ItemId id);
+float subimageIndex(ItemID id);
 
 /**
  * @brief Returns draw scale
  */
-float drawScale(ItemId id);
+float drawScale(ItemID id);
 
 } // namespace rw

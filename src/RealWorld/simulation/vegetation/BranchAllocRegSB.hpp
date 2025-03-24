@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -8,7 +8,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <RealWorld/constants/vegetation.hpp>
+#include <RealWorld/constants/Vegetation.hpp>
 #include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB_glsl.hpp>
 
 namespace rw {

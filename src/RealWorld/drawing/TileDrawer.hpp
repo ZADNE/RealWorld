@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -7,8 +7,8 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
-#include <RealEngine/resources/ResourceManager.hpp>
 
+#include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
 
 namespace rw {
@@ -32,10 +32,10 @@ public:
     void drawMinimap(const re::CommandBuffer& cb);
 
 private:
-    re::SharedTexture m_blockAtlasTex =
-        re::RM::texture(re::TextureSeed{"blockAtlas"});
-    re::SharedTexture m_wallAtlasTex =
-        re::RM::texture(re::TextureSeed{"wallAtlas"});
+    re::TextureShaped m_blockAtlasTex =
+        re::RM::textureUnmanaged(textureID<"blockAtlas">());
+    re::TextureShaped m_wallAtlasTex =
+        re::RM::textureUnmanaged(textureID<"wallAtlas">());
 
     glm::vec2 m_viewSizePx{};
 

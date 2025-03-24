@@ -1,8 +1,8 @@
-/*!
+/**
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/constants/chunk.glsl>
+#include <RealWorld/constants/Chunk.glsl>
 #include <RealWorld/simulation/general/shaders/random.glsl>
 #include <RealWorld/generation/shaders/generateStructure.glsl>
 #include <RealWorld/generation/shaders/vegDistribution.glsl>
@@ -199,10 +199,10 @@ void main(){
 
             // Update the total number of symbols
             if (id == 0) {
-                uint lastValidId = min(gl_WorkGroupSize.x, s_symbolCount[read] - wi) - 1;
-                s_symbolCount[write] += s_symbolsOfThread[lastValidId];
-                s_headParamDispl     += s_headParamsOfThread[lastValidId];
-                s_bodyParamDispl     += s_bodyParamsOfThread[lastValidId];
+                uint lastValidID = min(gl_WorkGroupSize.x, s_symbolCount[read] - wi) - 1;
+                s_symbolCount[write] += s_symbolsOfThread[lastValidID];
+                s_headParamDispl     += s_headParamsOfThread[lastValidID];
+                s_bodyParamDispl     += s_bodyParamsOfThread[lastValidID];
             }
         }
     }
