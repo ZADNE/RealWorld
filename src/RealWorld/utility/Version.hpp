@@ -2,6 +2,8 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <format>
+#include <string>
 
 namespace rw {
 
@@ -14,5 +16,9 @@ constexpr int k_versionPatch = 0;
  */
 constexpr int k_version = k_versionMajor * 1'000'000 + k_versionMinor * 1'000 +
                           k_versionPatch;
+
+inline std::string versionString() {
+    return std::format("v{}.{}.{}", k_versionMajor, k_versionMinor, k_versionPatch);
+}
 
 } // namespace rw

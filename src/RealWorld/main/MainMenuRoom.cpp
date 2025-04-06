@@ -1,8 +1,9 @@
-﻿/**
+/**
  *  @author    Dubsky Tomas
  */
 #include <ctime>
 
+#include <RealWorld/main/Arguments.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
@@ -10,6 +11,7 @@ using namespace ImGui;
 
 namespace rw {
 
+constexpr const char* k_debugWorldName = "DebugWorld";
 constexpr const char* k_keybindNotice =
     "Press a key to change the keybind.\nOr press Delete to cancel.";
 
@@ -64,6 +66,24 @@ void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
     m_newWorldName = "";
     m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
     engine().setWindowTitle("RealWorld!");
+
+    if (args.size() == 1) {
+        try {
+            const auto& cliArgs = std::any_cast<const CLIArguments&>(args[0]);
+            if (cliArgs.createDebugWorld) {
+                WorldSaveLoader::deleteWorld(k_debugWorldName);
+                if (WorldSaveLoader::createWorld(k_debugWorldName, m_newWorldSeed)) {
+                    engine().scheduleRoomTransition(
+                        1, {std::make_any<std::string>(k_debugWorldName)}
+                    );
+                }
+            }
+        } catch (...) {
+            re::fatalError(
+                "Bad transition paramaters to start MainMenuRoom session"
+            );
+        }
+    }
 }
 
 void MainMenuRoom::sessionEnd() {

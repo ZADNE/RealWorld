@@ -2,6 +2,7 @@ add_subdirectory(settings)
 
 real_target_sources(RealWorld
     PUBLIC
+        Arguments.hpp               Arguments.cpp
         MainMenuRoom.hpp            MainMenuRoom.cpp
         Room.hpp                    
         WorldRoom.hpp               WorldRoom.cpp
