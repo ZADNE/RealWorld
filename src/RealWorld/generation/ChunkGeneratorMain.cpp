@@ -4,7 +4,7 @@
 #include <RealWorld/constants/World.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/VegTemplatesUB.hpp>
-#include <RealWorld/generation/shaders/VegPrepSB_glsl.hpp>
+#include <RealWorld/generation/shaders/VegPrepSB.glsl.gen.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;

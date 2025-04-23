@@ -11,12 +11,13 @@ endif()
 
 # RealWorld library
 add_real_library(RealWorld STATIC)
-real_target_init_file_sets(RealWorld BASE_DIR src)
-target_include_directories(RealWorld PRIVATE src)
+real_target_init_file_sets(RealWorld BASE_DIR "src")
+target_include_directories(RealWorld PRIVATE "src")
 set_target_properties(RealWorld PROPERTIES
-    CXX_STANDARD 23
-    realproject_shader_cxx_namespace "rw::glsl"
-    INTERPROCEDURAL_OPTIMIZATION TRUE
+    CXX_STANDARD                        23
+    INTERPROCEDURAL_OPTIMIZATION        TRUE
+    realproject_setup_filepath_rel      "RealWorld/main/Setup.gen.hpp"
+    realproject_shader_cxx_namespace    "rw::glsl"
 )
 target_link_libraries(RealWorld PUBLIC RealEngine)
 
@@ -29,7 +30,7 @@ real_target_package_resources(
     PACKAGE_DIR
         ${CMAKE_CURRENT_BINARY_DIR}
     INDEX_FILE
-        "${CMAKE_CURRENT_BINARY_DIR}/src/RealWorld/constants/GeneratedResourceIndex.hpp"
+        "${CMAKE_CURRENT_BINARY_DIR}/src/RealWorld/constants/ResourceIndex.gen.hpp"
     INPUT_DIRS
         "${CMAKE_CURRENT_BINARY_DIR}/fonts"
         "${CMAKE_CURRENT_BINARY_DIR}/textures"
@@ -38,22 +39,22 @@ add_dependencies(RealWorld_PackageResources DataCooker_Cook)
 
 # RealWorld Game
 add_real_executable(RealWorld_Game)
-target_include_directories(RealWorld_Game PRIVATE src)
+target_include_directories(RealWorld_Game PRIVATE "src")
 set_target_properties(RealWorld_Game PROPERTIES
-    CXX_STANDARD 23
-    INTERPROCEDURAL_OPTIMIZATION TRUE
+    CXX_STANDARD                    23
+    INTERPROCEDURAL_OPTIMIZATION    TRUE
 )
 target_link_libraries(RealWorld_Game PUBLIC RealWorld)
 
 # RealWorld PerfTest
 add_real_executable(RealWorld_PerfTest)
-target_include_directories(RealWorld_PerfTest PRIVATE src perf_test)
+target_include_directories(RealWorld_PerfTest PRIVATE "src" "perf_test")
 set_target_properties(RealWorld_PerfTest PROPERTIES
-    CXX_STANDARD 23
-    INTERPROCEDURAL_OPTIMIZATION TRUE
-    COMPILE_WARNING_AS_ERROR OFF
-    EXPORT_COMPILE_COMMANDS OFF
-    CXX_CLANG_TIDY ""
+    CXX_STANDARD                    23
+    INTERPROCEDURAL_OPTIMIZATION    TRUE
+    COMPILE_WARNING_AS_ERROR        OFF
+    EXPORT_COMPILE_COMMANDS         OFF
+    CXX_CLANG_TIDY                  ""
 )
 target_link_libraries(RealWorld_PerfTest PUBLIC RealWorld)
 
@@ -73,9 +74,9 @@ if(DOXYGEN_FOUND)
 endif()
 
 # Add subdirectories
-add_subdirectory(src)
-add_subdirectory(tools)
-add_subdirectory(perf_test)
+add_subdirectory("src")
+add_subdirectory("tools")
+add_subdirectory("perf_test")
 
 # Installation
 install(

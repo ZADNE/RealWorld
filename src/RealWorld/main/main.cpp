@@ -5,6 +5,7 @@
 
 #include <RealWorld/main/Arguments.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>
+#include <RealWorld/main/Setup.gen.hpp>
 #include <RealWorld/main/WorldRoom.hpp>
 #include <RealWorld/main/settings/GameSettings.hpp>
 
@@ -28,8 +29,9 @@ int main(int argc, char* argv[]) {
         vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)
     };
 
-    re::MainProgram::initialize(re::VulkanInitInfo{
-        .deviceCreateInfoChain = &chain.get<>()
+    re::MainProgram::initialize(re::MainProgramInitInfo{
+        re::VulkanInitInfo{.deviceCreateInfoChain = &chain.get<>()},
+        re::setup::k_hotReloadInitInfo
     });
 
     rw::GameSettings gameSettings{};

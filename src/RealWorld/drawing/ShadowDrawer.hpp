@@ -13,9 +13,9 @@
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
 #include <RealWorld/constants/ResourceIndex.hpp>
-#include <RealWorld/drawing/shaders/AnalysisPC_glsl.hpp>
-#include <RealWorld/drawing/shaders/DynamicLightsSB_glsl.hpp>
-#include <RealWorld/drawing/shaders/WorldDrawingPC_glsl.hpp>
+#include <RealWorld/drawing/shaders/AnalysisPC.glsl.gen.hpp>
+#include <RealWorld/drawing/shaders/DynamicLightsSB.glsl.gen.hpp>
+#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl.gen.hpp>
 
 namespace rw {
 

@@ -14,8 +14,8 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
-#include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>
-#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC_glsl.hpp>
+#include <RealWorld/simulation/tiles/shaders/AllShaders.gen.hpp>
+#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl.gen.hpp>
 #include <RealWorld/simulation/vegetation/BodySimulator.hpp>
 #include <RealWorld/simulation/vegetation/VegSimulator.hpp>
 

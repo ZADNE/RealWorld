@@ -11,9 +11,9 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
-#include <RealWorld/simulation/objects/shaders/AllShaders.hpp>
-#include <RealWorld/simulation/objects/shaders/PlayerHitboxSB_glsl.hpp>
-#include <RealWorld/simulation/objects/shaders/PlayerMovementPC_glsl.hpp>
+#include <RealWorld/simulation/objects/shaders/AllShaders.gen.hpp>
+#include <RealWorld/simulation/objects/shaders/PlayerHitboxSB.glsl.gen.hpp>
+#include <RealWorld/simulation/objects/shaders/PlayerMovementPC.glsl.gen.hpp>
 
 namespace rw {
 

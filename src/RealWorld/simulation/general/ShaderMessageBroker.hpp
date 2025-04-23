@@ -7,7 +7,7 @@
 
 #include <RealWorld/items/ItemUser.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
-#include <RealWorld/simulation/general/shaders/ShaderMessageSB_glsl.hpp>
+#include <RealWorld/simulation/general/shaders/ShaderMessageSB.glsl.gen.hpp>
 
 namespace rw {
 

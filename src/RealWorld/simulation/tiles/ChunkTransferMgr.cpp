@@ -9,8 +9,8 @@
 #include <RealWorld/constants/Vegetation.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
 #include <RealWorld/simulation/tiles/ChunkTransferMgr.hpp>
-#include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>
-#include <RealWorld/simulation/vegetation/shaders/reallocBranches_comp.hpp>
+#include <RealWorld/simulation/tiles/shaders/AllShaders.gen.hpp>
+#include <RealWorld/simulation/vegetation/shaders/reallocBranches.comp.gen.hpp>
 
 using enum vk::CommandBufferUsageFlagBits;
 using enum vk::ImageAspectFlagBits;

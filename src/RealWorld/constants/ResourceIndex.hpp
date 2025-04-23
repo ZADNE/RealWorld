@@ -4,7 +4,7 @@
 #pragma once
 #include <RealEngine/resources/ResourceManager.hpp>
 
-#include <RealWorld/constants/GeneratedResourceIndex.hpp>
+#include <RealWorld/constants/ResourceIndex.gen.hpp>
 
 namespace rw {
 
