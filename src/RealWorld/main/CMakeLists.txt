@@ -9,6 +9,6 @@ real_target_sources(RealWorld
 )
 real_target_sources(RealWorld_Game
     PRIVATE
-                                    main.cpp
+                                    Main.cpp
                                     WorldRoom.Game.cpp
 )
