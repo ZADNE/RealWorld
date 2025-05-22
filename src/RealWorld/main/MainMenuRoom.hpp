@@ -2,21 +2,49 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <variant>
+
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 #include <glm/vec2.hpp>
 
+#include <RealWorld/main/Arguments.hpp>
 #include <RealWorld/main/Room.hpp>
 #include <RealWorld/main/settings/GameSettings.hpp>
 #include <RealWorld/main/settings/combos.hpp>
 
 namespace rw {
 
+struct MainMenuTransitionArgs {
+    enum class EnterType {
+        Normal,
+        CLI,
+        PassToWorld
+    };
+
+    explicit MainMenuTransitionArgs()
+        : type{EnterType::Normal} {}
+
+    explicit MainMenuTransitionArgs(CLIArguments cliArgs_)
+        : type{EnterType::CLI}
+        , args{std::move(cliArgs_)} {}
+
+    explicit MainMenuTransitionArgs(std::string passToWorld_)
+        : type{EnterType::PassToWorld}
+        , args{std::move(passToWorld_)} {}
+
+    EnterType type{};
+    std::variant<CLIArguments, std::string> args;
+};
+
 /**
  * @brief Holds the main menu and related objects
  */
 class MainMenuRoom: public Room {
 public:
+    static constexpr RoomName k_name = RoomName::MainMenu;
+    using TransitionArgs             = MainMenuTransitionArgs;
+
     explicit MainMenuRoom(GameSettings& gameSettings);
 
     void sessionStart(const re::RoomTransitionArguments& args) override;

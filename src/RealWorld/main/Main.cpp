@@ -40,5 +40,7 @@ int main(int argc, char* argv[]) {
     auto* mainMenuRoom = re::MainProgram::addRoom<rw::MainMenuRoom>(gameSettings);
     re::MainProgram::addRoom<rw::WorldRoom>(gameSettings);
 
-    return re::MainProgram::run(mainMenuRoom->name(), {arguments});
+    return re::MainProgram::run(
+        mainMenuRoom->name(), {rw::MainMenuRoom::TransitionArgs{arguments}}
+    );
 }

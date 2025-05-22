@@ -77,7 +77,7 @@ public:
     void prepareWorldForDrawing(const ActionCmdBuf& acb);
 
     /**
-     * @brief Sets this world class to simulate the world inside the given save
+     * @brief                   Preapres to simulate the world of the given save
      * @param acb               Command buffer
      * @param save              A save of the world to run
      * @param worldTexSizeCh    Must be multiples of 8
@@ -90,6 +90,8 @@ public:
     void gatherSave(MetadataSave& save) const;
 
     bool saveChunks(const ActionCmdBuf& acb);
+
+    const std::string& worldName() const { return m_worldName; }
 
 private:
     void modifyTiles(
