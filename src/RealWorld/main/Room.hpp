@@ -1,4 +1,4 @@
-﻿/**
+/**
  *  @author    Dubsky Tomas
  */
 #pragma once
@@ -16,15 +16,28 @@ enum class RoomName {
     World
 };
 
+class Room;
+
 /**
- * @brief Is a base class for all rooms of RealWorld.
+ * @brief All rooms of RealWorld should adhere to this
+ */
+template<class T>
+concept RealWorldRoom = requires(T a) {
+    std::derived_from<T, Room>;
+    std::is_same_v<decltype(T::k_name), RoomName>;
+    typename T::TransitionArgs;
+};
+
+/**
+ * @brief   Is a base class for all rooms of RealWorld.
+ * @details Derived rooms should adhere to RealWorldRoom concept.
  */
 class Room: public re::Room {
 public:
     Room(RoomName name, const re::RoomDisplaySettings& rds)
         : re::Room{static_cast<size_t>(name), rds} {}
 
-    template<typename RoomType, typename... Args>
+    template<RealWorldRoom RoomType, typename... Args>
     void scheduleTransition(Args&&... transitionArgs) {
         engine().scheduleRoomTransition(
             static_cast<size_t>(RoomType::k_name),
