@@ -13,11 +13,11 @@ namespace rw {
 CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays)
     argparse::ArgumentParser parser("RealWorld", versionString());
 
-    if constexpr (re::k_buildType == re::BuildType::Debug) {
-        parser.add_argument("--create_debug_world")
-            .flag()
-            .help("create new world and load it [debug only]");
-    }
+#if RE_BUILDING_FOR_DEBUG
+    parser.add_argument("--create_debug_world")
+        .flag()
+        .help("create new world and load it [debug only]");
+#endif // RE_BUILDING_FOR_DEBUG
 
     try {
         parser.parse_args(argc, argv);
@@ -28,9 +28,9 @@ CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays
     }
 
     CLIArguments rval{};
-    if constexpr (re::k_buildType == re::BuildType::Debug) {
-        rval.createDebugWorld = parser.get<bool>("--create_debug_world");
-    }
+#if RE_BUILDING_FOR_DEBUG
+    rval.createDebugWorld = parser.get<bool>("--create_debug_world");
+#endif // RE_BUILDING_FOR_DEBUG
     return rval;
 }
 

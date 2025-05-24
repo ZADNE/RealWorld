@@ -1,4 +1,4 @@
-﻿/**
+/**
  *  @author    Dubsky Tomas
  */
 #include <array>
@@ -66,37 +66,37 @@ void ChunkLoader::saveChunk(
     const std::string& folderPath, glm::ivec2 posCh, const uint8_t* tiles,
     std::span<const uint8_t> branchesSerialized
 ) {
-    if constexpr (re::k_buildType == re::BuildType::Release) {
-        lodepng::State state{};
-        unsigned int err{};
+#if RE_BUILDING_FOR_RELEASE
+    lodepng::State state{};
+    unsigned int err{};
 
-        // Create chunk with branches
-        if ((err = lodepng_chunk_create(
-                 &state.info_png.unknown_chunks_data[0],
-                 &state.info_png.unknown_chunks_size[0],
-                 static_cast<unsigned int>(branchesSerialized.size()),
-                 k_branchPNGChunkName.data(), branchesSerialized.data()
-             ))) {
-            // Chunk creation failed
-            throw std::runtime_error{lodepng_error_text(err)};
-        }
-
-        // Encode tiles and save file
-        std::string fullPath = folderPath + chunkToChunkFilename(posCh);
-        state.info_png.color.colortype = LCT_GREY_ALPHA;
-        state.info_png.color.bitdepth  = 16;
-        state.info_raw.colortype       = LCT_GREY_ALPHA;
-        state.info_raw.bitdepth        = 16;
-        state.encoder.auto_convert     = 0;
-        std::vector<uint8_t> png;
-        if ((err = lodepng::encode(
-                 png, tiles, uChunkTi.x, uChunkTi.y * k_tileLayerCount, state
-             )) ||
-            (err = lodepng::save_file(png, fullPath))) {
-            // Encoding or saving failed
-            throw std::runtime_error{lodepng_error_text(err)};
-        }
+    // Create chunk with branches
+    if ((err = lodepng_chunk_create(
+             &state.info_png.unknown_chunks_data[0],
+             &state.info_png.unknown_chunks_size[0],
+             static_cast<unsigned int>(branchesSerialized.size()),
+             k_branchPNGChunkName.data(), branchesSerialized.data()
+         ))) {
+        // Chunk creation failed
+        throw std::runtime_error{lodepng_error_text(err)};
     }
+
+    // Encode tiles and save file
+    std::string fullPath           = folderPath + chunkToChunkFilename(posCh);
+    state.info_png.color.colortype = LCT_GREY_ALPHA;
+    state.info_png.color.bitdepth  = 16;
+    state.info_raw.colortype       = LCT_GREY_ALPHA;
+    state.info_raw.bitdepth        = 16;
+    state.encoder.auto_convert     = 0;
+    std::vector<uint8_t> png;
+    if ((err = lodepng::encode(
+             png, tiles, uChunkTi.x, uChunkTi.y * k_tileLayerCount, state
+         )) ||
+        (err = lodepng::save_file(png, fullPath))) {
+        // Encoding or saving failed
+        throw std::runtime_error{lodepng_error_text(err)};
+    }
+#endif // RE_BUILDING_FOR_RELEASE
 }
 
 std::string ChunkLoader::chunkToChunkFilename(glm::ivec2 chunkPos) {
