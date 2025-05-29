@@ -12,7 +12,7 @@ namespace rw {
 
 constexpr unsigned int k_frameRateLimit =
     (re::k_buildType == re::BuildType::Debug)
-        ? 300u
+        ? 30u
         : re::Synchronizer::k_doNotLimitFramesPerSecond;
 
 constexpr vk::AttachmentDescription2 k_attachmentDescription{

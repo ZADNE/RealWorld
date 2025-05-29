@@ -2,7 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/generation/ChunkGenerator.hpp>
-#include <RealWorld/generation/shaders/VegPrepSB.glsl.gen.hpp>
+#include <RealWorld/generation/shaders/vegetation/VegPrepSB.glsl.gen.hpp>
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;

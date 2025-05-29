@@ -7,9 +7,10 @@
 
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
-#include <RealWorld/generation/shaders/biome.glsl>
+#include <RealWorld/generation/shaders/tiles/biome.glsl>
 #include <RealWorld/constants/Generation.glsl>
-#include <RealWorld/generation/shaders/generateColumnValues.glsl>
+#include <RealWorld/generation/shaders/tiles/generateColumnValues.glsl>
+#include <RealWorld/generation/shaders/tiles/undergroundMaterial.glsl>
 
 inline float calcAge(vec2 posPx, float seed){
     float age = snoise(posPx * (1.0f / 8192.0f), seed);
@@ -80,14 +81,6 @@ inline float calcSolidity(vec2 posPx, float age, float seed){
     return mix(hash13(vec3(posPx, seed)), solidity_weight[0], solidity_weight[1]);
 }
 
-inline uvec2 calcStoneTile(vec2 posPx, float age, float baseSolidity, float seed){
-    float depthFactor = smoothstep(-32768.0f, -8192.0f, posPx.y);
-    float lavaFactor = snoise(posPx * (1.0f / 400.0f), -seed) + depthFactor;
-    float dither = hash13(vec3(posPx, seed)) * 0.3f - 0.15f;
-    uvec2 stoneTile = k_stoneTiles[int(clamp(age + dither, 0.0f, 0.9999f) * 2)];
-    return (lavaFactor <= 0.0f && baseSolidity > 0.45f) ? uvec2(k_lavaBl, stoneTile.y) : stoneTile;
-}
-
 inline uvec2 calcSurfaceTile(vec2 posPx, float seed){
     float posDither = (hash13(vec3(posPx, seed)) - 0.5f) * 2048.0f;
     vec2 climate = calcBiomeClimate(posPx.x + posDither, seed);
@@ -107,7 +100,7 @@ struct GeneratedTile{
 inline GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
     float age = calcAge(pPx, seed);
     float solidity = calcSolidity(pPx, age, seed);
-    uvec2 stoneTile = calcStoneTile(pPx, age, solidity, seed); // Decides which underground tile to use 
+    uvec2 undergroundTile = undergroundMaterial(pPx, age, solidity, seed);
     uvec2 surfaceTile = calcSurfaceTile(pPx, seed); // Decide which surface tile to use
 
     vec2 biomeClimate = calcBiomeClimate(pPx.x, seed);
@@ -125,7 +118,9 @@ inline GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
     bool occupied = (solidity + solidityShifter) > 0.5f;
 
     GeneratedTile rval;
-    rval.material.rb = belowHorizon ? (belowSoil ? stoneTile : surfaceTile) : k_air;// RB = block & wall type
+    rval.material.rb = belowHorizon
+                        ? (belowSoil ? undergroundTile : surfaceTile)
+                        : k_air;
     rval.material.ga = uvec2(255, 255);
     rval.tile = occupied ? rval.material : uvec4(k_airBl, rval.material.gba);
     return rval;
