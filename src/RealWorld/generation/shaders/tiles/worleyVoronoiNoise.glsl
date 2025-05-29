@@ -8,7 +8,7 @@
 /**
  * @brief   Simultaneously calculates Worley and Voronoi noise
  * @details The grid is unit-sized
- * @return  x: distance to nearest point
+ * @return  x: distance to nearest point in range [0, sqrt(2)]
  *          y: hash of the point in range [0, 1]
  */
 inline vec2 worleyVoronoiNoise(vec2 pos, float seed) {
