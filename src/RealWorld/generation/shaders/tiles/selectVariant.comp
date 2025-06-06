@@ -29,9 +29,9 @@ void main() {
     const uint blockLoadLayer = blockImgLoadLayer();
     const uint wallLayer = wallImgLayer();
     const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-    uvec2 blockWall = uvec2(
-        imageLoad(u_layerImage, ivec3(pTi, blockLoadLayer)).L_T,
-        imageLoad(u_layerImage, ivec3(pTi, wallLayer)).L_T
+    uvec4 tile = uvec4(
+        imageLoad(u_layerImage, ivec3(pTi, blockLoadLayer)).xy,
+        imageLoad(u_layerImage, ivec3(pTi, wallLayer)).xy
     );
 
     // Examine neighbors
@@ -54,18 +54,17 @@ void main() {
         mix(uvec2(0),
             uvec2(k_solidTileInnerVariantCount),
             bvec2(isOuter));
-    uvec2 variant = uvec2(hash22(vec2(p_.chunkTi[gl_WorkGroupID.z] + pTi)) * variantRange)
-                    + variantOffset;
+    tile.yw = uvec2((vec2(tile.yw) / 256.0) * variantRange) + variantOffset;
 
     // Store the new tile
     imageStore(
         u_layerImage,
         ivec3(pTi, blockImgStoreLayer()),
-        uvec4(blockWall.x, variant.x, 0, 0)
+        tile.xyxy
     );
     imageStore(
         u_layerImage,
         ivec3(pTi, wallLayer),
-        uvec4(blockWall.y, variant.y, 0, 0)
+        tile.zwzw
     );
 }

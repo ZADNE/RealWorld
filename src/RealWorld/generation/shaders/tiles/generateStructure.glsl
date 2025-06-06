@@ -93,15 +93,15 @@ inline float caclHorizonProximityFactor(float horizon, float y, float width, flo
 }
 
 struct GeneratedTile{
-    uvec4 tile;
-    uvec4 material;
+    uvec4 tile;     // xy = block, zw = wall
+    uvec2 material; // xy = block
 };
 
 inline GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
     float age = calcAge(pPx, seed);
     float solidity = calcSolidity(pPx, age, seed);
-    uvec2 undergroundTile = undergroundMaterial(pPx, age, solidity, seed);
-    uvec2 surfaceTile = calcSurfaceTile(pPx, seed); // Decide which surface tile to use
+    uvec4 undergroundTile = undergroundMaterial(pPx, age, solidity, seed);
+    uvec4 surfaceTile = calcSurfaceTile(pPx, seed).xxyy; // Decide which surface tile to use
 
     vec2 biomeClimate = calcBiomeClimate(pPx.x, seed);
     Biome biome = calcBiomeStructure(biomeClimate);
@@ -118,11 +118,11 @@ inline GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
     bool occupied = (solidity + solidityShifter) > 0.5f;
 
     GeneratedTile rval;
-    rval.material.rb = belowHorizon
+    uvec4 material = belowHorizon
                         ? (belowSoil ? undergroundTile : surfaceTile)
-                        : k_air;
-    rval.material.ga = uvec2(255, 255);
-    rval.tile = occupied ? rval.material : uvec4(k_airBl, rval.material.gba);
+                        : uvec4(k_airBl, 0, k_airWl, 0);
+    rval.material = uvec2(material);
+    rval.tile = occupied ? material : uvec4(k_airBl, material.gba);
     return rval;
 }
 
