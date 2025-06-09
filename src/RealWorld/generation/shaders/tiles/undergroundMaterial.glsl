@@ -8,12 +8,12 @@
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/generation/shaders/tiles/biome.glsl>
-#include <RealWorld/generation/shaders/tiles/worleyVoronoiNoise.glsl>
+#include <RealWorld/generation/shaders/tiles/voronoiNoise.glsl>
 
 const float k_1OVerSqrt2 = 0.70710678118f; // 1 / sqrt(2)
 
 inline uvec4 rockyStone(vec2 posPx, float seed){
-    vec2 distHash = worleyVoronoiNoise(posPx * (1.0f / 256.0f), seed);
+    vec2 distHash = voronoiBorderNoise(posPx * (1.0f / 256.0f), seed);
     bool cold = distHash.y > 0.5;
     return uvec4(
         cold ? k_coldStoneBl : k_stoneBl,

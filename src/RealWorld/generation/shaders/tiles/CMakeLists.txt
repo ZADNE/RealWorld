@@ -6,5 +6,5 @@
         generateStructure.comp      generateStructure.glsl
         selectVariant.comp          
         undergroundMaterial.glsl    
-        worleyVoronoiNoise.glsl     
+        voronoiNoise.glsl           
 )
