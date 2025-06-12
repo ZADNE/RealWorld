@@ -13,13 +13,19 @@
 const float k_1OVerSqrt2 = 0.70710678118f; // 1 / sqrt(2)
 
 inline uvec4 rockyStone(vec2 posPx, float seed){
-    vec2 distHash = voronoiBorderNoise(posPx * (1.0f / 256.0f), seed);
-    bool cold = distHash.y > 0.5;
+    vec3 attrPosDist = voronoiBorderNoise(posPx * (1.0f / 512.0f), seed + 1337.0f);
+    posPx = mix(
+        posPx,
+        attrPosDist.xy * 512.0f,
+        clamp(pow(attrPosDist.z, 2.0), 0.0f, 1.0f)
+    );
+    vec3 featPosDist = voronoiBorderNoise(posPx * (1.0f / 32.0f), seed);
+    bool cold = hash12(featPosDist.xy) > 0.5f;
     return uvec4(
         cold ? k_coldStoneBl : k_stoneBl,
-        distHash.x * k_1OVerSqrt2 * 255,
+        featPosDist.z * k_1OVerSqrt2 * 255,
         cold ? k_coldStoneWl : k_stoneWl,
-        distHash.x * k_1OVerSqrt2 * 255
+        featPosDist.z * k_1OVerSqrt2 * 255
     );
 }
 

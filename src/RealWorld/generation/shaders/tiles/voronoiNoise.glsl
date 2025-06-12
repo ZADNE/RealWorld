@@ -6,41 +6,42 @@
 #include <RealWorld/generation/external_shaders/float_hash.glsl>
 
 /**
- * @brief   Calculates Voronoi noise as distance to feature and its hash
+ * @brief   Calculates Voronoi noise as feature position and distance to it
  * @details The grid is unit-sized
- * @return  x: distance to nearest feature in range [0, sqrt(2)]
- *          y: hash of the feature in range [0, 1]
+ * @return  x, y: position of the nearest feature
+ *          z:    distance to the nearest feature in range [0, sqrt(2)]
  */
-inline vec2 voronoiFeatureNoise(vec2 pos, float seed) {
+inline vec3 voronoiFeatureNoise(vec2 pos, float seed) {
     vec2 centerCellPos = floor(pos);
     vec2 inCellOffset = fract(pos);
-    float hashed;
-    float distSqr = 2.0f;
+    vec2 featPos;
+    float distSqr = 4.0f;
     for (int x = -1; x <= 1; x++) {
         for (int y = -1; y <= 1; y++) {
             vec2 cellPos = centerCellPos + vec2(x, y);
             vec3 seededCellPos = vec3(cellPos, seed);
-            vec2 offsetToPos = hash23(seededCellPos) + vec2(x, y) - inCellOffset;
+            vec2 fPos = hash23(seededCellPos) + vec2(x, y);
+            vec2 offsetToPos = fPos - inCellOffset;
             float dSqr = dot(offsetToPos, offsetToPos);
             if (dSqr < distSqr) {
                 distSqr = dSqr;
-                hashed = hash13(seededCellPos);
+                featPos = centerCellPos + fPos;
             }
         }
     }
-    return vec2(sqrt(distSqr), hashed);
+    return vec3(featPos, sqrt(distSqr));
 }
 
 /**
- * @brief   Calculates Voronoi noise as distance to border and feature hash
+ * @brief   Calculates Voronoi noise as feature position and distance to border
  * @details The grid is unit-sized
- * @return  x: distance to the nearest border in range [0, sqrt(2)]
- *          y: hash of the nearest border in range [0, 1]
+ * @return  x, y: position of the nearest feature
+ *          z: distance to the nearest border in range [0, sqrt(2)]
  */
-inline vec2 voronoiBorderNoise(vec2 pos, float seed) {
+inline vec3 voronoiBorderNoise(vec2 pos, float seed) {
     vec2 centerCellPos = floor(pos);
     vec2 inCellOffset = fract(pos);
-    float hashed;
+    vec2 featPos;
     float dist = 4.0f;
     vec2 nearestFeature;
 
@@ -49,12 +50,13 @@ inline vec2 voronoiBorderNoise(vec2 pos, float seed) {
         for (int y = -1; y <= 1; y++) {
             vec2 cellPos = centerCellPos + vec2(x, y);
             vec3 seededCellPos = vec3(cellPos, seed);
-            vec2 toFeature = hash23(seededCellPos) + vec2(x, y) - inCellOffset;
+            vec2 fPos = hash23(seededCellPos) + vec2(x, y);
+            vec2 toFeature = fPos - inCellOffset;
             float dSqr = dot(toFeature, toFeature);
             if (dSqr < dist) {
                 dist = dSqr;
-                hashed = hash13(seededCellPos);
                 nearestFeature = toFeature;
+                featPos = centerCellPos + fPos;
             }
         }
     }
@@ -76,7 +78,7 @@ inline vec2 voronoiBorderNoise(vec2 pos, float seed) {
         }
     }
 
-    return vec2(sqrt(dist), hashed);
+    return vec3(featPos, sqrt(dist));
 }
 
 #endif // !RW_VORONOI_NOISE_GLSL
