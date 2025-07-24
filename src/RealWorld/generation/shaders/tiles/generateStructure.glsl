@@ -81,11 +81,13 @@ inline float calcSolidity(vec2 posPx, float age, float seed){
     return mix(hash13(vec3(posPx, seed)), solidity_weight[0], solidity_weight[1]);
 }
 
-inline uvec2 calcSurfaceTile(vec2 posPx, float seed){
+inline uvec4 calcSurfaceTile(vec2 posPx, float seed){
     float posDither = (hash13(vec3(posPx, seed)) - 0.5f) * 2048.0f;
     vec2 climate = calcBiomeClimate(posPx.x + posDither, seed);
     ivec2 indices = ivec2(vec2(k_biomesMatrixSize) * climate);
-    return k_biomes[indices.x][indices.y].tiles;
+    uvec2 tileTypes = k_biomes[indices.x][indices.y].tiles;
+    uvec2 tileVars = uvec2(hash23(vec3(posPx, seed)) * 255.0f);
+    return uvec4(tileTypes.x, tileVars.x, tileTypes.y, tileVars.y);
 }
 
 inline float caclHorizonProximityFactor(float horizon, float y, float width, float low, float high){
@@ -101,7 +103,7 @@ inline GeneratedTile calcBasicTerrain(in vec2 pPx, in float seed){
     float age = calcAge(pPx, seed);
     float solidity = calcSolidity(pPx, age, seed);
     uvec4 undergroundTile = undergroundMaterial(pPx, age, solidity, seed);
-    uvec4 surfaceTile = calcSurfaceTile(pPx, seed).xxyy; // Decide which surface tile to use
+    uvec4 surfaceTile = calcSurfaceTile(pPx, seed); // Decide which surface tile to use
 
     vec2 biomeClimate = calcBiomeClimate(pPx.x, seed);
     Biome biome = calcBiomeStructure(biomeClimate);
