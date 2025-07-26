@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     re::MainProgram::initialize(re::MainProgramInitInfo{
         re::VulkanInitInfo{.deviceCreateInfoChain = &chain.get<>()},
-        re::setup::k_hotReloadInitInfo
+        &re::setup::k_hotReloadInitInfo
     });
 
     rw::GameSettings gameSettings{};

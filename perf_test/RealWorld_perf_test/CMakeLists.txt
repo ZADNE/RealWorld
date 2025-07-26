@@ -1,6 +1,6 @@
 real_target_sources(RealWorld_PerfTest
     PRIVATE
-                                    main.cpp
+                                    Main.cpp
         TestRoom.hpp                
                                     WorldRoom.PerfTest.cpp
 )
