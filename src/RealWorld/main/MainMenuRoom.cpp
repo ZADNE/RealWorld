@@ -2,7 +2,6 @@
  *  @author    Dubsky Tomas
  */
 #include <ctime>
-#include <typeindex>
 
 #include <RealWorld/main/Arguments.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>

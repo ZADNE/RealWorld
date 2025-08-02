@@ -161,7 +161,7 @@ void WorldRoom::windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) {
 void WorldRoom::pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) {
     switch (static_cast<HotReloadIdentifier>(identifier)) {
     case HotReloadIdentifier::WorldGeneration:
-        // This will jump to main menu then right back
+        // This will jump to main menu and then right back
         scheduleTransition<MainMenuRoom>(m_world.worldName());
         break;
     default: break;

@@ -87,7 +87,6 @@ ChunkGenerator::ChunkGenerator()
          }) {
         pipeline->setHotReloadIdentifier(std::to_underlying(WorldGeneration));
     }
-
 #endif // RE_BUILDING_FOR_DEBUG
 }
 
