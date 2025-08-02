@@ -8,7 +8,7 @@
 namespace rw {
 
 constexpr int k_versionMajor = 0;
-constexpr int k_versionMinor = 2;
+constexpr int k_versionMinor = 3;
 constexpr int k_versionPatch = 0;
 
 /**
