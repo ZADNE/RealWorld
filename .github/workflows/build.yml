@@ -59,6 +59,9 @@ jobs:
         echo "install-dir=${{ github.workspace }}/Real/install" >> "$GITHUB_ENV"
         echo "realengine-package=RealEngine-v*.*.*-${{ matrix.os }}-${{ matrix.build_type }}.7z" >> "$GITHUB_ENV"
 
+    - name: Set up Visual Studio environment variables (Windows)
+      uses: ilammy/msvc-dev-cmd@v1
+
     - name: Clone Real
       uses: actions/checkout@v4
       with:
@@ -69,6 +72,7 @@ jobs:
     - name: Download RealEngine
       run: >
         gh release download
+        ${{ env.realengine-tag }}
         --repo ZADNE/RealEngine
         --pattern ${{ env.realengine-package }}
         --dir ${{ env.download-dir }}
