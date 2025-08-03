@@ -69,7 +69,6 @@ jobs:
     - name: Download RealEngine
       run: >
         gh release download
-        ${{ env.realengine-tag }}
         --repo ZADNE/RealEngine
         --pattern ${{ env.realengine-package }}
         --dir ${{ env.download-dir }}
