@@ -5,6 +5,7 @@ add_real_executable(DataCooker)
 target_include_directories(DataCooker PRIVATE tools)
 set_target_properties(DataCooker PROPERTIES
     CXX_STANDARD 23
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tools/DataCooker"
 )
 target_include_directories(DataCooker PRIVATE src)
 target_link_libraries(DataCooker
