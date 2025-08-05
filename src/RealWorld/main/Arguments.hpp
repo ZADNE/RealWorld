@@ -10,6 +10,6 @@ struct CLIArguments {
     bool createDebugWorld = false; ///< Debug only: create new world and load it
 };
 
-CLIArguments parseArguments(int argc, char* argv[]);
+CLIArguments parseArguments(int argc, char* argv[]); // NOLINT(*-avoid-c-arrays)
 
 } // namespace rw

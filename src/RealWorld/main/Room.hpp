@@ -23,8 +23,8 @@ class Room;
  */
 template<class T>
 concept RealWorldRoom = requires(T a) {
-    std::derived_from<T, Room>;
-    std::is_same_v<decltype(T::k_name), RoomName>;
+    requires std::derived_from<T, Room>;
+    requires std::is_same_v<decltype(T::k_name), const RoomName>;
     typename T::TransitionArgs;
 };
 
