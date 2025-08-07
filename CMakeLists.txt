@@ -61,14 +61,18 @@ target_link_libraries(RealWorld_PerfTest PUBLIC RealWorld)
 # Doxygen documentation
 get_realworld_version()
 find_package(Doxygen)
-if(DOXYGEN_FOUND)
-    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
-    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+if(Doxygen_FOUND)
+    set(doxyfile_template "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile")
+    set(doxyfile "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile")
+    configure_file(
+        "${doxyfile_template}"
+        "${doxyfile}"
+        @ONLY
+    )
 
     add_custom_target(RealWorld_Documentation
-        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND "${DOXYGEN_EXECUTABLE}" "${doxyfile}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
         VERBATIM
     )
 endif()
