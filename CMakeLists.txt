@@ -108,3 +108,12 @@ install( # Install packaged data (in non-Debug builds)
     DESTINATION .
     COMPONENT RealWorld_Runtime
 )
+if(MSVC)
+    install( # Install PDB file
+        FILES
+            "$<TARGET_PDB_FILE:RealWorld_Game>"
+        DESTINATION .
+        COMPONENT RealWorld_Runtime
+        OPTIONAL
+    )
+endif()
