@@ -4,7 +4,8 @@
 #include <RealWorld/constants/World.hpp>
 #include <RealWorld/generation/ChunkGenerator.hpp>
 #include <RealWorld/generation/VegTemplatesUB.hpp>
-#include <RealWorld/generation/shaders/VegPrepSB_glsl.hpp>
+#include <RealWorld/generation/shaders/vegetation/VegPrepSB.glsl.gen.hpp>
+#include <RealWorld/utility/HotReloadIdentifier.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -77,6 +78,16 @@ ChunkGenerator::ChunkGenerator()
     );
     m_descriptorSet.write(eUniformBuffer, k_vegTemplatesBinding, 0, m_vegTemplatesBuf);
     m_descriptorSet.write(eStorageBuffer, k_vegPrepBinding, 0, m_vegPrepBuf);
+#if RE_BUILDING_FOR_DEBUG
+    using enum HotReloadIdentifier;
+    for (auto pipeline : std::initializer_list<re::Pipeline*>{
+             &m_generateStructurePl, &m_consolidateEdgesPl, &m_selectVariantPl,
+             &m_selectVegSpeciesPl, &m_expandVegInstancesPl, &m_allocBranchesPl,
+             &m_outputBranchesPl
+         }) {
+        pipeline->setHotReloadIdentifier(std::to_underlying(WorldGeneration));
+    }
+#endif // RE_BUILDING_FOR_DEBUG
 }
 
 void ChunkGenerator::setTarget(const TargetInfo& targetInfo) {

@@ -1,7 +1,9 @@
-﻿/**
+/**
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <utility>
+
 #include <RealEngine/rooms/Room.hpp>
 
 #include <RealWorld/constants/ResourceIndex.hpp>
@@ -9,13 +11,40 @@
 
 namespace rw {
 
+enum class RoomName {
+    MainMenu,
+    World
+};
+
+class Room;
+
 /**
- * @brief Is an abstract base class for all rooms of RealWorld.
+ * @brief All rooms of RealWorld should adhere to this
+ */
+template<class T>
+concept RealWorldRoom = requires(T a) {
+    requires std::derived_from<T, Room>;
+    requires std::is_same_v<decltype(T::k_name), const RoomName>;
+    typename T::TransitionArgs;
+};
+
+/**
+ * @brief   Is a base class for all rooms of RealWorld.
+ * @details Derived rooms should adhere to RealWorldRoom concept.
  */
 class Room: public re::Room {
 public:
-    Room(size_t name, const re::RoomDisplaySettings& rds)
-        : re::Room(name, rds) {}
+    Room(RoomName name, const re::RoomDisplaySettings& rds)
+        : re::Room{static_cast<size_t>(name), rds} {}
+
+    template<RealWorldRoom RoomType, typename... Args>
+    void scheduleTransition(Args&&... transitionArgs) {
+        engine().scheduleRoomTransition(
+            static_cast<size_t>(RoomType::k_name),
+            {std::make_any<typename RoomType::TransitionArgs>(std::forward<Args>(transitionArgs
+            )...)}
+        );
+    }
 
 protected:
     using enum RealWorldKeyBindings;

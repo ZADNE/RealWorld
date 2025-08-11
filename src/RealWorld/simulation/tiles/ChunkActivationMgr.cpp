@@ -6,7 +6,7 @@
 
 #include <RealWorld/save/ChunkLoader.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
-#include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>
+#include <RealWorld/simulation/tiles/shaders/AllShaders.gen.hpp>
 
 using enum vk::BufferUsageFlagBits;
 

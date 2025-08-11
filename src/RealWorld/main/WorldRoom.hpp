@@ -26,6 +26,9 @@ namespace rw {
  */
 class WorldRoom: public Room {
 public:
+    static constexpr RoomName k_name = RoomName::World;
+    using TransitionArgs             = std::string;
+
     explicit WorldRoom(const GameSettings& gameSettings);
 
     void sessionStart(const re::RoomTransitionArguments& args) override;
@@ -34,6 +37,7 @@ public:
     void render(const re::CommandBuffer& cb, double interpolationFactor) override;
 
     void windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) override;
+    void pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) override;
 
 private:
     using enum RealWorldKeyBindings;

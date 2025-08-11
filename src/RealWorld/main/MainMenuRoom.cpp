@@ -1,15 +1,18 @@
-﻿/**
+/**
  *  @author    Dubsky Tomas
  */
 #include <ctime>
 
+#include <RealWorld/main/Arguments.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>
+#include <RealWorld/main/WorldRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
 using namespace ImGui;
 
 namespace rw {
 
+constexpr const char* k_debugWorldName = "DebugWorld";
 constexpr const char* k_keybindNotice =
     "Press a key to change the keybind.\nOr press Delete to cancel.";
 
@@ -43,7 +46,7 @@ static constexpr re::RoomDisplaySettings k_initialSettings{
 };
 
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings)
-    : Room(0, k_initialSettings)
+    : Room{k_name, k_initialSettings}
     , m_gameSettings(gameSettings)
     , m_resolution(std::find(
           k_resolutions.begin(), k_resolutions.end(), engine().windowDims()
@@ -64,6 +67,26 @@ void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
     m_newWorldName = "";
     m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
     engine().setWindowTitle("RealWorld!");
+
+    try {
+        const auto& mmArgs = std::any_cast<const TransitionArgs&>(args.at(0));
+        switch (mmArgs.type) {
+        case TransitionArgs::EnterType::CLI:
+            if (std::get<CLIArguments>(mmArgs.args).createDebugWorld) {
+                WorldSaveLoader::deleteWorld(k_debugWorldName);
+                if (WorldSaveLoader::createWorld(k_debugWorldName, m_newWorldSeed)) {
+                    scheduleTransition<WorldRoom>(k_debugWorldName);
+                }
+            }
+            break;
+        case TransitionArgs::EnterType::PassToWorld:
+            scheduleTransition<WorldRoom>(std::get<std::string>(mmArgs.args));
+            break;
+        default: break;
+        }
+    } catch (...) {
+        re::fatalError("Bad transition paramaters to start MainMenuRoom session");
+    }
 }
 
 void MainMenuRoom::sessionEnd() {
@@ -137,7 +160,7 @@ void MainMenuRoom::newWorldMenu() {
     InputInt("##seed", &m_newWorldSeed);
     if (Button("Create the world!") || engine().wasKeyPressed(re::Key::Return)) {
         if (WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed)) {
-            engine().scheduleRoomTransition(1, {m_newWorldName});
+            scheduleTransition<WorldRoom>(m_newWorldName);
         }
     }
 }
@@ -151,7 +174,7 @@ void MainMenuRoom::loadWorldMenu() {
         TableNextRow();
         TableNextColumn();
         if (Button(world.c_str()))
-            engine().scheduleRoomTransition(1, {world});
+            scheduleTransition<WorldRoom>(world);
         TableNextColumn();
         if (Button(("Delete##" + world).c_str())) {
             WorldSaveLoader::deleteWorld(world);

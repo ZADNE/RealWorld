@@ -3,14 +3,16 @@
  */
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/main/WorldRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
+#include <RealWorld/utility/HotReloadIdentifier.hpp>
 
 namespace rw {
 
 constexpr unsigned int k_frameRateLimit =
     (re::k_buildType == re::BuildType::Debug)
-        ? 300u
+        ? 30u
         : re::Synchronizer::k_doNotLimitFramesPerSecond;
 
 constexpr vk::AttachmentDescription2 k_attachmentDescription{
@@ -36,7 +38,7 @@ constexpr float k_timedaySpeed = 0.00025f;
 
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
     : Room(
-          1,
+          k_name,
           re::RoomDisplaySettings{
               .stepsPerSecond       = k_physicsStepsPerSecond,
               .framesPerSecondLimit = k_frameRateLimit,
@@ -59,7 +61,7 @@ void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
     try {
         const std::string& worldName = std::any_cast<const std::string&>(args[0]);
         if (!loadWorld(worldName)) {
-            engine().scheduleRoomTransition(0, {});
+            scheduleTransition<MainMenuRoom>();
             return;
         }
         engine().setWindowTitle("RealWorld! - " + worldName);
@@ -154,6 +156,16 @@ void WorldRoom::windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) {
     m_worldDrawer.resizeView(newSize);
     m_invUI.windowResized(newSize);
     m_windowViewMat = calculateWindowViewMat(newSize);
+}
+
+void WorldRoom::pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) {
+    switch (static_cast<HotReloadIdentifier>(identifier)) {
+    case HotReloadIdentifier::WorldGeneration:
+        // This will jump to main menu and then right back
+        scheduleTransition<MainMenuRoom>(m_world.worldName());
+        break;
+    default: break;
+    }
 }
 
 void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope
@@ -255,7 +267,7 @@ void WorldRoom::updateInventoryAndUI() {
 
     // Toggles & quit
     if (keybindPressed(Quit)) {
-        engine().scheduleRoomTransition(0, {});
+        scheduleTransition<MainMenuRoom>();
     }
     if (keybindPressed(Minimap)) {
         m_minimap = !m_minimap;

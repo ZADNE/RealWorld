@@ -9,7 +9,7 @@
 #include <glm/vec2.hpp>
 
 #include <RealWorld/constants/Vegetation.hpp>
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB_glsl.hpp>
+#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl.gen.hpp>
 
 namespace rw {
 

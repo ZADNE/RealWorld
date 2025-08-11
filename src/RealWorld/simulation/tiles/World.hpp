@@ -14,8 +14,8 @@
 #include <RealWorld/save/WorldSave.hpp>
 #include <RealWorld/simulation/objects/Hitbox.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
-#include <RealWorld/simulation/tiles/shaders/AllShaders.hpp>
-#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC_glsl.hpp>
+#include <RealWorld/simulation/tiles/shaders/AllShaders.gen.hpp>
+#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl.gen.hpp>
 #include <RealWorld/simulation/vegetation/BodySimulator.hpp>
 #include <RealWorld/simulation/vegetation/VegSimulator.hpp>
 
@@ -77,7 +77,7 @@ public:
     void prepareWorldForDrawing(const ActionCmdBuf& acb);
 
     /**
-     * @brief Sets this world class to simulate the world inside the given save
+     * @brief                   Preapres to simulate the world of the given save
      * @param acb               Command buffer
      * @param save              A save of the world to run
      * @param worldTexSizeCh    Must be multiples of 8
@@ -90,6 +90,8 @@ public:
     void gatherSave(MetadataSave& save) const;
 
     bool saveChunks(const ActionCmdBuf& acb);
+
+    const std::string& worldName() const { return m_worldName; }
 
 private:
     void modifyTiles(

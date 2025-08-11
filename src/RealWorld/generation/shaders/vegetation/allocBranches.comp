@@ -5,7 +5,7 @@
 #include <RealWorld/generation/shaders/generationPll.glsl>
 #include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
 #define VegPrepSB_ACCESS
-#include <RealWorld/generation/shaders/VegPrepSB.glsl>
+#include <RealWorld/generation/shaders/vegetation/VegPrepSB.glsl>
 #include <RealWorld/generation/shaders/GenerationPC.glsl>
 
 layout (local_size_x = 1,

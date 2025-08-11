@@ -1,0 +1,12 @@
+﻿real_target_sources(RealWorld
+    PUBLIC
+        allocBranches.comp          
+        expandGrass.glsl            
+        expandVegInstances.comp     
+        expansionHelpers.glsl       
+        outputBranches.comp         
+        selectVegSpecies.comp       
+        vegDistribution.glsl        
+        VegPrepSB.glsl              
+        VegTemplatesUB.glsl         
+)

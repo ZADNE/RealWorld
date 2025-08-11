@@ -11,7 +11,7 @@
 #include <RealEngine/utility/Error.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
-#include <RealWorld/generation/shaders/generateStructure_glsl.hpp>
+#include <RealWorld/generation/shaders/tiles/generateStructure.glsl.gen.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 #include <RealWorld/simulation/objects/Player.hpp>
 

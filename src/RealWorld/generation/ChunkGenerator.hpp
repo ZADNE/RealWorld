@@ -10,8 +10,9 @@
 #include <RealEngine/graphics/textures/Texture.hpp>
 
 #include <RealWorld/constants/Generation.hpp>
-#include <RealWorld/generation/shaders/AllShaders.hpp>
-#include <RealWorld/generation/shaders/GenerationPC_glsl.hpp>
+#include <RealWorld/generation/shaders/GenerationPC.glsl.gen.hpp>
+#include <RealWorld/generation/shaders/tiles/AllShaders.gen.hpp>
+#include <RealWorld/generation/shaders/vegetation/AllShaders.gen.hpp>
 #include <RealWorld/simulation/general/ActionCmdBuf.hpp>
 
 namespace rw {

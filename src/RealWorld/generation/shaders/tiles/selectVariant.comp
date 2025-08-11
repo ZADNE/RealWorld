@@ -29,37 +29,42 @@ void main() {
     const uint blockLoadLayer = blockImgLoadLayer();
     const uint wallLayer = wallImgLayer();
     const ivec2 pTi = ivec2(gl_GlobalInvocationID.xy);
-    uvec2 blockWall = uvec2(
-        imageLoad(u_layerImage, ivec3(pTi, blockLoadLayer)).L_T,
-        imageLoad(u_layerImage, ivec3(pTi, wallLayer)).L_T
+    uvec4 tile = uvec4(
+        imageLoad(u_layerImage, ivec3(pTi, blockLoadLayer)).xy,
+        imageLoad(u_layerImage, ivec3(pTi, wallLayer)).xy
     );
 
     // Examine neighbors
-    uvec2 inner = {0u, 0u};
+    uvec2 isOuter = {0u, 0u};
     for (int i = 0; i < k_offsets.length(); i++){
         ivec2 posTi = pTi + k_offsets[i];
         uvec2 neighbor = uvec2(
             imageLoad(u_layerImage, ivec3(posTi, blockLoadLayer)).L_T,
             imageLoad(u_layerImage, ivec3(posTi, wallLayer)).L_T
         );
-        inner |= uvec2(isNonsolidTile(neighbor));
+        isOuter |= uvec2(isNonsolidTile(neighbor));
     }
 
     // Determine the variant
-    vec2 variantRange = mix(vec2(12.0), vec2(4.0), bvec2(inner));
-    uvec2 variantOffset = mix(uvec2(0), uvec2(12), bvec2(inner));
-    uvec2 variant = uvec2(hash22(vec2(p_.chunkTi[gl_WorkGroupID.z] + pTi)) * variantRange)
-                    + variantOffset;
+    vec2 variantRange =
+        mix(vec2(k_solidTileInnerVariantCount),
+            vec2(k_solidTileOuterVariantCount),
+            bvec2(isOuter));
+    uvec2 variantOffset =
+        mix(uvec2(0),
+            uvec2(k_solidTileInnerVariantCount),
+            bvec2(isOuter));
+    tile.yw = uvec2((vec2(tile.yw) / 256.0) * variantRange) + variantOffset;
 
     // Store the new tile
     imageStore(
         u_layerImage,
         ivec3(pTi, blockImgStoreLayer()),
-        uvec4(blockWall.x, variant.x, 0, 0)
+        tile.xyxy
     );
     imageStore(
         u_layerImage,
         ivec3(pTi, wallLayer),
-        uvec4(blockWall.y, variant.y, 0, 0)
+        tile.zwzw
     );
 }

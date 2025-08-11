@@ -13,10 +13,10 @@ const uvec2 k_stoneTiles[] = {
 };
 
 struct Biome {
-    uvec2 tiles;
-    vec2  elevation;//x = fixed, y = random
-    vec2  roughness;//x = fixed, y = slope-variable
-    vec2  surfaceWidth;//x = fixed, y = slope-variable
+    uvec2 tiles;        // x = block type, y = wall type
+    vec2  elevation;    // x = fixed, y = random
+    vec2  roughness;    // x = fixed, y = slope-variable
+    vec2  surfaceWidth; // x = fixed, y = slope-variable
 };
 
 //                          tile            elevation           roughness           surfaceWidth

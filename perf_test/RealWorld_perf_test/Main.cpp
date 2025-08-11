@@ -1,11 +1,11 @@
-﻿/**
+﻿/*!
  *  @author    Dubsky Tomas
  */
 #include <RealEngine/program/MainProgram.hpp>
 
-#include <RealWorld/main/MainMenuRoom.hpp>
-#include <RealWorld/main/WorldRoom.hpp>
-#include <RealWorld/main/settings/GameSettings.hpp>
+#include <RealWorld/save/WorldSaveLoader.hpp>
+
+#include <RealWorld_perf_test/TestRoom.hpp>
 
 int main(int argc, char* argv[]) {
     vk::StructureChain chain{
@@ -27,14 +27,16 @@ int main(int argc, char* argv[]) {
         vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)
     };
 
-    re::MainProgram::initialize(re::VulkanInitInfo{
-        .deviceCreateInfoChain = &chain.get<>()
+    re::MainProgram::initialize(re::MainProgramInitInfo{
+        re::VulkanInitInfo{.deviceCreateInfoChain = &chain.get<>()}
     });
+
+    rw::WorldSaveLoader::deleteWorld("test");
+    rw::WorldSaveLoader::createWorld("test", 101);
 
     rw::GameSettings gameSettings{};
 
-    auto* mainMenuRoom = re::MainProgram::addRoom<rw::MainMenuRoom>(gameSettings);
-    re::MainProgram::addRoom<rw::WorldRoom>(gameSettings);
+    auto* room = re::MainProgram::addRoom<rw::perf_test::TestRoom>(gameSettings);
 
-    return re::MainProgram::run(mainMenuRoom->name(), {});
+    return re::MainProgram::run(room->name(), {std::string{"test"}});
 }

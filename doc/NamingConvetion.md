@@ -1,6 +1,6 @@
 ## RealWorld Naming Convention
 
-RealWorld adheres to [Real Naming Convention](https://github.com/ZADNE/Real/blob/main/doc/NamingConvetion.md) which codifies naming of types, variables, files and many more.
+RealWorld adheres to [Real Naming Convention](https://github.com/ZADNE/RealEngine/blob/main/doc/NamingConvetion.md) which codifies naming of types, variables, files and many more.
 
 Naming conventions specific to RealWorld follow.
 
