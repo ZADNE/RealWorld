@@ -11,7 +11,7 @@ target_link_libraries(DataCooker
     PRIVATE
         argparse
         glm-header-only
-        RealEngine
+        RealEngine_resources
 )
 
 # Data cooking target

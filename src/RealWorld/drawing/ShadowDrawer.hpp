@@ -90,9 +90,9 @@ private:
         glm::vec2 viewSizePx;
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
-        re::Texture lightTex; ///< RGB = color of the light, A = intensity of the light
-        re::ImageView lightTexR32ImageView;
-        re::Texture transluTex; ///< R = translucency of the unit
+        re::Texture colorTex;            ///< RGB = light color, A = unused
+        re::ImageView colorTexR32ImageView;
+        re::Texture intensityTransluTex; ///< R = light intensity, G = translucency
         re::Texture shadowsTex;
         glsl::AnalysisPC analysisPC{};
         re::DescriptorSet calcInputsDS;

@@ -25,6 +25,7 @@ constexpr glm::uvec2 uTilePx = glm::uvec2(4u, 4u);
 constexpr glm::ivec2 iTilePx = uTilePx;
 constexpr glm::vec2 TilePx   = uTilePx;
 
+static_assert(uTilePx.x == uTilePx.y, "Tile must be square");
 static_assert(std::has_single_bit(uTilePx.x) && std::has_single_bit(uTilePx.y));
 
 constexpr glm::ivec2 k_tileLowZeroBits =
@@ -47,8 +48,14 @@ constexpr glm::ivec2 pxToTi(glm::ivec2 posPx) {
 constexpr glm::vec2 tiToPx(glm::vec2 posTi) {
     return posTi * TilePx;
 }
+constexpr float tiToPx(float posTi) {
+    return posTi * TilePx.x;
+}
 constexpr glm::ivec2 tiToPx(glm::ivec2 posTi) {
     return posTi << k_tileLowZeroBits;
+}
+constexpr int tiToPx(int posTi) {
+    return posTi << k_tileLowZeroBits.x;
 }
 
 constexpr uint8_t k_nonSolidsMask = 0b0001'1111;
