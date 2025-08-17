@@ -6,7 +6,7 @@ real_target_sources(RealWorld
         Chunk.hpp                   Chunk.glsl
         Generation.hpp              Generation.glsl
         Item.hpp                    
-        Light.hpp                   Light.glsl
+                                    Light.glsl
         ResourceIndex.hpp           
         Tile.hpp                    Tile.glsl
         Vegetation.hpp              Vegetation.glsl

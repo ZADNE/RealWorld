@@ -3,12 +3,13 @@
  */
 #ifndef RW_SHADOW_INPUTS_PLL_GLSL
 #define RW_SHADOW_INPUTS_PLL_GLSL
+#include <RealShaders/CppIntegration.glsl>
 
-const uint k_lightImageBinding      = 0;
-const uint k_transluImageBinding    = 1;
-const uint k_worldSamplerBinding    = 2;
-const uint k_blockLightAtlasBinding = 3;
-const uint k_wallLightAtlasBinding  = 4;
-const uint k_dynamicLightsBinding   = 5;
+constexpr uint k_lightColorImageBinding = 0;
+constexpr uint k_cdTransluImageBinding  = 1;
+constexpr uint k_worldSamplerBinding    = 2;
+constexpr uint k_blockLightAtlasBinding = 3;
+constexpr uint k_wallLightAtlasBinding  = 4;
+constexpr uint k_dynamicLightsBinding   = 5;
 
 #endif // !RW_SHADOW_INPUTS_PLL_GLSL

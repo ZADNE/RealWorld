@@ -9,15 +9,15 @@
 #include <RealWorld/drawing/shaders/calcInputsPll.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
-layout (local_size_x = k_analysisGroupSize,
-        local_size_y = k_analysisGroupSize,
+layout (local_size_x = int(k_analysisGroupSize),
+        local_size_y = int(k_analysisGroupSize),
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = k_lightImageBinding, r32ui)
-    uniform restrict writeonly uimage2D u_lightImage;
-layout (set = 0, binding = k_transluImageBinding, r8)
-    uniform restrict writeonly image2D  u_transluImage;
+layout (set = 0, binding = k_lightColorImageBinding, r32ui)
+    uniform restrict writeonly uimage2D u_lightColorImage[k_lightCellSizeCount];
+layout (set = 0, binding = k_cdTransluImageBinding, rg16f)
+    uniform restrict writeonly image2D  u_cdTransluImage[k_lightCellSizeCount];
 layout (set = 0, binding = k_worldSamplerBinding)
     uniform usampler2DArray             u_worldTex;
 layout (set = 0, binding = k_blockLightAtlasBinding)
@@ -35,8 +35,8 @@ vec4 skyLight(vec2 posTi){
 void main(){
     // Calculate position and init variables
     const ivec2 readBasePosTi = p_.analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << k_lightScaleBits);
-    vec4 light = vec4(0.0);// RGB = color of the light, A = intensity of the light
-    vec4 translu = vec4(0.0);// R = translucency of the unit
+    vec4 lightColor = vec4(0.0);// RGB = light color, A = unused
+    vec4 cdTranslu = vec4(0.0); // R = light intensity, G = translucency
 
     // Analyze the thread's area
     for (int y = 0; y < k_iLightScale; y++){
@@ -60,7 +60,7 @@ void main(){
 
     // Scale
     light *= TO_UNIT_SCALE;
-    imageStore(u_lightImage, ivec2(gl_GlobalInvocationID), uvec4(packUnorm4x8(light)));
+    imageStore(u_lightColorImage[0], ivec2(gl_GlobalInvocationID), uvec4(packUnorm4x8(light)));
     translu.r *= TO_UNIT_SCALE;
-    imageStore(u_transluImage, ivec2(gl_GlobalInvocationID), translu);
+    imageStore(u_cdTransluImage, ivec2(gl_GlobalInvocationID), translu);
 }
