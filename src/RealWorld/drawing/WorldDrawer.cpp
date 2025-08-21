@@ -8,7 +8,6 @@
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
-#include <RealWorld/constants/Light.hpp>
 #include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/WorldDrawer.hpp>
 
@@ -50,16 +49,16 @@ WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
     m_botLeftPx = botLeftPx;
     m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
     return ViewEnvelope{
-        .botLeftTi  = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi) - iChunkTi,
+        .botLeftTi = m_botLeftTi - glm::ivec2(glsl::k_lightMaxRangeTi) - iChunkTi,
         .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) +
-                      glm::ivec2(k_lightMaxRangeTi) + iChunkTi
+                      glm::ivec2(glsl::k_lightMaxRangeTi) + iChunkTi
     };
 }
 
 void WorldDrawer::beginStep(const re::CommandBuffer& cb, float timeDay) {
     m_skyLightPower = timeToSkyLightPower(timeDay);
     float skyLightPower = m_skyLightPower * m_skyLightPower * k_maxDaylightPower;
-    glm::vec4 skyLight = glm::vec4{0.0f, 0.0f, 0.0f, skyLightPower};
+    glm::vec3 skyLight = glm::vec3{skyLightPower};
     m_shadowDrawer.analyze(cb, m_botLeftTi, skyLight);
 }
 

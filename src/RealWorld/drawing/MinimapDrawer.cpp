@@ -6,7 +6,7 @@
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
-#include <RealWorld/constants/Light.hpp>
+#include <RealWorld/constants/Light.glsl.gen.hpp>
 #include <RealWorld/drawing/MinimapDrawer.hpp>
 
 namespace rw {
@@ -105,9 +105,9 @@ void MinimapDrawer::drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botL
         // View extended by light range
         addRectangle(
             static_cast<glm::ivec2>(
-                botLeftPx - tiToPx(glm::vec2{k_lightMaxRangeTi + iChunkTi})
+                botLeftPx - tiToPx(glm::vec2{glsl::k_lightMaxRangeTi + iChunkTi})
             ) & mask,
-            m_viewSizePx + tiToPx(glm::vec2{k_lightMaxRangeTi + iChunkTi}) * 2.0f
+            m_viewSizePx + tiToPx(glm::vec2{glsl::k_lightMaxRangeTi + iChunkTi}) * 2.0f
         );
     }
 

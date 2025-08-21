@@ -9,38 +9,69 @@
 #include <RealWorld/drawing/shaders/calcInputsPll.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
-layout (local_size_x = int(k_analysisGroupSize),
-        local_size_y = int(k_analysisGroupSize),
+const int k_iAnalysisGroupSize = int(k_analysisGroupSize);
+
+layout (local_size_x = k_iAnalysisGroupSize,
+        local_size_y = k_iAnalysisGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = k_lightColorImageBinding, r32ui)
-    uniform restrict writeonly uimage2D u_lightColorImage[k_lightCellSizeCount];
-layout (set = 0, binding = k_cdTransluImageBinding, rg16f)
-    uniform restrict writeonly image2D  u_cdTransluImage[k_lightCellSizeCount];
+layout (set = 0, binding = k_lightXluImageBinding, r32ui)
+    uniform restrict writeonly uimage2DArray u_lightXluImage[k_lightCellSizeCount];
 layout (set = 0, binding = k_worldSamplerBinding)
-    uniform usampler2DArray             u_worldTex;
+    uniform usampler2DArray                  u_worldTex;
 layout (set = 0, binding = k_blockLightAtlasBinding)
-    uniform sampler2D                   u_blockLightAtlas;
+    uniform sampler2D                        u_blockLightAtlas;
 layout (set = 0, binding = k_wallLightAtlasBinding)
-    uniform sampler2D                   u_wallLightAtlas;
+    uniform sampler2D                        u_wallLightAtlas;
 
-const float TO_UNIT_SCALE = 1.0 / (k_iLightScale * k_iLightScale);
+vec3 skyLight(vec2 posTi){
+    float noiseLight = max(snoise(posTi / 8.0 / k_lightMinCellTi, 13.0) / 320.0, 0.0);
+    return vec3(p_.skyLight.rgb + noiseLight);
+}
 
-vec4 skyLight(vec2 posTi){
-    float noiseLight = max(snoise(posTi * k_iLightScaleInv / 8.0, 13.0) / 320.0, 0.0);
-    return vec4(p_.skyLight.rgb, p_.skyLight.a + noiseLight);
+// Separate arrays to avoid bank conflicts
+shared float s_lightR[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
+shared float s_lightG[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
+shared float s_lightB[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
+shared float s_xlu   [k_iAnalysisGroupSize * k_iAnalysisGroupSize];
+
+void combine(inout vec4 lightXlu, vec4 lightXluIn) {
+    lightXlu.rgb += lightXluIn.rgb;
+    lightXlu.a *= lightXluIn.a;
+}
+
+void reduce2x2Area(inout vec4 lightXlu) {
+    lightXlu.rgb *= 0.5;
+    lightXlu.a = sqrt(lightXlu.a);
+}
+
+void writeToImages(ivec2 loc, uint mip, vec4 lightXlu) {
+    imageStore(u_lightXluImage[mip], ivec3(loc, 0), uvec4(packHalf2x16(lightXlu.rg)));
+    imageStore(u_lightXluImage[mip], ivec3(loc, 1), uvec4(packHalf2x16(lightXlu.ba)));
+}
+
+void writeToShared(uvec2 loc, vec4 lightXlu) {
+    uint index = loc.y * uint(k_analysisGroupSize) + loc.x;
+    s_lightR[index] = lightXlu.r;
+    s_lightG[index] = lightXlu.g;
+    s_lightB[index] = lightXlu.b;
+    s_xlu[index] = lightXlu.a;
+}
+
+vec4 readFromShared(uvec2 loc) {
+    uint index = loc.y * uint(k_analysisGroupSize) + loc.x;
+    return vec4(s_lightR[index], s_lightG[index], s_lightB[index], s_xlu[index]);
 }
 
 void main(){
     // Calculate position and init variables
-    const ivec2 readBasePosTi = p_.analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << k_lightScaleBits);
-    vec4 lightColor = vec4(0.0);// RGB = light color, A = unused
-    vec4 cdTranslu = vec4(0.0); // R = light intensity, G = translucency
+    const ivec2 readBasePosTi = p_.analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << k_lightMinCellTiBits);
+    vec4 lightXlu = vec4(0.0, 0.0, 0.0, 1.0);
 
-    // Analyze the thread's area
-    for (int y = 0; y < k_iLightScale; y++){
-        for (int x = 0; x < k_iLightScale; x++){
+    // Analyze the thread's area = minimum cell size = mip 0
+    for (int y = 0; y < k_lightMinCellTi; y++){
+        for (int x = 0; x < k_lightMinCellTi; x++){
             // Fetch the tile
             ivec2 posAt = tiToAt(readBasePosTi + ivec2(x, y), p_.worldTexMask);
             uvec2 block = texelFetch(u_worldTex, ivec3(posAt, k_blockLayer), 0).xy & 0xff;
@@ -48,19 +79,45 @@ void main(){
 
             // Process its translucency
             bool airBlock = isAirBlock(block.L_T);
-            translu.r += airBlock ? (208.0/255.0) : (150.0/255.0);
+            float tileXlu = airBlock ? (208.0/255.0) : (150.0/255.0);
 
             // Process it as a light source
-            vec4 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0);
-            vec4 wallLight = isAirWall(wall.L_T) ? skyLight(vec2(posAt)) : texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0);
-            vec4 tileLight = airBlock ? wallLight : blockLight;
-            light += tileLight;
+            vec3 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0).rgb;
+            vec3 wallLight = isAirWall(wall.L_T)
+                             ? skyLight(vec2(posAt))
+                             : texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0).rgb;
+            vec3 tileLight = airBlock ? wallLight : blockLight;
+
+            combine(lightXlu, vec4(tileLight, tileXlu));
         }
     }
 
-    // Scale
-    light *= TO_UNIT_SCALE;
-    imageStore(u_lightColorImage[0], ivec2(gl_GlobalInvocationID), uvec4(packUnorm4x8(light)));
-    translu.r *= TO_UNIT_SCALE;
-    imageStore(u_cdTransluImage, ivec2(gl_GlobalInvocationID), translu);
+    // Write mip 0
+    reduce2x2Area(lightXlu);
+    writeToShared(gl_LocalInvocationID.xy, lightXlu);
+    writeToImages(ivec2(gl_GlobalInvocationID), 0, lightXlu);
+
+    // Generate mips
+    ivec2 groupOffset = ivec2(gl_WorkGroupSize) * ivec2(gl_WorkGroupID);
+    for (int mip = 1; mip < k_lightCellSizeCount; mip++) {
+        barrier();
+        int limit = k_iAnalysisGroupSize >> mip;
+        bool act = gl_LocalInvocationID.x < limit && gl_LocalInvocationID.y < limit;
+        uvec2 sharedVarLoc = gl_LocalInvocationID.xy << mip;
+        if (act) {
+            combine(lightXlu, readFromShared(sharedVarLoc + uvec2(0, 1)));
+            combine(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 0)));
+            combine(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 1)));
+        }
+        barrier();
+        if (act) {
+            reduce2x2Area(lightXlu);
+            writeToShared(sharedVarLoc, lightXlu);
+            writeToImages(
+                (groupOffset << mip) + ivec2(gl_LocalInvocationID.xy),
+                mip,
+                lightXlu
+            );
+        }
+    }
 }

@@ -13,8 +13,8 @@ layout (local_size_x = 8,
         local_size_z = 2
 ) in;
 
-layout (set = 0, binding = k_lightColorImageBinding, r32ui)
-    uniform restrict uimage2D u_lightColorImage[k_lightCellSizeCount];
+layout (set = 0, binding = k_lightXluImageBinding, r32ui)
+    uniform restrict writeonly uimage2DArray u_lightXluImage[k_lightCellSizeCount];
 
 #if 0
 const int k_toUnitBits = k_lightScaleBits + 2;

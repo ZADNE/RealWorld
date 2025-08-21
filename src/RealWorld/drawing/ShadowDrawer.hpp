@@ -12,6 +12,7 @@
 #include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
+#include <RealWorld/constants/Light.glsl.gen.hpp>
 #include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl.gen.hpp>
 #include <RealWorld/drawing/shaders/DynamicLightsSB.glsl.gen.hpp>
@@ -37,9 +38,7 @@ public:
     /**
      * @brief Analyzes the world texture
      */
-    void analyze(
-        const re::CommandBuffer& cb, glm::ivec2 botLeftTi, const glm::vec4& skyLight
-    );
+    void analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi, glm::vec3 skyLight);
 
     /**
      * @brief Adds external light
@@ -90,9 +89,27 @@ private:
         glm::vec2 viewSizePx;
         glm::uvec3 analysisGroupCount;
         glm::uvec3 calculationGroupCount;
-        re::Texture lightColorTex;       ///< RGB = light color, A = unused
-        re::ImageView lightColorTexR32ImageView;
-        re::Texture cdTransluTex; ///< R = light intensity, G = translucency
+        /**
+         * @brief   Is the input texture for calculation of shadows
+         * @details It has two float16 channels in a texel and there are two
+         *          array layers:
+         *              1) R = red light intensity, G = green light intensity
+         *              2) R = blue light intensity, G =  translucency
+         *          The reason why four channel texture is not used is that it
+         *          also must be accessed atomically so it must have 32 bits per
+         *          texel.
+         *          The texture has the same number of mipmaps as there are
+         *          light-sweep cascades.
+         */
+        re::Texture lightXluTex;
+        /**
+         * @brief Per-mip R32Uint views of lightXluTex
+         */
+        std::array<re::ImageView, glsl::k_lightCellSizeCount> lightXluImgViews32ui;
+        /**
+         * @brief   Texture holding the calculated shadows.
+         * @details This texture is rendered stretched over the whole viewport.
+         */
         re::Texture shadowsTex;
         glsl::AnalysisPC analysisPC{};
         re::DescriptorSet calcInputsDS;

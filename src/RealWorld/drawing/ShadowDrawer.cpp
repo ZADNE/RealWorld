@@ -7,7 +7,6 @@
 
 #include <RealEngine/utility/Math.hpp>
 
-#include <RealWorld/constants/Light.glsl.gen.hpp>
 #include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.gen.hpp>
@@ -32,6 +31,7 @@ static_assert(
     std::popcount(glm::uint{k_lightMaxCellTiBits - k_lightMinCellTiBits}) + 1 ==
     k_lightCellSizeCount
 );
+static_assert(k_lightMinCellTi == 2, "Update analyzeTiles.comp -> reduce2x2Area");
 
 // constexpr int k_unitMask                = ~(k_iLightScale * iTilePx.x - 1);
 // constexpr int k_halfUnitOffset          = iTilePx.x * k_iLightScale / 2;
@@ -40,7 +40,7 @@ glm::uvec3 getAnalysisGroupCount(glm::vec2 viewSizeTi) {
     return {
         glm::ceil(
             (viewSizeTi + glm::vec2(k_lightMaxRangeTi) * 2.0f) /
-            k_analysisGroupSize / static_cast<float>(k_lightMaxCellTi)
+            k_analysisGroupSize / static_cast<float>(k_lightMinCellTi)
         ),
         1u
     };
@@ -66,10 +66,8 @@ ShadowDrawer::ShadowDrawer(
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
-                  {k_lightColorImageBinding, eStorageImage,
-                   k_lightCellSizeCount, eCompute},
-                  {k_cdTransluImageBinding, eStorageImage,
-                   k_lightCellSizeCount, eCompute},
+                  {k_lightXluImageBinding, eStorageImage, k_lightCellSizeCount,
+                   eCompute},
                   {k_worldSamplerBinding, eCombinedImageSampler, 1u, eCompute},
                   {k_blockLightAtlasBinding, eCombinedImageSampler, 1u, eCompute},
                   {k_wallLightAtlasBinding, eCombinedImageSampler, 1u, eCompute},
@@ -92,9 +90,8 @@ ShadowDrawer::ShadowDrawer(
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
-                  {0u, eCombinedImageSampler, 1u, eCompute}, // lightSampler
-                  {1u, eCombinedImageSampler, 1u, eCompute}, // transluSampler
-                  {2u, eStorageImage, 1u, eCompute},         // shadowsImage
+                  {0u, eCombinedImageSampler, 1u, eCompute}, // lightXluSampler
+                  {1u, eStorageImage, 1u, eCompute},         // shadowsImage
               }}
           }
       )
@@ -142,11 +139,11 @@ void ShadowDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
 }
 
 void ShadowDrawer::analyze(
-    const re::CommandBuffer& cb, glm::ivec2 botLeftTi, const glm::vec4& skyLight
+    const re::CommandBuffer& cb, glm::ivec2 botLeftTi, glm::vec3 skyLight
 ) {
-    m_.analysisPC.skyLight = skyLight;
+    m_.analysisPC.skyLight = glm::vec4{skyLight, 0.0f};
     m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) &
-                                     ~k_lightMaxCellTiBits;
+                                     ~k_lightMinCellTiBits;
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_calcInputsPll, 0u, *m_.calcInputsDS, {}
@@ -185,7 +182,7 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
                  A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
                  eGeneral, // Old image layout
                  eGeneral, // New image layout
-                 m_.cdTransluTex.image()
+                 m_.lightBXluTex.image()
              )}
         );
         cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
@@ -209,16 +206,7 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
                  A::eShaderSampledRead,  // Dst access mask
                  eGeneral,               // Old image layout
                  eShaderReadOnlyOptimal, // New image layout
-                 m_.lightColorTex.image()
-             ),
-             re::imageMemoryBarrier(
-                 S::eComputeShader, // Src stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-                 S::eComputeShader,      // Dst stage mask
-                 A::eShaderSampledRead,  // Dst access mask
-                 eGeneral,               // Old image layout
-                 eShaderReadOnlyOptimal, // New image layout
-                 m_.cdTransluTex.image()
+                 m_.lightXluTex.image()
              ),
              re::imageMemoryBarrier(
                  S::eVertexShader,       // Src stage mask
@@ -253,16 +241,7 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
                  A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
                  eShaderReadOnlyOptimal, // Old image layout
                  eGeneral,               // New image layout
-                 m_.lightColorTex.image()
-             ),
-             re::imageMemoryBarrier(
-                 S::eComputeShader,     // Src stage mask
-                 A::eShaderSampledRead, // Src access mask
-                 S::eComputeShader,     // Dst stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-                 eShaderReadOnlyOptimal, // Old image layout
-                 eGeneral,               // New image layout
-                 m_.cdTransluTex.image()
+                 m_.lightXluTex.image()
              ),
              re::imageMemoryBarrier(
                  S::eComputeShader,      // Src stage mask
@@ -304,17 +283,18 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     : viewSizePx(viewSizePx)
     , analysisGroupCount(getAnalysisGroupCount(viewSizeTi))
     , calculationGroupCount(getShadowsCalculationGroupCount(viewSizeTi))
-    , lightColorTex(re::TextureCreateInfo{
+    , lightXluTex(re::TextureCreateInfo{
           .flags  = vk::ImageCreateFlagBits::eMutableFormat,
-          .format = vk::Format::eR8G8B8A8Unorm,
+          .format = vk::Format::eR16G16Sfloat,
           .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
           .mipLevels = k_lightCellSizeCount,
+          .layers    = 2,
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
           .initialLayout = eGeneral,
           .pNext =
               [] {
                   constexpr static auto formats = std::to_array(
-                      {vk::Format::eR8G8B8A8Unorm, vk::Format::eR32Uint}
+                      {vk::Format::eR16G16Sfloat, vk::Format::eR32Uint}
                   );
                   constexpr static vk::ImageFormatListCreateInfo formatList{
                       formats.size(), formats.data()
@@ -322,26 +302,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
                   return &formatList;
               }(),
           .magFilter = vk::Filter::eLinear,
-          .debugName = "rw::ShadowDrawer::color"
-      })
-    , lightColorTexR32ImageView(vk::ImageViewCreateInfo{
-          {},
-          lightColorTex.image(),
-          vk::ImageViewType::e2D,
-          vk::Format::eR32Uint,
-          vk::ComponentMapping{},
-          vk::ImageSubresourceRange{
-              vk::ImageAspectFlagBits::eColor, 0, k_lightCellSizeCount, 0, 1
-          }
-      })
-    , cdTransluTex(re::TextureCreateInfo{
-          .format = vk::Format::eR16G16Sfloat,
-          .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
-          .mipLevels = k_lightCellSizeCount,
-          .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
-          .initialLayout = eGeneral,
-          .magFilter     = vk::Filter::eLinear,
-          .debugName     = "rw::ShadowDrawer::cdTranslu"
+          .debugName = "rw::ShadowDrawer::lightXluTex"
       })
     , shadowsTex(re::TextureCreateInfo{
           .extent = {glm::vec2{calculationGroupCount} * k_calcGroupSize, 1u},
@@ -368,16 +329,32 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
               static_cast<float>(k_lightMinCellTi)
           )
       ) {
+
+    // Initialize image views
+    vk::ImageViewCreateInfo imageViewCreateinfo{
+        {},
+        lightXluTex.image(),
+        vk::ImageViewType::e2DArray,
+        vk::Format::eR32Uint,
+        vk::ComponentMapping{},
+        vk::ImageSubresourceRange{
+            vk::ImageAspectFlagBits::eColor, ~0u, 1, 0, vk::RemainingArrayLayers
+        }
+    };
+    for (int i = 0; i < k_lightCellSizeCount; ++i) {
+        imageViewCreateinfo.subresourceRange.baseMipLevel = i;
+        lightXluImgViews32ui[i] = re::ImageView{imageViewCreateinfo};
+    }
+
     using enum vk::DescriptorType;
 
     // Shadow inputs descriptor set
-    calcInputsDS.write(
-        eStorageImage, k_lightColorImageBinding, 0u,
-        vk::DescriptorImageInfo{nullptr, *lightColorTexR32ImageView, eGeneral}
-    );
-    calcInputsDS.write(
-        eStorageImage, k_cdTransluImageBinding, 0u, cdTransluTex, eGeneral
-    );
+    for (int i = 0; i < k_lightCellSizeCount; ++i) {
+        calcInputsDS.write(
+            eStorageImage, k_lightXluImageBinding, i,
+            vk::DescriptorImageInfo{nullptr, *lightXluImgViews32ui[i], eGeneral}
+        );
+    }
     calcInputsDS.write(
         eCombinedImageSampler, k_blockLightAtlasBinding, 0u, blockLightAtlasTex,
         eShaderReadOnlyOptimal
@@ -390,12 +367,9 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
 
     // Calculation descriptor set
     calculationDS.write(
-        eCombinedImageSampler, 0u, 0u, lightColorTex, eShaderReadOnlyOptimal
+        eCombinedImageSampler, 0u, 0u, lightXluTex, eShaderReadOnlyOptimal
     );
-    calculationDS.write(
-        eCombinedImageSampler, 1u, 0u, cdTransluTex, eShaderReadOnlyOptimal
-    );
-    calculationDS.write(eStorageImage, 2u, 0u, shadowsTex, eGeneral);
+    calculationDS.write(eStorageImage, 1u, 0u, shadowsTex, eGeneral);
 
     // Shadow drawing descriptor set
     shadowDrawingDS.write(

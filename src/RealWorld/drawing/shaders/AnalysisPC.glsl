@@ -7,7 +7,7 @@
 
 layout (push_constant, scalar)
 uniform AnalysisPC {
-    vec4    skyLight;
+    vec4    skyLight; ///< RGB = light intensity, A = unused
     ivec2   worldTexMask;
     ivec2   analysisOffsetTi;
     ivec2   addLightOffsetPx;
