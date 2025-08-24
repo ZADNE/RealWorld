@@ -1,8 +1,6 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#include <bit>
-
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/utility/Math.hpp>
@@ -25,13 +23,12 @@ namespace rw {
 
 using namespace glsl;
 
-static_assert(k_lightMinCellTiBits + 1 == k_lightMinCellTi);
-static_assert(k_lightMaxCellTiBits + 1 == k_lightMaxCellTi);
+static_assert(1 << k_lightMinCellTiBitShift == k_lightMinCellTi);
+static_assert(1 << k_lightMaxCellTiBitShift == k_lightMaxCellTi);
 static_assert(
-    std::popcount(glm::uint{k_lightMaxCellTiBits - k_lightMinCellTiBits}) + 1 ==
-    k_lightCellSizeCount
+    static_cast<int>(k_analysisGroupSize) >= k_lightMaxCellTi / k_lightMinCellTi,
+    "Analysis group must be big enough to calculate the highest mip"
 );
-static_assert(k_lightMinCellTi == 2, "Update analyzeTiles.comp -> reduce2x2Area");
 
 // constexpr int k_unitMask                = ~(k_iLightScale * iTilePx.x - 1);
 // constexpr int k_halfUnitOffset          = iTilePx.x * k_iLightScale / 2;
@@ -143,7 +140,7 @@ void ShadowDrawer::analyze(
 ) {
     m_.analysisPC.skyLight = glm::vec4{skyLight, 0.0f};
     m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) &
-                                     ~k_lightMinCellTiBits;
+                                     ~k_lightMinCellTiMask;
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_calcInputsPll, 0u, *m_.calcInputsDS, {}

@@ -19,11 +19,11 @@ inline float linStep_x(float x){
 }
 
 inline float smoothStep_x(float x) {
-  return x * x * (3.0 - 2.0 * x);
+    return x * x * (3.0 - 2.0 * x);
 }
 
 inline float smootherStep_x(float x) {
-  return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+    return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
 }
 
 inline float linColumnValue_x(float x, float seed){
@@ -46,11 +46,11 @@ inline vec2 linStep_x_dx(float x){
 }
 
 inline vec2 smoothStep_x_dx(float x) {
-  return vec2(smoothStep_x(x), -6.0 * (x - 1.0) * x);
+    return vec2(smoothStep_x(x), -6.0 * (x - 1.0) * x);
 }
 
 inline vec2 smootherStep_x_dx(float x) {
-  return vec2(smootherStep_x(x), 30.0 * x * x * (x * (x - 2.0) + 1.0));
+    return vec2(smootherStep_x(x), 30.0 * x * x * (x * (x - 2.0) + 1.0));
 }
 
 inline vec2 linColumnValue_x_dx(float x, float seed){

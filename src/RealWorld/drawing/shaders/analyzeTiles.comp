@@ -36,12 +36,12 @@ shared float s_lightG[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_lightB[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_xlu   [k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 
-void combine(inout vec4 lightXlu, vec4 lightXluIn) {
+void combineForMip(inout vec4 lightXlu, vec4 lightXluIn) {
     lightXlu.rgb += lightXluIn.rgb;
     lightXlu.a *= lightXluIn.a;
 }
 
-void reduce2x2Area(inout vec4 lightXlu) {
+void reduceForMip(inout vec4 lightXlu) {
     lightXlu.rgb *= 0.5;
     lightXlu.a = sqrt(lightXlu.a);
 }
@@ -66,7 +66,8 @@ vec4 readFromShared(uvec2 loc) {
 
 void main(){
     // Calculate position and init variables
-    const ivec2 readBasePosTi = p_.analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << k_lightMinCellTiBits);
+    const ivec2 readBasePosTi =
+        p_.analysisOffsetTi + (ivec2(gl_GlobalInvocationID) << k_lightMinCellTiBitShift);
     vec4 lightXlu = vec4(0.0, 0.0, 0.0, 1.0);
 
     // Analyze the thread's area = minimum cell size = mip 0
@@ -79,7 +80,7 @@ void main(){
 
             // Process its translucency
             bool airBlock = isAirBlock(block.L_T);
-            float tileXlu = airBlock ? (208.0/255.0) : (150.0/255.0);
+            float tileXlu = airBlock ? 0.99 : 0.95;
 
             // Process it as a light source
             vec3 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0).rgb;
@@ -88,12 +89,12 @@ void main(){
                              : texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0).rgb;
             vec3 tileLight = airBlock ? wallLight : blockLight;
 
-            combine(lightXlu, vec4(tileLight, tileXlu));
+            lightXlu += vec4(tileLight, tileXlu);
         }
     }
+    lightXlu *= 1.0 / (k_lightMinCellTi * k_lightMinCellTi);
 
     // Write mip 0
-    reduce2x2Area(lightXlu);
     writeToShared(gl_LocalInvocationID.xy, lightXlu);
     writeToImages(ivec2(gl_GlobalInvocationID), 0, lightXlu);
 
@@ -105,13 +106,13 @@ void main(){
         bool act = gl_LocalInvocationID.x < limit && gl_LocalInvocationID.y < limit;
         uvec2 sharedVarLoc = gl_LocalInvocationID.xy << mip;
         if (act) {
-            combine(lightXlu, readFromShared(sharedVarLoc + uvec2(0, 1)));
-            combine(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 0)));
-            combine(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 1)));
+            combineForMip(lightXlu, readFromShared(sharedVarLoc + uvec2(0, 1)));
+            combineForMip(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 0)));
+            combineForMip(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 1)));
         }
         barrier();
         if (act) {
-            reduce2x2Area(lightXlu);
+            reduceForMip(lightXlu);
             writeToShared(sharedVarLoc, lightXlu);
             writeToImages(
                 (groupOffset << mip) + ivec2(gl_LocalInvocationID.xy),

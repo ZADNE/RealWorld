@@ -59,6 +59,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     int slot               = 0;
     save.inventory(slot++) = Item{ItemID::PCreativePickaxe, 1};
     save.inventory(slot++) = Item{ItemID::HCreativeHammer, 1};
+    save.inventory(slot++) = Item{ItemID::BStone, maxStack(ItemID::BStone)};
     save.inventory(slot++) = Item{ItemID::BWater, maxStack(ItemID::BWater)};
 
     return saveWorld(save, worldName, true);
