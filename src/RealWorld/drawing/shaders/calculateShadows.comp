@@ -25,13 +25,21 @@ const float k_piOver128 = 0.0245436926;
 const float k_piOver256 = 0.0122718463;
 const float k_piOver512 = 0.00613592315;
 
-const vec2 k_rayGBounds = vec2(78.0, 44.0);
-const vec2 k_rayFBounds = vec2(43.0, 22.0);
-const vec2 k_rayEBounds = vec2(21.0, 11.0);
-const vec2 k_rayDBounds = vec2(10.0,  6.0);
-const vec2 k_rayCBounds = vec2( 5.0,  3.0);
-const vec2 k_rayBBounds = vec2( 2.0,  2.0);
-const vec2 k_rayABounds = vec2( 1.0,  1.0);
+const vec2 k_rayGNearFar = vec2(44.0, 78.0);
+const vec2 k_rayFNearFar = vec2(22.0, 43.0);
+const vec2 k_rayENearFar = vec2(11.0, 21.0);
+const vec2 k_rayDNearFar = vec2( 6.0, 10.0);
+const vec2 k_rayCNearFar = vec2( 3.0,  5.0);
+const vec2 k_rayBNearFar = vec2( 2.0,  2.0);
+const vec2 k_rayANearFar = vec2( 1.0,  1.0);
+
+const int k_rayGCascade = 2;
+const int k_rayFCascade = 1;
+const int k_rayECascade = 1;
+const int k_rayDCascade = 1;
+const int k_rayCCascade = 0;
+const int k_rayBCascade = 0;
+const int k_rayACascade = 0;
 
 vec4 sampleLightXlu(vec2 uv, float cascade) {
     return vec4(
@@ -45,19 +53,20 @@ void accumulate(inout vec3 accumulated, vec2 uv, float lightMult, float cascade)
     accumulated = fma(accumulated, lightXlu.aaa, lightXlu.rgb * lightMult);
 }
 
-void ray(inout vec3 light, vec2 centerUv, vec2 dirUv, vec2 firstLast, float lightMult, int cascade) {
-    vec2 uv = centerUv + dirUv * firstLast.y;
-    for (float i = firstLast.y; i >= firstLast.x; i -= float(1 << cascade)){
+void ray(inout vec3 light, vec2 centerUv, vec2 dirUv, vec2 nearFar, float lightMult, int cascade) {
+    vec2 uv = centerUv + dirUv * nearFar.y;
+    float cascadeDiameter = float(1 << cascade);
+    for (float i = nearFar.y; i >= nearFar.x; i -= cascadeDiameter){
         accumulate(light, uv, lightMult, cascade);
-        uv -= dirUv * cascade;
+        uv -= dirUv * cascadeDiameter;
     }
 }
 
 vec3 rayFG(vec2 centerUv, float a, float lightMult) {
     vec3 light = vec3(0.0);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_rayGBounds, lightMult, 2);
-    ray(light, centerUv, dirUv, k_rayFBounds, lightMult, 1);
+    ray(light, centerUv, dirUv, k_rayGNearFar, lightMult, k_rayGCascade);
+    ray(light, centerUv, dirUv, k_rayFNearFar, lightMult, k_rayFCascade);
     return light;
 }
 
@@ -65,7 +74,7 @@ vec3 rayE(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayFG(centerUv, a - k_piOver128, lightMult * 0.5)
                  + rayFG(centerUv, a + k_piOver128, lightMult * 0.5);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_rayEBounds, lightMult, 1);
+    ray(light, centerUv, dirUv, k_rayENearFar, lightMult, k_rayECascade);
     return light;
 }
 
@@ -73,8 +82,8 @@ vec3 rayCD(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayE(centerUv, a - k_piOver64, lightMult * 0.5)
                  + rayE(centerUv, a + k_piOver64, lightMult * 0.5);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_rayDBounds, lightMult, 1);
-    ray(light, centerUv, dirUv, k_rayCBounds, lightMult, 0);
+    ray(light, centerUv, dirUv, k_rayDNearFar, lightMult, k_rayDCascade);
+    ray(light, centerUv, dirUv, k_rayCNearFar, lightMult, k_rayCCascade);
     return light;
 }
 
@@ -82,7 +91,7 @@ vec3 rayB(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayCD(centerUv, a - k_piOver32, lightMult * 0.5)
                  + rayCD(centerUv, a + k_piOver32, lightMult * 0.5);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_rayBBounds, lightMult, 0);
+    ray(light, centerUv, dirUv, k_rayBNearFar, lightMult, k_rayBCascade);
     return light;
 }
 
@@ -90,7 +99,7 @@ vec3 rayA(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayB(centerUv, a - k_piOver16, lightMult * 0.5)
                  + rayB(centerUv, a + k_piOver16, lightMult * 0.5);
     vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
-    ray(light, centerUv, dirUv, k_rayABounds, lightMult, 0);
+    ray(light, centerUv, dirUv, k_rayANearFar, lightMult, k_rayACascade);
     return light;
 }
 
