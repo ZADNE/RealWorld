@@ -80,7 +80,7 @@ void main(){
 
             // Process its translucency
             bool airBlock = isAirBlock(block.L_T);
-            float tileXlu = airBlock ? 0.99 : 0.95;
+            float tileXlu = airBlock ? 0.90 : 0.60;
 
             // Process it as a light source
             vec3 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0).rgb;
@@ -115,7 +115,7 @@ void main(){
             reduceForMip(lightXlu);
             writeToShared(sharedVarLoc, lightXlu);
             writeToImages(
-                (groupOffset << mip) + ivec2(gl_LocalInvocationID.xy),
+                (groupOffset >> mip) + ivec2(gl_LocalInvocationID.xy),
                 mip,
                 lightXlu
             );
