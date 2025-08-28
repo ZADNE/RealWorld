@@ -290,15 +290,16 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
           .initialLayout = eGeneral,
           .pNext =
               [] {
-                  constexpr static auto formats = std::to_array(
+                  constexpr static auto k_formats = std::to_array(
                       {vk::Format::eR16G16Sfloat, vk::Format::eR32Uint}
                   );
-                  constexpr static vk::ImageFormatListCreateInfo formatList{
-                      formats.size(), formats.data()
+                  constexpr static vk::ImageFormatListCreateInfo k_formatList{
+                      k_formats.size(), k_formats.data()
                   };
-                  return &formatList;
+                  return &k_formatList;
               }(),
           .magFilter = vk::Filter::eLinear,
+          .minFilter = vk::Filter::eLinear,
           .debugName = "rw::ShadowDrawer::lightXluTex"
       })
     , shadowsTex(re::TextureCreateInfo{
