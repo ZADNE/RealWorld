@@ -3,6 +3,7 @@
  */
 #version 460
 #include <RealWorld/constants/Light.glsl>
+#include <RealWorld/drawing/shaders/LightSweepPC.glsl>
 
 layout (local_size_x = int(k_calcGroupSize),
         local_size_y = int(k_calcGroupSize),
@@ -13,9 +14,6 @@ layout (set = 0, binding = 0)
     uniform sampler2DArray             u_lightXluSampler;
 layout (set = 0, binding = 1, rgba8)
     uniform restrict writeonly image2D u_shadowsImage;
-
-vec2 g_analysisUvScale = 1.0 / textureSize(u_lightXluSampler, 0).xy;
-const float k_uvOffset = float(k_lightMaxRangeTi >> k_lightMinCellTiBitShift) - 0.5;
 
 const float k_piOver4   = 0.78539816339; 
 const float k_piOver16  = 0.19634954084;
@@ -64,7 +62,7 @@ void ray(inout vec3 light, vec2 centerUv, vec2 dirUv, vec2 nearFar, float lightM
 
 vec3 rayFG(vec2 centerUv, float a, float lightMult) {
     vec3 light = vec3(0.0);
-    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
     ray(light, centerUv, dirUv, k_rayGNearFar, lightMult, k_rayGCascade);
     ray(light, centerUv, dirUv, k_rayFNearFar, lightMult, k_rayFCascade);
     return light;
@@ -73,7 +71,7 @@ vec3 rayFG(vec2 centerUv, float a, float lightMult) {
 vec3 rayE(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayFG(centerUv, a - k_piOver128, lightMult * 0.5)
                  + rayFG(centerUv, a + k_piOver128, lightMult * 0.5);
-    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
     ray(light, centerUv, dirUv, k_rayENearFar, lightMult, k_rayECascade);
     return light;
 }
@@ -81,7 +79,7 @@ vec3 rayE(vec2 centerUv, float a, float lightMult) {
 vec3 rayCD(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayE(centerUv, a - k_piOver64, lightMult * 0.5)
                  + rayE(centerUv, a + k_piOver64, lightMult * 0.5);
-    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
     ray(light, centerUv, dirUv, k_rayDNearFar, lightMult, k_rayDCascade);
     ray(light, centerUv, dirUv, k_rayCNearFar, lightMult, k_rayCCascade);
     return light;
@@ -90,7 +88,7 @@ vec3 rayCD(vec2 centerUv, float a, float lightMult) {
 vec3 rayB(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayCD(centerUv, a - k_piOver32, lightMult * 0.5)
                  + rayCD(centerUv, a + k_piOver32, lightMult * 0.5);
-    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
     ray(light, centerUv, dirUv, k_rayBNearFar, lightMult, k_rayBCascade);
     return light;
 }
@@ -98,7 +96,7 @@ vec3 rayB(vec2 centerUv, float a, float lightMult) {
 vec3 rayA(vec2 centerUv, float a, float lightMult) {
     vec3 light = rayB(centerUv, a - k_piOver16, lightMult * 0.5)
                  + rayB(centerUv, a + k_piOver16, lightMult * 0.5);
-    vec2 dirUv = vec2(cos(a), sin(a)) * g_analysisUvScale;
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
     ray(light, centerUv, dirUv, k_rayANearFar, lightMult, k_rayACascade);
     return light;
 }
@@ -116,7 +114,7 @@ void main() {
     // Calculate position and init variables
     const ivec2 ID = ivec2(gl_GlobalInvocationID);
     vec3 total = vec3(0.0);
-    const vec2 centerUv = (vec2(ID) + k_uvOffset) * g_analysisUvScale;
+    const vec2 centerUv = (vec2(ID) + p_.uvOffset) * p_.uvScale;
 
     // Eight tree-like rays, each sums 45 degrees
     for (float a = k_piOver256; a < 6.2; a += k_piOver4){

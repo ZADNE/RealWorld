@@ -10,5 +10,6 @@
         drawShadows.frag            
         drawTiles.frag              
         DynamicLightsSB.glsl        
+        LightSweepPC.glsl           
         WorldDrawingPC.glsl         
 )

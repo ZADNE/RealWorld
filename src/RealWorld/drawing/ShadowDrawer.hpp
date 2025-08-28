@@ -16,6 +16,7 @@
 #include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl.gen.hpp>
 #include <RealWorld/drawing/shaders/DynamicLightsSB.glsl.gen.hpp>
+#include <RealWorld/drawing/shaders/LightSweepPC.glsl.gen.hpp>
 #include <RealWorld/drawing/shaders/WorldDrawingPC.glsl.gen.hpp>
 
 namespace rw {
@@ -112,6 +113,7 @@ private:
          */
         re::Texture shadowsTex;
         glsl::AnalysisPC analysisPC{};
+        glsl::LightSweepPC lightSweepPC{};
         re::DescriptorSet calcInputsDS;
         re::DescriptorSet calculationDS;
         re::DescriptorSet shadowDrawingDS;

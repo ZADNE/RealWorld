@@ -29,6 +29,8 @@ static_assert(
     static_cast<int>(k_analysisGroupSize) >= k_lightMaxCellTi / k_lightMinCellTi,
     "Analysis group must be big enough to calculate the highest mip"
 );
+constexpr float k_lightSweepBaseUvOffset =
+    float(k_lightMaxRangeTi >> k_lightMinCellTiBitShift) - 0.5f;
 
 // constexpr int k_unitMask                = ~(k_iLightScale * iTilePx.x - 1);
 // constexpr int k_halfUnitOffset          = iTilePx.x * k_iLightScale / 2;
@@ -37,8 +39,8 @@ glm::uvec3 getAnalysisGroupCount(glm::vec2 viewSizeTi) {
     return {
         glm::ceil(
             (viewSizeTi + glm::vec2(k_lightMaxRangeTi) * 2.0f) /
-            k_analysisGroupSize / static_cast<float>(k_lightMinCellTi)
-        ),
+            (k_analysisGroupSize * k_lightMinCellTi * k_lightMaxCellTi)
+        ) * static_cast<float>(k_lightMaxCellTi),
         1u
     };
 }
@@ -89,7 +91,8 @@ ShadowDrawer::ShadowDrawer(
               .bindings = {{
                   {0u, eCombinedImageSampler, 1u, eCompute}, // lightXluSampler
                   {1u, eStorageImage, 1u, eCompute},         // shadowsImage
-              }}
+              }},
+              .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(glsl::LightSweepPC)}}
           }
       )
     , m_calculateShadowsPl(
@@ -140,7 +143,7 @@ void ShadowDrawer::analyze(
 ) {
     m_.analysisPC.skyLight = glm::vec4{skyLight, 0.0f};
     m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) &
-                                     ~k_lightMinCellTiMask;
+                                     ~k_lightMaxCellTiMask;
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_calcInputsPll, 0u, *m_.calcInputsDS, {}
@@ -223,6 +226,11 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, *m_calculationPll, 0u,
         *m_.calculationDS, {}
+    );
+    m_.lightSweepPC.uvOffset = glm::vec2{pxToTi(botLeftPx) & ~k_lightMaxCellTiMask} +
+                               k_lightSweepBaseUvOffset;
+    cb->pushConstants<glsl::LightSweepPC>(
+        *m_calculationPll, eCompute, 0u, m_.lightSweepPC
     );
     cb->dispatch(
         m_.calculationGroupCount.x, m_.calculationGroupCount.y,
@@ -308,6 +316,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
           .magFilter = vk::Filter::eLinear,
           .debugName = "rw::ShadowDrawer::shadows"
       })
+    , lightSweepPC{.uvScale = 1.0f / (glm::vec2{analysisGroupCount} * k_analysisGroupSize)}
     , calcInputsDS(re::DescriptorSetCreateInfo{
           .layout    = shadowInputsPll.descriptorSetLayout(0),
           .debugName = "rw::ShadowDrawer::analysis"
