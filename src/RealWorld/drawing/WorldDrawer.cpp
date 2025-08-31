@@ -47,7 +47,7 @@ void WorldDrawer::resizeView(glm::uvec2 viewSizePx) {
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
     m_botLeftPx = botLeftPx;
-    m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
+    m_botLeftTi = pxToTi(glm::ivec2{botLeftPx});
     return ViewEnvelope{
         .botLeftTi = m_botLeftTi - glm::ivec2(glsl::k_lightMaxRangeTi) - iChunkTi,
         .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) +
