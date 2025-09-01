@@ -38,9 +38,10 @@ constexpr float k_lightSweepBaseUvOffset =
 glm::uvec3 getAnalysisGroupCount(glm::vec2 viewSizeTi) {
     return {
         glm::ceil(
-            (viewSizeTi + glm::vec2(k_lightMaxRangeTi) * 2.0f) /
-            (k_analysisGroupSize * k_lightMinCellTi * k_lightMaxCellTi)
-        ) * static_cast<float>(k_lightMaxCellTi),
+            (viewSizeTi + static_cast<float>(k_lightMaxCellTi) +
+             glm::vec2(k_lightMaxRangeTi) * 2.0f) /
+            (k_analysisGroupSize * k_lightMinCellTi)
+        ),
         1u
     };
 }
@@ -141,6 +142,7 @@ void ShadowDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
 void ShadowDrawer::analyze(
     const re::CommandBuffer& cb, glm::ivec2 botLeftTi, glm::vec3 skyLight
 ) {
+    // Align analysis to a multiple of max cell size
     m_.analysisPC.skyLight = glm::vec4{skyLight, 0.0f};
     m_.analysisPC.analysisOffsetTi = (botLeftTi - glm::ivec2(k_lightMaxRangeTi)) &
                                      ~k_lightMaxCellTiMask;
@@ -227,8 +229,11 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
         vk::PipelineBindPoint::eCompute, *m_calculationPll, 0u,
         *m_.calculationDS, {}
     );
-    m_.lightSweepPC.uvOffset = glm::vec2{pxToTi(botLeftPx) & ~k_lightMaxCellTiMask} +
-                               k_lightSweepBaseUvOffset;
+    // Align in min cell sizes within max cell size
+    constexpr auto k_minInMax = (k_lightMaxCellTi / k_lightMinCellTi) - 1;
+    m_.lightSweepPC.uvOffset =
+        glm::vec2{(pxToTi(botLeftPx) >> k_lightMinCellTiBitShift) & k_minInMax} +
+        k_lightSweepBaseUvOffset;
     cb->pushConstants<glsl::LightSweepPC>(
         *m_calculationPll, eCompute, 0u, m_.lightSweepPC
     );
