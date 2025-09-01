@@ -106,13 +106,14 @@ void main(){
         bool act = gl_LocalInvocationID.x < limit && gl_LocalInvocationID.y < limit;
         uvec2 sharedVarLoc = gl_LocalInvocationID.xy << mip;
         if (act) {
+            lightXlu = readFromShared(sharedVarLoc);
             combineForMip(lightXlu, readFromShared(sharedVarLoc + uvec2(0, 1)));
             combineForMip(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 0)));
             combineForMip(lightXlu, readFromShared(sharedVarLoc + uvec2(1, 1)));
+            reduceForMip(lightXlu);
         }
         barrier();
         if (act) {
-            reduceForMip(lightXlu);
             writeToShared(sharedVarLoc, lightXlu);
             writeToImages(
                 (groupOffset >> mip) + ivec2(gl_LocalInvocationID.xy),
