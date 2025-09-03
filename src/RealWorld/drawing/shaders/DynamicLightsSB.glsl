@@ -10,7 +10,7 @@
  */
 struct DynamicLight {
     ivec2 posPx; ///< Position of the center of the light in pixels
-    uint col;    ///< RGB = color of the light, A = intensity of the light
+    uint col;    ///< rgb = color of the light, a = intensity of the light
     uint padding;
 };
 

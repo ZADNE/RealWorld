@@ -6,7 +6,7 @@
 #include <RealWorld/constants/World.glsl>
 #include <RealWorld/constants/Light.glsl>
 #include <RealWorld/generation/external_shaders/snoise.glsl>
-#include <RealWorld/drawing/shaders/calcInputsPll.glsl>
+#include <RealWorld/drawing/shaders/analysisPll.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 
 const int k_iAnalysisGroupSize = int(k_analysisGroupSize);

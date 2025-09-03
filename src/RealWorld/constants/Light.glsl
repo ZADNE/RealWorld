@@ -18,6 +18,6 @@ constexpr int k_lightMaxCellTiBitShift = 4;
 constexpr int k_lightCellSizeCount = k_lightMaxCellTiBitShift - k_lightMinCellTiBitShift + 1; 
 
 constexpr float k_analysisGroupSize = 8;
-constexpr float k_calcGroupSize     = 8;
+constexpr float k_lightSweepGroupSize = 8;
 
 #endif // !RW_LIGHT_GLSL

@@ -8,7 +8,7 @@
 #include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.gen.hpp>
-#include <RealWorld/drawing/shaders/calcInputsPll.glsl.gen.hpp>
+#include <RealWorld/drawing/shaders/analysisPll.glsl.gen.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -35,7 +35,7 @@ constexpr float k_lightSweepBaseUvOffset =
 // constexpr int k_unitMask                = ~(k_iLightScale * iTilePx.x - 1);
 // constexpr int k_halfUnitOffset          = iTilePx.x * k_iLightScale / 2;
 
-glm::uvec3 getAnalysisGroupCount(glm::vec2 viewSizeTi) {
+glm::uvec3 calcAnalysisGroupCount(glm::vec2 viewSizeTi) {
     return {
         glm::ceil(
             (viewSizeTi + static_cast<float>(k_lightMaxCellTi) +
@@ -46,10 +46,10 @@ glm::uvec3 getAnalysisGroupCount(glm::vec2 viewSizeTi) {
     };
 }
 
-glm::uvec3 getShadowsCalculationGroupCount(glm::vec2 viewSizeTi) {
+glm::uvec3 calcLightSweepGroupCount(glm::vec2 viewSizeTi) {
     return {
         glm::ceil(
-            (viewSizeTi + k_lightMinCellTi * 2.0f) / k_calcGroupSize /
+            (viewSizeTi + k_lightMinCellTi * 2.0f) / k_lightSweepGroupSize /
             static_cast<float>(k_lightMinCellTi)
         ),
         1u
@@ -62,7 +62,7 @@ ShadowDrawer::ShadowDrawer(
     glsl::WorldDrawingPC& pc
 )
     : m_pc(pc)
-    , m_calcInputsPll(
+    , m_analysisPll(
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
@@ -77,16 +77,16 @@ ShadowDrawer::ShadowDrawer(
           }
       )
     , m_analyzeTilesPl(
-          {.pipelineLayout = *m_calcInputsPll,
+          {.pipelineLayout = *m_analysisPll,
            .debugName      = "rw::ShadowDrawer::analyzeTiles"},
           {.comp = glsl::analyzeTiles_comp}
       )
     , m_addLightsPl(
-          {.pipelineLayout = *m_calcInputsPll,
+          {.pipelineLayout = *m_analysisPll,
            .debugName      = "rw::ShadowDrawer::addLights"},
           {.comp = glsl::addDynamicLights_comp}
       )
-    , m_calculationPll(
+    , m_lightSweepPll(
           {},
           re::PipelineLayoutDescription{
               .bindings = {{
@@ -96,10 +96,10 @@ ShadowDrawer::ShadowDrawer(
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(glsl::LightSweepPC)}}
           }
       )
-    , m_calculateShadowsPl(
-          {.pipelineLayout = *m_calculationPll,
+    , m_sweepLightPl(
+          {.pipelineLayout = *m_lightSweepPll,
            .debugName      = "rw::ShadowDrawer::calculateShadows"},
-          {.comp = glsl::calculateShadows_comp}
+          {.comp = glsl::sweepLight_comp}
       )
     , m_shadowDrawingPll(
           {}, {.vert = glsl::drawFullscreen_vert, .frag = glsl::drawShadows_frag}
@@ -119,9 +119,8 @@ ShadowDrawer::ShadowDrawer(
           .usage       = vk::BufferUsageFlagBits::eStorageBuffer,
           .debugName   = "rw::ShadowDrawer::lights"
       })
-    , m_(viewSizePx, viewSizeTi, m_calcInputsPll, m_calculationPll,
-         m_shadowDrawingPll, m_blockLightAtlasTex, m_wallLightAtlasTex,
-         m_lightsBuf) {
+    , m_(viewSizePx, viewSizeTi, m_analysisPll, m_lightSweepPll, m_shadowDrawingPll,
+         m_blockLightAtlasTex, m_wallLightAtlasTex, m_lightsBuf) {
 }
 
 void ShadowDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTexSize) {
@@ -134,7 +133,7 @@ void ShadowDrawer::setTarget(const re::Texture& worldTexture, glm::ivec2 worldTe
 
 void ShadowDrawer::resizeView(glm::vec2 viewSizePx, glm::ivec2 viewSizeTi) {
     m_ = ViewSizeDependent{viewSizePx,          viewSizeTi,
-                           m_calcInputsPll,     m_calculationPll,
+                           m_analysisPll,       m_lightSweepPll,
                            m_shadowDrawingPll,  m_blockLightAtlasTex,
                            m_wallLightAtlasTex, m_lightsBuf};
 }
@@ -148,9 +147,9 @@ void ShadowDrawer::analyze(
                                      ~k_lightMaxCellTiMask;
     cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_analyzeTilesPl);
     cb->bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, *m_calcInputsPll, 0u, *m_.calcInputsDS, {}
+        vk::PipelineBindPoint::eCompute, *m_analysisPll, 0u, *m_.calcInputsDS, {}
     );
-    cb->pushConstants<glsl::AnalysisPC>(*m_calcInputsPll, eCompute, 0u, m_.analysisPC);
+    cb->pushConstants<glsl::AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
     cb->dispatch(
         m_.analysisGroupCount.x, m_.analysisGroupCount.y, m_.analysisGroupCount.z
     );
@@ -167,34 +166,23 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
     if (m_.analysisPC.lightCount > 0) { // If there are any dynamic lights
 #if 0                                   // TEMP
         // Wait for the analysis to be finished
-        auto imageBarriers = std::to_array(
-            {re::imageMemoryBarrier(
-                 S::eComputeShader, // Src stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-                 S::eComputeShader, // Dst stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-                 eGeneral, // Old image layout
-                 eGeneral, // New image layout
-                 m_.colorTex.image()
-             ),
-             re::imageMemoryBarrier(
-                 S::eComputeShader, // Src stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
-                 S::eComputeShader, // Dst stage mask
-                 A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
-                 eGeneral, // Old image layout
-                 eGeneral, // New image layout
-                 m_.lightBXluTex.image()
-             )}
+        auto imageBarrier = re::imageMemoryBarrier(
+            S::eComputeShader,                              // Src stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+            S::eComputeShader,                              // Dst stage mask
+            A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
+            eGeneral,                                       // Old image layout
+            eGeneral,                                       // New image layout
+            m_.lightXluTex.image()
         );
-        cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarriers});
+        cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
         // Add dynamic lights
         m_.analysisPC.addLightOffsetPx =
             ((botLeftPx - tiToPx(k_lightMaxRangeTi)) & k_unitMask) +
             k_halfUnitOffset;
         cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
-        cb->pushConstants<glsl::AnalysisPC>(*m_calcInputsPll, eCompute, 0u, m_.analysisPC);
+        cb->pushConstants<glsl::AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
         cb->dispatch(re::ceilDiv(m_.analysisPC.lightCount, 8u), 1u, 1u);
 #endif
     }
@@ -224,22 +212,19 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
     }
 
     // Calculate shadows
-    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_calculateShadowsPl);
+    cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_sweepLightPl);
     cb->bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, *m_calculationPll, 0u,
-        *m_.calculationDS, {}
+        vk::PipelineBindPoint::eCompute, *m_lightSweepPll, 0u, *m_.calculationDS, {}
     );
     // Align in min cell sizes within max cell size
     constexpr auto k_minInMax = (k_lightMaxCellTi / k_lightMinCellTi) - 1;
     m_.lightSweepPC.uvOffset =
         glm::vec2{(pxToTi(botLeftPx) >> k_lightMinCellTiBitShift) & k_minInMax} +
         k_lightSweepBaseUvOffset;
-    cb->pushConstants<glsl::LightSweepPC>(
-        *m_calculationPll, eCompute, 0u, m_.lightSweepPC
-    );
+    cb->pushConstants<glsl::LightSweepPC>(*m_lightSweepPll, eCompute, 0u, m_.lightSweepPC);
     cb->dispatch(
-        m_.calculationGroupCount.x, m_.calculationGroupCount.y,
-        m_.calculationGroupCount.z
+        m_.lightSweepGroupCount.x, m_.lightSweepGroupCount.y,
+        m_.lightSweepGroupCount.z
     );
 
     { // Reverse layout transitions
@@ -284,15 +269,14 @@ void ShadowDrawer::draw(const re::CommandBuffer& cb, glm::vec2 botLeftPx) {
 
 ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     glm::vec2 viewSizePx, glm::ivec2 viewSizeTi,
-    const re::PipelineLayout& shadowInputsPll,
-    const re::PipelineLayout& calculationPll,
+    const re::PipelineLayout& analysisPll, const re::PipelineLayout& lightSweepPll,
     const re::PipelineLayout& shadowDrawingPll,
     const re::Texture& blockLightAtlasTex, const re::Texture& wallLightAtlasTex,
     const re::Buffer& lightsBuf
 )
     : viewSizePx(viewSizePx)
-    , analysisGroupCount(getAnalysisGroupCount(viewSizeTi))
-    , calculationGroupCount(getShadowsCalculationGroupCount(viewSizeTi))
+    , analysisGroupCount(calcAnalysisGroupCount(viewSizeTi))
+    , lightSweepGroupCount(calcLightSweepGroupCount(viewSizeTi))
     , lightXluTex(re::TextureCreateInfo{
           .flags  = vk::ImageCreateFlagBits::eMutableFormat,
           .format = vk::Format::eR16G16Sfloat,
@@ -316,18 +300,18 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
           .debugName = "rw::ShadowDrawer::lightXluTex"
       })
     , shadowsTex(re::TextureCreateInfo{
-          .extent = {glm::vec2{calculationGroupCount} * k_calcGroupSize, 1u},
+          .extent = {glm::vec2{lightSweepGroupCount} * k_lightSweepGroupSize, 1u},
           .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
           .magFilter = vk::Filter::eLinear,
           .debugName = "rw::ShadowDrawer::shadows"
       })
     , lightSweepPC{.uvScale = 1.0f / (glm::vec2{analysisGroupCount} * k_analysisGroupSize)}
     , calcInputsDS(re::DescriptorSetCreateInfo{
-          .layout    = shadowInputsPll.descriptorSetLayout(0),
+          .layout    = analysisPll.descriptorSetLayout(0),
           .debugName = "rw::ShadowDrawer::analysis"
       })
     , calculationDS(re::DescriptorSetCreateInfo{
-          .layout    = calculationPll.descriptorSetLayout(0),
+          .layout    = lightSweepPll.descriptorSetLayout(0),
           .debugName = "rw::ShadowDrawer::calculation"
       })
     , shadowDrawingDS(re::DescriptorSetCreateInfo{
@@ -337,7 +321,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     , shadowAreaPxInv(
           glm::vec2{1.0f} /
           tiToPx(
-              glm::vec2{calculationGroupCount} * k_calcGroupSize *
+              glm::vec2{lightSweepGroupCount} * k_lightSweepGroupSize *
               static_cast<float>(k_lightMinCellTi)
           )
       ) {

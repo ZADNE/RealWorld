@@ -5,7 +5,7 @@
 #include <RealWorld/constants/Tile.glsl>
 #include <RealWorld/constants/Light.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
-#include <RealWorld/drawing/shaders/calcInputsPll.glsl>
+#include <RealWorld/drawing/shaders/analysisPll.glsl>
 #include <RealWorld/drawing/shaders/DynamicLightsSB.glsl>
 
 layout (local_size_x = 8,

@@ -65,12 +65,12 @@ private:
 
     glsl::WorldDrawingPC& m_pc;
 
-    re::PipelineLayout m_calcInputsPll;
+    re::PipelineLayout m_analysisPll;
     re::Pipeline m_analyzeTilesPl;
     re::Pipeline m_addLightsPl;
 
-    re::PipelineLayout m_calculationPll;
-    re::Pipeline m_calculateShadowsPl;
+    re::PipelineLayout m_lightSweepPll;
+    re::Pipeline m_sweepLightPl;
 
     re::PipelineLayout m_shadowDrawingPll;
     re::Pipeline m_drawShadowsPl;
@@ -80,8 +80,8 @@ private:
     struct ViewSizeDependent {
         ViewSizeDependent(
             glm::vec2 viewSizePx, glm::ivec2 viewSizeTi,
-            const re::PipelineLayout& shadowInputsPll,
-            const re::PipelineLayout& calculationPll,
+            const re::PipelineLayout& analysisPll,
+            const re::PipelineLayout& lightSweepPll,
             const re::PipelineLayout& shadowDrawingPll,
             const re::Texture& blockLightAtlasTex,
             const re::Texture& wallLightAtlasTex, const re::Buffer& lightsBuf
@@ -89,13 +89,13 @@ private:
 
         glm::vec2 viewSizePx;
         glm::uvec3 analysisGroupCount;
-        glm::uvec3 calculationGroupCount;
+        glm::uvec3 lightSweepGroupCount;
         /**
-         * @brief   Is the input texture for calculation of shadows
+         * @brief   Is the input texture for light sweep
          * @details It has two float16 channels in a texel and there are two
          *          array layers:
-         *              1) R = red light intensity, G = green light intensity
-         *              2) R = blue light intensity, G =  translucency
+         *              1) r = red light intensity, g = green light intensity
+         *              2) r = blue light intensity, g =  translucency
          *          The reason why four channel texture is not used is that it
          *          also must be accessed atomically so it must have 32 bits per
          *          texel.
