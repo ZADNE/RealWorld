@@ -25,11 +25,6 @@ layout (set = 0, binding = k_blockLightAtlasBinding)
 layout (set = 0, binding = k_wallLightAtlasBinding)
     uniform sampler2D                        u_wallLightAtlas;
 
-vec3 skyLight(vec2 posTi){
-    float noiseLight = max(snoise(posTi / 8.0 / k_lightMinCellTi, 13.0) / 320.0, 0.0);
-    return vec3(p_.skyLight.rgb + noiseLight);
-}
-
 // Separate arrays to avoid bank conflicts
 shared float s_lightR[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_lightG[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
@@ -80,12 +75,12 @@ void main(){
 
             // Process its translucency
             bool airBlock = isAirBlock(block.L_T);
-            float tileXlu = airBlock ? 0.90 : 0.60;
+            float tileXlu = airBlock ? 0.89 : 0.55;
 
             // Process it as a light source
             vec3 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0).rgb;
             vec3 wallLight = isAirWall(wall.L_T)
-                             ? skyLight(vec2(posAt))
+                             ? p_.skyLight.rgb
                              : texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0).rgb;
             vec3 tileLight = airBlock ? wallLight : blockLight;
 
