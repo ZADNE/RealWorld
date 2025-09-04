@@ -59,7 +59,7 @@ void WorldDrawer::beginStep(const re::CommandBuffer& cb, float timeDay) {
     m_skyLightPower = timeToSkyLightPower(timeDay);
     float skyLightPower = m_skyLightPower * m_skyLightPower * k_maxDaylightPower;
     glm::vec3 skyLight = glm::vec3{skyLightPower};
-    m_shadowDrawer.analyze(cb, m_botLeftTi, skyLight);
+    m_shadowDrawer.analyze(cb, m_botLeftTi, glm::vec3{timeDay});
 }
 
 void WorldDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {

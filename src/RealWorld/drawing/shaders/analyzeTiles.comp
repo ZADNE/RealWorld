@@ -31,6 +31,28 @@ shared float s_lightG[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_lightB[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_xlu   [k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 
+#define PI 3.141592653589793f
+
+const vec3 k_skyColorScale[] = vec3[](
+    vec3(4.0f, 4.0f, 3.0f), // AM
+    vec3(3.0f, 4.0f, 4.0f)  // PM
+);
+const vec3 k_skyRange[] = vec3[](
+    vec3(0.25f, 0.25f, 0.16666f), // AM
+    vec3(0.16666f, 0.25f, 0.25f)  // PM
+);
+
+vec3 skyLight() {
+    float time = fract(p_.skyLight.r);
+    const vec3 skyColorScale = k_skyColorScale[int(time < 0.5f)];
+    const vec3 range = k_skyRange[int(time < 0.5f)];
+
+    vec3 cosine = cos(time * skyColorScale * PI - 0.5f * PI * skyColorScale) * 0.5f + 0.5f;
+    vec3 inRange = vec3(greaterThan(vec3(time), range))
+                   * vec3(lessThan(vec3(time), 1.0f - range));
+    return inRange * cosine;
+}
+
 void combineForMip(inout vec4 lightXlu, vec4 lightXluIn) {
     lightXlu.rgb += lightXluIn.rgb;
     lightXlu.a *= lightXluIn.a;
@@ -80,7 +102,7 @@ void main(){
             // Process it as a light source
             vec3 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0).rgb;
             vec3 wallLight = isAirWall(wall.L_T)
-                             ? p_.skyLight.rgb
+                             ? skyLight()
                              : texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0).rgb;
             vec3 tileLight = airBlock ? wallLight : blockLight;
 

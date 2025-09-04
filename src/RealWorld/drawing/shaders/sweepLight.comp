@@ -113,19 +113,21 @@ float correctGamma(float color) {
 void main() {
     // Calculate position and init variables
     const ivec2 ID = ivec2(gl_GlobalInvocationID);
-    vec3 total = vec3(0.0);
+    vec3 light = vec3(0.0);
     const vec2 centerUv = (vec2(ID) + p_.uvOffset) * p_.uvScale;
 
     // Eight tree-like rays, each sums 45 degrees
     for (float a = k_piOver256; a < 6.2; a += k_piOver4){
-        total += rayA(centerUv, a, 16.0);
+        light += rayA(centerUv, a, 16.0);
     }
 
     // The center unit
-    total += sampleLightXlu(centerUv, 0.0).rgb;
+    light += sampleLightXlu(centerUv, 0.0).rgb;
 
-    float intensity = total.x + total.y + total.z;
+    float intensity = light.x + light.y + light.z;
+    float avg = intensity * 0.3333333;
+    vec3 diff = max(light - avg, 0.0);
 
-    vec4 final = vec4(0.0, 0.0, 0.0, 1.0 - correctGamma(tonemap(intensity)));
+    vec4 final = vec4(diff, 1.0 - correctGamma(tonemap(intensity)));
     imageStore(u_shadowsImage, ID, final);
 }
