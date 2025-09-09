@@ -15,7 +15,7 @@
 #include <RealWorld/constants/Light.glsl.gen.hpp>
 #include <RealWorld/constants/ResourceIndex.hpp>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl.gen.hpp>
-#include <RealWorld/drawing/shaders/DynamicLightsSB.glsl.gen.hpp>
+#include <RealWorld/drawing/shaders/ExternalLightsSB.glsl.gen.hpp>
 #include <RealWorld/drawing/shaders/LightSweepPC.glsl.gen.hpp>
 #include <RealWorld/drawing/shaders/WorldDrawingPC.glsl.gen.hpp>
 
@@ -42,10 +42,10 @@ public:
     void analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi, glm::vec3 skyLight);
 
     /**
-     * @brief Adds external light
+     * @brief Adds an external light
      * @note External lights have to be added between analyze() and calculate()
      */
-    void addExternalLight(glm::ivec2 posPx, re::Color col);
+    void addExternalLight(glm::ivec2 posPx, glm::vec3 light);
 
     /**
      * @brief Calculates the shadows
@@ -67,7 +67,7 @@ private:
 
     re::PipelineLayout m_analysisPll;
     re::Pipeline m_analyzeTilesPl;
-    re::Pipeline m_addLightsPl;
+    re::Pipeline m_addExternalLightsPl;
 
     re::PipelineLayout m_lightSweepPll;
     re::Pipeline m_sweepLightPl;
@@ -75,7 +75,7 @@ private:
     re::PipelineLayout m_shadowDrawingPll;
     re::Pipeline m_drawShadowsPl;
 
-    re::BufferMapped<glsl::DynamicLight> m_lightsBuf;
+    re::BufferMapped<glsl::ExternalLight> m_lightsBuf;
 
     struct ViewSizeDependent {
         ViewSizeDependent(

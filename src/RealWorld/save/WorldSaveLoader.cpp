@@ -50,7 +50,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     // World info
     save.metadata.seed      = seed;
     save.metadata.worldName = worldName;
-    save.metadata.timeDay   = 0.0f;
+    save.metadata.timeDay   = 0.375f; // 9 AM
 
     // Player data
     save.player.pos = calcPlayerStartPosition(static_cast<float>(seed));

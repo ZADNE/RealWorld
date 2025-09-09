@@ -62,8 +62,8 @@ void WorldDrawer::beginStep(const re::CommandBuffer& cb, float timeDay) {
     m_shadowDrawer.analyze(cb, m_botLeftTi, glm::vec3{timeDay});
 }
 
-void WorldDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
-    m_shadowDrawer.addExternalLight(posPx, col);
+void WorldDrawer::addExternalLight(glm::ivec2 posPx, glm::vec3 light) {
+    m_shadowDrawer.addExternalLight(posPx, light);
 }
 
 void WorldDrawer::endStep(const re::CommandBuffer& cb) {

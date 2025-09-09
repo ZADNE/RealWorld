@@ -71,7 +71,7 @@ ShadowDrawer::ShadowDrawer(
                   {k_worldSamplerBinding, eCombinedImageSampler, 1u, eCompute},
                   {k_blockLightAtlasBinding, eCombinedImageSampler, 1u, eCompute},
                   {k_wallLightAtlasBinding, eCombinedImageSampler, 1u, eCompute},
-                  {k_dynamicLightsBinding, eStorageBuffer, 1u, eCompute},
+                  {k_externalLightsBinding, eStorageBuffer, 1u, eCompute},
               }},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(glsl::AnalysisPC)}}
           }
@@ -81,10 +81,10 @@ ShadowDrawer::ShadowDrawer(
            .debugName      = "rw::ShadowDrawer::analyzeTiles"},
           {.comp = glsl::analyzeTiles_comp}
       )
-    , m_addLightsPl(
+    , m_addExternalLightsPl(
           {.pipelineLayout = *m_analysisPll,
            .debugName      = "rw::ShadowDrawer::addLights"},
-          {.comp = glsl::addDynamicLights_comp}
+          {.comp = glsl::addExternalLights_comp}
       )
     , m_lightSweepPll(
           {},
@@ -114,10 +114,10 @@ ShadowDrawer::ShadowDrawer(
           {.vert = glsl::drawFullscreen_vert, .frag = glsl::drawShadows_frag}
       )
     , m_lightsBuf(re::BufferCreateInfo{
-          .allocFlags  = eMapped | eHostAccessSequentialWrite,
-          .sizeInBytes = maxNumberOfExternalLights * sizeof(glsl::DynamicLight),
-          .usage       = vk::BufferUsageFlagBits::eStorageBuffer,
-          .debugName   = "rw::ShadowDrawer::lights"
+          .allocFlags = eMapped | eHostAccessSequentialWrite,
+          .sizeInBytes = maxNumberOfExternalLights * sizeof(glsl::ExternalLight),
+          .usage     = vk::BufferUsageFlagBits::eStorageBuffer,
+          .debugName = "rw::ShadowDrawer::lights"
       })
     , m_(viewSizePx, viewSizeTi, m_analysisPll, m_lightSweepPll, m_shadowDrawingPll,
          m_blockLightAtlasTex, m_wallLightAtlasTex, m_lightsBuf) {
@@ -156,15 +156,14 @@ void ShadowDrawer::analyze(
     m_.analysisPC.lightCount = 0;
 }
 
-void ShadowDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
-    glsl::DynamicLight light{posPx, std::bit_cast<glm::uint>(col), {}};
-    std::memcpy(&m_lightsBuf[m_.analysisPC.lightCount], &light, sizeof(light));
+void ShadowDrawer::addExternalLight(glm::ivec2 posPx, glm::vec3 light) {
+    glsl::ExternalLight extLight{posPx, light.r, light.g, light.b, 0.0f};
+    std::memcpy(&m_lightsBuf[m_.analysisPC.lightCount], &extLight, sizeof(extLight));
     m_.analysisPC.lightCount++;
 }
 
 void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) {
-    if (m_.analysisPC.lightCount > 0) { // If there are any dynamic lights
-#if 0                                   // TEMP
+    if (m_.analysisPC.lightCount > 0) { // If there are any external lights
         // Wait for the analysis to be finished
         auto imageBarrier = re::imageMemoryBarrier(
             S::eComputeShader,                              // Src stage mask
@@ -178,13 +177,15 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
         cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
         // Add dynamic lights
-        m_.analysisPC.addLightOffsetPx =
+        /* m_.analysisPC.addLightOffsetPx =
             ((botLeftPx - tiToPx(k_lightMaxRangeTi)) & k_unitMask) +
-            k_halfUnitOffset;
-        cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addLightsPl);
+            k_halfUnitOffset;*/
+        cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addExternalLightsPl);
         cb->pushConstants<glsl::AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
-        cb->dispatch(re::ceilDiv(m_.analysisPC.lightCount, 8u), 1u, 1u);
-#endif
+        cb->dispatch(
+            re::ceilDiv(m_.analysisPC.lightCount, glsl::k_addExternalLightsGroupSize),
+            1u, 1u
+        );
     }
 
     { // Wait for the light and traslu texture to be written
@@ -359,7 +360,7 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
         eCombinedImageSampler, k_wallLightAtlasBinding, 0u, wallLightAtlasTex,
         eShaderReadOnlyOptimal
     );
-    calcInputsDS.write(eStorageBuffer, k_dynamicLightsBinding, 0u, lightsBuf);
+    calcInputsDS.write(eStorageBuffer, k_externalLightsBinding, 0u, lightsBuf);
 
     // Calculation descriptor set
     calculationDS.write(

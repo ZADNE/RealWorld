@@ -1,6 +1,6 @@
 ﻿real_target_sources(RealWorld
     PUBLIC
-        addDynamicLights.comp       
+        addExternalLights.comp      
         AnalysisPC.glsl             
         analysisPll.glsl            
         analyzeTiles.comp           
@@ -8,7 +8,7 @@
         drawMinimap.vert            drawMinimap.frag
         drawShadows.frag            
         drawTiles.frag              
-        DynamicLightsSB.glsl        
+        ExternalLightsSB.glsl       
         LightSweepPC.glsl           
         sweepLight.comp             
         WorldDrawingPC.glsl         

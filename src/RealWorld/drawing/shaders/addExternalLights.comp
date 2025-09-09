@@ -6,9 +6,9 @@
 #include <RealWorld/constants/Light.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
 #include <RealWorld/drawing/shaders/analysisPll.glsl>
-#include <RealWorld/drawing/shaders/DynamicLightsSB.glsl>
+#include <RealWorld/drawing/shaders/ExternalLightsSB.glsl>
 
-layout (local_size_x = 8,
+layout (local_size_x = k_addExternalLightsGroupSize,
         local_size_y = 2,
         local_size_z = 2
 ) in;

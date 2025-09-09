@@ -36,10 +36,10 @@ public:
     void beginStep(const re::CommandBuffer& cb, float timeDay);
 
     /**
-     * @brief Adds an external light into the world. Must be used between
-     * beginStep() and endStep()
+     * @brief Adds an external light into the world.
+     * @details Must be used between beginStep() and endStep()
      */
-    void addExternalLight(glm::ivec2 posPx, re::Color col);
+    void addExternalLight(glm::ivec2 posPx, glm::vec3 light);
 
     /**
      * @brief External lights have to be added between beginStep() and endStep()
