@@ -90,7 +90,7 @@ glm::uvec2 WorldDrawer::viewSizeTi(glm::vec2 viewSizePx) const {
 }
 
 float WorldDrawer::timeToSkyLightPower(float timeDay) const {
-    const float s = glm::sin(timeDay * glm::pi<float>() * 2.0f);
+    const float s = glm::sin((timeDay - 0.25f) * glm::pi<float>() * 2.0f);
     return glm::clamp(s * 0.75f + 0.5f, 0.0f, 1.0f);
 }
 

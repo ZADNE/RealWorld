@@ -106,6 +106,11 @@ float tonemap(float intensity) {
     return smoothstep(0.0, 5.0, intensity);
 }
 
+vec3 tonemapColor(vec3 light) {
+    float intenMin = min(light.x, min(light.y, light.z));
+    return smoothstep(intenMin, intenMin * 2.0f + 1.0f, light);
+}
+
 float correctGamma(float color) {
     return pow(color, 1.0/3.0);
 }
@@ -124,10 +129,8 @@ void main() {
     // The center unit
     light += sampleLightXlu(centerUv, 0.0).rgb;
 
-    float intensity = light.x + light.y + light.z;
-    float avg = intensity * 0.3333333;
-    vec3 diff = max(light - avg, 0.0);
+    float intenSum = light.x + light.y + light.z;
 
-    vec4 final = vec4(diff, 1.0 - correctGamma(tonemap(intensity)));
+    vec4 final = vec4(tonemapColor(light), 1.0 - correctGamma(tonemap(intenSum)));
     imageStore(u_shadowsImage, ID, final);
 }
