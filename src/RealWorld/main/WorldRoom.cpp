@@ -345,6 +345,7 @@ bool WorldRoom::saveWorld() {
     m_world.gatherSave(save.metadata);
     m_player.gatherSave(save.player);
     m_playerInv.gatherInventoryData(save.inventory);
+    save.metadata.timeDay = m_timeDay;
     if (!WorldSaveLoader::saveWorld(save, save.metadata.worldName, false))
         return false;
     return m_world.saveChunks(m_acb);
