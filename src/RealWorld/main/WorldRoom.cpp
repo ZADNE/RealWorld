@@ -34,7 +34,8 @@ constexpr re::RenderPassCreateInfo k_renderPassCreateInfo{
     .debugName    = "rw::WorldRoom::mainRenderpass"
 };
 
-constexpr float k_timedaySpeed = 0.00025f;
+/// 1 game day takes 24 minutes of real time
+constexpr float k_timedaySpeed = 1.0f / (24.0f * k_physicsStepsPerMinute);
 
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
     : Room(
@@ -168,8 +169,7 @@ void WorldRoom::pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) 
     }
 }
 
-void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope
-) {
+void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope) {
     auto dbg = m_acb->createDebugRegion("simulation");
 
     // Process messages from 2-previous step
