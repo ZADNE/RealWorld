@@ -10,6 +10,7 @@
         drawTiles.frag              
         ExternalLightsSB.glsl       
         LightSweepPC.glsl           
+        skyLight.glsl               
         sweepLight.comp             
         WorldDrawingPC.glsl         
 )

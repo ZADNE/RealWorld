@@ -8,6 +8,7 @@
 #include <RealWorld/generation/external_shaders/snoise.glsl>
 #include <RealWorld/drawing/shaders/analysisPll.glsl>
 #include <RealWorld/drawing/shaders/AnalysisPC.glsl>
+#include <RealWorld/drawing/shaders/skyLight.glsl>
 
 const int k_iAnalysisGroupSize = int(k_analysisGroupSize);
 
@@ -30,27 +31,6 @@ shared float s_lightR[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_lightG[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_lightB[k_iAnalysisGroupSize * k_iAnalysisGroupSize];
 shared float s_xlu   [k_iAnalysisGroupSize * k_iAnalysisGroupSize];
-
-#define PI 3.141592653589793f
-
-const vec3 k_skyColorScale[] = vec3[](
-    vec3(4.0f, 4.0f, 3.0f), // AM
-    vec3(3.0f, 4.0f, 4.0f)  // PM
-);
-const vec3 k_skyRange[] = vec3[](
-    vec3(0.25f, 0.25f, 0.16666f), // AM
-    vec3(0.16666f, 0.25f, 0.25f)  // PM
-);
-
-vec3 skyLight(float time) {
-    vec3 skyColorScale = k_skyColorScale[int(time < 0.5f)];
-    vec3 range = k_skyRange[int(time < 0.5f)];
-     
-    vec3 cosine = cos((time - 0.5f) * skyColorScale * PI) * 0.5f + 0.5f;
-    vec3 inRange = vec3(greaterThan(vec3(time), range))
-                   * vec3(lessThan(vec3(time), 1.0f - range));
-    return inRange * cosine;
-}
 
 void combineForMip(inout vec4 lightXlu, vec4 lightXluIn) {
     lightXlu.rgb += lightXluIn.rgb;

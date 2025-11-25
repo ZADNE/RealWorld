@@ -312,6 +312,7 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
         float hours   = glm::floor(glm::fract(m_timeDay) * 24.0f);
         float minutes = glm::floor(glm::fract(m_timeDay * 24.0f) * 60.0f);
         ImGui::Text("%02.f:%02.f", hours, minutes);
+        ImGui::SetNextItemWidth(800.0f);
         ImGui::SliderFloat(
             "##time", &m_timeDay, 0.0f, std::nextafter(1.0f, 0.0f), ""
         );
