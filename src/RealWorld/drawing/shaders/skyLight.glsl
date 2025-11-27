@@ -19,11 +19,11 @@ vec3 smootherStep(vec3 edge0, vec3 edge1, vec3 x) {
 
 const vec3 k_descentStart = vec3(13.5f, 13.5f, 13.5f) / 24.0f;
 const vec3 k_fromNoonToDescent = k_descentStart - 0.5f;
-const vec3 k_sunset = vec3(18.0f, 18.1f, 18.1f) / 24.0f;
+const vec3 k_sunset = vec3(18.1f, 18.0f, 18.0f) / 24.0f;
 const vec3 k_fromNoonToSunset = k_sunset - 0.5f;
 
-vec3 skyLight(float time) {
-    vec3 t = vec3(fract(time));
+vec3 skyLight(float timeD) {
+    vec3 t = vec3(fract(timeD));
     vec3 fromNoon = vec3(abs(0.5f - t));
     
     bvec3 isNight = greaterThan(fromNoon, k_fromNoonToSunset);
@@ -54,15 +54,16 @@ const vec3 k_skyFreqScale[] = vec3[](
     1.0f / (0.5f - k_skyLightRange[1])  // PM
 );
 
-vec3 skyLight(float time) {
-    vec3 skyFreqScale = k_skyFreqScale[int(time > 0.5f)];
-    vec3 range = k_skyLightRange[int(time > 0.5f)];
+vec3 skyLight(float timeD) {
+    float t = fract(timeD);
+    vec3 skyFreqScale = k_skyFreqScale[int(t > 0.5f)];
+    vec3 range = k_skyLightRange[int(t > 0.5f)];
      
-    vec3 cosine = cos((time - 0.5f) * skyFreqScale * PI * 0.5f);
+    vec3 cosine = cos((t - 0.5f) * skyFreqScale * PI * 0.5f);
     vec3 cosineSq = cosine * cosine;
     vec3 light = cosineSq * cosineSq;
-    vec3 inRange = vec3(greaterThan(vec3(time), range))
-                   * vec3(lessThan(vec3(time), 1.0f - range));
+    vec3 inRange = vec3(greaterThan(vec3(t), range))
+                   * vec3(lessThan(vec3(t), 1.0f - range));
     return inRange * light + k_backgroundLight;
 }
 

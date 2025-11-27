@@ -14,6 +14,8 @@ Variables, both in C++ and GLSL, representing measures of length use a suffix de
 * `At` stands for a position in tiles that is active, i.e. modulo-clamped to the size of the world texture
 * `Ac` stands for a position in chunks that is active
 
+For floating-point measurements of time, `D` is used to denote in-game days, ie. 0.25 means 6 AM or 0.75 means 6 PM.
+
 An example snippet which converts a position from chunks to tiles is below:
 
 ```

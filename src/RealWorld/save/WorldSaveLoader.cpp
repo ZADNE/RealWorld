@@ -50,7 +50,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     // World info
     save.metadata.seed      = seed;
     save.metadata.worldName = worldName;
-    save.metadata.timeDay   = 0.375f; // 9 AM
+    save.metadata.timeD     = 0.375f; // 9 AM
 
     // Player data
     save.player.pos = calcPlayerStartPosition(static_cast<float>(seed));
@@ -123,7 +123,7 @@ void WorldSaveLoader::loadMetadata(MetadataSave& metadata, const std::string& pa
     i >> j;
     metadata.worldName = j["world"]["name"].get<std::string>();
     metadata.seed      = j["world"]["seed"].get<int>();
-    metadata.timeDay   = j["world"]["timeDay"].get<float>();
+    metadata.timeD     = j["world"]["timeD"].get<float>();
 }
 
 void WorldSaveLoader::loadPlayer(PlayerSave& player, const std::string& path) {
@@ -178,7 +178,7 @@ void WorldSaveLoader::saveMetadata(
         {"world",
          {{"name", metadata.worldName},
           {"seed", metadata.seed},
-          {"timeDay", metadata.timeDay}}}
+          {"timeD", metadata.timeD}}}
     };
 
     std::ofstream o(path + k_worldInfoFilename, std::ofstream::trunc);

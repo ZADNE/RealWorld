@@ -103,7 +103,7 @@ private:
     WorldDrawer m_worldDrawer;
     Player m_player;
     InventoryUI m_invUI;
-    float m_timeDay    = 0.0f;
+    float m_timeD      = 0.0f; ///< Time in days
     bool m_stopDaytime = false;
 
     // Toggle states

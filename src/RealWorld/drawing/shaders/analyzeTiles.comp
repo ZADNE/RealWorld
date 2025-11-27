@@ -81,7 +81,7 @@ void main(){
             // Process it as a light source
             vec3 blockLight = texelFetch(u_blockLightAtlas, ivec2(block.yx), 0).rgb;
             vec3 wallLight = isAirWall(wall.L_T)
-                             ? skyLight(fract(p_.skyLight.r)) // TODO: rename PC
+                             ? skyLight(p_.timeD)
                              : texelFetch(u_wallLightAtlas, ivec2(wall.yx), 0).rgb;
             vec3 tileLight = airBlock ? wallLight : blockLight;
 

@@ -4,6 +4,7 @@
 #version 460
 #include <RealWorld/constants/Tile.glsl>
 #include <RealWorld/constants/World.glsl>
+#include <RealWorld/drawing/shaders/skyColor.glsl>
 #include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout (location = 0) out vec4  o_color;
@@ -30,7 +31,7 @@ void main() {
     // Calculate background color
     float t = float(pTi.y - 1024) * 0.001;
     t = clamp(1.0 - t, 0.0, 1.0);
-    vec3 background = p_.skyColor.rgb * t * t;
+    vec3 background = skyColor(p_.biomeClimate.x) * t * t;
 
     // Blend all the colors
     vec3 temp = mix(background, wallColor.rgb, wallColor.a);

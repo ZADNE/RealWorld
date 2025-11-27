@@ -39,7 +39,7 @@ public:
     /**
      * @brief Analyzes the world texture
      */
-    void analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi, glm::vec3 skyLight);
+    void analyze(const re::CommandBuffer& cb, glm::ivec2 botLeftTi, float timeD);
 
     /**
      * @brief Adds an external light

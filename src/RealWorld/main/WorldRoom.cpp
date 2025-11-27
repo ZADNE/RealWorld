@@ -207,8 +207,8 @@ void WorldRoom::analyzeWorldForDrawing() {
     auto dbg = m_acb->createDebugRegion("analysisForDrawing");
 
     // Analyze the world texture
-    m_timeDay += k_timedaySpeed * static_cast<float>(!m_stopDaytime);
-    m_worldDrawer.beginStep(*m_acb, m_timeDay);
+    m_timeD += k_timedaySpeed * static_cast<float>(!m_stopDaytime);
+    m_worldDrawer.beginStep(*m_acb, m_timeD);
 
     // Add external lights (these below are mostly for debug)
     m_worldDrawer.addExternalLight(
@@ -309,12 +309,12 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
         ImGui::SameLine();
         ImGui::ToggleButton("##stopDaytime", &m_stopDaytime);
         ImGui::SameLine();
-        float hours   = glm::floor(glm::fract(m_timeDay) * 24.0f);
-        float minutes = glm::floor(glm::fract(m_timeDay * 24.0f) * 60.0f);
+        float hours   = glm::floor(glm::fract(m_timeD) * 24.0f);
+        float minutes = glm::floor(glm::fract(m_timeD * 24.0f) * 60.0f);
         ImGui::Text("%02.f:%02.f", hours, minutes);
         ImGui::SetNextItemWidth(800.0f);
         ImGui::SliderFloat(
-            "##time", &m_timeDay, 0.0f, std::nextafter(1.0f, 0.0f), ""
+            "##time", &m_timeD, 0.0f, std::nextafter(1.0f, 0.0f), ""
         );
     }
     ImGui::End();
@@ -332,7 +332,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
         m_world.adoptSave(m_acb, save.metadata, m_gameSettings.worldTexSize());
     m_player.adoptSave(save.player, worldTex, m_gameSettings.worldTexSize());
     m_playerInv.adoptInventoryData(save.inventory);
-    m_timeDay = save.metadata.timeDay;
+    m_timeD = save.metadata.timeD;
 
     m_worldDrawer.setTarget(
         worldTex, m_gameSettings.worldTexSize() * iChunkTi,
@@ -346,7 +346,7 @@ bool WorldRoom::saveWorld() {
     m_world.gatherSave(save.metadata);
     m_player.gatherSave(save.player);
     m_playerInv.gatherInventoryData(save.inventory);
-    save.metadata.timeDay = m_timeDay;
+    save.metadata.timeD = m_timeD;
     if (!WorldSaveLoader::saveWorld(save, save.metadata.worldName, false))
         return false;
     return m_world.saveChunks(m_acb);
