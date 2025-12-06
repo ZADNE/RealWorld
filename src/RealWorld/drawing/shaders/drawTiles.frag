@@ -14,6 +14,7 @@ layout (set = 0, binding = 1) uniform sampler2D       u_blockAtlas;
 layout (set = 0, binding = 2) uniform sampler2D       u_wallAtlas;
 
 layout (location = 0) in vec2   i_offsetPx;
+layout (location = 1) in vec2   i_viewport01;
 
 void main() {
     // Calculate positions and offsets
@@ -29,9 +30,10 @@ void main() {
     vec4 wallColor = texelFetch(u_wallAtlas, ivec2(wall.yx), 0);
 
     // Calculate background color
-    float t = float(pTi.y - 1024) * 0.001;
-    t = clamp(1.0 - t, 0.0, 1.0);
-    vec3 background = skyColor(p_.biomeClimate.x) * t * t;
+    vec3 background = skyColor(
+        i_viewport01, float(pTi.y),
+        p_.biomeClimate, p_.timeD
+    );
 
     // Blend all the colors
     vec3 temp = mix(background, wallColor.rgb, wallColor.a);

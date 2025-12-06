@@ -8,6 +8,7 @@ real_target_sources(RealWorld
         Item.hpp                    
                                     Light.glsl
         ResourceIndex.hpp           
+                                    Sky.glsl
         Tile.hpp                    Tile.glsl
         Vegetation.hpp              Vegetation.glsl
         World.hpp                   World.glsl
