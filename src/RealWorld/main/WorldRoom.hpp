@@ -60,6 +60,7 @@ private:
      * world then.
      */
     bool loadWorld(const std::string& worldName);
+    bool adoptWorld(const WorldSave& save);
 
     /**
      * @brief Saves the current world. Makes no changes to the world.
@@ -67,6 +68,7 @@ private:
      * @return True if successful, false otherwise.
      */
     bool saveWorld();
+    void gatherWorld(WorldSave& save);
 
     glm::mat4 calculateWindowViewMat(glm::vec2 windowDims) const;
 

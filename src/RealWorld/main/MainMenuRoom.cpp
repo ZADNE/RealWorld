@@ -48,24 +48,28 @@ static constexpr re::RoomDisplaySettings k_initialSettings{
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings)
     : Room{k_name, k_initialSettings}
     , m_gameSettings(gameSettings)
-    , m_resolution(std::find(
-          k_resolutions.begin(), k_resolutions.end(), engine().windowDims()
-      ))
-    , m_preferredDevice(std::find(
-          m_availableDevices.begin(), m_availableDevices.end(),
-          engine().preferredDevice()
-      ))
-    , m_worldTexSize(std::find(
-          k_worldTexSizes.begin(), k_worldTexSizes.end(),
-          m_gameSettings.worldTexSize()
-      )) {
+    , m_resolution(
+          std::find(k_resolutions.begin(), k_resolutions.end(), engine().windowDims())
+      )
+    , m_preferredDevice(
+          std::find(
+              m_availableDevices.begin(), m_availableDevices.end(),
+              engine().preferredDevice()
+          )
+      )
+    , m_worldTexSize(
+          std::find(
+              k_worldTexSizes.begin(), k_worldTexSizes.end(),
+              m_gameSettings.worldTexSize()
+          )
+      ) {
 }
 
 void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
     m_menu = Main;
     WorldSaveLoader::searchSavedWorlds(m_worlds);
     m_newWorldName = "";
-    m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
+    m_newWorldSeed = static_cast<int>(time(nullptr)) & 0xffffff;
     engine().setWindowTitle("RealWorld!");
 
     try {
@@ -74,7 +78,9 @@ void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
         case TransitionArgs::EnterType::CLI:
             if (std::get<CLIArguments>(mmArgs.args).createDebugWorld) {
                 WorldSaveLoader::deleteWorld(k_debugWorldName);
-                if (WorldSaveLoader::createWorld(k_debugWorldName, m_newWorldSeed)) {
+                auto save =
+                    WorldSaveLoader::createWorld(k_debugWorldName, m_newWorldSeed);
+                if (WorldSaveLoader::saveWorld(save, true)) {
                     scheduleTransition<WorldRoom>(k_debugWorldName);
                 }
             }
@@ -159,7 +165,8 @@ void MainMenuRoom::newWorldMenu() {
     SameLine();
     InputInt("##seed", &m_newWorldSeed);
     if (Button("Create the world!") || engine().wasKeyPressed(re::Key::Return)) {
-        if (WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed)) {
+        auto save = WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed);
+        if (WorldSaveLoader::saveWorld(save, true)) {
             scheduleTransition<WorldRoom>(m_newWorldName);
         }
     }

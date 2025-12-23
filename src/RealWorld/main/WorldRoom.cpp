@@ -316,6 +316,14 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
         ImGui::SliderFloat(
             "##time", &m_timeD, 0.0f, std::nextafter(1.0f, 0.0f), ""
         );
+#if RE_BUILDING_FOR_DEBUG
+        if (ImGui::Button("To random world")) {
+            auto save = WorldSaveLoader::createWorld(
+                m_world.worldName(), static_cast<int>(time(nullptr)) & 0xffffff
+            );
+            adoptWorld(save);
+        }
+#endif RE_BUILDING_FOR_DEBUG
     }
     ImGui::End();
     ImGui::PopFont();
@@ -328,6 +336,10 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     if (!WorldSaveLoader::loadWorld(save, worldName))
         return false;
 
+    return adoptWorld(save);
+}
+
+bool WorldRoom::adoptWorld(const WorldSave& save) {
     const auto& worldTex =
         m_world.adoptSave(m_acb, save.metadata, m_gameSettings.worldTexSize());
     m_player.adoptSave(save.player, worldTex, m_gameSettings.worldTexSize());
@@ -335,7 +347,7 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     m_timeD = save.metadata.timeD;
 
     m_worldDrawer.setTarget(
-        worldTex, m_gameSettings.worldTexSize() * iChunkTi,
+        worldTex, chToTi(m_gameSettings.worldTexSize()),
         static_cast<float>(save.metadata.seed)
     );
     return true;
@@ -343,13 +355,17 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
 bool WorldRoom::saveWorld() {
     WorldSave save{};
+    gatherWorld(save);
+    if (!WorldSaveLoader::saveWorld(save, false))
+        return false;
+    return m_world.saveChunks(m_acb);
+}
+
+void WorldRoom::gatherWorld(WorldSave& save) {
     m_world.gatherSave(save.metadata);
     m_player.gatherSave(save.player);
     m_playerInv.gatherInventoryData(save.inventory);
     save.metadata.timeD = m_timeD;
-    if (!WorldSaveLoader::saveWorld(save, save.metadata.worldName, false))
-        return false;
-    return m_world.saveChunks(m_acb);
 }
 
 glm::mat4 WorldRoom::calculateWindowViewMat(glm::vec2 windowDims) const {

@@ -37,15 +37,15 @@ float calcHorizonPx(float xPx, float seed) {
     return glsl::calcHorizon(xPx, biome, seed).x;
 }
 
-glm::vec2 calcPlayerStartPosition(float seed) {
+glm::vec2 calcPlayerStartPosPx(int seed) {
     float yPx = std::numeric_limits<float>::min();
     for (float xPx : {0.0f, k_playerDimsPx.x * 0.5f, k_playerDimsPx.x}) {
-        yPx = std::max(yPx, calcHorizonPx(xPx, seed));
+        yPx = std::max(yPx, calcHorizonPx(xPx, static_cast<float>(seed)));
     }
     return glm::vec2{0.0f, yPx};
 }
 
-bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
+WorldSave WorldSaveLoader::createWorld(std::string worldName, int seed) {
     WorldSave save;
     // World info
     save.metadata.seed      = seed;
@@ -53,7 +53,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.metadata.timeD     = 0.375f; // 9 AM
 
     // Player data
-    save.player.pos = calcPlayerStartPosition(static_cast<float>(seed));
+    save.player.pos = calcPlayerStartPosPx(seed);
     save.inventory.resize(k_defaultPlayerInventorySize);
 
     int slot               = 0;
@@ -65,7 +65,7 @@ bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
     save.inventory(slot++) = Item{ItemID::BLava, maxStack(ItemID::BLava)};
     save.inventory(slot++) = Item{ItemID::BAcid, maxStack(ItemID::BAcid)};
 
-    return saveWorld(save, worldName, true);
+    return save;
 }
 
 bool WorldSaveLoader::loadWorld(WorldSave& save, const std::string& worldName) {
@@ -80,11 +80,7 @@ bool WorldSaveLoader::loadWorld(WorldSave& save, const std::string& worldName) {
     return true;
 }
 
-bool WorldSaveLoader::saveWorld(
-    const WorldSave& save, const std::string& worldName, bool creatingNew
-) {
-    if (worldName == "")
-        return false;
+bool WorldSaveLoader::saveWorld(const WorldSave& save, bool creatingNew) {
     std::string pathToFolder = s_saveFolder + '/' + save.metadata.worldName + '/';
     bool alreadyExists = std::filesystem::exists(pathToFolder);
     if (alreadyExists && creatingNew)

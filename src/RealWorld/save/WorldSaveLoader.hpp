@@ -14,15 +14,13 @@ namespace rw {
  */
 class WorldSaveLoader {
 public:
-    static bool createWorld(std::string worldName, int seed);
+    static WorldSave createWorld(std::string worldName, int seed);
 
     // Returns false if loading failed, error is printed in console
     static bool loadWorld(WorldSave& data, const std::string& worldName);
 
     // Returns false if saving failed, error is printed in console
-    static bool saveWorld(
-        const WorldSave& data, const std::string& worldName, bool creatingNew
-    );
+    static bool saveWorld(const WorldSave& data, bool creatingNew);
 
     // Returns false if the world could not be deleted
     static bool deleteWorld(const std::string& worldName);

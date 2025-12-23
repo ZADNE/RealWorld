@@ -27,12 +27,14 @@ int main(int argc, char* argv[]) {
         vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)
     };
 
-    re::MainProgram::initialize(re::MainProgramInitInfo{
-        re::VulkanInitInfo{.deviceCreateInfoChain = &chain.get<>()}
-    });
+    re::MainProgram::initialize(
+        re::MainProgramInitInfo{
+            re::VulkanInitInfo{.deviceCreateInfoChain = &chain.get<>()}
+        }
+    );
 
     rw::WorldSaveLoader::deleteWorld("test");
-    rw::WorldSaveLoader::createWorld("test", 101);
+    rw::WorldSaveLoader::saveWorld(rw::WorldSaveLoader::createWorld("test", 101), true);
 
     rw::GameSettings gameSettings{};
 
