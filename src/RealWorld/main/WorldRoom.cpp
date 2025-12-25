@@ -321,6 +321,7 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
             auto save = WorldSaveLoader::createWorld(
                 m_world.worldName(), static_cast<int>(time(nullptr)) & 0xffffff
             );
+            save.metadata.timeD = m_timeD;
             adoptWorld(save);
         }
 #endif RE_BUILDING_FOR_DEBUG
