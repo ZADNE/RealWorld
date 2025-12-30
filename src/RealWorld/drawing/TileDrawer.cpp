@@ -78,7 +78,7 @@ void TileDrawer::setTarget(
         glm::vec2(2.0f, 2.0f) /
         glm::vec2(m_pc.minimapViewMat[0][0], m_pc.minimapViewMat[1][1]);
     resizeView(viewSizePx);
-    m_seed = seed;
+    m_pc.seed = seed;
 }
 
 void TileDrawer::resizeView(glm::vec2 viewSizePx) {
@@ -93,9 +93,9 @@ void TileDrawer::resizeView(glm::vec2 viewSizePx) {
 void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx, float timeD) {
     m_pc.uvRectSize   = m_viewSizePx;
     m_pc.uvRectOffset = glm::mod(botLeftPx, TilePx);
-    m_pc.botLeftTi    = glm::ivec2(pxToTi(botLeftPx));
+    m_pc.botLeftPx    = botLeftPx - m_pc.uvRectOffset;
     m_pc.biomeClimate =
-        glsl::calcBiomeClimate(botLeftPx.x + m_viewSizePx.x * 0.5f, m_seed);
+        glsl::calcBiomeClimate(botLeftPx.x + m_viewSizePx.x * 0.5f, m_pc.seed);
     m_pc.timeD = timeD;
 
     cb->bindDescriptorSets(

@@ -19,7 +19,7 @@ struct Biome {
     vec2  surfaceWidth; // x = fixed, y = slope-variable
 };
 
-//                          tile            elevation           roughness           surfaceWidth
+//                              tile            elevation           roughness           surfaceWidth
 constexpr Biome k_mountain =    {k_coldStone,   {1000., 2000.},     {400., 250.},       {800., 200.}};
 constexpr Biome k_tundra =      {k_coldDirt,    {0., 1000.},        {0., 250.},         {50., 250.}};
 constexpr Biome k_taiga =       {k_coldGrass,   {500., 1200.},      {0., 150.},         {50., 200.}};

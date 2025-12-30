@@ -18,7 +18,8 @@ layout (location = 1) in vec2   i_viewport01;
 
 void main() {
     // Calculate positions and offsets
-    ivec2 pTi = p_.botLeftTi + pxToTi(ivec2(i_offsetPx));
+    vec2 pPx = p_.botLeftPx + i_offsetPx;
+    ivec2 pTi = pxToTi(ivec2(pPx));
 
     // Fetch the tile
     ivec2 pAt = tiToAt(pTi, p_.worldTexMask);
@@ -31,8 +32,8 @@ void main() {
 
     // Calculate background color
     vec3 background = skyColor(
-        i_viewport01, float(pTi.y),
-        p_.biomeClimate, p_.timeD
+        i_viewport01, pPx,
+        p_.biomeClimate, p_.seed, p_.timeD
     );
 
     // Blend all the colors

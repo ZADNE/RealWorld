@@ -47,7 +47,6 @@ private:
         .debugName = "rw::TileDrawer::descriptorSet"
     }};
     re::Pipeline m_drawTilesPl;
-    float m_seed{};
 
     // Minimap
     re::Pipeline m_drawMinimapPl;

@@ -69,7 +69,6 @@ void WorldDrawer::endStep(const re::CommandBuffer& cb) {
 }
 
 void WorldDrawer::drawTiles(const re::CommandBuffer& cb) {
-    // NOLINTNEXTLINE(*-magic-numbers)
     m_tileDrawer.drawTiles(cb, m_botLeftPx, m_timeD);
 }
 

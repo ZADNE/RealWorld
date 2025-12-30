@@ -4,31 +4,21 @@
 #ifndef RW_SKY_LIGHT_GLSL
 #define RW_SKY_LIGHT_GLSL
 #include <RealWorld/constants/Sky.glsl>
-
-
-/// Light that is always present
-const vec3 k_backgroundLight = vec3(0.008f, 0.020f, 0.073f) / 1024.0f;
-
-vec3 smootherStep(vec3 x) {
-    return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f);
-}
-
-vec3 smootherStep(vec3 edge0, vec3 edge1, vec3 x) {
-    return smootherStep(clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f));
-}
+#include <RealWorld/generation/external_shaders/smoothstep.glsl>
 
 vec3 skyLight(float timeD) {
-    vec3 t = vec3(fract(timeD));
-    vec3 fromNoon = vec3(abs(0.5f - t));
+    float tSd = dToSd(timeD);
 
-    bvec3 isNight = greaterThan(fromNoon, k_fromNoonToSunset);
-    bvec3 isNoon = lessThan(fromNoon, k_fromNoonToDescent);
+    float power = smootherstep_x(k_sunriseSd, k_fullSunlightSd, tSd);
 
-    vec3 smoothVal = smootherStep(k_fromNoonToSunset, k_fromNoonToDescent, fromNoon);
+    // Orange tint during sunrise and sunset
+    vec3 tint = mix(
+        vec3(1.0f),
+        k_sunsetSkyColor,
+        smoothstepFlatBump(k_sunriseSd - hToD(0.25f), k_sunriseSd + hToD(0.125f), hToD(0.5f), tSd) * 0.75f
+    );
 
-    vec3 light = mix(mix(smoothVal, vec3(1.0f), isNoon), vec3(0.0f), isNight);
-
-    return light + k_backgroundLight;
+    return vec3(power) * tint + k_backgroundLight;
 }
 
 #endif // !RW_SKY_LIGHT_GLSL
