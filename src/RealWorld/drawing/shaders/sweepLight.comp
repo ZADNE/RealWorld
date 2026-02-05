@@ -39,6 +39,8 @@ const int k_rayCCascade = 0;
 const int k_rayBCascade = 0;
 const int k_rayACascade = 0;
 
+const float k_treeRayBaseLightMult = 16.0; //< Light power multiplier at trunk
+
 vec4 sampleLightXlu(vec2 uv, float cascade) {
     return vec4(
         textureLod(u_lightXluSampler, vec3(uv, 0.0), cascade).xy,
@@ -122,12 +124,15 @@ void main() {
     const vec2 centerUv = (vec2(ID) + p_.uvOffset) * p_.uvScale;
 
     // Eight tree-like rays, each sums 45 degrees
-    for (float a = k_piOver256; a < 6.2; a += k_piOver4){
-        light += rayA(centerUv, a, 16.0);
+    {
+        float a = k_piOver256;
+        for (int i = 0; i < 8; ++i, a += k_piOver4) {
+            light += rayA(centerUv, a, k_treeRayBaseLightMult);
+        }
     }
 
     // The center unit
-    light += sampleLightXlu(centerUv, 0.0).rgb;
+    light += sampleLightXlu(centerUv, 0.0).rgb * k_treeRayBaseLightMult;
 
     float intenSum = light.x + light.y + light.z;
 
