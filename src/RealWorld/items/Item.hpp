@@ -10,7 +10,6 @@ namespace rw {
  * @brief Representes a number of item samples.
  */
 struct Item: public ItemSample {
-
     /**
      * @brief Constructs empty item
      */

@@ -1,6 +1,8 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/simulation/objects/Player.hpp>
+
 #include <glm/common.hpp>
 
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
@@ -8,7 +10,6 @@
 #include <RealEngine/graphics/synchronization/DoubleBuffered.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
-#include <RealWorld/simulation/objects/Player.hpp>
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
@@ -23,21 +24,25 @@ constexpr glm::uint k_worldTexBinding = 0;
 constexpr glm::uint k_playerBinding   = 1;
 
 Player::Player(const glsl::PlayerHitboxSB& initSb)
-    : m_hitboxBuf(re::BufferCreateInfo{
-          .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
-          .usage       = eStorageBuffer | eTransferDst | eTransferSrc,
-          .initData    = re::objectToByteSpan(initSb),
-          .debugName   = "rw::Player::hitbox"
-      })
-    , m_hitboxStageBuf(re::BufferCreateInfo{
-          .allocFlags = vma::AllocationCreateFlagBits::eMapped |
-                        vma::AllocationCreateFlagBits::eHostAccessRandom,
-          .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
-          .usage       = eTransferDst | eTransferSrc,
-          .initData    = re::objectToByteSpan(initSb),
-          .debugName   = "rw::Player::hitboxStage"
-      }) {
+    : m_hitboxBuf(
+          re::BufferCreateInfo{
+              .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+              .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
+              .usage       = eStorageBuffer | eTransferDst | eTransferSrc,
+              .initData    = re::objectToByteSpan(initSb),
+              .debugName   = "rw::Player::hitbox"
+          }
+      )
+    , m_hitboxStageBuf(
+          re::BufferCreateInfo{
+              .allocFlags = vma::AllocationCreateFlagBits::eMapped |
+                            vma::AllocationCreateFlagBits::eHostAccessRandom,
+              .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
+              .usage       = eTransferDst | eTransferSrc,
+              .initData    = re::objectToByteSpan(initSb),
+              .debugName   = "rw::Player::hitboxStage"
+          }
+      ) {
     m_descriptorSet.write(D::eStorageBuffer, k_playerBinding, 0u, m_hitboxBuf);
 }
 
@@ -57,9 +62,9 @@ void Player::adoptSave(
     );
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cb) {
         vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(glsl::PlayerHitboxSB)};
-        cb->copyBuffer2(vk::CopyBufferInfo2{
-            m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion
-        });
+        cb->copyBuffer2(
+            vk::CopyBufferInfo2{m_hitboxStageBuf.buffer(), *m_hitboxBuf, copyRegion}
+        );
     });
 }
 

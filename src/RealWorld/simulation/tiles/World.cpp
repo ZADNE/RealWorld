@@ -83,13 +83,15 @@ World::World(const re::Buffer& shaderMessageBuf)
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(glsl::WorldDynamicsPC)}}
           }
       )
-    , m_tilePropertiesBuf(re::BufferCreateInfo{
-          .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(TilePropertiesUB),
-          .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
-          .initData    = re::objectToByteSpan(k_tileProperties),
-          .debugName   = "rw::World::tileProperties"
-      }) {
+    , m_tilePropertiesBuf(
+          re::BufferCreateInfo{
+              .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+              .sizeInBytes = sizeof(TilePropertiesUB),
+              .usage       = vk::BufferUsageFlagBits::eUniformBuffer,
+              .initData    = re::objectToByteSpan(k_tileProperties),
+              .debugName   = "rw::World::tileProperties"
+          }
+      ) {
     m_simulationDS.write(eUniformBuffer, k_tilePropertiesBinding, 0, m_tilePropertiesBuf);
     m_simulationDS.write(eStorageBuffer, k_shaderMessageBinding, 0, shaderMessageBuf);
 }
@@ -130,16 +132,18 @@ const re::Texture& World::adoptSave(
     acb.track(BufferTrackName::AllocReg, vegStorage.branchAllocRegBuf);
 
     // Update chunk manager
-    auto activationBufs = m_chunkActivationMgr.setTarget(ChunkActivationMgr::TargetInfo{
-        .seed              = m_seed,
-        .folderPath        = save.path,
-        .worldTex          = m_worldTex,
-        .worldTexCh        = worldTexSizeCh,
-        .descriptorSet     = m_simulationDS,
-        .bodiesBuf         = bodiesBuf,
-        .branchBuf         = vegStorage.branchBuf,
-        .branchAllocRegBuf = vegStorage.branchAllocRegBuf
-    });
+    auto activationBufs = m_chunkActivationMgr.setTarget(
+        ChunkActivationMgr::TargetInfo{
+            .seed              = m_seed,
+            .folderPath        = save.path,
+            .worldTex          = m_worldTex,
+            .worldTexCh        = worldTexSizeCh,
+            .descriptorSet     = m_simulationDS,
+            .bodiesBuf         = bodiesBuf,
+            .branchBuf         = vegStorage.branchBuf,
+            .branchAllocRegBuf = vegStorage.branchAllocRegBuf
+        }
+    );
     acb.track(BufferTrackName::ActiveChunks, activationBufs.activeChunksBuf);
 
     m_activeChunksBuf = &activationBufs.activeChunksBuf;

@@ -1,10 +1,10 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/main/settings/GameSettings.hpp>
+
 #include <filesystem>
 #include <fstream>
-
-#include <RealWorld/main/settings/GameSettings.hpp>
 
 #include <nlohmann/json.hpp>
 

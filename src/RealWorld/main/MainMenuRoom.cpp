@@ -1,10 +1,11 @@
 /**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/main/MainMenuRoom.hpp>
+
 #include <ctime>
 
 #include <RealWorld/main/Arguments.hpp>
-#include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/main/WorldRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 

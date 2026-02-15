@@ -2,13 +2,14 @@
  *  @author    Dubsky Tomas
  */
 
+#include <RealWorld/simulation/vegetation/VegSimulator.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
 #include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/constants/Vegetation.hpp>
 #include <RealWorld/simulation/vegetation/BranchAllocRegSB.hpp>
-#include <RealWorld/simulation/vegetation/VegSimulator.hpp>
 #include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl.gen.hpp>
 
 using enum vk::BufferUsageFlagBits;

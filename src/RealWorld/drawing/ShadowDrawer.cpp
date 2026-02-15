@@ -1,12 +1,13 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/drawing/ShadowDrawer.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/utility/Math.hpp>
 
 #include <RealWorld/constants/Tile.hpp>
-#include <RealWorld/drawing/ShadowDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.gen.hpp>
 #include <RealWorld/drawing/shaders/analysisPll.glsl.gen.hpp>
 
@@ -110,12 +111,14 @@ ShadowDrawer::ShadowDrawer(
           },
           {.vert = glsl::drawFullscreen_vert, .frag = glsl::drawShadows_frag}
       )
-    , m_lightsBuf(re::BufferCreateInfo{
-          .allocFlags = eMapped | eHostAccessSequentialWrite,
-          .sizeInBytes = maxNumberOfExternalLights * sizeof(glsl::ExternalLight),
-          .usage     = vk::BufferUsageFlagBits::eStorageBuffer,
-          .debugName = "rw::ShadowDrawer::lights"
-      })
+    , m_lightsBuf(
+          re::BufferCreateInfo{
+              .allocFlags = eMapped | eHostAccessSequentialWrite,
+              .sizeInBytes = maxNumberOfExternalLights * sizeof(glsl::ExternalLight),
+              .usage     = vk::BufferUsageFlagBits::eStorageBuffer,
+              .debugName = "rw::ShadowDrawer::lights"
+          }
+      )
     , m_(viewSizePx, viewSizeTi, m_analysisPll, m_lightSweepPll, m_shadowDrawingPll,
          m_blockLightAtlasTex, m_wallLightAtlasTex, m_lightsBuf) {
 }
@@ -275,47 +278,59 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
     : viewSizePx(viewSizePx)
     , analysisGroupCount(calcAnalysisGroupCount(viewSizeTi))
     , lightSweepGroupCount(calcLightSweepGroupCount(viewSizeTi))
-    , lightXluTex(re::TextureCreateInfo{
-          .flags  = vk::ImageCreateFlagBits::eMutableFormat,
-          .format = vk::Format::eR16G16Sfloat,
-          .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
-          .mipLevels = k_lightCellSizeCount,
-          .layers    = 2,
-          .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
-          .initialLayout = eGeneral,
-          .pNext =
-              [] {
-                  constexpr static auto k_formats = std::to_array(
-                      {vk::Format::eR16G16Sfloat, vk::Format::eR32Uint}
-                  );
-                  constexpr static vk::ImageFormatListCreateInfo k_formatList{
-                      k_formats.size(), k_formats.data()
-                  };
-                  return &k_formatList;
-              }(),
-          .magFilter = vk::Filter::eLinear,
-          .minFilter = vk::Filter::eLinear,
-          .debugName = "rw::ShadowDrawer::lightXluTex"
-      })
-    , shadowsTex(re::TextureCreateInfo{
-          .extent = {glm::vec2{lightSweepGroupCount} * k_lightSweepGroupSize, 1u},
-          .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage,
-          .magFilter = vk::Filter::eLinear,
-          .debugName = "rw::ShadowDrawer::shadows"
-      })
+    , lightXluTex(
+          re::TextureCreateInfo{
+              .flags  = vk::ImageCreateFlagBits::eMutableFormat,
+              .format = vk::Format::eR16G16Sfloat,
+              .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
+              .mipLevels = k_lightCellSizeCount,
+              .layers    = 2,
+              .usage     = vk::ImageUsageFlagBits::eSampled |
+                       vk::ImageUsageFlagBits::eStorage,
+              .initialLayout = eGeneral,
+              .pNext =
+                  [] {
+                      constexpr static auto k_formats = std::to_array(
+                          {vk::Format::eR16G16Sfloat, vk::Format::eR32Uint}
+                      );
+                      constexpr static vk::ImageFormatListCreateInfo k_formatList{
+                          k_formats.size(), k_formats.data()
+                      };
+                      return &k_formatList;
+                  }(),
+              .magFilter = vk::Filter::eLinear,
+              .minFilter = vk::Filter::eLinear,
+              .debugName = "rw::ShadowDrawer::lightXluTex"
+          }
+      )
+    , shadowsTex(
+          re::TextureCreateInfo{
+              .extent = {glm::vec2{lightSweepGroupCount} * k_lightSweepGroupSize, 1u},
+              .usage = vk::ImageUsageFlagBits::eSampled |
+                       vk::ImageUsageFlagBits::eStorage,
+              .magFilter = vk::Filter::eLinear,
+              .debugName = "rw::ShadowDrawer::shadows"
+          }
+      )
     , lightSweepPC{.uvScale = 1.0f / (glm::vec2{analysisGroupCount} * k_analysisGroupSize)}
-    , calcInputsDS(re::DescriptorSetCreateInfo{
-          .layout    = analysisPll.descriptorSetLayout(0),
-          .debugName = "rw::ShadowDrawer::analysis"
-      })
-    , calculationDS(re::DescriptorSetCreateInfo{
-          .layout    = lightSweepPll.descriptorSetLayout(0),
-          .debugName = "rw::ShadowDrawer::calculation"
-      })
-    , shadowDrawingDS(re::DescriptorSetCreateInfo{
-          .layout    = shadowDrawingPll.descriptorSetLayout(0),
-          .debugName = "rw::ShadowDrawer::shadowDrawing"
-      })
+    , calcInputsDS(
+          re::DescriptorSetCreateInfo{
+              .layout    = analysisPll.descriptorSetLayout(0),
+              .debugName = "rw::ShadowDrawer::analysis"
+          }
+      )
+    , calculationDS(
+          re::DescriptorSetCreateInfo{
+              .layout    = lightSweepPll.descriptorSetLayout(0),
+              .debugName = "rw::ShadowDrawer::calculation"
+          }
+      )
+    , shadowDrawingDS(
+          re::DescriptorSetCreateInfo{
+              .layout    = shadowDrawingPll.descriptorSetLayout(0),
+              .debugName = "rw::ShadowDrawer::shadowDrawing"
+          }
+      )
     , shadowAreaPxInv(
           glm::vec2{1.0f} /
           tiToPx(
@@ -323,7 +338,6 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
               static_cast<float>(k_lightMinCellTi)
           )
       ) {
-
     // Initialize image views
     vk::ImageViewCreateInfo imageViewCreateinfo{
         {},

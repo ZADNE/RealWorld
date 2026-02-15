@@ -1,11 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/items/ItemUser.hpp>
+
 #include <array>
 
 #include <glm/ext/scalar_constants.hpp>
-
-#include <RealWorld/items/ItemUser.hpp>
 
 namespace rw {
 

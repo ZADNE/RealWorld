@@ -41,8 +41,9 @@ public:
     void scheduleTransition(Args&&... transitionArgs) {
         engine().scheduleRoomTransition(
             static_cast<size_t>(RoomType::k_name),
-            {std::make_any<typename RoomType::TransitionArgs>(std::forward<Args>(transitionArgs
-            )...)}
+            {std::make_any<typename RoomType::TransitionArgs>(
+                std::forward<Args>(transitionArgs)...
+            )}
         );
     }
 

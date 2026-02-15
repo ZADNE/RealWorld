@@ -29,10 +29,12 @@ int main(int argc, char* argv[]) {
         vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true)
     };
 
-    re::MainProgram::initialize(re::MainProgramInitInfo{
-        re::VulkanInitInfo{.deviceCreateInfoChain = &chain.get<>()},
-        &re::setup::k_hotReloadInitInfo
-    });
+    re::MainProgram::initialize(
+        re::MainProgramInitInfo{
+            re::VulkanInitInfo{.deviceCreateInfoChain = &chain.get<>()},
+            &re::setup::k_hotReloadInitInfo
+        }
+    );
 
     rw::GameSettings gameSettings{};
     rw::CLIArguments arguments = rw::parseArguments(argc, argv);

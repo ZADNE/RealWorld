@@ -1,11 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/items/Inventory.hpp>
+
 #include <fstream>
 
 #include <RealEngine/utility/Error.hpp>
-
-#include <RealWorld/items/Inventory.hpp>
 
 namespace rw {
 

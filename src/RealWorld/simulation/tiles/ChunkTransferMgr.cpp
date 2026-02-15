@@ -1,6 +1,8 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/simulation/tiles/ChunkTransferMgr.hpp>
+
 #include <future>
 
 #include <RealEngine/graphics/synchronization/Fence.hpp>
@@ -8,7 +10,6 @@
 
 #include <RealWorld/constants/Vegetation.hpp>
 #include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
-#include <RealWorld/simulation/tiles/ChunkTransferMgr.hpp>
 #include <RealWorld/simulation/tiles/shaders/AllShaders.gen.hpp>
 #include <RealWorld/simulation/vegetation/shaders/reallocBranches.comp.gen.hpp>
 
@@ -63,8 +64,7 @@ bool ChunkTransferMgr::saveChunks(
         std::array<std::future<void>, k_stageSlotCount> futures{};
         m_stage->forEachDownload([&](int i) {
             futures[i] = std::async(
-                std::launch::async,
-                [this, i, &stage = m_stage, &actMgr]() {
+                std::launch::async, [this, i, &stage = m_stage, &actMgr]() {
                     auto slt = stage->slot(i);
                     actMgr.saveChunk(
                         slt.targetCh, stage->tiles(i),
@@ -78,16 +78,20 @@ bool ChunkTransferMgr::saveChunks(
 
     auto recordAllPlannedDownload = [&] {
         // Download tiles
-        cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
-            worldTex.image(), vk::ImageLayout::eTransferSrcOptimal,
-            *m_stage->buffer(), m_stage->tileDownloadRegions()
-        });
+        cb->copyImageToBuffer2(
+            vk::CopyImageToBufferInfo2{
+                worldTex.image(), vk::ImageLayout::eTransferSrcOptimal,
+                *m_stage->buffer(), m_stage->tileDownloadRegions()
+            }
+        );
 
         // Download branches
         if (m_stage->numberOfBranchDownloads()) {
-            cb->copyBuffer2(vk::CopyBufferInfo2{
-                *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()
-            });
+            cb->copyBuffer2(
+                vk::CopyBufferInfo2{
+                    *branchBuf, *m_stage->buffer(), m_stage->branchDownloadRegions()
+                }
+            );
         }
     };
 
@@ -233,11 +237,13 @@ void ChunkTransferMgr::endStep(
         acb.action(
             [&](const re::CommandBuffer& cb) {
                 // Upload tiles
-                cb->copyBufferToImage2(vk::CopyBufferToImageInfo2{
-                    *m_stage->buffer(), worldTex.image(),
-                    vk::ImageLayout::eTransferDstOptimal,
-                    m_stage->tileUploadRegions()
-                });
+                cb->copyBufferToImage2(
+                    vk::CopyBufferToImageInfo2{
+                        *m_stage->buffer(), worldTex.image(),
+                        vk::ImageLayout::eTransferDstOptimal,
+                        m_stage->tileUploadRegions()
+                    }
+                );
             },
             ImageAccess{
                 .name   = ImageTrackName::World,
@@ -251,10 +257,12 @@ void ChunkTransferMgr::endStep(
             acb.action(
                 [&](const re::CommandBuffer& cb) {
                     // Upload branches
-                    cb->copyBuffer2(vk::CopyBufferInfo2{
-                        *m_stage->buffer(), *branchBuf,
-                        m_stage->branchUploadRegions()
-                    });
+                    cb->copyBuffer2(
+                        vk::CopyBufferInfo2{
+                            *m_stage->buffer(), *branchBuf,
+                            m_stage->branchUploadRegions()
+                        }
+                    );
                 },
                 BufferAccess{
                     .name   = BufferTrackName::Branch,
@@ -269,10 +277,12 @@ void ChunkTransferMgr::endStep(
         acb.action(
             [&](const re::CommandBuffer& cb) {
                 // Download tiles
-                cb->copyImageToBuffer2(vk::CopyImageToBufferInfo2{
-                    worldTex.image(), vk::ImageLayout::eTransferSrcOptimal,
-                    *m_stage->buffer(), m_stage->tileDownloadRegions()
-                });
+                cb->copyImageToBuffer2(
+                    vk::CopyImageToBufferInfo2{
+                        worldTex.image(), vk::ImageLayout::eTransferSrcOptimal,
+                        *m_stage->buffer(), m_stage->tileDownloadRegions()
+                    }
+                );
             },
             ImageAccess{
                 .name   = ImageTrackName::World,
@@ -286,10 +296,12 @@ void ChunkTransferMgr::endStep(
             acb.action(
                 [&](const re::CommandBuffer& cb) {
                     // Download branches
-                    cb->copyBuffer2(vk::CopyBufferInfo2{
-                        *branchBuf, *m_stage->buffer(),
-                        m_stage->branchDownloadRegions()
-                    });
+                    cb->copyBuffer2(
+                        vk::CopyBufferInfo2{
+                            *branchBuf, *m_stage->buffer(),
+                            m_stage->branchDownloadRegions()
+                        }
+                    );
                 },
                 BufferAccess{
                     .name   = BufferTrackName::Branch,

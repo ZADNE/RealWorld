@@ -2,11 +2,12 @@
  *  @author    Dubsky Tomas
  */
 #define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl
+#include <RealWorld/drawing/TileDrawer.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/MinimapLayout.hpp>
-#include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.gen.hpp>
 #include <RealWorld/generation/shaders/tiles/generateStructure.glsl.gen.hpp>
 

@@ -65,13 +65,15 @@ ChunkGenerator::ChunkGenerator()
           .initData    = re::objectToByteSpan(k_vegTemplatesUB),
           .debugName   = "rw::ChunkGeneratorVeg::vegTemplates"
       }}}
-    , m_vegPrepBuf(re::BufferCreateInfo{
-          .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-          .sizeInBytes = sizeof(glsl::VegPrepSB),
-          .usage     = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
-          .initData  = re::objectToByteSpan(k_vegPrepSBInitHelper),
-          .debugName = "rw::ChunkGenerator::vegPrep"
-      }) {
+    , m_vegPrepBuf(
+          re::BufferCreateInfo{
+              .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+              .sizeInBytes = sizeof(glsl::VegPrepSB),
+              .usage = B::eStorageBuffer | B::eIndirectBuffer | B::eTransferDst,
+              .initData  = re::objectToByteSpan(k_vegPrepSBInitHelper),
+              .debugName = "rw::ChunkGenerator::vegPrep"
+          }
+      ) {
     m_descriptorSet.write(eStorageImage, k_tilesImageBinding, 0, m_layerTex, eGeneral);
     m_descriptorSet.write(
         eStorageImage, k_materialImageBinding, 0, m_materialTex, eGeneral
@@ -166,8 +168,8 @@ void ChunkGenerator::copyToDestination(const ActionCmdBuf& acb) {
                 // Block layer region
                 auto layer = std::to_underlying(TileLayer::Block);
                 regions[i * k_tileLayerCount + layer] = vk::ImageCopy{
-                    {eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i, 1
-                    }, // Src subresource
+                    {eColor, 0, k_chunkGenSlots * m_genPC.storeSegment + i,
+                     1}, // Src subresource
                     vk::Offset3D{k_genBorderWidth, k_genBorderWidth, 0}, // Src offset
                     {eColor, 0, layer, 1}, // Dst subresource
                     vk::Offset3D{dstOffsetTi.x, dstOffsetTi.y, 0}, // Dst offset

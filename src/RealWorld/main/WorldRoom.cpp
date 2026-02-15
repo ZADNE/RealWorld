@@ -1,10 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/main/WorldRoom.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealWorld/main/MainMenuRoom.hpp>
-#include <RealWorld/main/WorldRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 #include <RealWorld/utility/HotReloadIdentifier.hpp>
 
@@ -54,7 +55,6 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
     , m_world(m_messageBroker.messageBuffer())
     , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
     , m_invUI(engine().windowDims()) {
-
     m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
 }
 

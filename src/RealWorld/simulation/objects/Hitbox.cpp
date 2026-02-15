@@ -1,10 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/simulation/objects/Hitbox.hpp>
+
 #include <algorithm>
 
 #include <RealWorld/constants/Tile.hpp>
-#include <RealWorld/simulation/objects/Hitbox.hpp>
 
 namespace rw {
 

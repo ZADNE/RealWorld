@@ -1,6 +1,8 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/items/InventoryUI.hpp>
+
 #include <algorithm>
 #include <string>
 
@@ -10,7 +12,6 @@
 #include <RealEngine/graphics/batches/SpriteBatch.hpp>
 
 #include <RealWorld/items/Inventory.hpp>
-#include <RealWorld/items/InventoryUI.hpp>
 #include <RealWorld/items/ItemUser.hpp>
 
 namespace rw {

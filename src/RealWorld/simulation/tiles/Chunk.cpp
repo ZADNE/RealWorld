@@ -2,6 +2,7 @@
  *  @author    Dubsky Tomas
  */
 #include <RealWorld/simulation/tiles/Chunk.hpp>
+
 #include <RealWorld/simulation/vegetation/BranchSerialized.hpp>
 
 namespace rw {

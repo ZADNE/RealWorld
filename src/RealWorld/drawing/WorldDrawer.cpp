@@ -1,6 +1,8 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/drawing/WorldDrawer.hpp>
+
 #include <glm/gtc/constants.hpp>
 #include <glm/packing.hpp>
 #include <glm/trigonometric.hpp>
@@ -9,7 +11,6 @@
 
 #include <RealWorld/constants/Chunk.hpp>
 #include <RealWorld/constants/Tile.hpp>
-#include <RealWorld/drawing/WorldDrawer.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
