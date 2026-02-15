@@ -8,7 +8,6 @@
 #include <RealEngine/graphics/descriptors/DescriptorSet.hpp>
 #include <RealEngine/graphics/pipelines/Pipeline.hpp>
 #include <RealEngine/graphics/pipelines/PipelineLayout.hpp>
-#include <RealEngine/graphics/pipelines/Vertex.hpp>
 #include <RealEngine/graphics/textures/ImageView.hpp>
 #include <RealEngine/graphics/textures/TextureShaped.hpp>
 
