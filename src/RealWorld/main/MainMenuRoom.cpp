@@ -202,7 +202,7 @@ void MainMenuRoom::displaySettingsMenu() {
 
     TextUnformatted("Fullscreen");
     SameLine();
-    if (ToggleButton("##fullscreen", &m_fullscreen)) {
+    if (Checkbox("##fullscreen", &m_fullscreen)) {
         engine().setWindowFullscreen(m_fullscreen, true);
     }
 
@@ -210,7 +210,7 @@ void MainMenuRoom::displaySettingsMenu() {
         SameLine();
         TextUnformatted("Borderless");
         SameLine();
-        if (ToggleButton("##borderless", &m_borderless)) {
+        if (Checkbox("##borderless", &m_borderless)) {
             engine().setWindowBorderless(m_borderless, true);
         }
     }
@@ -218,7 +218,7 @@ void MainMenuRoom::displaySettingsMenu() {
     SameLine();
     TextUnformatted("VSync");
     SameLine();
-    if (ToggleButton("##vSync", &m_vSync)) {
+    if (Checkbox("##vSync", &m_vSync)) {
         engine().setWindowVSync(m_vSync, true);
     }
 
@@ -249,9 +249,9 @@ void MainMenuRoom::controlsMenu() {
         "##controlsTable", 3, ImGuiTableFlags_ScrollY,
         {0.0f, windowDims().y - GetFrameHeight() * 4.125f} // NOLINT(*-magic-numbers)
     );
-    for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::Count); i++) {
+    for (size_t i = 0; i < static_cast<size_t>(KeyBinding::Count); i++) {
         PushID(static_cast<int>(i));
-        switch (static_cast<RealWorldKeyBindings>(i)) {
+        switch (static_cast<KeyBinding>(i)) {
         case InvOpenClose:       controlsCategoryHeader("Inventory"); break;
         case ItemuserUsePrimary: controlsCategoryHeader("Item usage"); break;
         case PlayerLeft:         controlsCategoryHeader("Player movement"); break;
@@ -262,21 +262,21 @@ void MainMenuRoom::controlsMenu() {
         TableNextRow();
         TableNextColumn();
 
-        TextUnformatted(k_keybindingInfo[i].desc);
+        TextUnformatted(keyBindingInfo(i).desc);
         TableNextColumn();
 
-        RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
-        if (Button(re::toString(keybinder(binding)).data())) {
-            keybinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(
+        KeyBinding binding = static_cast<KeyBinding>(i);
+        if (Button(re::toString(keyBinder(binding)).data())) {
+            keyBinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(
                 binding, *this
             );
             m_drawKeybindListeningPopup = true;
         }
 
-        if (keybinder(binding) != k_keybindingInfo[i].defaultValue) {
+        if (keyBinder(binding) != keyBindingInfo(i).defaultValue) {
             TableNextColumn();
             if (Button("Reset")) {
-                keybinder().resetBinding(static_cast<RealWorldKeyBindings>(i));
+                keyBinder().resetBinding(static_cast<KeyBinding>(i));
             }
         }
         PopID();

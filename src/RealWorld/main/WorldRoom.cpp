@@ -256,7 +256,7 @@ void WorldRoom::updateInventoryAndUI() {
 
         int slot0 = static_cast<int>(InvSlot0);
         for (int i = 0; i < m_playerInv.dims().x; ++i) {
-            if (keybindPressed(static_cast<RealWorldKeyBindings>(slot0 + i))) {
+            if (keybindPressed(static_cast<KeyBinding>(slot0 + i))) {
                 m_invUI.selectSlot(AbsolutePos, i);
             }
         }
@@ -301,13 +301,13 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
         ImGui::Separator();
         ImGui::TextUnformatted("Minimap:");
         ImGui::SameLine();
-        ImGui::ToggleButton("##minimap", &m_minimap);
+        ImGui::Checkbox("##minimap", &m_minimap);
         ImGui::TextUnformatted("Shadows:");
         ImGui::SameLine();
-        ImGui::ToggleButton("##shadows", &m_shadows);
+        ImGui::Checkbox("##shadows", &m_shadows);
         ImGui::TextUnformatted("Stop daytime:");
         ImGui::SameLine();
-        ImGui::ToggleButton("##stopDaytime", &m_stopDaytime);
+        ImGui::Checkbox("##stopDaytime", &m_stopDaytime);
         ImGui::SameLine();
         float hours   = glm::floor(glm::fract(m_timeD) * 24.0f);
         float minutes = glm::floor(glm::fract(m_timeD * 24.0f) * 60.0f);

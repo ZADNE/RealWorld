@@ -40,7 +40,7 @@ public:
     void pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) override;
 
 private:
-    using enum RealWorldKeyBindings;
+    using enum KeyBinding;
 
     void performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope);
 
