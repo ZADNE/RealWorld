@@ -81,7 +81,10 @@ private:
     };
     ActionCmdBuf m_acb;
     uint64_t m_stepN = 1;
-    re::Semaphore m_simulationFinishedSem{m_stepN};
+    re::Semaphore m_simulationFinishedSem{re::SemaphoreCreateInfo{
+        .type      = {vk::SemaphoreType::eTimeline, m_stepN},
+        .debugName = "rw::WorldRoom::simulationFinished"
+    }};
     re::SpriteBatch m_spriteBatch{re::SpriteBatchCreateInfo{
         .renderPassSubpass = mainRenderPass().subpass(0),
         .maxSprites        = 256,
