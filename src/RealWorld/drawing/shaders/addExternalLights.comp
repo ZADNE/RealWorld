@@ -14,43 +14,49 @@ layout (local_size_x = k_addExternalLightsGroupSize,
 ) in;
 
 layout (set = 0, binding = k_lightXluImageBinding, r32ui)
-    uniform restrict writeonly uimage2DArray u_lightXluImage[k_lightCellSizeCount];
+    uniform restrict uimage2DArray u_lightXluImage[k_lightCellSizeCount];
 
-#if 0
-const int k_toUnitBits = k_lightScaleBits + 2;
-const vec2 k_toUnitScale = vec2(1.0, 1.0) / k_iLightScale / TilePx;
+const int k_toUnitBits = k_lightMinCellTiBitShift + 2;
+const vec2 k_toUnitScale = vec2(1.0, 1.0) / float(k_lightMinCellTi) / TilePx;
 
 vec4 lightOfThisUnit(vec4 lightTotal, vec2 lightPosPx, vec2 relUn){
     vec2 posUnFract = fract(lightPosPx * k_toUnitScale + relUn);
     vec2 portion = vec2(1.0) - abs(posUnFract - relUn);
     return lightTotal * portion.x * portion.y;
 }
-#endif
+
+void addAtomically(
+    uint mipIndex, uint arrayIndex, ivec2 editPos, vec2 addition
+) {
+    uint last = imageLoad(u_lightXluImage[mipIndex], ivec3(editPos, arrayIndex)).r;
+    uint expected;
+    do {
+        vec2 wantedUnpacked = unpackHalf2x16(last) + addition;
+        uint wanted = packHalf2x16(wantedUnpacked);
+        expected = last;
+        last = imageAtomicCompSwap(
+            u_lightXluImage[mipIndex], ivec3(editPos, arrayIndex), expected, wanted
+        );
+    } while (last != expected);
+}
 
 void main(){
-#if 0
     if (gl_GlobalInvocationID.x < p_.lightCount){
-        DynamicLight light = b_dynamicLights.lights[gl_GlobalInvocationID.x];
+        ExternalLight light = b_externalLights.lights[gl_GlobalInvocationID.x];
         ivec2 lightPosPx = light.posPx - p_.addLightOffsetPx;
-        ivec2 lightPosUn = lightPosPx >> k_toUnitBits;
-        ivec2 editPos = lightPosUn + ivec2(gl_LocalInvocationID.yz);
+        ivec2 lightPosUn = lightPosPx >> k_lightMinCellTiBitShift;
+        ivec2 editPos = imageSize(u_lightXluImage[0]).xy / 2;//lightPosUn + ivec2(gl_LocalInvocationID.yz);
         bvec2 lowerClip = greaterThanEqual(editPos, ivec2(0));
-        bvec2 upperClip = lessThan(editPos, imageSize(u_lightColorImage));
-        if (all(bvec4(lowerClip, upperClip))){//If inside the light image
+        bvec2 upperClip = lessThan(editPos, imageSize(u_lightXluImage[0]).xy);
+        if (all(bvec4(lowerClip, upperClip))){ //If inside the light image
             vec4 dynLightUnit = lightOfThisUnit(
-                unpackUnorm4x8(light.col),
+                vec4(light.red, light.green, light.blue, light.xlu),
                 lightPosPx,
-                vec2(gl_LocalInvocationID.yz));
+                vec2(gl_LocalInvocationID.yz)
+            );
 
-            uint last = imageLoad(u_lightColorImage, editPos).r;
-            uint expected;
-            do {
-                vec4 wantedLight = unpackUnorm4x8(last) + dynLightUnit;
-                uint wanted = packUnorm4x8(wantedLight);
-                expected = last;
-                last = imageAtomicCompSwap(u_lightColorImage, editPos, expected, wanted);
-            } while (last != expected);
+            addAtomically(0, 0, editPos, dynLightUnit.rg);
+            addAtomically(0, 1, editPos, dynLightUnit.ba);
         }
     }
-#endif
 }

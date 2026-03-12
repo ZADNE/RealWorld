@@ -177,6 +177,9 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
         cb->pipelineBarrier2(vk::DependencyInfo{{}, {}, {}, imageBarrier});
 
         // Add dynamic lights
+        m_.analysisPC.addLightOffsetPx = ((botLeftPx - tiToPx(k_lightMaxRangeTi)) &
+                                          (tiToPx(k_lightMinCellTi) - 1)) +
+                                         tiToPx(k_lightMinCellTi) / 2;
         /* m_.analysisPC.addLightOffsetPx =
             ((botLeftPx - tiToPx(k_lightMaxRangeTi)) & k_unitMask) +
             k_halfUnitOffset;*/
