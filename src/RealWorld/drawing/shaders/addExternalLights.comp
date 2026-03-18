@@ -8,55 +8,60 @@
 #include <RealWorld/drawing/shaders/analysisPll.glsl>
 #include <RealWorld/drawing/shaders/ExternalLightsSB.glsl>
 
-layout (local_size_x = k_addExternalLightsGroupSize,
-        local_size_y = 2,
-        local_size_z = 2
+layout (local_size_x = 4,
+        local_size_y = k_lightCellSizeCount,
+        local_size_z = k_externalLightsPerGroup
 ) in;
 
 layout (set = 0, binding = k_lightXluImageBinding, r32ui)
     uniform restrict uimage2DArray u_lightXluImage[k_lightCellSizeCount];
 
 const int k_toUnitBits = k_lightMinCellTiBitShift + 2;
-const vec2 k_toUnitScale = vec2(1.0, 1.0) / float(k_lightMinCellTi) / TilePx;
+const float k_halfUnitOffsetPx = TilePx.x * k_lightMinCellTi / 2;
+const float k_toUnitScale = 1.0f / float(k_lightMinCellTi) / TilePx.x / (1 << (k_lightCellSizeCount - 1));
 
-vec4 lightOfThisUnit(vec4 lightTotal, vec2 lightPosPx, vec2 relUn){
-    vec2 posUnFract = fract(lightPosPx * k_toUnitScale + relUn);
-    vec2 portion = vec2(1.0) - abs(posUnFract - relUn);
+vec4 lightOfThisUnit(vec4 lightTotal, vec2 lightPosPx, uint mipLevel, vec2 quadUn){
+    float mipScale = 1 << (k_lightCellSizeCount - 1 - mipLevel);
+    vec2 posUnFract = fract(lightPosPx * k_toUnitScale * mipScale + quadUn);
+    vec2 portion = vec2(1.0) - abs(posUnFract - quadUn);
     return lightTotal * portion.x * portion.y;
 }
 
 void addAtomically(
-    uint mipIndex, uint arrayIndex, ivec2 editPos, vec2 addition
+    uint mipLevel, uint arrayIndex, ivec2 editPos, vec2 addition
 ) {
-    uint last = imageLoad(u_lightXluImage[mipIndex], ivec3(editPos, arrayIndex)).r;
+    uint last = imageLoad(u_lightXluImage[mipLevel], ivec3(editPos, arrayIndex)).r;
     uint expected;
     do {
         vec2 wantedUnpacked = unpackHalf2x16(last) + addition;
         uint wanted = packHalf2x16(wantedUnpacked);
         expected = last;
         last = imageAtomicCompSwap(
-            u_lightXluImage[mipIndex], ivec3(editPos, arrayIndex), expected, wanted
+            u_lightXluImage[mipLevel], ivec3(editPos, arrayIndex), expected, wanted
         );
     } while (last != expected);
 }
 
 void main(){
-    if (gl_GlobalInvocationID.x < p_.lightCount){
-        ExternalLight light = b_externalLights.lights[gl_GlobalInvocationID.x];
-        ivec2 lightPosPx = light.posPx - p_.addLightOffsetPx;
-        ivec2 lightPosUn = lightPosPx >> k_lightMinCellTiBitShift;
-        ivec2 editPos = imageSize(u_lightXluImage[0]).xy / 2;//lightPosUn + ivec2(gl_LocalInvocationID.yz);
-        bvec2 lowerClip = greaterThanEqual(editPos, ivec2(0));
-        bvec2 upperClip = lessThan(editPos, imageSize(u_lightXluImage[0]).xy);
+    const ivec2 quadUn = ivec2(gl_LocalInvocationID.x & 1, gl_LocalInvocationID.x >> 1);
+    const uint mipLevel = gl_GlobalInvocationID.y;
+    const uint lightIndex = gl_GlobalInvocationID.z;
+    if (lightIndex < p_.lightCount){
+        ExternalLight light = b_externalLights.lights[lightIndex];
+        vec2 lightPosPx = light.posPx - k_halfUnitOffsetPx - tiToPx(p_.analysisOffsetTi);
+        ivec2 lightPosTi = pxToTi(ivec2(lightPosPx));
+        ivec2 lightPosUn = lightPosTi >> (k_lightMinCellTiBitShift + mipLevel);
+        ivec2 editPosUn = lightPosUn + quadUn;
+        bvec2 lowerClip = greaterThanEqual(editPosUn, ivec2(0));
+        bvec2 upperClip = lessThan(editPosUn, imageSize(u_lightXluImage[mipLevel]).xy);
         if (all(bvec4(lowerClip, upperClip))){ //If inside the light image
             vec4 dynLightUnit = lightOfThisUnit(
-                vec4(light.red, light.green, light.blue, light.xlu),
-                lightPosPx,
-                vec2(gl_LocalInvocationID.yz)
+                vec4(light.red, light.green, light.blue, light.xlu) / float(1 << mipLevel),
+                lightPosPx, mipLevel, vec2(quadUn)
             );
 
-            addAtomically(0, 0, editPos, dynLightUnit.rg);
-            addAtomically(0, 1, editPos, dynLightUnit.ba);
+            addAtomically(mipLevel, 0, editPosUn, dynLightUnit.rg);
+            addAtomically(mipLevel, 1, editPosUn, dynLightUnit.ba);
         }
     }
 }

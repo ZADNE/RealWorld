@@ -39,7 +39,7 @@ const int k_rayCCascade = 0;
 const int k_rayBCascade = 0;
 const int k_rayACascade = 0;
 
-const float k_treeRayBaseLightMult = 16.0; //< Light power multiplier at trunk
+const float k_treeRayBaseLightMult = 16.0; ///< Light power multiplier at trunk
 
 vec4 sampleLightXlu(vec2 uv, float cascade) {
     return vec4(

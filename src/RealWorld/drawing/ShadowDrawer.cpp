@@ -186,8 +186,8 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
         cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addExternalLightsPl);
         cb->pushConstants<glsl::AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
         cb->dispatch(
-            re::ceilDiv(m_.analysisPC.lightCount, glsl::k_addExternalLightsGroupSize),
-            1u, 1u
+            1u, 1u,
+            re ::ceilDiv(m_.analysisPC.lightCount, glsl::k_externalLightsPerGroup)
         );
     }
 
