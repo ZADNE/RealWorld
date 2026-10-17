@@ -70,7 +70,8 @@ void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
     m_menu = Main;
     WorldSaveLoader::searchSavedWorlds(m_worlds);
     m_newWorldName = "";
-    m_newWorldSeed = static_cast<int>(time(nullptr)) & 0xffffff;
+    m_newWorldSeed = static_cast<int>(time(nullptr)) &
+                     WorldSaveLoader::k_seedSafeMax;
     engine().setWindowTitle("RealWorld!");
 
     try {
@@ -165,6 +166,7 @@ void MainMenuRoom::newWorldMenu() {
     TextUnformatted("Seed: ");
     SameLine();
     InputInt("##seed", &m_newWorldSeed);
+    m_newWorldSeed &= WorldSaveLoader::k_seedSafeMax;
     if (Button("Create the world!") || engine().wasKeyPressed(re::Key::Return)) {
         auto save = WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed);
         if (WorldSaveLoader::saveWorld(save, true)) {

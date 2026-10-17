@@ -319,7 +319,8 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
 #if RE_BUILDING_FOR_DEBUG
         if (ImGui::Button("To random world")) {
             auto save = WorldSaveLoader::createWorld(
-                m_world.worldName(), static_cast<int>(time(nullptr)) & 0xffffff
+                m_world.worldName(),
+                static_cast<int>(time(nullptr)) & WorldSaveLoader::k_seedSafeMax
             );
             save.metadata.timeD = m_timeD;
             adoptWorld(save);

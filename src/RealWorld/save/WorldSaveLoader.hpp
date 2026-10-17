@@ -14,6 +14,9 @@ namespace rw {
  */
 class WorldSaveLoader {
 public:
+    // Seed should be in from from 0 to this due to numeric limitations (not enforce though)
+    constexpr static int k_seedSafeMax = 0xffff;
+
     static WorldSave createWorld(std::string worldName, int seed);
 
     // Returns false if loading failed, error is printed in console
