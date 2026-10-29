@@ -286,50 +286,8 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
     if (m_minimap) {
         m_worldDrawer.drawMinimap(cb);
     }
-    // Top-left menu
-    ImGui::SetNextWindowPos({0.0f, 0.0f});
-    ImGui::PushFont(m_arial);
-    if (ImGui::Begin(
-            "##topLeftMenu", nullptr,
-            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
-        )) {
-        std::string fpsFrameTimeStr = std::format(
-            "FPS: {}\nMax FT: {} us", engine().framesPerSecond(),
-            duration_cast<std::chrono::microseconds>(engine().maxFrameTime()).count()
-        );
-        ImGui::TextUnformatted(fpsFrameTimeStr.c_str());
-        ImGui::Separator();
-        ImGui::TextUnformatted("Minimap:");
-        ImGui::SameLine();
-        ImGui::Checkbox("##minimap", &m_minimap);
-        ImGui::TextUnformatted("Shadows:");
-        ImGui::SameLine();
-        ImGui::Checkbox("##shadows", &m_shadows);
-        ImGui::TextUnformatted("Stop daytime:");
-        ImGui::SameLine();
-        ImGui::Checkbox("##stopDaytime", &m_stopDaytime);
-        ImGui::SameLine();
-        float hours   = glm::floor(glm::fract(m_timeD) * 24.0f);
-        float minutes = glm::floor(glm::fract(m_timeD * 24.0f) * 60.0f);
-        ImGui::Text("%02.f:%02.f", hours, minutes);
-        ImGui::SetNextItemWidth(800.0f);
-        ImGui::SliderFloat(
-            "##time", &m_timeD, 0.0f, std::nextafter(1.0f, 0.0f), ""
-        );
-#if RE_BUILDING_FOR_DEBUG
-        if (ImGui::Button("To random world")) {
-            auto save = WorldSaveLoader::createWorld(
-                m_world.worldName(),
-                static_cast<int>(time(nullptr)) & WorldSaveLoader::k_seedSafeMax
-            );
-            save.metadata.timeD = m_timeD;
-            adoptWorld(save);
-        }
-#endif RE_BUILDING_FOR_DEBUG
-    }
-    ImGui::End();
-    ImGui::PopFont();
-    engine().mainRenderPassDrawImGui();
+    // Developer ImGui
+    drawDeveloperGui();
 }
 
 bool WorldRoom::loadWorld(const std::string& worldName) {

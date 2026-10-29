@@ -5,7 +5,7 @@ real_target_sources(RealWorld
         Arguments.hpp               Arguments.cpp
         MainMenuRoom.hpp            MainMenuRoom.cpp
         Room.hpp                    
-        WorldRoom.hpp               WorldRoom.cpp
+        WorldRoom.hpp               WorldRoom.cpp               WorldRoom.ImGui.cpp
 )
 real_target_sources(RealWorld_Game
     PRIVATE

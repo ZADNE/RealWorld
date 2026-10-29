@@ -109,7 +109,7 @@ void MainMenuRoom::render(const re::CommandBuffer& cb, double interpolationFacto
 
     SetNextWindowSize(windowDims());
     SetNextWindowPos({0.0f, 0.0f});
-    PushFont(m_arial);
+    PushFont(m_arial, m_arial->LegacySize);
 
     if (Begin("##wholeMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
         Indent();

@@ -51,6 +51,7 @@ private:
     void updateInventoryAndUI();
 
     void drawGUI(const re::CommandBuffer& cb);
+    void drawDeveloperGui();
 
     /**
      * @brief Loads a world. Previously loaded world is flushed without saving.
@@ -73,7 +74,7 @@ private:
     glm::mat4 calculateWindowViewMat(glm::vec2 windowDims) const;
 
     const GameSettings& m_gameSettings;
-    ImFont* m_arial = createFont<"arial">(20.0f); // NOLINT(*-magic-numbers)
+    ImFont* m_monospaceFont = ImGui::GetIO().Fonts->AddFontDefaultBitmap();
 
     re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},
