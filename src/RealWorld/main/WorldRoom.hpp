@@ -2,6 +2,8 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <random>
+
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
@@ -109,12 +111,16 @@ private:
     WorldDrawer m_worldDrawer;
     Player m_player;
     InventoryUI m_invUI;
-    float m_timeD      = 0.0f; ///< Time in days
-    bool m_stopDaytime = false;
+    float m_timeD = 0.0f; ///< Time in days
 
-    // Toggle states
-    bool m_minimap = false;
-    bool m_shadows = true;
+    // ImGui-controlled states
+    glm::vec4 m_playerLight{1.0f, 1.0f, 1.0f, 3.3f};
+    glm::vec4 m_cursorLight{1.0f, 1.0f, 1.0f, 3.3f};
+    bool m_stopDaytime = false;
+    bool m_minimap     = false;
+    bool m_shadows     = true;
+    int m_newWorldSeed = 0;
+    std::random_device m_rndDevice{};
 };
 
 } // namespace rw

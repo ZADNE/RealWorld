@@ -212,9 +212,11 @@ void WorldRoom::analyzeWorldForDrawing() {
 
     // Add external lights (these below are mostly for debug)
     m_worldDrawer.addExternalLight(
-        m_worldView.cursorRel(), glm::vec3{0.0f, 10.0f, 0.0f}
+        m_player.centerPx(), glm::vec3{m_playerLight} * m_playerLight.a
     );
-    m_worldDrawer.addExternalLight(m_player.centerPx(), glm::vec3{1.0f, 1.0f, 1.0f});
+    m_worldDrawer.addExternalLight(
+        m_worldView.cursorRel(), glm::vec3{m_cursorLight} * m_cursorLight.a
+    );
 
     // Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(*m_acb);
