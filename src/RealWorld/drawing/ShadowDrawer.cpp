@@ -283,10 +283,10 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
               .flags  = vk::ImageCreateFlagBits::eMutableFormat,
               .format = vk::Format::eR16G16Sfloat,
               .extent = {glm::vec2{analysisGroupCount} * k_analysisGroupSize, 1u},
-              .mipLevels = k_lightCellSizeCount,
-              .layers    = 2,
-              .usage     = vk::ImageUsageFlagBits::eSampled |
-                       vk::ImageUsageFlagBits::eStorage,
+              .mipLevels     = k_lightCellSizeCount,
+              .layers        = 2,
+              .usage         = vk::ImageUsageFlagBits::eSampled |
+                               vk::ImageUsageFlagBits::eStorage,
               .initialLayout = eGeneral,
               .pNext =
                   [] {
@@ -298,16 +298,17 @@ ShadowDrawer::ViewSizeDependent::ViewSizeDependent(
                       };
                       return &k_formatList;
                   }(),
-              .magFilter = vk::Filter::eLinear,
-              .minFilter = vk::Filter::eLinear,
-              .debugName = "rw::ShadowDrawer::lightXluTex"
+              .magFilter  = vk::Filter::eLinear,
+              .minFilter  = vk::Filter::eLinear,
+              .mipmapMode = vk::SamplerMipmapMode::eLinear,
+              .debugName  = "rw::ShadowDrawer::lightXluTex"
           }
       )
     , shadowsTex(
           re::TextureCreateInfo{
               .extent = {glm::vec2{lightSweepGroupCount} * k_lightSweepGroupSize, 1u},
-              .usage = vk::ImageUsageFlagBits::eSampled |
-                       vk::ImageUsageFlagBits::eStorage,
+              .usage     = vk::ImageUsageFlagBits::eSampled |
+                           vk::ImageUsageFlagBits::eStorage,
               .magFilter = vk::Filter::eLinear,
               .debugName = "rw::ShadowDrawer::shadows"
           }
