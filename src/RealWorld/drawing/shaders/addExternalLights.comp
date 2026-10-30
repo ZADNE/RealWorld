@@ -16,8 +16,7 @@ layout (local_size_x = 4,
 layout (set = 0, binding = k_lightXluImageBinding, r32ui)
     uniform restrict uimage2DArray u_lightXluImage[k_lightCellSizeCount];
 
-const int k_toUnitBits = k_lightMinCellTiBitShift + 2;
-const float k_halfUnitOffsetPx = TilePx.x * k_lightMinCellTi / 2;
+const int k_minHalfUnitOffsetPx = iTilePx.x * k_lightMinCellTi / 2;
 const float k_toUnitScale = 1.0f / float(k_lightMinCellTi) / TilePx.x / (1 << (k_lightCellSizeCount - 1));
 
 vec4 lightOfThisUnit(vec4 lightTotal, vec2 lightPosPx, uint mipLevel, vec2 quadUn){
@@ -48,7 +47,7 @@ void main(){
     const uint lightIndex = gl_GlobalInvocationID.z;
     if (lightIndex < p_.lightCount){
         ExternalLight light = b_externalLights.lights[lightIndex];
-        vec2 lightPosPx = light.posPx - k_halfUnitOffsetPx - tiToPx(p_.analysisOffsetTi);
+        vec2 lightPosPx = light.posPx - float(k_minHalfUnitOffsetPx << mipLevel) - tiToPx(p_.analysisOffsetTi);
         ivec2 lightPosTi = pxToTi(ivec2(lightPosPx));
         ivec2 lightPosUn = lightPosTi >> (k_lightMinCellTiBitShift + mipLevel);
         ivec2 editPosUn = lightPosUn + quadUn;
