@@ -180,9 +180,6 @@ void ShadowDrawer::calculate(const re::CommandBuffer& cb, glm::ivec2 botLeftPx) 
         m_.analysisPC.addLightOffsetPx = ((botLeftPx - tiToPx(k_lightMaxRangeTi)) &
                                           (tiToPx(k_lightMinCellTi) - 1)) +
                                          tiToPx(k_lightMinCellTi) / 2;
-        /* m_.analysisPC.addLightOffsetPx =
-            ((botLeftPx - tiToPx(k_lightMaxRangeTi)) & k_unitMask) +
-            k_halfUnitOffset;*/
         cb->bindPipeline(vk::PipelineBindPoint::eCompute, *m_addExternalLightsPl);
         cb->pushConstants<glsl::AnalysisPC>(*m_analysisPll, eCompute, 0u, m_.analysisPC);
         cb->dispatch(
