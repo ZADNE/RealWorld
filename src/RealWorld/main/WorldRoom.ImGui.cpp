@@ -19,6 +19,14 @@ void WorldRoom::drawDeveloperGui() {
         ImGui::TextUnformatted(fpsFrameTimeStr.c_str());
         if (ImGui::BeginTabBar("DebugTabs", ImGuiTabBarFlags_None)) {
             if (ImGui::BeginTabItem("Basic")) {
+                ImGui::Text(
+                    "Player posPx [%.0f, %.0f]", m_player.centerPx().x,
+                    m_player.centerPx().y
+                );
+                ImGui::Text(
+                    "Cursor posPx [%.0f, %.0f]", m_worldView.cursorRel().x,
+                    m_worldView.cursorRel().y
+                );
                 ImGui::TextUnformatted("Minimap:");
                 ImGui::SameLine();
                 ImGui::Checkbox("##minimap", &m_minimap);
@@ -39,22 +47,8 @@ void WorldRoom::drawDeveloperGui() {
                 ImGui::SliderFloat(
                     "##time", &m_timeD, 0.0f, std::nextafter(1.0f, 0.0f), ""
                 );
-                ImGui::ColorEdit3(
-                    "Player light", &m_playerLight.x, ImGuiColorEditFlags_Float
-                );
-                ImGui::SameLine();
-                ImGui::DragFloat(
-                    "Strength##Player", &m_playerLight.a, 0.01f, 0.0f, 16.0f,
-                    "%.5f", ImGuiSliderFlags_Logarithmic
-                );
-                ImGui::ColorEdit3(
-                    "Cursor light", &m_cursorLight.x, ImGuiColorEditFlags_Float
-                );
-                ImGui::SameLine();
-                ImGui::DragFloat(
-                    "Strength##Cursor", &m_cursorLight.a, 0.01f, 0.0f, 16.0f,
-                    "%.5f", ImGuiSliderFlags_Logarithmic
-                );
+                drawDebugLightGui("Player", m_playerLight);
+                drawDebugLightGui("Cursor", m_cursorLight);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("World gen")) {
@@ -79,6 +73,31 @@ void WorldRoom::drawDeveloperGui() {
     ImGui::End();
     ImGui::PopFont();
     engine().mainRenderPassDrawImGui();
+}
+
+void WorldRoom::drawDebugLightGui(const char* name, DebugLight& light) {
+    ImGui::ColorEdit3(
+        std::format("{} light", name).c_str(), &light.color.r, ImGuiColorEditFlags_Float
+    );
+    ImGui::SameLine();
+    ImGui::DragFloat(
+        std::format("Intensity##{}", name).c_str(), &light.intensity, 0.01f,
+        0.0f, 16.0f, "%.5f", ImGuiSliderFlags_Logarithmic
+    );
+    constexpr static std::array<const char*, 3> k_posStr{
+        "Exact", "Circling", "Offset"
+    };
+    ImGui::Combo(
+        std::format("Position##{}", name).c_str(),
+        reinterpret_cast<int*>(&light.relPos), k_posStr.data(), k_posStr.size()
+    );
+    if (light.relPos == DebugRelLightPos::Offset) {
+        ImGui::SameLine();
+        ImGui::SliderFloat2(
+            std::format("Offset##{}", name).c_str(), &light.offsetPx.x, 0.0f,
+            tiToPx(glsl::k_lightMaxCellTi)
+        );
+    }
 }
 
 } // namespace rw

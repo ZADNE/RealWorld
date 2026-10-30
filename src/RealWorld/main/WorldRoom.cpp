@@ -4,7 +4,9 @@
 #include <RealWorld/main/WorldRoom.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/round.hpp>
 
+#include <RealWorld/constants/Light.glsl.gen.hpp>
 #include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 #include <RealWorld/utility/HotReloadIdentifier.hpp>
@@ -211,12 +213,8 @@ void WorldRoom::analyzeWorldForDrawing() {
     m_worldDrawer.beginStep(*m_acb, m_timeD);
 
     // Add external lights (these below are mostly for debug)
-    m_worldDrawer.addExternalLight(
-        m_player.centerPx(), glm::vec3{m_playerLight} * m_playerLight.a
-    );
-    m_worldDrawer.addExternalLight(
-        m_worldView.cursorRel(), glm::vec3{m_cursorLight} * m_cursorLight.a
-    );
+    addDebugLightToWorld(m_player.centerPx(), m_playerLight);
+    addDebugLightToWorld(m_worldView.cursorRel(), m_cursorLight);
 
     // Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(*m_acb);
@@ -332,6 +330,26 @@ void WorldRoom::gatherWorld(WorldSave& save) {
 
 glm::mat4 WorldRoom::calculateWindowViewMat(glm::vec2 windowDims) const {
     return glm::ortho(0.0f, windowDims.x, 0.0f, windowDims.y);
+}
+
+void WorldRoom::addDebugLightToWorld(glm::vec2 basePosPx, const DebugLight& light) {
+    glm::vec2 posPx{};
+    constexpr static float k_lightMaxCellPx = tiToPx(glsl::k_lightMaxCellTi);
+    switch (light.relPos) {
+    case DebugRelLightPos::Exact: posPx = basePosPx; break;
+    case DebugRelLightPos::Circling:
+        posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
+                glm::vec2{glm::sin(m_timeD * 750.0f), glm::cos(m_timeD * 750.0f)} *
+                    k_lightMaxCellPx;
+        break;
+    case DebugRelLightPos::Offset:
+        posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
+                light.offsetPx;
+        break;
+    default: break;
+    }
+
+    m_worldDrawer.addExternalLight(posPx, light.color * light.intensity);
 }
 
 } // namespace rw

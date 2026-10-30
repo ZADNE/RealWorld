@@ -53,7 +53,6 @@ private:
     void updateInventoryAndUI();
 
     void drawGUI(const re::CommandBuffer& cb);
-    void drawDeveloperGui();
 
     /**
      * @brief Loads a world. Previously loaded world is flushed without saving.
@@ -113,9 +112,24 @@ private:
     InventoryUI m_invUI;
     float m_timeD = 0.0f; ///< Time in days
 
-    // ImGui-controlled states
-    glm::vec4 m_playerLight{1.0f, 1.0f, 1.0f, 3.3f};
-    glm::vec4 m_cursorLight{1.0f, 1.0f, 1.0f, 3.3f};
+    // Developer-only states and functions
+    void drawDeveloperGui();
+
+    enum class DebugRelLightPos : int {
+        Exact,
+        Circling,
+        Offset
+    };
+    struct DebugLight {
+        glm::vec3 color{1.0f};
+        float intensity{1.5f};
+        DebugRelLightPos relPos = DebugRelLightPos::Exact;
+        glm::vec2 offsetPx{};
+    };
+    void addDebugLightToWorld(glm::vec2 basePosPx, const DebugLight& light);
+    void drawDebugLightGui(const char* name, DebugLight& light);
+    DebugLight m_playerLight{};
+    DebugLight m_cursorLight{};
     bool m_stopDaytime = false;
     bool m_minimap     = false;
     bool m_shadows     = true;
