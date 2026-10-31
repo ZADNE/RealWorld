@@ -16,7 +16,8 @@ layout (set = 0, binding = 0)
 layout (set = 0, binding = 1, rgba8)
     uniform restrict writeonly image2D u_shadowsImage;
 
-const float k_piOver4   = 0.78539816339; 
+const float k_piOver4   = 0.78539816339;
+const float k_piOver8   = 0.39269908169;
 const float k_piOver16  = 0.19634954084;
 const float k_piOver32  = 0.09817477042;
 const float k_piOver64  = 0.04908738521;
@@ -24,12 +25,12 @@ const float k_piOver128 = 0.0245436926;
 const float k_piOver256 = 0.0122718463;
 const float k_piOver512 = 0.00613592315;
 
-//                          near off     far off   near cascade     far cascade
-const vec4 k_rayEParams = vec4( 22.0,       78.0,           1.0,            2.0);
-const vec4 k_rayDParams = vec4(  9.0,       22.0,           0.7,            1.0);
-const vec4 k_rayCParams = vec4(  2.5,        9.0,           0.2,            0.7);
-const vec4 k_rayBParams = vec4(  1.0,        2.0,           0.0,            0.2);
-const vec4 k_rayAParams = vec4(  1.0,        1.0,           0.0,            0.0);
+//                              near off     far off     angle diff
+const vec3 k_rayEParams = vec3(10.19001,   78.00000,   k_piOver64);
+const vec3 k_rayDParams = vec3( 5.10115,   10.19001,   k_piOver32);
+const vec3 k_rayCParams = vec3( 2.56292,    5.10115,   k_piOver16);
+const vec3 k_rayBParams = vec3( 1.30656,    2.56292,    k_piOver8);
+const vec3 k_rayAParams = vec3( 1.00000,    1.30656,    k_piOver4);
 
 const float k_treeRayBaseLightMult = 16.0; ///< Light power multiplier at trunk
 
@@ -45,13 +46,12 @@ void accumulate(inout vec3 accumulated, vec2 uv, float lightMult, float cascade)
     accumulated = fma(accumulated, lightXlu.aaa, lightXlu.rgb * lightMult);
 }
 
-void ray(inout vec3 light, vec2 centerUv, vec2 dirUv, vec4 rayParams, float lightMult) {
+void ray(inout vec3 light, vec2 centerUv, vec2 dirUv, vec3 rayParams, float lightMult) {
     vec2 uv = centerUv + dirUv * rayParams.y;
     float cascadeDiameter = 0.0;
     for (float i = rayParams.y; i >= rayParams.x; i -= cascadeDiameter){
-        float cascade = mix(rayParams.z, rayParams.w, mapToEdges(rayParams.x, rayParams.y, i));
-        cascadeDiameter = exp2(cascade) * 0.95;
-        accumulate(light, uv, lightMult, cascade);
+        cascadeDiameter = clamp(i * rayParams.z, 1.0, 4.0);
+        accumulate(light, uv, lightMult, log2(cascadeDiameter) + 0.5);
         uv -= dirUv * cascadeDiameter;
     }
 }
