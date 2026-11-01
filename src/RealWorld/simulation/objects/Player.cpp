@@ -35,8 +35,8 @@ Player::Player(const glsl::PlayerHitboxSB& initSb)
       )
     , m_hitboxStageBuf(
           re::BufferCreateInfo{
-              .allocFlags = vma::AllocationCreateFlagBits::eMapped |
-                            vma::AllocationCreateFlagBits::eHostAccessRandom,
+              .allocFlags  = vma::AllocationCreateFlagBits::eMapped |
+                             vma::AllocationCreateFlagBits::eHostAccessRandom,
               .sizeInBytes = sizeof(glsl::PlayerHitboxSB),
               .usage       = eTransferDst | eTransferSrc,
               .initData    = re::objectToByteSpan(initSb),
@@ -86,7 +86,7 @@ void Player::step(const ActionCmdBuf& acb, float dir, bool jump, bool autojump) 
     // Copy back results of previous step
     size_t bufOffset = offsetof(glsl::PlayerHitboxSB, botLeftPx[0]) +
                        sizeof(glsl::PlayerHitboxSB::botLeftPx[0]) * readIndex;
-    auto copyRegion = vk::BufferCopy2{bufOffset, bufOffset, sizeof(glm::vec2)};
+    auto copyRegion  = vk::BufferCopy2{bufOffset, bufOffset, sizeof(glm::vec2)};
     (*acb)->copyBuffer2(
         vk::CopyBufferInfo2{*m_hitboxBuf, m_hitboxStageBuf.buffer(), copyRegion}
     );

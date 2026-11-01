@@ -49,14 +49,14 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
     // Reset ActiveChunks storage buffer
     vk::DeviceSize bufSize = calcActiveChunksBufSize(targetInfo.worldTexCh);
     m_activeChunksBuf      = re::Buffer{re::BufferCreateInfo{
-             .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-             .sizeInBytes = bufSize,
-             .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
-             .debugName   = "rw::ChunkActivationMgr::activeChunks"
+        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+        .sizeInBytes = bufSize,
+        .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
+        .debugName   = "rw::ChunkActivationMgr::activeChunks"
     }};
     m_activeChunksStageBuf = re::BufferMapped<glsl::ActiveChunksSB>{re::BufferCreateInfo{
-        .allocFlags = vma::AllocationCreateFlagBits::eMapped |
-                      vma::AllocationCreateFlagBits::eHostAccessRandom,
+        .allocFlags  = vma::AllocationCreateFlagBits::eMapped |
+                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = bufSize,
         .usage       = eTransferSrc,
         .debugName   = "rw::ChunkActivationMgr::activeChunksStage"
@@ -65,7 +65,7 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
     m_activeChunksStageBuf->worldTexSizeCh    = targetInfo.worldTexCh;
     m_activeChunksStageBuf->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_worldTexMaskCh.x * m_worldTexMaskCh.y;
-    int lastChunkIndex          = maxNumberOfUpdateChunks +
+    int lastChunkIndex = maxNumberOfUpdateChunks +
                          targetInfo.worldTexCh.x * targetInfo.worldTexCh.y;
     for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         m_activeChunksStageBuf->offsets[i] = k_chunkNotActive;

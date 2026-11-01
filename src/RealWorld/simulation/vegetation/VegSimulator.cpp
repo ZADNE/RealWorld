@@ -55,7 +55,8 @@ VegSimulator::VegSimulator()
             0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor
         };
         constexpr static auto k_subpasses = std::to_array({vk::SubpassDescription2{
-            vk::SubpassDescriptionFlags{}, vk::PipelineBindPoint::eGraphics,
+            vk::SubpassDescriptionFlags{},
+            vk::PipelineBindPoint::eGraphics,
             0u,                 // View mask
             1u,
             &k_wallLayerAttRef, // Input attachments

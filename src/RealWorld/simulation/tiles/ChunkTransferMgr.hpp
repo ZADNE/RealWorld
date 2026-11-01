@@ -97,8 +97,8 @@ private:
 
     re::Pipeline m_reallocBranchesPl;
     re::BufferMapped<glsl::BranchAllocRegSB> m_regBuf{re::BufferCreateInfo{
-        .allocFlags = vma::AllocationCreateFlagBits::eMapped |
-                      vma::AllocationCreateFlagBits::eHostAccessRandom,
+        .allocFlags  = vma::AllocationCreateFlagBits::eMapped |
+                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = sizeof(glsl::BranchAllocRegSB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst,
         .debugName   = "rw::ChunkTransferMgr::reg"
@@ -107,8 +107,8 @@ private:
     re::Buffer m_allocReqBuf{re::BufferCreateInfo{
         .sizeInBytes = sizeof(glsl::BranchAllocReqUB),
         .usage       = vk::BufferUsageFlagBits::eTransferDst |
-                 vk::BufferUsageFlagBits::eUniformBuffer,
-        .debugName = "rw::ChunkTransferMgr::allocReq"
+                       vk::BufferUsageFlagBits::eUniformBuffer,
+        .debugName   = "rw::ChunkTransferMgr::allocReq"
     }};
 };
 
