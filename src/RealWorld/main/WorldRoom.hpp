@@ -117,8 +117,8 @@ private:
 
     enum class DebugRelLightPos : int {
         Exact,
-        Circling,
-        Offset
+        CellCircling,
+        CellOffset
     };
     struct DebugLight {
         glm::vec3 color{1.0f};

@@ -337,12 +337,12 @@ void WorldRoom::addDebugLightToWorld(glm::vec2 basePosPx, const DebugLight& ligh
     constexpr static float k_lightMaxCellPx = tiToPx(glsl::k_lightMaxCellTi);
     switch (light.relPos) {
     case DebugRelLightPos::Exact: posPx = basePosPx; break;
-    case DebugRelLightPos::Circling:
+    case DebugRelLightPos::CellCircling:
         posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
                 glm::vec2{glm::sin(m_timeD * 750.0f), glm::cos(m_timeD * 750.0f)} *
                     k_lightMaxCellPx;
         break;
-    case DebugRelLightPos::Offset:
+    case DebugRelLightPos::CellOffset:
         posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
                 light.offsetPx;
         break;

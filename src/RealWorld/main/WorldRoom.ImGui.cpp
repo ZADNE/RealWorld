@@ -85,13 +85,13 @@ void WorldRoom::drawDebugLightGui(const char* name, DebugLight& light) {
         0.0f, 16.0f, "%.5f", ImGuiSliderFlags_Logarithmic
     );
     constexpr static std::array<const char*, 3> k_posStr{
-        "Exact", "Circling", "Offset"
+        "Exact", "CellCircling", "CellOffset"
     };
     ImGui::Combo(
         std::format("Position##{}", name).c_str(),
         reinterpret_cast<int*>(&light.relPos), k_posStr.data(), k_posStr.size()
     );
-    if (light.relPos == DebugRelLightPos::Offset) {
+    if (light.relPos == DebugRelLightPos::CellOffset) {
         ImGui::SameLine();
         ImGui::SliderFloat2(
             std::format("Offset##{}", name).c_str(), &light.offsetPx.x, 0.0f,
