@@ -101,7 +101,7 @@ jobs:
         cmake --build ${{ env.build-dir }} --target RealWorld_Shaders --parallel 4
 
     - name: Real linting check
-      uses: ZADNE/RealLinting@v0.1
+      uses: ZADNE/RealLinting@v0.2
       with:
         clang-tidy: ${{ matrix.clang_tidy }}
         compile-commands-json: ${{ env.build-dir }}/compile_commands.json
