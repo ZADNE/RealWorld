@@ -127,6 +127,7 @@ jobs:
       run: >
         cmake --build ${{ env.build-dir }}
         --parallel 4
+        --verbose
 
     - name: Test
       working-directory: ${{ env.build-dir }}
