@@ -4,6 +4,7 @@
 #version 460
 #include <RealWorld/constants/Tile.glsl>
 #include <RealWorld/constants/World.glsl>
+#include <RealWorld/drawing/shaders/skyColor.glsl>
 #include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout (location = 0) out vec4  o_color;
@@ -13,10 +14,12 @@ layout (set = 0, binding = 1) uniform sampler2D       u_blockAtlas;
 layout (set = 0, binding = 2) uniform sampler2D       u_wallAtlas;
 
 layout (location = 0) in vec2   i_offsetPx;
+layout (location = 1) in vec2   i_viewport01;
 
 void main() {
     // Calculate positions and offsets
-    ivec2 pTi = p_.botLeftTi + pxToTi(ivec2(i_offsetPx));
+    vec2 pPx = p_.botLeftPx + i_offsetPx;
+    ivec2 pTi = pxToTi(ivec2(pPx));
 
     // Fetch the tile
     ivec2 pAt = tiToAt(pTi, p_.worldTexMask);
@@ -28,9 +31,10 @@ void main() {
     vec4 wallColor = texelFetch(u_wallAtlas, ivec2(wall.yx), 0);
 
     // Calculate background color
-    float t = float(pTi.y - 1024) * 0.001;
-    t = clamp(1.0 - t, 0.0, 1.0);
-    vec3 background = p_.skyColor.rgb * t * t;
+    vec3 background = skyColor(
+        i_viewport01, pPx,
+        p_.biomeClimate, p_.seed, p_.timeD
+    );
 
     // Blend all the colors
     vec3 temp = mix(background, wallColor.rgb, wallColor.a);

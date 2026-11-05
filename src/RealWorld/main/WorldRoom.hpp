@@ -2,6 +2,8 @@
  *  @author    Dubsky Tomas
  */
 #pragma once
+#include <random>
+
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_stdlib.h>
 
@@ -40,7 +42,7 @@ public:
     void pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) override;
 
 private:
-    using enum RealWorldKeyBindings;
+    using enum KeyBinding;
 
     void performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope);
 
@@ -60,6 +62,7 @@ private:
      * world then.
      */
     bool loadWorld(const std::string& worldName);
+    bool adoptWorld(const WorldSave& save);
 
     /**
      * @brief Saves the current world. Makes no changes to the world.
@@ -67,11 +70,12 @@ private:
      * @return True if successful, false otherwise.
      */
     bool saveWorld();
+    void gatherWorld(WorldSave& save);
 
     glm::mat4 calculateWindowViewMat(glm::vec2 windowDims) const;
 
     const GameSettings& m_gameSettings;
-    ImFont* m_arial = createFont<"arial">(20.0f); // NOLINT(*-magic-numbers)
+    ImFont* m_monospaceFont = ImGui::GetIO().Fonts->AddFontDefaultBitmap();
 
     re::StepDoubleBuffered<re::CommandBuffer> m_stepCmdBufs{
         re::CommandBuffer{{.debugName = "rw::WorldRoom::step[0]"}},
@@ -79,7 +83,10 @@ private:
     };
     ActionCmdBuf m_acb;
     uint64_t m_stepN = 1;
-    re::Semaphore m_simulationFinishedSem{m_stepN};
+    re::Semaphore m_simulationFinishedSem{re::SemaphoreCreateInfo{
+        .type      = {vk::SemaphoreType::eTimeline, m_stepN},
+        .debugName = "rw::WorldRoom::simulationFinished"
+    }};
     re::SpriteBatch m_spriteBatch{re::SpriteBatchCreateInfo{
         .renderPassSubpass = mainRenderPass().subpass(0),
         .maxSprites        = 256,
@@ -103,12 +110,31 @@ private:
     WorldDrawer m_worldDrawer;
     Player m_player;
     InventoryUI m_invUI;
-    float m_timeDay    = 0.0f;
-    bool m_stopDaytime = false;
+    float m_timeD = 0.0f; ///< Time in days
 
-    // Toggle states
-    bool m_minimap = false;
-    bool m_shadows = true;
+    // Developer-only states and functions
+    void drawDeveloperGui();
+
+    enum class DebugRelLightPos : int {
+        Exact,
+        CellCircling,
+        CellOffset
+    };
+    struct DebugLight {
+        glm::vec3 color{1.0f};
+        float intensity{1.5f};
+        DebugRelLightPos relPos = DebugRelLightPos::Exact;
+        glm::vec2 offsetPx{};
+    };
+    void addDebugLightToWorld(glm::vec2 basePosPx, const DebugLight& light);
+    void drawDebugLightGui(const char* name, DebugLight& light);
+    DebugLight m_playerLight{};
+    DebugLight m_cursorLight{};
+    bool m_stopDaytime = false;
+    bool m_minimap     = false;
+    bool m_shadows     = true;
+    int m_newWorldSeed = 0;
+    std::random_device m_rndDevice{};
 };
 
 } // namespace rw

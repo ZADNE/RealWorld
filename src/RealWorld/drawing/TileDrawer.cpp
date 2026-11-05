@@ -2,11 +2,12 @@
  *  @author    Dubsky Tomas
  */
 #define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl
+#include <RealWorld/drawing/TileDrawer.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/drawing/MinimapLayout.hpp>
-#include <RealWorld/drawing/TileDrawer.hpp>
 #include <RealWorld/drawing/shaders/AllShaders.gen.hpp>
 #include <RealWorld/generation/shaders/tiles/generateStructure.glsl.gen.hpp>
 
@@ -15,27 +16,6 @@ using enum vk::ShaderStageFlagBits;
 using enum vk::ImageLayout;
 
 namespace rw {
-
-constexpr glm::vec3 k_cold{0.2625, 0.851, 0.952};
-constexpr glm::vec3 k_normal{0.25411764705, 0.7025490196, 0.90470588235};
-constexpr glm::vec3 k_hot{0.2895, 0.698, 0.7583};
-
-constexpr std::array<glm::vec3, 3> k_skyColors{k_cold, k_normal, k_hot};
-
-glm::vec3 skyColor(float biomeTemp) {
-    // Calculate coords
-    biomeTemp = glm::fract(biomeTemp);
-    biomeTemp *= 2.0f;
-    int ll     = static_cast<int>(biomeTemp);
-    float frac = glm::fract(biomeTemp);
-
-    // Gather
-    glm::vec3 b00 = k_skyColors[ll];
-    glm::vec3 b01 = k_skyColors[ll + 1];
-
-    // Interpolate
-    return glm::mix(b00, b01, frac);
-}
 
 TileDrawer::TileDrawer(
     re::RenderPassSubpass renderPassSubpass, glm::vec2 viewSizePx,
@@ -99,7 +79,7 @@ void TileDrawer::setTarget(
         glm::vec2(2.0f, 2.0f) /
         glm::vec2(m_pc.minimapViewMat[0][0], m_pc.minimapViewMat[1][1]);
     resizeView(viewSizePx);
-    m_seed = seed;
+    m_pc.seed = seed;
 }
 
 void TileDrawer::resizeView(glm::vec2 viewSizePx) {
@@ -111,18 +91,14 @@ void TileDrawer::resizeView(glm::vec2 viewSizePx) {
     m_pc.minimapSize   = layout.sizePx;
 }
 
-void TileDrawer::drawTiles(
-    const re::CommandBuffer& cb, glm::vec2 botLeftPx, float skyLight
-) {
+void TileDrawer::drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx, float timeD) {
     m_pc.uvRectSize   = m_viewSizePx;
     m_pc.uvRectOffset = glm::mod(botLeftPx, TilePx);
-    m_pc.botLeftTi    = glm::ivec2(pxToTi(botLeftPx));
-    m_pc.skyColor     = glm::vec4(
-        skyColor(
-            glsl::calcBiomeClimate(botLeftPx.x + m_viewSizePx.x * 0.5f, m_seed).x
-        ) * skyLight,
-        1.0
-    );
+    m_pc.botLeftPx    = botLeftPx - m_pc.uvRectOffset;
+    m_pc.biomeClimate =
+        glsl::calcBiomeClimate(botLeftPx.x + m_viewSizePx.x * 0.5f, m_pc.seed);
+    m_pc.timeD = timeD;
+
     cb->bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, *m_pipelineLayout, 0u,
         *m_descriptorSet, {}

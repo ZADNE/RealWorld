@@ -1,6 +1,8 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/drawing/WorldDrawer.hpp>
+
 #include <glm/gtc/constants.hpp>
 #include <glm/packing.hpp>
 #include <glm/trigonometric.hpp>
@@ -8,9 +10,7 @@
 #include <RealEngine/graphics/pipelines/Vertex.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
-#include <RealWorld/constants/Light.hpp>
 #include <RealWorld/constants/Tile.hpp>
-#include <RealWorld/drawing/WorldDrawer.hpp>
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -48,23 +48,21 @@ void WorldDrawer::resizeView(glm::uvec2 viewSizePx) {
 
 WorldDrawer::ViewEnvelope WorldDrawer::setPosition(glm::vec2 botLeftPx) {
     m_botLeftPx = botLeftPx;
-    m_botLeftTi = glm::ivec2(glm::floor(botLeftPx / TilePx));
+    m_botLeftTi = pxToTi(glm::ivec2{botLeftPx});
     return ViewEnvelope{
-        .botLeftTi  = m_botLeftTi - glm::ivec2(k_lightMaxRangeTi) - iChunkTi,
+        .botLeftTi = m_botLeftTi - glm::ivec2(glsl::k_lightMaxRangeTi) - iChunkTi,
         .topRightTi = m_botLeftTi + glm::ivec2(m_viewSizeTi) +
-                      glm::ivec2(k_lightMaxRangeTi) + iChunkTi
+                      glm::ivec2(glsl::k_lightMaxRangeTi) + iChunkTi
     };
 }
 
-void WorldDrawer::beginStep(const re::CommandBuffer& cb, float timeDay) {
-    m_skyLightPower = timeToSkyLightPower(timeDay);
-    float skyLightPower = m_skyLightPower * m_skyLightPower * k_maxDaylightPower;
-    glm::vec4 skyLight = glm::vec4{0.0f, 0.0f, 0.0f, skyLightPower};
-    m_shadowDrawer.analyze(cb, m_botLeftTi, skyLight);
+void WorldDrawer::beginStep(const re::CommandBuffer& cb, float timeD) {
+    m_timeD = timeD;
+    m_shadowDrawer.analyze(cb, m_botLeftTi, timeD);
 }
 
-void WorldDrawer::addExternalLight(glm::ivec2 posPx, re::Color col) {
-    m_shadowDrawer.addExternalLight(posPx, col);
+void WorldDrawer::addExternalLight(glm::ivec2 posPx, glm::vec3 light) {
+    m_shadowDrawer.addExternalLight(posPx, light);
 }
 
 void WorldDrawer::endStep(const re::CommandBuffer& cb) {
@@ -72,9 +70,7 @@ void WorldDrawer::endStep(const re::CommandBuffer& cb) {
 }
 
 void WorldDrawer::drawTiles(const re::CommandBuffer& cb) {
-    // NOLINTNEXTLINE(*-magic-numbers)
-    float skyLight = 0.0625f + glm::sqrt(m_skyLightPower) * 0.9375f;
-    m_tileDrawer.drawTiles(cb, m_botLeftPx, skyLight);
+    m_tileDrawer.drawTiles(cb, m_botLeftPx, m_timeD);
 }
 
 void WorldDrawer::drawShadows(const re::CommandBuffer& cb) {
@@ -88,11 +84,6 @@ void WorldDrawer::drawMinimap(const re::CommandBuffer& cb) {
 
 glm::uvec2 WorldDrawer::viewSizeTi(glm::vec2 viewSizePx) const {
     return glm::uvec2(glm::ceil(viewSizePx / TilePx)) + 1u;
-}
-
-float WorldDrawer::timeToSkyLightPower(float timeDay) const {
-    const float s = glm::sin(timeDay * glm::pi<float>() * 2.0f);
-    return glm::clamp(s * 0.75f + 0.5f, 0.0f, 1.0f);
 }
 
 } // namespace rw

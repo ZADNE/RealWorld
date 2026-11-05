@@ -37,31 +37,35 @@ float calcHorizonPx(float xPx, float seed) {
     return glsl::calcHorizon(xPx, biome, seed).x;
 }
 
-glm::vec2 calcPlayerStartPosition(float seed) {
+glm::vec2 calcPlayerStartPosPx(int seed) {
     float yPx = std::numeric_limits<float>::min();
     for (float xPx : {0.0f, k_playerDimsPx.x * 0.5f, k_playerDimsPx.x}) {
-        yPx = std::max(yPx, calcHorizonPx(xPx, seed));
+        yPx = std::max(yPx, calcHorizonPx(xPx, static_cast<float>(seed)));
     }
     return glm::vec2{0.0f, yPx};
 }
 
-bool WorldSaveLoader::createWorld(std::string worldName, int seed) {
+WorldSave WorldSaveLoader::createWorld(std::string worldName, int seed) {
     WorldSave save;
     // World info
     save.metadata.seed      = seed;
     save.metadata.worldName = worldName;
-    save.metadata.timeDay   = 0.0f;
+    save.metadata.timeD     = 0.375f; // 9 AM
 
     // Player data
-    save.player.pos = calcPlayerStartPosition(static_cast<float>(seed));
+    save.player.pos = calcPlayerStartPosPx(seed);
     save.inventory.resize(k_defaultPlayerInventorySize);
 
     int slot               = 0;
     save.inventory(slot++) = Item{ItemID::PCreativePickaxe, 1};
     save.inventory(slot++) = Item{ItemID::HCreativeHammer, 1};
+    save.inventory(slot++) = Item{ItemID::BStone, maxStack(ItemID::BStone)};
     save.inventory(slot++) = Item{ItemID::BWater, maxStack(ItemID::BWater)};
+    save.inventory(slot++) = Item{ItemID::BFire, maxStack(ItemID::BFire)};
+    save.inventory(slot++) = Item{ItemID::BLava, maxStack(ItemID::BLava)};
+    save.inventory(slot++) = Item{ItemID::BAcid, maxStack(ItemID::BAcid)};
 
-    return saveWorld(save, worldName, true);
+    return save;
 }
 
 bool WorldSaveLoader::loadWorld(WorldSave& save, const std::string& worldName) {
@@ -76,11 +80,7 @@ bool WorldSaveLoader::loadWorld(WorldSave& save, const std::string& worldName) {
     return true;
 }
 
-bool WorldSaveLoader::saveWorld(
-    const WorldSave& save, const std::string& worldName, bool creatingNew
-) {
-    if (worldName == "")
-        return false;
+bool WorldSaveLoader::saveWorld(const WorldSave& save, bool creatingNew) {
     std::string pathToFolder = s_saveFolder + '/' + save.metadata.worldName + '/';
     bool alreadyExists = std::filesystem::exists(pathToFolder);
     if (alreadyExists && creatingNew)
@@ -119,7 +119,7 @@ void WorldSaveLoader::loadMetadata(MetadataSave& metadata, const std::string& pa
     i >> j;
     metadata.worldName = j["world"]["name"].get<std::string>();
     metadata.seed      = j["world"]["seed"].get<int>();
-    metadata.timeDay   = j["world"]["timeDay"].get<float>();
+    metadata.timeD     = j["world"]["timeD"].get<float>();
 }
 
 void WorldSaveLoader::loadPlayer(PlayerSave& player, const std::string& path) {
@@ -174,7 +174,7 @@ void WorldSaveLoader::saveMetadata(
         {"world",
          {{"name", metadata.worldName},
           {"seed", metadata.seed},
-          {"timeDay", metadata.timeDay}}}
+          {"timeD", metadata.timeD}}}
     };
 
     std::ofstream o(path + k_worldInfoFilename, std::ofstream::trunc);

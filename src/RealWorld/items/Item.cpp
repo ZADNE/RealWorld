@@ -1,11 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/items/Item.hpp>
+
 #include <algorithm>
 
 #include <glm/common.hpp>
-
-#include <RealWorld/items/Item.hpp>
 
 namespace rw {
 

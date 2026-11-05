@@ -2,8 +2,9 @@
  *  @author    Dubsky Tomas
  */
 
-#include <RealWorld/constants/Body.hpp>
 #include <RealWorld/simulation/vegetation/BodySimulator.hpp>
+
+#include <RealWorld/constants/Body.hpp>
 #include <RealWorld/simulation/vegetation/shaders/simulateBodies.comp.gen.hpp>
 
 using enum vk::BufferUsageFlagBits;

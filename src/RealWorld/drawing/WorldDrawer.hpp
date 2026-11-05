@@ -33,13 +33,13 @@ public:
     /**
      * @brief External lights have to be added between beginStep() and endStep()
      */
-    void beginStep(const re::CommandBuffer& cb, float timeDay);
+    void beginStep(const re::CommandBuffer& cb, float timeD);
 
     /**
-     * @brief Adds an external light into the world. Must be used between
-     * beginStep() and endStep()
+     * @brief Adds an external light into the world.
+     * @details Must be used between beginStep() and endStep()
      */
-    void addExternalLight(glm::ivec2 posPx, re::Color col);
+    void addExternalLight(glm::ivec2 posPx, glm::vec3 light);
 
     /**
      * @brief External lights have to be added between beginStep() and endStep()
@@ -59,8 +59,7 @@ private:
     glm::uvec2 m_viewSizeTi{};
     glm::uvec2 viewSizeTi(glm::vec2 viewSizePx) const;
 
-    float m_skyLightPower = 1.0f;
-    float timeToSkyLightPower(float timeDay) const;
+    float m_timeD{};
 
     glsl::WorldDrawingPC m_pc{};
 

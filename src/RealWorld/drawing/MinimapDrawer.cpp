@@ -1,13 +1,14 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/drawing/MinimapDrawer.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealEngine/graphics/commands/CommandBuffer.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
-#include <RealWorld/constants/Light.hpp>
-#include <RealWorld/drawing/MinimapDrawer.hpp>
+#include <RealWorld/constants/Light.glsl.gen.hpp>
 
 namespace rw {
 
@@ -105,36 +106,33 @@ void MinimapDrawer::drawMinimapLines(const re::CommandBuffer& cb, glm::vec2 botL
         // View extended by light range
         addRectangle(
             static_cast<glm::ivec2>(
-                botLeftPx - tiToPx(glm::vec2{k_lightMaxRangeTi + iChunkTi})
+                botLeftPx - tiToPx(glm::vec2{glsl::k_lightMaxRangeTi + iChunkTi})
             ) & mask,
-            m_viewSizePx + tiToPx(glm::vec2{k_lightMaxRangeTi + iChunkTi}) * 2.0f
+            m_viewSizePx + tiToPx(glm::vec2{glsl::k_lightMaxRangeTi + iChunkTi}) * 2.0f
         );
     }
 
     m_geometryBatch.end();
     cb->setScissor(
-        0,
-        vk::Rect2D{
-            vk::Offset2D{
-                static_cast<int32_t>(m_layout.offsetPx.x - 1),
-                static_cast<int32_t>(m_layout.offsetPx.y - 1)
-            },
-            vk::Extent2D{
-                static_cast<uint32_t>(m_layout.sizePx.x + 1),
-                static_cast<uint32_t>(m_layout.sizePx.y + 1)
-            }
-        }
+        0, vk::Rect2D{
+               vk::Offset2D{
+                   static_cast<int32_t>(m_layout.offsetPx.x - 1),
+                   static_cast<int32_t>(m_layout.offsetPx.y - 1)
+               },
+               vk::Extent2D{
+                   static_cast<uint32_t>(m_layout.sizePx.x + 1),
+                   static_cast<uint32_t>(m_layout.sizePx.y + 1)
+               }
+           }
     );
     m_geometryBatch.draw(cb, m_viewMat);
     cb->setScissor(
-        0,
-        vk::Rect2D{
-            vk::Offset2D{},
-            vk::Extent2D{
-                static_cast<uint32_t>(m_viewSizePx.x),
-                static_cast<uint32_t>(m_viewSizePx.y)
-            }
-        }
+        0, vk::Rect2D{
+               vk::Offset2D{}, vk::Extent2D{
+                                   static_cast<uint32_t>(m_viewSizePx.x),
+                                   static_cast<uint32_t>(m_viewSizePx.y)
+                               }
+           }
     );
 }
 

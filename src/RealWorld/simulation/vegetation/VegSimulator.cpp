@@ -2,13 +2,14 @@
  *  @author    Dubsky Tomas
  */
 
+#include <RealWorld/simulation/vegetation/VegSimulator.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <RealWorld/constants/Chunk.hpp>
 #include <RealWorld/constants/Tile.hpp>
 #include <RealWorld/constants/Vegetation.hpp>
 #include <RealWorld/simulation/vegetation/BranchAllocRegSB.hpp>
-#include <RealWorld/simulation/vegetation/VegSimulator.hpp>
 #include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl.gen.hpp>
 
 using enum vk::BufferUsageFlagBits;
@@ -54,7 +55,8 @@ VegSimulator::VegSimulator()
             0, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor
         };
         constexpr static auto k_subpasses = std::to_array({vk::SubpassDescription2{
-            vk::SubpassDescriptionFlags{}, vk::PipelineBindPoint::eGraphics,
+            vk::SubpassDescriptionFlags{},
+            vk::PipelineBindPoint::eGraphics,
             0u,                 // View mask
             1u,
             &k_wallLayerAttRef, // Input attachments

@@ -41,24 +41,25 @@ public:
     void scheduleTransition(Args&&... transitionArgs) {
         engine().scheduleRoomTransition(
             static_cast<size_t>(RoomType::k_name),
-            {std::make_any<typename RoomType::TransitionArgs>(std::forward<Args>(transitionArgs
-            )...)}
+            {std::make_any<typename RoomType::TransitionArgs>(
+                std::forward<Args>(transitionArgs)...
+            )}
         );
     }
 
 protected:
-    using enum RealWorldKeyBindings;
+    using enum KeyBinding;
 
-    auto keybindPressed(RealWorldKeyBindings binding) {
-        return engine().wasKeyPressed(keybinder(binding));
+    auto keybindPressed(KeyBinding binding) {
+        return engine().wasKeyPressed(keyBinder(binding));
     }
 
-    auto keybindReleased(RealWorldKeyBindings binding) {
-        return engine().wasKeyReleased(keybinder(binding));
+    auto keybindReleased(KeyBinding binding) {
+        return engine().wasKeyReleased(keyBinder(binding));
     }
 
-    auto keybindDown(RealWorldKeyBindings binding) {
-        return engine().isKeyDown(keybinder(binding));
+    auto keybindDown(KeyBinding binding) {
+        return engine().isKeyDown(keyBinder(binding));
     }
 
     template<re::CompTimeString k_lit>

@@ -1,11 +1,12 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
+
 #include <algorithm>
 #include <execution>
 
 #include <RealWorld/save/ChunkLoader.hpp>
-#include <RealWorld/simulation/tiles/ChunkActivationMgr.hpp>
 #include <RealWorld/simulation/tiles/shaders/AllShaders.gen.hpp>
 
 using enum vk::BufferUsageFlagBits;
@@ -48,14 +49,14 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
     // Reset ActiveChunks storage buffer
     vk::DeviceSize bufSize = calcActiveChunksBufSize(targetInfo.worldTexCh);
     m_activeChunksBuf      = re::Buffer{re::BufferCreateInfo{
-             .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
-             .sizeInBytes = bufSize,
-             .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
-             .debugName   = "rw::ChunkActivationMgr::activeChunks"
+        .memoryUsage = vma::MemoryUsage::eAutoPreferDevice,
+        .sizeInBytes = bufSize,
+        .usage       = eStorageBuffer | eIndirectBuffer | eTransferDst,
+        .debugName   = "rw::ChunkActivationMgr::activeChunks"
     }};
     m_activeChunksStageBuf = re::BufferMapped<glsl::ActiveChunksSB>{re::BufferCreateInfo{
-        .allocFlags = vma::AllocationCreateFlagBits::eMapped |
-                      vma::AllocationCreateFlagBits::eHostAccessRandom,
+        .allocFlags  = vma::AllocationCreateFlagBits::eMapped |
+                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = bufSize,
         .usage       = eTransferSrc,
         .debugName   = "rw::ChunkActivationMgr::activeChunksStage"
@@ -64,7 +65,7 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
     m_activeChunksStageBuf->worldTexSizeCh    = targetInfo.worldTexCh;
     m_activeChunksStageBuf->dynamicsGroupSize = glm::ivec4{0, 1, 1, 0};
     int maxNumberOfUpdateChunks = m_worldTexMaskCh.x * m_worldTexMaskCh.y;
-    int lastChunkIndex          = maxNumberOfUpdateChunks +
+    int lastChunkIndex = maxNumberOfUpdateChunks +
                          targetInfo.worldTexCh.x * targetInfo.worldTexCh.y;
     for (int i = maxNumberOfUpdateChunks; i < lastChunkIndex; i++) {
         m_activeChunksStageBuf->offsets[i] = k_chunkNotActive;
@@ -72,24 +73,28 @@ ChunkActivationMgr::ActivationBuffers ChunkActivationMgr::setTarget(
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cb) {
         // Copy whole buffer
         vk::BufferCopy2 bufferCopy{0ull, 0ull, bufSize};
-        cb->copyBuffer2(vk::CopyBufferInfo2{
-            m_activeChunksStageBuf.buffer(), // Src buffer
-            m_activeChunksBuf.buffer(),      // Dst buffer
-            bufferCopy                       // Region
-        });
+        cb->copyBuffer2(
+            vk::CopyBufferInfo2{
+                m_activeChunksStageBuf.buffer(), // Src buffer
+                m_activeChunksBuf.buffer(),      // Dst buffer
+                bufferCopy                       // Region
+            }
+        );
     });
     targetInfo.descriptorSet.write(
         vk::DescriptorType::eStorageBuffer, 1u, 0u, m_activeChunksBuf
     );
 
-    m_chunkGen.setTarget(ChunkGenerator::TargetInfo{
-        .seed              = targetInfo.seed,
-        .worldTex          = targetInfo.worldTex,
-        .worldTexSizeCh    = targetInfo.worldTexCh,
-        .bodiesBuf         = targetInfo.bodiesBuf,
-        .branchBuf         = targetInfo.branchBuf,
-        .branchAllocRegBuf = targetInfo.branchAllocRegBuf
-    });
+    m_chunkGen.setTarget(
+        ChunkGenerator::TargetInfo{
+            .seed              = targetInfo.seed,
+            .worldTex          = targetInfo.worldTex,
+            .worldTexSizeCh    = targetInfo.worldTexCh,
+            .bodiesBuf         = targetInfo.bodiesBuf,
+            .branchBuf         = targetInfo.branchBuf,
+            .branchAllocRegBuf = targetInfo.branchAllocRegBuf
+        }
+    );
 
     m_chunkTransferMgr.setTarget(targetInfo.worldTexCh);
 
@@ -100,8 +105,7 @@ bool ChunkActivationMgr::saveChunks() {
     // Save all inactive chunks
     std::for_each(
         std::execution::par_unseq, m_inactiveChunks.begin(),
-        m_inactiveChunks.end(),
-        [&](const auto& pair) {
+        m_inactiveChunks.end(), [&](const auto& pair) {
             saveChunk(
                 pair.first, pair.second.tiles().data(),
                 pair.second.branchesSerialized()
@@ -294,11 +298,13 @@ void ChunkActivationMgr::analyzeAfterChanges(const ActionCmdBuf& acb) {
                      sizeof(glm::ivec2) * (texSizeCh.x * texSizeCh.y)
                  }}
             );
-            cb->copyBuffer2(vk::CopyBufferInfo2{
-                m_activeChunksStageBuf.buffer(), // Src buffer
-                m_activeChunksBuf.buffer(),      // Dst buffer
-                copyRegions                      // Regions
-            });
+            cb->copyBuffer2(
+                vk::CopyBufferInfo2{
+                    m_activeChunksStageBuf.buffer(), // Src buffer
+                    m_activeChunksBuf.buffer(),      // Dst buffer
+                    copyRegions                      // Regions
+                }
+            );
         },
         BufferAccess{
             .name   = BufferTrackName::ActiveChunks,

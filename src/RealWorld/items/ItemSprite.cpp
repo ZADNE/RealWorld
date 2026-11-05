@@ -1,10 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/items/ItemSprite.hpp>
+
 #include <RealEngine/resources/ResourceManager.hpp>
 
 #include <RealWorld/items/Item.hpp>
-#include <RealWorld/items/ItemSprite.hpp>
 
 namespace rw {
 

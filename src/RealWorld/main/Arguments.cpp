@@ -1,11 +1,12 @@
 /**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/main/Arguments.hpp>
+
 #include <argparse/argparse.hpp>
 
 #include <RealEngine/utility/BuildType.hpp>
 
-#include <RealWorld/main/Arguments.hpp>
 #include <RealWorld/utility/Version.hpp>
 
 namespace rw {

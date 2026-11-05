@@ -1,10 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/items/ItemMetadata.hpp>
+
 #include <cassert>
 
 #include <RealWorld/constants/ResourceIndex.hpp>
-#include <RealWorld/items/ItemMetadata.hpp>
 
 namespace rw {
 

@@ -61,9 +61,8 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
         [&](const re::CommandBuffer& cb) {
             { // Add barrier between expansion and branch allocation
                 auto barrier = re::bufferMemoryBarrier(
-                    S::eComputeShader,                    // Src stage mask
-                    A::eShaderStorageRead |
-                        A::eShaderStorageWrite,           // Src access mask
+                    S::eComputeShader, // Src stage mask
+                    A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
                     S::eDrawIndirect | S::eComputeShader, // Dst stage mask
                     A::eIndirectCommandRead | A::eShaderStorageRead |
                         A::eShaderStorageWrite,           // Dst access mask
@@ -78,12 +77,10 @@ void ChunkGenerator::generateVegetation(const ActionCmdBuf& acb) {
 
             { // Add barrier between branch allocation and output
                 auto barrier = re::bufferMemoryBarrier(
-                    S::eComputeShader,          // Src stage mask
-                    A::eShaderStorageRead |
-                        A::eShaderStorageWrite, // Src access mask
-                    S::eComputeShader,          // Dst stage mask
-                    A::eShaderStorageRead |
-                        A::eShaderStorageWrite, // Dst access mask
+                    S::eComputeShader, // Src stage mask
+                    A::eShaderStorageRead | A::eShaderStorageWrite, // Src access mask
+                    S::eComputeShader, // Dst stage mask
+                    A::eShaderStorageRead | A::eShaderStorageWrite, // Dst access mask
                     *m_vegPrepBuf
                 );
                 cb->pipelineBarrier2({{}, {}, barrier, {}});

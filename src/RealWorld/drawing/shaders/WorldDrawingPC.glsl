@@ -10,11 +10,13 @@ uniform WorldDrawingPC {
     mat4    minimapViewMat;
     vec2    uvRectSize;
     vec2    uvRectOffset;
-    ivec2   botLeftTi;
+    vec2    botLeftPx;
     ivec2   worldTexMask;
     vec2    minimapOffset;
     vec2    minimapSize;
-    vec4    skyColor;
+    vec2    biomeClimate; ///< Climate in the center of the view
+    float   seed;
+    float   timeD;
 } RE_GLSL_ONLY(p_);
 
 #endif // !RW_WORLD_DRAWING_PC_GLSL

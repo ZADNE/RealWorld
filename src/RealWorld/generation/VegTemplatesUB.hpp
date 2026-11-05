@@ -339,20 +339,26 @@ constexpr VegTemplatesUB composeVegTemplates() {
         auto b0 = addString({'b', 0.25, .25});
         auto b1 = addString({'b', 0.25, .125});
 
-        tmplts.push_back(VegTemplate{
-            .axiom         = addString({def, "DIWT", .75, 3.5}),
-            .iterCount     = 4,
-            .tropismFactor = 4.0f,
-            .rules =
-                {addProbRuleBodies(
-                     {1, 3.5f}, {{1.f, t0}},
-                     {{.1f, t1}, {.35f, t2}, {.35f, t3}, {.1f, t0}}
-                 ),
-                 addProbRuleBodies({1, 5.f}, {{1.f, b0}}, {{1.f, b1}})}
-        });
-        rasterTmplts.push_back(VegRasterTemplate{
-            .noiseScale = 1.0f / 16.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 7.0f
-        });
+        tmplts.push_back(
+            VegTemplate{
+                .axiom         = addString({def, "DIWT", .75, 3.5}),
+                .iterCount     = 4,
+                .tropismFactor = 4.0f,
+                .rules =
+                    {addProbRuleBodies(
+                         {1, 3.5f}, {{1.f, t0}},
+                         {{.1f, t1}, {.35f, t2}, {.35f, t3}, {.1f, t0}}
+                     ),
+                     addProbRuleBodies({1, 5.f}, {{1.f, b0}}, {{1.f, b1}})}
+            }
+        );
+        rasterTmplts.push_back(
+            VegRasterTemplate{
+                .noiseScale         = 1.0f / 16.0f,
+                .branchRadiusFactor = 3.0f,
+                .maxLeafStrength    = 7.0f
+            }
+        );
     }
 
     { // Acacia
@@ -370,20 +376,26 @@ constexpr VegTemplatesUB composeVegTemplates() {
 
         auto b0 = addString({def, 'b', .25, 5.});
 
-        tmplts.push_back(VegTemplate{
-            .axiom         = addString({def, "DIWB", .75, 80., "[+T][-T]"}),
-            .iterCount     = 5,
-            .tropismFactor = -0.8f,
-            .rules =
-                {addProbRuleBodies(
-                     {1, 35.0f}, {{1.0f, t0}},
-                     {{0.8f, t1}, {0.05f, t2}, {0.05f, t3}, {0.1f, t0}}
-                 ),
-                 addProbRuleBodies({1, 50.0f}, {{1.0f, b0}}, {{0.9f, b0}})}
-        });
-        rasterTmplts.push_back(VegRasterTemplate{
-            .noiseScale = 1.0f / 8.0f, .branchRadiusFactor = 2.5f, .maxLeafStrength = 3.0f
-        });
+        tmplts.push_back(
+            VegTemplate{
+                .axiom         = addString({def, "DIWB", .75, 80., "[+T][-T]"}),
+                .iterCount     = 5,
+                .tropismFactor = -0.8f,
+                .rules =
+                    {addProbRuleBodies(
+                         {1, 35.0f}, {{1.0f, t0}},
+                         {{0.8f, t1}, {0.05f, t2}, {0.05f, t3}, {0.1f, t0}}
+                     ),
+                     addProbRuleBodies({1, 50.0f}, {{1.0f, b0}}, {{0.9f, b0}})}
+            }
+        );
+        rasterTmplts.push_back(
+            VegRasterTemplate{
+                .noiseScale         = 1.0f / 8.0f,
+                .branchRadiusFactor = 2.5f,
+                .maxLeafStrength    = 3.0f
+            }
+        );
     }
 
     { // Spruce
@@ -406,20 +418,27 @@ constexpr VegTemplatesUB composeVegTemplates() {
 
         auto s0 = addString({def, 's', .25, 1.5});
 
-        tmplts.push_back(VegTemplate{
-            .axiom         = addString({def, "DIWB", .5, 7.5}),
-            .iterCount     = 6,
-            .tropismFactor = 0.0f,
-            .rules =
-                {addProbRuleBodies({1, 15.0f}, {{1.0f, t0}}, {{1.0f, t0}}),
-                 addProbRuleBodies(
-                     {1, 6.0f}, {{0.95f, b0}}, {{0.7f, b1}, {0.2f, b2}, {0.05f, b0}}
-                 ),
-                 addProbRuleBodies({1, 40.0f}, {{0.95f, s0}}, {{0.8f, s0}})}
-        });
-        rasterTmplts.push_back(VegRasterTemplate{
-            .noiseScale = 1.0f / 8.0f, .branchRadiusFactor = 5.0f, .maxLeafStrength = 4.0f
-        });
+        tmplts.push_back(
+            VegTemplate{
+                .axiom         = addString({def, "DIWB", .5, 7.5}),
+                .iterCount     = 6,
+                .tropismFactor = 0.0f,
+                .rules =
+                    {addProbRuleBodies({1, 15.0f}, {{1.0f, t0}}, {{1.0f, t0}}),
+                     addProbRuleBodies(
+                         {1, 6.0f}, {{0.95f, b0}},
+                         {{0.7f, b1}, {0.2f, b2}, {0.05f, b0}}
+                     ),
+                     addProbRuleBodies({1, 40.0f}, {{0.95f, s0}}, {{0.8f, s0}})}
+            }
+        );
+        rasterTmplts.push_back(
+            VegRasterTemplate{
+                .noiseScale         = 1.0f / 8.0f,
+                .branchRadiusFactor = 5.0f,
+                .maxLeafStrength    = 4.0f
+            }
+        );
     }
 
     { // Willow
@@ -447,18 +466,23 @@ constexpr VegTemplatesUB composeVegTemplates() {
              1.25, 4.0, "]"}
         );
 
-        tmplts.push_back(VegTemplate{
-            .axiom         = addString({def, "DIWS", 1.25, 25.}),
-            .iterCount     = 6,
-            .tropismFactor = 0.0f,
-            .rules =
-                {addProbRuleBodies({1, 27.f}, {{1.f, t0}}, {}),
-                 addProbRuleBodies({1, 0.f}, {}, {{.35f, b0}, {.65f, b1}}),
-                 addProbRuleBodies({1, 15.f}, {{1.f, s0}}, {{.9f, s1}, {.1f, s0}})}
-        });
-        rasterTmplts.push_back(VegRasterTemplate{
-            .noiseScale = 0.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
-        });
+        tmplts.push_back(
+            VegTemplate{
+                .axiom         = addString({def, "DIWS", 1.25, 25.}),
+                .iterCount     = 6,
+                .tropismFactor = 0.0f,
+                .rules         = {
+                    addProbRuleBodies({1, 27.f}, {{1.f, t0}}, {}),
+                    addProbRuleBodies({1, 0.f}, {}, {{.35f, b0}, {.65f, b1}}),
+                    addProbRuleBodies({1, 15.f}, {{1.f, s0}}, {{.9f, s1}, {.1f, s0}})
+                }
+            }
+        );
+        rasterTmplts.push_back(
+            VegRasterTemplate{
+                .noiseScale = 0.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
+            }
+        );
     }
 
     { // Cactus
@@ -481,19 +505,25 @@ constexpr VegTemplatesUB composeVegTemplates() {
              1.5, 3.0, "-T", 1.5, 5.5, "]"}
         );
 
-        tmplts.push_back(VegTemplate{
-            .axiom         = addString({def, "DIWB", 2.25, 15.}),
-            .iterCount     = 5,
-            .tropismFactor = 0.0f,
-            .rules =
-                {addProbRuleBodies({1, 0.f}, {}, {{.2f, t0}}),
-                 addProbRuleBodies(
-                     {1, 15.f}, {{.9f, b0}}, {{.4f, b1}, {.1f, b2}, {.4f, b0}}
-                 )}
-        });
-        rasterTmplts.push_back(VegRasterTemplate{
-            .noiseScale = 1.0f / 16.0f, .branchRadiusFactor = 3.0f, .maxLeafStrength = 0.0f
-        });
+        tmplts.push_back(
+            VegTemplate{
+                .axiom         = addString({def, "DIWB", 2.25, 15.}),
+                .iterCount     = 5,
+                .tropismFactor = 0.0f,
+                .rules =
+                    {addProbRuleBodies({1, 0.f}, {}, {{.2f, t0}}),
+                     addProbRuleBodies(
+                         {1, 15.f}, {{.9f, b0}}, {{.4f, b1}, {.1f, b2}, {.4f, b0}}
+                     )}
+            }
+        );
+        rasterTmplts.push_back(
+            VegRasterTemplate{
+                .noiseScale         = 1.0f / 16.0f,
+                .branchRadiusFactor = 3.0f,
+                .maxLeafStrength    = 0.0f
+            }
+        );
     }
 
     { // Palm tree
@@ -512,20 +542,26 @@ constexpr VegTemplatesUB composeVegTemplates() {
         auto b3 = addString({def, 'b', .125, 5.0, "[+", -0.09, "T]"});
         auto b4 = addString({def, 'b', .125, 5.0, "[+", +0.09, "T]"});
 
-        tmplts.push_back(VegTemplate{
-            .axiom = addString({def, "DIW^B", .75, 3.5, 'D', 0.05, 'I', 2.0}),
-            .iterCount     = 8,
-            .tropismFactor = 0.0f,
-            .rules =
-                {addProbRuleBodies({1, 32.0f}, {{0.95f, t0}}, {{0.4f, t0}}),
-                 addProbRuleBodies(
-                     {1, 6.0f}, {{0.9f, b0}},
-                     {{0.2f, b0}, {0.2f, b1}, {0.2f, b2}, {0.2f, b3}, {0.2f, b4}}
-                 )}
-        });
-        rasterTmplts.push_back(VegRasterTemplate{
-            .noiseScale = 1.0f / 4.0f, .branchRadiusFactor = 5.0f, .maxLeafStrength = 5.0f
-        });
+        tmplts.push_back(
+            VegTemplate{
+                .axiom = addString({def, "DIW^B", .75, 3.5, 'D', 0.05, 'I', 2.0}),
+                .iterCount     = 8,
+                .tropismFactor = 0.0f,
+                .rules =
+                    {addProbRuleBodies({1, 32.0f}, {{0.95f, t0}}, {{0.4f, t0}}),
+                     addProbRuleBodies(
+                         {1, 6.0f}, {{0.9f, b0}},
+                         {{0.2f, b0}, {0.2f, b1}, {0.2f, b2}, {0.2f, b3}, {0.2f, b4}}
+                     )}
+            }
+        );
+        rasterTmplts.push_back(
+            VegRasterTemplate{
+                .noiseScale         = 1.0f / 4.0f,
+                .branchRadiusFactor = 5.0f,
+                .maxLeafStrength    = 5.0f
+            }
+        );
     }
 
     return VegTemplatesUB{std::string_view{symbols}, std::span{params},

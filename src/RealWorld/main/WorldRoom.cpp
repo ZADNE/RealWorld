@@ -1,10 +1,13 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/main/WorldRoom.hpp>
+
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/round.hpp>
+
+#include <RealWorld/constants/Light.glsl.gen.hpp>
+#include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 #include <RealWorld/utility/HotReloadIdentifier.hpp>
 
@@ -34,7 +37,8 @@ constexpr re::RenderPassCreateInfo k_renderPassCreateInfo{
     .debugName    = "rw::WorldRoom::mainRenderpass"
 };
 
-constexpr float k_timedaySpeed = 0.00025f;
+/// 1 game day takes 24 minutes of real time
+constexpr float k_timedaySpeed = 1.0f / (24.0f * k_physicsStepsPerMinute);
 
 WorldRoom::WorldRoom(const GameSettings& gameSettings)
     : Room(
@@ -53,7 +57,6 @@ WorldRoom::WorldRoom(const GameSettings& gameSettings)
     , m_world(m_messageBroker.messageBuffer())
     , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
     , m_invUI(engine().windowDims()) {
-
     m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
 }
 
@@ -168,8 +171,7 @@ void WorldRoom::pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) 
     }
 }
 
-void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope
-) {
+void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope) {
     auto dbg = m_acb->createDebugRegion("simulation");
 
     // Process messages from 2-previous step
@@ -207,14 +209,12 @@ void WorldRoom::analyzeWorldForDrawing() {
     auto dbg = m_acb->createDebugRegion("analysisForDrawing");
 
     // Analyze the world texture
-    m_timeDay += k_timedaySpeed * static_cast<float>(!m_stopDaytime);
-    m_worldDrawer.beginStep(*m_acb, m_timeDay);
+    m_timeD += k_timedaySpeed * static_cast<float>(!m_stopDaytime);
+    m_worldDrawer.beginStep(*m_acb, m_timeD);
 
     // Add external lights (these below are mostly for debug)
-    m_worldDrawer.addExternalLight(
-        m_worldView.cursorRel(), re::Color{0u, 0u, 0u, 255u}
-    );
-    m_worldDrawer.addExternalLight(m_player.centerPx(), re::Color{0u, 0u, 0u, 64u});
+    addDebugLightToWorld(m_player.centerPx(), m_playerLight);
+    addDebugLightToWorld(m_worldView.cursorRel(), m_cursorLight);
 
     // Calculate illumination based the world texture and external lights
     m_worldDrawer.endStep(*m_acb);
@@ -256,7 +256,7 @@ void WorldRoom::updateInventoryAndUI() {
 
         int slot0 = static_cast<int>(InvSlot0);
         for (int i = 0; i < m_playerInv.dims().x; ++i) {
-            if (keybindPressed(static_cast<RealWorldKeyBindings>(slot0 + i))) {
+            if (keybindPressed(static_cast<KeyBinding>(slot0 + i))) {
                 m_invUI.selectSlot(AbsolutePos, i);
             }
         }
@@ -286,32 +286,8 @@ void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
     if (m_minimap) {
         m_worldDrawer.drawMinimap(cb);
     }
-    // Top-left menu
-    ImGui::SetNextWindowPos({0.0f, 0.0f});
-    ImGui::PushFont(m_arial);
-    if (ImGui::Begin(
-            "##topLeftMenu", nullptr,
-            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
-        )) {
-        std::string fpsFrameTimeStr = std::format(
-            "FPS: {}\nMax FT: {} us", engine().framesPerSecond(),
-            duration_cast<std::chrono::microseconds>(engine().maxFrameTime()).count()
-        );
-        ImGui::TextUnformatted(fpsFrameTimeStr.c_str());
-        ImGui::Separator();
-        ImGui::TextUnformatted("Minimap:");
-        ImGui::SameLine();
-        ImGui::ToggleButton("##minimap", &m_minimap);
-        ImGui::TextUnformatted("Shadows:");
-        ImGui::SameLine();
-        ImGui::ToggleButton("##shadows", &m_shadows);
-        ImGui::TextUnformatted("Stop daytime:");
-        ImGui::SameLine();
-        ImGui::ToggleButton("##stopDaytime", &m_stopDaytime);
-    }
-    ImGui::End();
-    ImGui::PopFont();
-    engine().mainRenderPassDrawImGui();
+    // Developer ImGui
+    drawDeveloperGui();
 }
 
 bool WorldRoom::loadWorld(const std::string& worldName) {
@@ -320,14 +296,18 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
     if (!WorldSaveLoader::loadWorld(save, worldName))
         return false;
 
+    return adoptWorld(save);
+}
+
+bool WorldRoom::adoptWorld(const WorldSave& save) {
     const auto& worldTex =
         m_world.adoptSave(m_acb, save.metadata, m_gameSettings.worldTexSize());
     m_player.adoptSave(save.player, worldTex, m_gameSettings.worldTexSize());
     m_playerInv.adoptInventoryData(save.inventory);
-    m_timeDay = save.metadata.timeDay;
+    m_timeD = save.metadata.timeD;
 
     m_worldDrawer.setTarget(
-        worldTex, m_gameSettings.worldTexSize() * iChunkTi,
+        worldTex, chToTi(m_gameSettings.worldTexSize()),
         static_cast<float>(save.metadata.seed)
     );
     return true;
@@ -335,16 +315,41 @@ bool WorldRoom::loadWorld(const std::string& worldName) {
 
 bool WorldRoom::saveWorld() {
     WorldSave save{};
-    m_world.gatherSave(save.metadata);
-    m_player.gatherSave(save.player);
-    m_playerInv.gatherInventoryData(save.inventory);
-    if (!WorldSaveLoader::saveWorld(save, save.metadata.worldName, false))
+    gatherWorld(save);
+    if (!WorldSaveLoader::saveWorld(save, false))
         return false;
     return m_world.saveChunks(m_acb);
 }
 
+void WorldRoom::gatherWorld(WorldSave& save) {
+    m_world.gatherSave(save.metadata);
+    m_player.gatherSave(save.player);
+    m_playerInv.gatherInventoryData(save.inventory);
+    save.metadata.timeD = m_timeD;
+}
+
 glm::mat4 WorldRoom::calculateWindowViewMat(glm::vec2 windowDims) const {
     return glm::ortho(0.0f, windowDims.x, 0.0f, windowDims.y);
+}
+
+void WorldRoom::addDebugLightToWorld(glm::vec2 basePosPx, const DebugLight& light) {
+    glm::vec2 posPx{};
+    constexpr static float k_lightMaxCellPx = tiToPx(glsl::k_lightMaxCellTi);
+    switch (light.relPos) {
+    case DebugRelLightPos::Exact: posPx = basePosPx; break;
+    case DebugRelLightPos::CellCircling:
+        posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
+                glm::vec2{glm::sin(m_timeD * 750.0f), glm::cos(m_timeD * 750.0f)} *
+                    k_lightMaxCellPx;
+        break;
+    case DebugRelLightPos::CellOffset:
+        posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
+                light.offsetPx;
+        break;
+    default: break;
+    }
+
+    m_worldDrawer.addExternalLight(posPx, light.color * light.intensity);
 }
 
 } // namespace rw

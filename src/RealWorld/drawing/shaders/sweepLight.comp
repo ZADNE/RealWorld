@@ -1,0 +1,133 @@
+/**
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <RealWorld/constants/Light.glsl>
+#include <RealWorld/drawing/shaders/LightSweepPC.glsl>
+#include <RealWorld/generation/external_shaders/smoothstep.glsl>
+
+layout (local_size_x = int(k_lightSweepGroupSize),
+        local_size_y = int(k_lightSweepGroupSize),
+        local_size_z = 1
+) in;
+
+layout (set = 0, binding = 0)
+    uniform sampler2DArray             u_lightXluSampler;
+layout (set = 0, binding = 1, rgba8)
+    uniform restrict writeonly image2D u_shadowsImage;
+
+const float k_piOver4   = 0.78539816339;
+const float k_piOver8   = 0.39269908169;
+const float k_piOver16  = 0.19634954084;
+const float k_piOver32  = 0.09817477042;
+const float k_piOver64  = 0.04908738521;
+const float k_piOver128 = 0.0245436926;
+const float k_piOver256 = 0.0122718463;
+const float k_piOver512 = 0.00613592315;
+
+//                              near off     far off     angle diff
+const vec3 k_rayEParams = vec3(10.19001,   78.00000,   k_piOver64);
+const vec3 k_rayDParams = vec3( 5.10115,   10.19001,   k_piOver32);
+const vec3 k_rayCParams = vec3( 2.56292,    5.10115,   k_piOver16);
+const vec3 k_rayBParams = vec3( 1.30656,    2.56292,    k_piOver8);
+const vec3 k_rayAParams = vec3( 1.00000,    1.30656,    k_piOver4);
+
+const float k_treeRayBaseLightMult = 16.0; ///< Light power multiplier at trunk
+
+vec4 sampleLightXlu(vec2 uv, float cascade) {
+    return vec4(
+        textureLod(u_lightXluSampler, vec3(uv, 0.0), cascade).xy,
+        textureLod(u_lightXluSampler, vec3(uv, 1.0), cascade).xy
+    );
+}
+
+void accumulate(inout vec3 accumulated, vec2 uv, float lightMult, float cascade) {
+    vec4 lightXlu = sampleLightXlu(uv, cascade);
+    accumulated = fma(accumulated, lightXlu.aaa, lightXlu.rgb * lightMult);
+}
+
+void ray(inout vec3 light, vec2 centerUv, vec2 dirUv, vec3 rayParams, float lightMult) {
+    vec2 uv = centerUv + dirUv * rayParams.y;
+    float cascadeDiameter = 0.0;
+    for (float i = rayParams.y; i >= rayParams.x; i -= cascadeDiameter){
+        cascadeDiameter = clamp(i * rayParams.z, 1.0, 4.0);
+        accumulate(light, uv, lightMult, log2(cascadeDiameter) + 0.5);
+        uv -= dirUv * cascadeDiameter;
+    }
+}
+
+vec3 rayE(vec2 centerUv, float a, float lightMult) {
+    vec3 light = vec3(0.0);
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
+    ray(light, centerUv, dirUv, k_rayEParams, lightMult);
+    return light;
+}
+
+vec3 rayD(vec2 centerUv, float a, float lightMult) {
+    vec3 light = rayE(centerUv, a - k_piOver128, lightMult * 0.5)
+                 + rayE(centerUv, a + k_piOver128, lightMult * 0.5);
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
+    ray(light, centerUv, dirUv, k_rayDParams, lightMult);
+    return light;
+}
+
+vec3 rayC(vec2 centerUv, float a, float lightMult) {
+    vec3 light = rayD(centerUv, a - k_piOver64, lightMult * 0.5)
+                 + rayD(centerUv, a + k_piOver64, lightMult * 0.5);
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
+    ray(light, centerUv, dirUv, k_rayCParams, lightMult);
+    return light;
+}
+
+vec3 rayB(vec2 centerUv, float a, float lightMult) {
+    vec3 light = rayC(centerUv, a - k_piOver32, lightMult * 0.5)
+                 + rayC(centerUv, a + k_piOver32, lightMult * 0.5);
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
+    ray(light, centerUv, dirUv, k_rayBParams, lightMult);
+    return light;
+}
+
+vec3 rayA(vec2 centerUv, float a, float lightMult) {
+    vec3 light = rayB(centerUv, a - k_piOver16, lightMult * 0.5)
+                 + rayB(centerUv, a + k_piOver16, lightMult * 0.5);
+    vec2 dirUv = vec2(cos(a), sin(a)) * p_.uvScale;
+    ray(light, centerUv, dirUv, k_rayAParams, lightMult);
+    return light;
+}
+
+/// Return value is in range (0, 1)
+float tonemap(float intensity) {
+    return smoothstep(0.0, 5.0, intensity);
+}
+
+vec3 tonemapColor(vec3 light) {
+    float intenMin = min(light.x, min(light.y, light.z));
+    return smoothstep(intenMin, intenMin * 2.0f + 1.0f, light);
+}
+
+float correctGamma(float color) {
+    return pow(color, 1.0/3.0);
+}
+
+void main() {
+    // Calculate position and init variables
+    const ivec2 ID = ivec2(gl_GlobalInvocationID);
+    vec3 light = vec3(0.0);
+    const vec2 centerUv = (vec2(ID) + p_.uvOffset) * p_.uvScale;
+
+    // Eight tree-like rays, each sums 45 degrees
+    {
+        float a = k_piOver256;
+        for (int i = 0; i < 8; ++i, a += k_piOver4) {
+            light += rayA(centerUv, a, k_treeRayBaseLightMult);
+        }
+    }
+
+    // The center unit
+    light += sampleLightXlu(centerUv, 0.0).rgb * k_treeRayBaseLightMult;
+
+    float intenSum = light.x + light.y + light.z;
+
+    vec4 final = vec4(tonemapColor(light), 1.0 - correctGamma(tonemap(intenSum)));
+    imageStore(u_shadowsImage, ID, final);
+}

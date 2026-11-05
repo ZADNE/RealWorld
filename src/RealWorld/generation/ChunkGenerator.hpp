@@ -111,7 +111,7 @@ private:
         .extent = {k_genChunkSize.x, k_genChunkSize.y, 1u},
         .layers = k_chunkGenSlots * 3, // 2 segments for blocks, 1 for walls
         .usage  = vk::ImageUsageFlagBits::eStorage |
-                 vk::ImageUsageFlagBits::eTransferSrc,
+                  vk::ImageUsageFlagBits::eTransferSrc,
         .initialLayout = vk::ImageLayout::eGeneral,
         .debugName     = "rw::ChunkGenerator::layer"
     }};

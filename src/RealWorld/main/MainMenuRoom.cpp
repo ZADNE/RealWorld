@@ -1,10 +1,11 @@
 /**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/main/MainMenuRoom.hpp>
+
 #include <ctime>
 
 #include <RealWorld/main/Arguments.hpp>
-#include <RealWorld/main/MainMenuRoom.hpp>
 #include <RealWorld/main/WorldRoom.hpp>
 #include <RealWorld/save/WorldSaveLoader.hpp>
 
@@ -48,24 +49,29 @@ static constexpr re::RoomDisplaySettings k_initialSettings{
 MainMenuRoom::MainMenuRoom(GameSettings& gameSettings)
     : Room{k_name, k_initialSettings}
     , m_gameSettings(gameSettings)
-    , m_resolution(std::find(
-          k_resolutions.begin(), k_resolutions.end(), engine().windowDims()
-      ))
-    , m_preferredDevice(std::find(
-          m_availableDevices.begin(), m_availableDevices.end(),
-          engine().preferredDevice()
-      ))
-    , m_worldTexSize(std::find(
-          k_worldTexSizes.begin(), k_worldTexSizes.end(),
-          m_gameSettings.worldTexSize()
-      )) {
+    , m_resolution(
+          std::find(k_resolutions.begin(), k_resolutions.end(), engine().windowDims())
+      )
+    , m_preferredDevice(
+          std::find(
+              m_availableDevices.begin(), m_availableDevices.end(),
+              engine().preferredDevice()
+          )
+      )
+    , m_worldTexSize(
+          std::find(
+              k_worldTexSizes.begin(), k_worldTexSizes.end(),
+              m_gameSettings.worldTexSize()
+          )
+      ) {
 }
 
 void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
     m_menu = Main;
     WorldSaveLoader::searchSavedWorlds(m_worlds);
     m_newWorldName = "";
-    m_newWorldSeed = static_cast<int>(time(nullptr)) & 65535;
+    m_newWorldSeed = static_cast<int>(time(nullptr)) &
+                     WorldSaveLoader::k_seedSafeMax;
     engine().setWindowTitle("RealWorld!");
 
     try {
@@ -74,7 +80,9 @@ void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
         case TransitionArgs::EnterType::CLI:
             if (std::get<CLIArguments>(mmArgs.args).createDebugWorld) {
                 WorldSaveLoader::deleteWorld(k_debugWorldName);
-                if (WorldSaveLoader::createWorld(k_debugWorldName, m_newWorldSeed)) {
+                auto save =
+                    WorldSaveLoader::createWorld(k_debugWorldName, m_newWorldSeed);
+                if (WorldSaveLoader::saveWorld(save, true)) {
                     scheduleTransition<WorldRoom>(k_debugWorldName);
                 }
             }
@@ -101,7 +109,7 @@ void MainMenuRoom::render(const re::CommandBuffer& cb, double interpolationFacto
 
     SetNextWindowSize(windowDims());
     SetNextWindowPos({0.0f, 0.0f});
-    PushFont(m_arial);
+    PushFont(m_arial, m_arial->LegacySize);
 
     if (Begin("##wholeMenu", nullptr, ImGuiWindowFlags_NoDecoration)) {
         Indent();
@@ -158,8 +166,10 @@ void MainMenuRoom::newWorldMenu() {
     TextUnformatted("Seed: ");
     SameLine();
     InputInt("##seed", &m_newWorldSeed);
+    m_newWorldSeed &= WorldSaveLoader::k_seedSafeMax;
     if (Button("Create the world!") || engine().wasKeyPressed(re::Key::Return)) {
-        if (WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed)) {
+        auto save = WorldSaveLoader::createWorld(m_newWorldName, m_newWorldSeed);
+        if (WorldSaveLoader::saveWorld(save, true)) {
             scheduleTransition<WorldRoom>(m_newWorldName);
         }
     }
@@ -194,7 +204,7 @@ void MainMenuRoom::displaySettingsMenu() {
 
     TextUnformatted("Fullscreen");
     SameLine();
-    if (ToggleButton("##fullscreen", &m_fullscreen)) {
+    if (Checkbox("##fullscreen", &m_fullscreen)) {
         engine().setWindowFullscreen(m_fullscreen, true);
     }
 
@@ -202,7 +212,7 @@ void MainMenuRoom::displaySettingsMenu() {
         SameLine();
         TextUnformatted("Borderless");
         SameLine();
-        if (ToggleButton("##borderless", &m_borderless)) {
+        if (Checkbox("##borderless", &m_borderless)) {
             engine().setWindowBorderless(m_borderless, true);
         }
     }
@@ -210,7 +220,7 @@ void MainMenuRoom::displaySettingsMenu() {
     SameLine();
     TextUnformatted("VSync");
     SameLine();
-    if (ToggleButton("##vSync", &m_vSync)) {
+    if (Checkbox("##vSync", &m_vSync)) {
         engine().setWindowVSync(m_vSync, true);
     }
 
@@ -241,9 +251,9 @@ void MainMenuRoom::controlsMenu() {
         "##controlsTable", 3, ImGuiTableFlags_ScrollY,
         {0.0f, windowDims().y - GetFrameHeight() * 4.125f} // NOLINT(*-magic-numbers)
     );
-    for (size_t i = 0; i < static_cast<size_t>(RealWorldKeyBindings::Count); i++) {
+    for (size_t i = 0; i < static_cast<size_t>(KeyBinding::Count); i++) {
         PushID(static_cast<int>(i));
-        switch (static_cast<RealWorldKeyBindings>(i)) {
+        switch (static_cast<KeyBinding>(i)) {
         case InvOpenClose:       controlsCategoryHeader("Inventory"); break;
         case ItemuserUsePrimary: controlsCategoryHeader("Item usage"); break;
         case PlayerLeft:         controlsCategoryHeader("Player movement"); break;
@@ -254,21 +264,21 @@ void MainMenuRoom::controlsMenu() {
         TableNextRow();
         TableNextColumn();
 
-        TextUnformatted(k_keybindingInfo[i].desc);
+        TextUnformatted(keyBindingInfo(i).desc);
         TableNextColumn();
 
-        RealWorldKeyBindings binding = static_cast<RealWorldKeyBindings>(i);
-        if (Button(re::toString(keybinder(binding)).data())) {
-            keybinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(
+        KeyBinding binding = static_cast<KeyBinding>(i);
+        if (Button(re::toString(keyBinder(binding)).data())) {
+            keyBinder().listenChangeBinding<MainMenuRoom, &MainMenuRoom::keybindCallback>(
                 binding, *this
             );
             m_drawKeybindListeningPopup = true;
         }
 
-        if (keybinder(binding) != k_keybindingInfo[i].defaultValue) {
+        if (keyBinder(binding) != keyBindingInfo(i).defaultValue) {
             TableNextColumn();
             if (Button("Reset")) {
-                keybinder().resetBinding(static_cast<RealWorldKeyBindings>(i));
+                keyBinder().resetBinding(static_cast<KeyBinding>(i));
             }
         }
         PopID();

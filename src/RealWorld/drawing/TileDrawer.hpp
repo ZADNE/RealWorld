@@ -27,7 +27,7 @@ public:
 
     void resizeView(glm::vec2 viewSizePx);
 
-    void drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx, float skyLight);
+    void drawTiles(const re::CommandBuffer& cb, glm::vec2 botLeftPx, float timeD);
 
     void drawMinimap(const re::CommandBuffer& cb);
 
@@ -47,7 +47,6 @@ private:
         .debugName = "rw::TileDrawer::descriptorSet"
     }};
     re::Pipeline m_drawTilesPl;
-    float m_seed{};
 
     // Minimap
     re::Pipeline m_drawMinimapPl;

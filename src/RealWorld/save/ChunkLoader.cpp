@@ -1,6 +1,8 @@
 /**
  *  @author    Dubsky Tomas
  */
+#include <RealWorld/save/ChunkLoader.hpp>
+
 #include <array>
 #include <iomanip>
 #include <sstream>
@@ -9,8 +11,6 @@
 #include <lodepng/lodepng.hpp>
 
 #include <RealEngine/utility/BuildType.hpp>
-
-#include <RealWorld/save/ChunkLoader.hpp>
 
 namespace rw {
 

@@ -13,7 +13,7 @@ layout (local_size_x = k_genGroupSize,
         local_size_z = 1
 ) in;
 
-layout (set = 0, binding = k_tilesImageBinding, rg8ui)
+layout (set = 0, binding = k_tilesImageBinding, rg16ui)
 uniform restrict uimage2DArray u_layerImage;
 
 const ivec2 k_offsets[] = {

@@ -32,32 +32,57 @@ inline vec2 calcBiomeClimate(float xPx, float seed){
         x *= 2.0f;
     }
 
-    return clamp(res, 0.0f, 0.99999f);
+    return clamp(res, 0.0f, 0.9999999404f);
 }
 
-inline vec2 calcHorizon(float xPx, Biome biome, float seed){
-    // Elevation
+/**
+ * @return x = elevation in pixels, y = elevation derivative
+ */
+inline vec2 calcElevationWithDer(float xPx, const Biome biome, float seed) {
+    float elevPx = biome.elevation.x;
     float der = 0.0f;
-    float totalElev = biome.elevation.x;
+
     vec2 period_amplitude = vec2(2048.0f, 1.0f);
-    for (float level = 0.0f; level < 4.0f; level++){
-        vec2 elevation = smootherColumnValue_x_dx(xPx / period_amplitude.x, seed + level);
-        der += elevation.y * period_amplitude.y;
-        totalElev += elevation.x * period_amplitude.y * biome.elevation.y;
+    for (int level = 0; level < 4; level++){
+        vec2 levelElev = smootherColumnValue_x_dx(xPx / period_amplitude.x, seed++);
+        der += levelElev.y * period_amplitude.y;
+        elevPx += levelElev.x * period_amplitude.y * biome.elevation.y;
         period_amplitude *= 0.5f;
     }
     der = abs(der) * (1.0f / 1.875f);
 
+    return vec2(elevPx, der);
+}
+
+inline float calcElevation(float xPx, const Biome biome, float seed) {
+    float elevPx = biome.elevation.x;
+
+    vec2 period_amplitude = vec2(2048.0f, 1.0f);
+    for (int level = 0; level < 1; level++){
+        vec2 levelElev = smootherColumnValue_x_dx(xPx / period_amplitude.x, seed++);
+        elevPx += levelElev.x * period_amplitude.y * biome.elevation.y;
+        period_amplitude *= 0.5f;
+    }
+
+    return elevPx;
+}
+
+/**
+ * @return x = horizon in pixels, y = surface layer bottom in pixels
+ */
+inline vec2 calcHorizon(float xPx, const Biome biome, float seed){
+    vec2 elevPx_der = calcElevationWithDer(xPx, biome, seed);
+
     // Roughness
-    period_amplitude = vec2(256.0f, 1.0f);
+    vec2 period_amplitude = vec2(256.0f, 1.0f);
     float totalRough = 0.0f;
     for (float level = 0.0f; level < 6.0f; level++){
         totalRough += linColumnValue_x(xPx / period_amplitude.x, seed + level + 2161.0f) * period_amplitude.y;
         period_amplitude *= 0.5f;
     }
 
-    float top = totalElev + totalRough * (biome.roughness.x + biome.roughness.y * der);
-    float surfaceLayer = biome.surfaceWidth.x + biome.surfaceWidth.y * (1.0f - der);
+    float top = elevPx_der.x + totalRough * (biome.roughness.x + biome.roughness.y * elevPx_der.y);
+    float surfaceLayer = biome.surfaceWidth.x + biome.surfaceWidth.y * (1.0f - elevPx_der.y);
     return vec2(top, top - surfaceLayer);
 }
 

@@ -335,12 +335,12 @@ private:
      * @brief Is the actually stage buffer for tile and branch transfers
      */
     re::BufferMapped<StgBuf> m_buf{re::BufferCreateInfo{
-        .allocFlags = vma::AllocationCreateFlagBits::eMapped |
-                      vma::AllocationCreateFlagBits::eHostAccessRandom,
+        .allocFlags  = vma::AllocationCreateFlagBits::eMapped |
+                       vma::AllocationCreateFlagBits::eHostAccessRandom,
         .sizeInBytes = sizeof(StgBuf),
         .usage       = vk::BufferUsageFlagBits::eTransferSrc |
-                 vk::BufferUsageFlagBits::eTransferDst,
-        .debugName = "rw::ChunkTransferMgr::stage::buf"
+                       vk::BufferUsageFlagBits::eTransferDst,
+        .debugName   = "rw::ChunkTransferMgr::stage::buf"
     }};
 
     /**
