@@ -1,25 +1,14 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <array>
+export module realworld_constants:tile_properties.WallTransformationProperties;
+import :tile_properties.BlockTransformationProperties;
 
-#include <glm/vec4.hpp>
-
-namespace rw {
+export namespace rw {
 
 // clang-format off: Custom alignment of columns
 
-constexpr glm::uint STONEb          = 1 << 0;
-constexpr glm::uint DIRTb           = 1 << 1;
-constexpr glm::uint GRASSb          = 1 << 2;
-constexpr glm::uint BURNINGb        = 1 << 3;
-constexpr glm::uint HALLOWb         = 1 << 4;
-constexpr glm::uint WOODb           = 1 << 5;
-constexpr glm::uint EXTINGUISHINGb  = 1 << 6;
-
-
-constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
+constexpr std::array<glm::uvec4, 256> k_wallTransformationProperties = {
 //                              Properties                                  The first applicable rule   The last applicable rule    Padding
 /*stone*/           glm::uvec4{ STONEb,                                     6,                          6,                          0},
 /*dirt*/            glm::uvec4{ DIRTb,                                      0,                          1,                          0},
@@ -245,11 +234,10 @@ constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
-/*water*/           glm::uvec4{ EXTINGUISHINGb,                             ~0,                         0,                          0},
-/*lava*/            glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
-/*steam*/           glm::uvec4{ 0,                                          ~0,                         0,                          0},
-/*fire*/            glm::uvec4{ BURNINGb,                                   ~0,                         0,                          0},
-/*smoke*/           glm::uvec4{ 0,                                          ~0,                         0,                          0},
+/*oakWood*/         glm::uvec4{ WOODb,                                      20,                         21,                         0},
+/*acaciaWood*/      glm::uvec4{ WOODb,                                      20,                         21,                         0},
+/*coniferousWood*/  glm::uvec4{ WOODb,                                      20,                         21,                         0},
+/*palmWood*/        glm::uvec4{ WOODb,                                      20,                         21,                         0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
@@ -262,20 +250,21 @@ constexpr std::array<glm::uvec4, 256> k_blockTransformationProperties = {
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
+/*tallGrass*/       glm::uvec4{ GRASSb,                                     20,                         21,                         0},
+/*coldTallGrass*/   glm::uvec4{ GRASSb,                                     20,                         21,                         0},
+/*mudTallGrass*/    glm::uvec4{ GRASSb,                                     20,                         21,                         0},
+/*dryTallGrass*/    glm::uvec4{ GRASSb,                                     20,                         21,                         0},
+/*leaf*/            glm::uvec4{ 0,                                          16,                         17,                         0},
+/*dryLeaf*/         glm::uvec4{ 0,                                          18,                         19,                         0},
+/*needle*/          glm::uvec4{ 0,                                          18,                         18,                         0},
+/*palmLeaf*/        glm::uvec4{ 0,                                          18,                         18,                         0},
+/*withy*/           glm::uvec4{ 0,                                          20,                         21,                         0},
+/*cactus*/          glm::uvec4{ 0,                                          20,                         21,                         0},
+/*burningWood*/     glm::uvec4{ BURNINGb,                                   22,                         24,                         0},
+/*burntWood*/       glm::uvec4{ 0,                                          ~0,                         0,                          0},
+/*hallowWood*/      glm::uvec4{ WOODb | HALLOWb,                            20,                         20,                         0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
                     glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-                    glm::uvec4{ 0,                                          ~0,                         0,                          0},
-/*acid*/            glm::uvec4{ EXTINGUISHINGb,                             ~0,                         0,                          0},
 /*air*/             glm::uvec4{ 0,                                          ~0,                         0,                          0}
 };
 

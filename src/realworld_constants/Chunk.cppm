@@ -1,12 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <bit>
+export module realworld_constants:Chunk;
+import std;
+import :Tile;
 
-#include <RealWorld/constants/Tile.hpp>
-
-namespace rw {
+export namespace rw {
 
 /**
  * @brief Dimensions of a chunk, in tiles
@@ -23,7 +22,7 @@ static_assert(std::has_single_bit(uChunkTi.x) && std::has_single_bit(uChunkTi.y)
 /**
  * @brief Size of a chunk in bytes
  */
-constexpr size_t k_chunkByteSize = sizeof(uint16_t) * 4 *
+constexpr size_t k_chunkByteSize = sizeof(std::uint16_t) * 4 *
                                    static_cast<size_t>(iChunkTi.x) * iChunkTi.y;
 
 constexpr glm::ivec2 k_chunkLowZeroBits =

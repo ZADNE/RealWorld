@@ -1,11 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <RealWorld/constants/Tile.hpp>
-#include <RealWorld/constants/tile_properties/BlockTransformationProperties.hpp>
+export module realworld_constants:tile_properties.BlockTransformationRules;
+import :Tile;
+import :tile_properties.BlockTransformationProperties;
 
-namespace rw {
+export namespace rw {
 
 using BlockTransformationRules = std::array<glm::uvec4, 16>;
 

@@ -1,1 +1,2 @@
 ﻿add_subdirectory(RealWorld)
+add_subdirectory(realworld_constants)

@@ -1,10 +1,10 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <RealWorld/constants/Chunk.hpp>
+export module realworld_constants:Generation;
+import :Chunk;
 
-namespace rw {
+export namespace rw {
 
 /**
  * @brief Width of the padding around the generated chunk.

@@ -1,10 +1,10 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <glm/vec3.hpp>
+export module realworld_constants:Body;
+import glm;
 
-namespace rw {
+export namespace rw {
 
 constexpr int k_bodiesPerChunk = 16;
 

@@ -1,14 +1,13 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <utility>
+export module realworld_constants:Item;
+import std;
+import :Tile;
 
-#include <RealWorld/constants/Tile.hpp>
+export namespace rw {
 
-namespace rw {
-
-enum class ItemIDSection : uint16_t {
+enum class ItemIDSection : std::uint16_t {
     Mask     = 0xff00,
     Mixed    = 0x0000,
     Blocks   = 0x0100,
@@ -17,7 +16,7 @@ enum class ItemIDSection : uint16_t {
     Hammers  = 0x0400
 };
 
-enum class ItemID : uint16_t;
+enum class ItemID : std::uint16_t;
 
 constexpr std::underlying_type<ItemID>::type toItemID(Block block) {
     return std::to_underlying(ItemIDSection::Blocks) + std::to_underlying(block);
@@ -31,7 +30,7 @@ constexpr std::underlying_type<ItemID>::type toItemID(Wall wall) {
  * @brief Item ids are divided into sections of 256 ids
  * @see rw::ItemIDSection
  */
-enum class ItemID : uint16_t {
+enum class ItemID : std::uint16_t {
     // Mixed section
     Empty,
     // Block section

@@ -1,16 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <bit>
-#include <cmath>
-#include <cstdint>
-#include <utility>
+export module realworld_constants:Tile;
+import std;
+import glm;
 
-#include <glm/common.hpp>
-#include <glm/vec2.hpp>
-
-namespace rw {
+export namespace rw {
 
 /**
  * @brief The number of physics steps per second
@@ -58,9 +53,9 @@ constexpr int tiToPx(int posTi) {
     return posTi << k_tileLowZeroBits.x;
 }
 
-constexpr uint8_t k_nonSolidsMask = 0b0001'1111;
+constexpr std::uint8_t k_nonSolidsMask = 0b0001'1111;
 
-enum class Block : uint8_t {
+enum class Block : std::uint8_t {
     Stone,
     Dirt,
     Grass,
@@ -97,7 +92,7 @@ static_assert(
     "Nonsolids outside bitmask"
 );
 
-enum class Wall : uint8_t {
+enum class Wall : std::uint8_t {
     Stone,
     Dirt,
     Grass,
@@ -143,13 +138,13 @@ static_assert(
     "Nonsolids outside bitmask"
 );
 
-enum class TileLayer : uint32_t {
+enum class TileLayer : std::uint32_t {
     Block = 0,
     Wall  = 1
 };
-constexpr uint32_t k_tileLayerCount = 2;
+constexpr std::uint32_t k_tileLayerCount = 2;
 
-enum class TileAttrib : uint32_t {
+enum class TileAttrib : std::uint32_t {
     BlockType = 0,
     BlockVar  = 1,
     WallType  = 0,

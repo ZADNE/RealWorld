@@ -3,7 +3,7 @@
  */
 #ifndef RW_WORLD_GLSL
 #define RW_WORLD_GLSL
-#include <RealWorld/constants/Chunk.glsl>
+#include <realworld_constants/Chunk.glsl>
 
 constexpr uvec2 k_minWorldTexSizeCh = uvec2(16, 16);
 constexpr uvec2 k_maxWorldTexSizeCh = uvec2(64, 64);

@@ -1,10 +1,10 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <RealWorld/constants/tile_properties/BlockTransformationRules.hpp>
+export module realworld_constants:tile_properties.WallTransformationRules;
+import :tile_properties.BlockTransformationRules;
 
-namespace rw {
+export namespace rw {
 
 using WallTransformationRules = std::array<glm::uvec4, 25>; // NOLINT(*-magic-numbers)
 

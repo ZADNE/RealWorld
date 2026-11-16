@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.24)
+﻿cmake_minimum_required(VERSION 4.5)
 project(RealWorld)
 
 include("cmake/GetRealWorldVersion.cmake")
@@ -6,20 +6,31 @@ include("cmake/GetRealWorldVersion.cmake")
 # If not building RealEngine from source
 if(NOT TARGET RealEngine)
     # Find installed RealEngine
-    find_package(RealEngine 2.0.0 CONFIG REQUIRED)
+    find_package(RealEngine 3.0.0 CONFIG REQUIRED)
 endif()
 
 # RealWorld library
-add_real_library(RealWorld STATIC)
-real_target_init_file_sets(RealWorld BASE_DIR "src")
-target_include_directories(RealWorld PRIVATE "src")
+function(_add_realworld_sublib target_name)
+    add_real_library(${target_name} STATIC)
+    string(TOLOWER ${target_name} target_name_lower)
+    real_target_init_file_sets(${target_name}
+        BASE_DIR "src"
+        GENERATE_CXX_MODULE_INTERFACE ${target_name_lower}
+        SOURCES_AS_CXX_MODULE_IMPL_UNITS
+    )
+    set_target_properties(${target_name} PROPERTIES
+        CXX_STANDARD 23
+        realproject_shader_cxx_namespace "rw::glsl"
+        INTERPROCEDURAL_OPTIMIZATION TRUE
+    )
+	target_link_libraries(${target_name} PUBLIC RealEngine)
+endfunction()
+_add_realworld_sublib(RealWorld_constants)
+_add_realworld_sublib(RealWorld)
 set_target_properties(RealWorld PROPERTIES
-    CXX_STANDARD                        23
-    INTERPROCEDURAL_OPTIMIZATION        TRUE
     realproject_setup_filepath_rel      "RealWorld/main/Setup.gen.hpp"
-    realproject_shader_cxx_namespace    "rw::glsl"
 )
-target_link_libraries(RealWorld PUBLIC RealEngine)
+target_link_libraries(RealWorld PUBLIC RealWorld_constants)
 
 # Data cooking and packaging for RealWorld
 include("cmake/DataCooking.cmake")
@@ -30,7 +41,9 @@ real_target_package_resources(
     PACKAGE_DIR
         ${CMAKE_CURRENT_BINARY_DIR}
     INDEX_FILE
-        "${CMAKE_CURRENT_BINARY_DIR}/src/RealWorld/constants/ResourceIndex.gen.hpp"
+        "${CMAKE_CURRENT_BINARY_DIR}/src/RealWorld/resources/ResourceIndex.gen.cppm"
+    MODULE_NAME
+        "realworld:resources.ResourceIndex_gen"
     INPUT_DIRS
         "${CMAKE_CURRENT_BINARY_DIR}/fonts"
         "${CMAKE_CURRENT_BINARY_DIR}/textures"

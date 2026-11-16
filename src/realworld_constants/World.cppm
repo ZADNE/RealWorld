@@ -1,14 +1,12 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <cstdint>
+export module realworld_constants:World;
+import std;
+import glm;
+import :Chunk;
 
-#include <glm/vec2.hpp>
-
-#include <RealWorld/constants/Chunk.hpp>
-
-namespace rw {
+export namespace rw {
 
 /**
  * @brief Is the minimum size of the world texture, in chunks
