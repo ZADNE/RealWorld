@@ -2,7 +2,7 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
+#include <realworld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout (location = 0) out vec2 o_minimapUV;
 

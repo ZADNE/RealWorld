@@ -14,7 +14,7 @@ layout (location = 2) patch in vec2  i_p2Ti; // End
 layout (location = 3) patch in vec2  i_sizeTi;
 layout (location = 4) patch in uint  i_branchIndex15wallType31;
 
-#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
+#include <realworld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
 
 const float k_1Over2Pi = 0.15915494309;
 

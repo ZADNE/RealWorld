@@ -5,12 +5,12 @@
 #define RW_GENERATE_STRUCTURE_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/generation/external_shaders/float_hash.glsl>
-#include <RealWorld/generation/external_shaders/snoise.glsl>
-#include <RealWorld/generation/shaders/tiles/biome.glsl>
+#include <realworld/generation/external_shaders/float_hash.glsl>
+#include <realworld/generation/external_shaders/snoise.glsl>
+#include <realworld/generation/shaders/tiles/biome.glsl>
 #include <realworld_constants/Generation.glsl>
-#include <RealWorld/generation/shaders/tiles/generateColumnValues.glsl>
-#include <RealWorld/generation/shaders/tiles/undergroundMaterial.glsl>
+#include <realworld/generation/shaders/tiles/generateColumnValues.glsl>
+#include <realworld/generation/shaders/tiles/undergroundMaterial.glsl>
 
 inline float calcAge(vec2 posPx, float seed){
     float age = snoise(posPx * (1.0f / 8192.0f), seed);

@@ -4,9 +4,9 @@
 #version 460
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/World.glsl>
-#include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocReqUB.glsl>
+#include <realworld/simulation/tiles/shaders/simulationPll.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchAllocReqUB.glsl>
 
 layout (local_size_x = 1,
         local_size_y = 1,

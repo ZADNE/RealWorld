@@ -4,12 +4,12 @@
 #version 460
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/World.glsl>
-#include <RealWorld/simulation/general/shaders/random.glsl>
-#include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
-#include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
-#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl>
-#include <RealWorld/simulation/tiles/shaders/TilePropertiesUB.glsl>
-#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
+#include <realworld/simulation/general/shaders/random.glsl>
+#include <realworld/simulation/tiles/shaders/simulationPll.glsl>
+#include <realworld/simulation/tiles/shaders/tileLoadStore.glsl>
+#include <realworld/simulation/tiles/shaders/ActiveChunksSB.glsl>
+#include <realworld/simulation/tiles/shaders/TilePropertiesUB.glsl>
+#include <realworld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
 
 #define TL_T xz
 #define BL_T x

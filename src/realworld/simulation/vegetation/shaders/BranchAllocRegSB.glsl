@@ -28,7 +28,7 @@ restrict coherent buffer BranchAllocRegSB {
 
 #ifdef VULKAN
 
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSBDebugging.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchAllocRegSBDebugging.glsl>
 
 void lockAllocRegister(){
     while (atomicCompSwap(b_branchAllocReg.lock, 0, 1) == 1){

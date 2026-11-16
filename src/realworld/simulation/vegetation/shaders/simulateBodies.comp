@@ -4,9 +4,9 @@
 #version 460
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/Body.glsl>
-#include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
-#include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
-//#include <RealWorld/simulation/vegetation/shaders/BodiesSB.glsl>
+#include <realworld/simulation/tiles/shaders/simulationPll.glsl>
+#include <realworld/simulation/tiles/shaders/tileLoadStore.glsl>
+//#include <realworld/simulation/vegetation/shaders/BodiesSB.glsl>
 
 layout (local_size_x = k_simulateBodiesGroupSizeX,
         local_size_y = k_simulateBodiesGroupSizeY,

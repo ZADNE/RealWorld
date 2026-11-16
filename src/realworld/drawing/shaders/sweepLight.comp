@@ -3,8 +3,8 @@
  */
 #version 460
 #include <realworld_constants/Light.glsl>
-#include <RealWorld/drawing/shaders/LightSweepPC.glsl>
-#include <RealWorld/generation/external_shaders/smoothstep.glsl>
+#include <realworld/drawing/shaders/LightSweepPC.glsl>
+#include <realworld/generation/external_shaders/smoothstep.glsl>
 
 layout (local_size_x = int(k_lightSweepGroupSize),
         local_size_y = int(k_lightSweepGroupSize),

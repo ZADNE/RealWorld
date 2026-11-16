@@ -2,9 +2,9 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/generation/shaders/tiles/generateStructure.glsl>
-#include <RealWorld/generation/shaders/generationPll.glsl>
-#include <RealWorld/generation/shaders/GenerationPC.glsl>
+#include <realworld/generation/shaders/tiles/generateStructure.glsl>
+#include <realworld/generation/shaders/generationPll.glsl>
+#include <realworld/generation/shaders/GenerationPC.glsl>
 
 layout (local_size_x = k_genGroupSize,
         local_size_y = k_genGroupSize,

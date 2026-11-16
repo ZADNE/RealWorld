@@ -6,7 +6,7 @@
 
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/World.glsl>
-#include <RealWorld/simulation/tiles/shaders/tileLoad.glsl>
+#include <realworld/simulation/tiles/shaders/tileLoad.glsl>
 
 uint ground(vec2 posPx, vec2 dimsPx, ivec2 worldTexMaskTi) {
     uint grnd = ~0;

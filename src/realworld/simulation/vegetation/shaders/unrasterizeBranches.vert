@@ -8,9 +8,9 @@ layout (location = 2) out float o_startAngleNorm;
 layout (location = 3) out float o_endAngleNorm;
 layout (location = 4) out uint  o_branchIndex15wallType31;
 
-#include <RealWorld/simulation/vegetation/shaders/branchRasterizationPll.glsl>
-#include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl>
-#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
+#include <realworld/simulation/vegetation/shaders/branchRasterizationPll.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchSB.glsl>
+#include <realworld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
 
 void main(){
     // Load this branch

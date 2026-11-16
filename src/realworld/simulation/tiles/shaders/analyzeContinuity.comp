@@ -4,9 +4,9 @@
 #version 460
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/World.glsl>
-#include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
-#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl>
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
+#include <realworld/simulation/tiles/shaders/simulationPll.glsl>
+#include <realworld/simulation/tiles/shaders/ActiveChunksSB.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
 
 layout (local_size_x = k_minWorldTexSizeCh.x,
         local_size_y = k_minWorldTexSizeCh.y,

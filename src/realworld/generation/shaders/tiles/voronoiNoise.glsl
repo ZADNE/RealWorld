@@ -3,7 +3,7 @@
  */
 #ifndef RW_VORONOI_NOISE_GLSL
 #define RW_VORONOI_NOISE_GLSL
-#include <RealWorld/generation/external_shaders/float_hash.glsl>
+#include <realworld/generation/external_shaders/float_hash.glsl>
 
 /**
  * @brief   Calculates Voronoi noise as feature position and distance to it

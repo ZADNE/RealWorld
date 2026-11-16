@@ -2,14 +2,14 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/generation/shaders/tiles/generateStructure.glsl>
-#include <RealWorld/generation/shaders/vegetation/vegDistribution.glsl>
-#include <RealWorld/simulation/general/shaders/random.glsl>
-#include <RealWorld/generation/shaders/generationPll.glsl>
-#include <RealWorld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
+#include <realworld/generation/shaders/tiles/generateStructure.glsl>
+#include <realworld/generation/shaders/vegetation/vegDistribution.glsl>
+#include <realworld/simulation/general/shaders/random.glsl>
+#include <realworld/generation/shaders/generationPll.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchAllocRegSB.glsl>
 #define VegPrepSB_ACCESS writeonly
-#include <RealWorld/generation/shaders/vegetation/VegPrepSB.glsl>
-#include <RealWorld/generation/shaders/GenerationPC.glsl>
+#include <realworld/generation/shaders/vegetation/VegPrepSB.glsl>
+#include <realworld/generation/shaders/GenerationPC.glsl>
 
 layout (local_size_x = k_maxVegPerChunk,
         local_size_y = 1,

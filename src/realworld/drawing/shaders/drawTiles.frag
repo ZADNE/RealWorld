@@ -4,8 +4,8 @@
 #version 460
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/World.glsl>
-#include <RealWorld/drawing/shaders/skyColor.glsl>
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
+#include <realworld/drawing/shaders/skyColor.glsl>
+#include <realworld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout (location = 0) out vec4  o_color;
 

@@ -4,10 +4,10 @@
 #version 460
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/World.glsl>
-#include <RealWorld/simulation/vegetation/shaders/branchRasterizationPll.glsl>
-#include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl>
-#include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
-#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
+#include <realworld/simulation/vegetation/shaders/branchRasterizationPll.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchSB.glsl>
+#include <realworld/simulation/tiles/shaders/tileLoadStore.glsl>
+#include <realworld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
 
 layout(input_attachment_index = 0, set = 0, binding = k_wallLayerAttBinding)
 uniform usubpassInput u_wallLayerSI;

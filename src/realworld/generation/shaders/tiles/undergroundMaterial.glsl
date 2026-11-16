@@ -5,10 +5,10 @@
 #define RW_UNDERGROUND_MATERIAL_GLSL
 #include <RealShaders/CppIntegration.glsl>
 
-#include <RealWorld/generation/external_shaders/float_hash.glsl>
-#include <RealWorld/generation/external_shaders/snoise.glsl>
-#include <RealWorld/generation/shaders/tiles/biome.glsl>
-#include <RealWorld/generation/shaders/tiles/voronoiNoise.glsl>
+#include <realworld/generation/external_shaders/float_hash.glsl>
+#include <realworld/generation/external_shaders/snoise.glsl>
+#include <realworld/generation/shaders/tiles/biome.glsl>
+#include <realworld/generation/shaders/tiles/voronoiNoise.glsl>
 
 const float k_1OVerSqrt2 = 0.70710678118f; // 1 / sqrt(2)
 

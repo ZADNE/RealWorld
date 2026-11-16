@@ -3,7 +3,7 @@
  */
 #ifndef RW_GENERATE_COLUMN_VALUES_GLSL
 #define RW_GENERATE_COLUMN_VALUES_GLSL
-#include <RealWorld/generation/external_shaders/smoothstep.glsl>
+#include <realworld/generation/external_shaders/smoothstep.glsl>
 
 // x = left val, y = right val, z = 0 to 1 interp. factor between the two
 inline vec3 columnValues(float x, float seed){

@@ -4,13 +4,13 @@
 #version 460
 #include <realworld_constants/Vegetation.glsl>
 #include <realworld_constants/Chunk.glsl>
-#include <RealWorld/simulation/general/shaders/random.glsl>
-#include <RealWorld/simulation/vegetation/shaders/wind.glsl>
-#include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
-#include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
-#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl>
-#include <RealWorld/simulation/tiles/shaders/TilePropertiesUB.glsl>
-#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
+#include <realworld/simulation/general/shaders/random.glsl>
+#include <realworld/simulation/vegetation/shaders/wind.glsl>
+#include <realworld/simulation/tiles/shaders/simulationPll.glsl>
+#include <realworld/simulation/tiles/shaders/tileLoadStore.glsl>
+#include <realworld/simulation/tiles/shaders/ActiveChunksSB.glsl>
+#include <realworld/simulation/tiles/shaders/TilePropertiesUB.glsl>
+#include <realworld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
 #include <realworld_constants/tile_properties/FluidProperties.glsl>
 
 layout (local_size_x = 16,

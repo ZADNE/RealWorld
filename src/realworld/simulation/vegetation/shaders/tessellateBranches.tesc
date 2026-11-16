@@ -15,8 +15,8 @@ layout (location = 2) in float i_startAngleNorm[];
 layout (location = 3) in float i_endAngleNorm[];
 layout (location = 4) in uint  i_branchIndex15wallType31[];
 
-#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
-#include <RealWorld/simulation/vegetation/shaders/normAngles.glsl>
+#include <realworld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
+#include <realworld/simulation/vegetation/shaders/normAngles.glsl>
 
 vec2 imPos(vec2 posTi){
     return fract(posTi / p_.worldTexSizeTi) * p_.worldTexSizeTi;

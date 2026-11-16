@@ -4,9 +4,9 @@
 #ifndef RW_SKY_COLOR_GLSL
 #define RW_SKY_COLOR_GLSL
 #include <realworld_constants/Sky.glsl>
-#include <RealWorld/generation/external_shaders/smoothstep.glsl>
-#include <RealWorld/generation/shaders/tiles/biome.glsl>
-#include <RealWorld/generation/shaders/tiles/generateStructure.glsl>
+#include <realworld/generation/external_shaders/smoothstep.glsl>
+#include <realworld/generation/shaders/tiles/biome.glsl>
+#include <realworld/generation/shaders/tiles/generateStructure.glsl>
 
 const vec3 k_skyColorsPerBiome[] = vec3[](
     vec3(0.2625, 0.851, 0.952), // Cold

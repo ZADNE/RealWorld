@@ -8,13 +8,13 @@ layout (location = 2) out float o_startAngleNorm;
 layout (location = 3) out float o_endAngleNorm;
 layout (location = 4) out uint  o_branchIndex15wallType31;
 
-#include <RealWorld/simulation/vegetation/shaders/wind.glsl>
-#include <RealWorld/simulation/vegetation/shaders/branchRasterizationPll.glsl>
-#include <RealWorld/simulation/vegetation/shaders/BranchSB.glsl>
-#include <RealWorld/simulation/vegetation/shaders/normAngles.glsl>
-#include <RealWorld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
+#include <realworld/simulation/vegetation/shaders/wind.glsl>
+#include <realworld/simulation/vegetation/shaders/branchRasterizationPll.glsl>
+#include <realworld/simulation/vegetation/shaders/BranchSB.glsl>
+#include <realworld/simulation/vegetation/shaders/normAngles.glsl>
+#include <realworld/simulation/vegetation/shaders/VegDynamicsPC.glsl>
 
-#include <RealWorld/generation/external_shaders/snoise.glsl>
+#include <realworld/generation/external_shaders/snoise.glsl>
 const float k_third = 0.33333333333;
 
 void main(){

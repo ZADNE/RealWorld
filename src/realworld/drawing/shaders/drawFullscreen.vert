@@ -2,7 +2,7 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <RealWorld/drawing/shaders/WorldDrawingPC.glsl>
+#include <realworld/drawing/shaders/WorldDrawingPC.glsl>
 
 layout (location = 0) out vec2   o_uv;
 layout (location = 1) out vec2   o_viewport01; // 0 to 1 viewport coordinates

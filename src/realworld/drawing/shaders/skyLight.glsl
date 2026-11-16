@@ -4,7 +4,7 @@
 #ifndef RW_SKY_LIGHT_GLSL
 #define RW_SKY_LIGHT_GLSL
 #include <realworld_constants/Sky.glsl>
-#include <RealWorld/generation/external_shaders/smoothstep.glsl>
+#include <realworld/generation/external_shaders/smoothstep.glsl>
 
 vec3 skyLight(float timeD) {
     float tSd = dToSd(timeD);

@@ -23,7 +23,7 @@ function(_add_realworld_sublib target_name)
         realproject_shader_cxx_namespace "rw::glsl"
         INTERPROCEDURAL_OPTIMIZATION TRUE
     )
-	target_link_libraries(${target_name} PUBLIC RealEngine)
+    target_link_libraries(${target_name} PUBLIC RealEngine)
 endfunction()
 _add_realworld_sublib(RealWorld_constants)
 _add_realworld_sublib(RealWorld)
