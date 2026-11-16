@@ -1,6 +1,6 @@
 ﻿real_target_sources(DataCooker
     PRIVATE
-        Arguments.hpp               Arguments.cpp
+        Arguments.cppm              Arguments.cpp
                                     Main.cpp
-        TileItemTextures.hpp        TileItemTextures.cpp
+        TileItemTextures.cppm       TileItemTextures.cpp
 )

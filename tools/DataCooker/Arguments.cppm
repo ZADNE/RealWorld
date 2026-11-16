@@ -1,10 +1,10 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#pragma once
-#include <string>
+export module realworld.tools.datacooker:Arguments;
+import std;
 
-namespace rw::dc {
+export namespace rw::dc {
 
 struct CLIArguments {
     std::string inputDirectory;

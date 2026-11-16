@@ -1,18 +1,14 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#include <bit>
-#include <cstdint>
-#include <random>
-#include <type_traits>
+module;
+#include <cassert>
 
-#include <RealEngine/graphics/pipelines/Vertex.hpp>
-#include <RealEngine/resources/PNGLoader.hpp>
-#include <RealEngine/utility/Endianness.hpp>
-
-#include <RealWorld/constants/Item.hpp>
-
-#include <DataCooker/TileItemTextures.hpp>
+module realworld.tools.datacooker:TileItemTextures_impl;
+import std;
+import realengine;
+import realworld_constants;
+import :TileItemTextures;
 
 namespace rw::dc {
 
@@ -23,9 +19,9 @@ constexpr re::Color k_blue{0, 0, 255, 255};
 constexpr re::Color k_magenta{255, 0, 255, 255};
 constexpr re::Color k_transparent{0, 0, 0, 0};
 
-consteval uint32_t uint32(re::Color col) {
+consteval std::uint32_t uint32(re::Color col) {
     std::array<unsigned char, 4> arr{col.x, col.y, col.z, col.w};
-    return std::bit_cast<uint32_t>(arr);
+    return std::bit_cast<std::uint32_t>(arr);
 }
 
 void composeTileItemTexture(

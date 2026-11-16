@@ -1,14 +1,14 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#include <argparse/argparse.hpp>
-
-#include <DataCooker/Arguments.hpp>
+module realworld.tools.datacooker:Arguments_impl;
+import argparse;
+import :Arguments;
 
 namespace rw::dc {
 
 CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays)
-    argparse::ArgumentParser parser("DataCooker", "0.1.0");
+    argparse::ArgumentParser parser("DataCooker", "0.1.1");
 
     parser.add_argument("-i")
         .metavar("input_dir")
@@ -20,7 +20,7 @@ CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays
         .help("directory where output data will be placed");
 
     try {
-        parser.parse_args(argc, argv);
+        parser.parse_args({&argv[0], &argv[argc]});
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
         std::cerr << parser;

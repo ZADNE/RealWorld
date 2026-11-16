@@ -1,12 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-#include <iostream>
+module realworld.tools.datacooker:Main_impl;
+import :Arguments;
+import :TileItemTextures;
 
-#include <DataCooker/Arguments.hpp>
-#include <DataCooker/TileItemTextures.hpp>
-
-int main(int argc, char* argv[]) {
+extern "C++" int main(int argc, char* argv[]) {
     using namespace rw::dc;
     try {
         CLIArguments args = parseArguments(argc, argv);

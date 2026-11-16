@@ -2,16 +2,19 @@
 
 # DataCooker
 add_real_executable(DataCooker)
-target_include_directories(DataCooker PRIVATE tools)
+real_target_init_file_sets(DataCooker
+    BASE_DIR "tools"
+    SOURCES_AS_CXX_MODULE_IMPL_UNITS
+)
 set_target_properties(DataCooker PROPERTIES
     CXX_STANDARD 23
+    INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 target_include_directories(DataCooker PRIVATE src)
 target_link_libraries(DataCooker
     PRIVATE
         argparse
-        glm-header-only
-        RealEngine_visual
+        RealWorld_constants
 )
 
 # Data cooking target
