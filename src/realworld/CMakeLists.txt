@@ -1,0 +1,8 @@
+﻿add_subdirectory(drawing)
+add_subdirectory(generation)
+add_subdirectory(items)
+add_subdirectory(main)
+add_subdirectory(resources)
+add_subdirectory(save)
+add_subdirectory(simulation)
+add_subdirectory(utility)

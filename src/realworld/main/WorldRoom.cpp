@@ -1,0 +1,353 @@
+﻿/**
+ *  @author    Dubsky Tomas
+ */
+module realworld:main.WorldRoom_impl;
+import :main.WorldRoom;
+import glm;
+import realworld_constants;
+import :main.MainMenuRoom;
+import :save.WorldSaveLoader;
+import :utility.HotReloadIdentifier;
+
+namespace rw {
+
+constexpr unsigned int k_frameRateLimit =
+    (re::k_buildType == re::BuildType::Debug)
+        ? 30u
+        : re::Synchronizer::k_doNotLimitFramesPerSecond;
+
+constexpr vk::AttachmentDescription2 k_attachmentDescription{
+    {},
+    re::k_surfaceFormat.format,
+    vk::SampleCountFlagBits::e1,
+    vk::AttachmentLoadOp::eDontCare,  // Color
+    vk::AttachmentStoreOp::eStore,    // Color
+    vk::AttachmentLoadOp::eDontCare,  // Stencil
+    vk::AttachmentStoreOp::eDontCare, // Stencil
+    vk::ImageLayout::eUndefined,      // Initial
+    vk::ImageLayout::ePresentSrcKHR   // Final
+};
+
+constexpr re::RenderPassCreateInfo k_renderPassCreateInfo{
+    .attachments  = {&k_attachmentDescription, 1},
+    .subpasses    = {&re::default_renderpass::k_subpassDescription, 1},
+    .dependencies = {&re::default_renderpass::k_subpassDependency, 1},
+    .debugName    = "rw::WorldRoom::mainRenderpass"
+};
+
+/// 1 game day takes 24 minutes of real time
+constexpr float k_timedaySpeed = 1.0f / (24.0f * k_physicsStepsPerMinute);
+
+WorldRoom::WorldRoom(const GameSettings& gameSettings)
+    : Room(
+          k_name,
+          re::RoomDisplaySettings{
+              .stepsPerSecond       = k_physicsStepsPerSecond,
+              .framesPerSecondLimit = k_frameRateLimit,
+              .mainRenderPass       = &k_renderPassCreateInfo,
+              .imGuiSubpassIndex    = 0
+          }
+      )
+    , m_gameSettings(gameSettings)
+    , m_playerInv(k_defaultPlayerInventorySize)
+    , m_itemUser(m_world, m_playerInv)
+    , m_messageBroker(m_acb, m_playerInv, m_itemUser)
+    , m_world(m_messageBroker.messageBuffer())
+    , m_worldDrawer(mainRenderPass().subpass(0), engine().windowDims(), 32u)
+    , m_invUI(engine().windowDims()) {
+    m_invUI.connectToInventory(&m_playerInv, InventoryUI::Connection::Primary);
+}
+
+void WorldRoom::sessionStart(const re::RoomTransitionArguments& args) {
+    try {
+        const std::string& worldName = std::any_cast<const std::string&>(args[0]);
+        if (!loadWorld(worldName)) {
+            scheduleTransition<MainMenuRoom>();
+            return;
+        }
+        engine().setWindowTitle("RealWorld! - " + worldName);
+    } catch (...) {
+        re::fatalError("Bad transition paramaters to start WorldRoom session");
+    }
+
+    m_worldView.setPosition(m_player.centerPx());
+    m_worldView.setCursorAbs(engine().cursorAbs());
+    glm::vec2 viewPos = m_player.centerPx() * 0.75f + m_worldView.cursorRel() * 0.25f;
+    m_worldView.setPosition(glm::floor(viewPos));
+}
+
+void WorldRoom::sessionEnd() {
+    saveWorld();
+}
+
+void WorldRoom::step() {
+    // Get the command buffer of the current step
+    auto& cb = m_stepCmdBufs.write();
+    m_acb.useCommandBuffer(cb);
+    m_acb.assumeActionsFinished();
+
+    // Wait for the command buffer to be consumed.
+    // It should already be consumed thanks to RealEngine's step() timing
+    m_simulationFinishedSem.wait(++m_stepN - 2);
+
+    cb->reset();
+    cb->begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    {
+        auto dbg = cb.createDebugRegion("step", {1.0, 0.0, 0.0, 1.0});
+
+        // Move the view based on movements of the player
+        auto viewPos = newViewPos();
+        m_worldView.setCursorAbs(engine().cursorAbs());
+        m_worldView.setPosition(glm::floor(viewPos));
+
+        // Simulate one physics step
+        performWorldSimulationStep(m_worldDrawer.setPosition(m_worldView.botLeft()));
+
+        // Analyze the results of the simulation step for drawing
+        analyzeWorldForDrawing();
+    }
+    cb->end();
+
+    // Submit the compute work to GPU
+    vk::SemaphoreSubmitInfo waitSems{
+        *m_simulationFinishedSem, m_stepN - 1, vk::PipelineStageFlagBits2::eNone
+    };
+    vk::CommandBufferSubmitInfo comBufSubmit{*cb};
+    vk::SemaphoreSubmitInfo signalSems{
+        *m_simulationFinishedSem, m_stepN, vk::PipelineStageFlagBits2::eNone
+    };
+    re::CommandBuffer::submitToGraphicsCompQueue(
+        vk::SubmitInfo2{{}, waitSems, comBufSubmit, signalSems}
+    );
+
+    // Manipulate the inventory based on user's input
+    updateInventoryAndUI();
+}
+
+void WorldRoom::render(const re::CommandBuffer& cb, double interpolationFactor) {
+    auto dbg = cb.createDebugRegion("render", {0.0, 0.0, 1.0, 1.0});
+    engine().mainRenderPassBegin({});
+
+    glm::mat4 mvpMat = m_worldView.viewMatrix();
+
+    m_worldDrawer.drawTiles(cb);
+
+    m_spriteBatch.clearAndBeginFirstBatch();
+    m_player.draw(m_spriteBatch);
+    m_spriteBatch.drawBatch(cb, mvpMat);
+
+    if (m_shadows) {
+        m_worldDrawer.drawShadows(cb);
+    }
+
+    if (!m_invUI.isOpen()) {
+        m_geometryBatch.begin();
+        m_itemUser.render(m_worldView.cursorRel(), m_geometryBatch);
+        m_geometryBatch.end();
+        m_geometryBatch.draw(cb, mvpMat);
+    }
+
+    drawGUI(cb);
+
+    engine().mainRenderPassEnd();
+}
+
+void WorldRoom::windowResizedCallback(glm::ivec2 oldSize, glm::ivec2 newSize) {
+    m_worldView.resizeView(newSize);
+    m_worldDrawer.resizeView(newSize);
+    m_invUI.windowResized(newSize);
+    m_windowViewMat = calculateWindowViewMat(newSize);
+}
+
+void WorldRoom::pipelineReloadedCallback(vk::Pipeline pipeline, int identifier) {
+    switch (static_cast<HotReloadIdentifier>(identifier)) {
+    case HotReloadIdentifier::WorldGeneration:
+        // This will jump to main menu and then right back
+        scheduleTransition<MainMenuRoom>(m_world.worldName());
+        break;
+    default: break;
+    }
+}
+
+void WorldRoom::performWorldSimulationStep(const WorldDrawer::ViewEnvelope& viewEnvelope) {
+    auto dbg = m_acb->createDebugRegion("simulation");
+
+    // Process messages from 2-previous step
+    m_messageBroker.beginStep(m_acb);
+
+    // Simulate one physics step (load new chunks if required)
+    m_world.step(
+        m_acb, viewEnvelope.botLeftTi, viewEnvelope.topRightTi, m_player.hitbox()
+    );
+
+    // Modify the world with player's tools
+    m_itemUser.step(
+        m_acb, m_invUI.selectedSlot(),
+        keybindDown(ItemuserUsePrimary) && !m_invUI.isOpen(),
+        keybindDown(ItemuserUseSecondary) && !m_invUI.isOpen(),
+        m_worldView.cursorRel()
+    );
+
+    // Move the player within the updated world
+    m_player.step(
+        m_acb,
+        (keybindDown(PlayerLeft) ? -1.0f : 0.0f) +
+            (keybindDown(PlayerRight) ? +1.0f : 0.0f),
+        keybindDown(PlayerJump), keybindDown(PlayerAutojump)
+    );
+
+    // Send messages collected this step
+    m_messageBroker.endStep(m_acb);
+
+    // Finish the simulation step (transit image layouts back)
+    m_world.prepareWorldForDrawing(m_acb);
+}
+
+void WorldRoom::analyzeWorldForDrawing() {
+    auto dbg = m_acb->createDebugRegion("analysisForDrawing");
+
+    // Analyze the world texture
+    m_timeD += k_timedaySpeed * static_cast<float>(!m_stopDaytime);
+    m_worldDrawer.beginStep(*m_acb, m_timeD);
+
+    // Add external lights (these below are mostly for debug)
+    addDebugLightToWorld(m_player.centerPx(), m_playerLight);
+    addDebugLightToWorld(m_worldView.cursorRel(), m_cursorLight);
+
+    // Calculate illumination based the world texture and external lights
+    m_worldDrawer.endStep(*m_acb);
+}
+
+void WorldRoom::updateInventoryAndUI() {
+    // Inventory
+    m_invUI.step();
+    if (keybindPressed(InvOpenClose)) {
+        m_invUI.switchOpenClose();
+    }
+    if (m_invUI.isOpen()) { // Inventory is open
+        if (keybindPressed(InvMoveAll)) {
+            m_invUI.swapUnderCursor(engine().cursorAbs());
+        }
+        if (keybindPressed(InvMovePortion)) {
+            m_invUI.movePortion(engine().cursorAbs(), 0.5f);
+        }
+    } else { // Inventory is closed
+        using enum InventoryUI::SlotSelectionManner;
+        if (keybindDown(ItemuserHoldToResize)) {
+            if (keybindPressed(ItemuserWiden)) {
+                m_itemUser.resizeShape(1.0f);
+            }
+            if (keybindPressed(ItemuserShrink)) {
+                m_itemUser.resizeShape(-1.0f);
+            }
+        } else {
+            if (keybindPressed(InvRightSlot)) {
+                m_invUI.selectSlot(ScrollRight, keybindPressed(InvRightSlot));
+            }
+            if (keybindPressed(InvLeftSlot)) {
+                m_invUI.selectSlot(ScrollLeft, keybindPressed(InvLeftSlot));
+            }
+        }
+        if (keybindPressed(InvPrevSlot)) {
+            m_invUI.selectSlot(ToPrevious, 0);
+        }
+
+        int slot0 = static_cast<int>(InvSlot0);
+        for (int i = 0; i < m_playerInv.dims().x; ++i) {
+            if (keybindPressed(static_cast<KeyBinding>(slot0 + i))) {
+                m_invUI.selectSlot(AbsolutePos, i);
+            }
+        }
+        if (keybindPressed(ItemuserSwitchShape)) {
+            m_itemUser.switchShape();
+        }
+    }
+
+    // Toggles & quit
+    if (keybindPressed(Quit)) {
+        scheduleTransition<MainMenuRoom>();
+    }
+    if (keybindPressed(Minimap)) {
+        m_minimap = !m_minimap;
+    }
+    if (keybindPressed(Shadows)) {
+        m_shadows = !m_shadows;
+    }
+}
+
+void WorldRoom::drawGUI(const re::CommandBuffer& cb) {
+    // Inventory
+    m_spriteBatch.nextBatch();
+    m_invUI.draw(m_spriteBatch, engine().cursorAbs());
+    m_spriteBatch.drawBatch(cb, m_windowViewMat);
+    //  Minimap
+    if (m_minimap) {
+        m_worldDrawer.drawMinimap(cb);
+    }
+    // Developer ImGui
+    drawDeveloperGui();
+}
+
+bool WorldRoom::loadWorld(const std::string& worldName) {
+    WorldSave save{};
+
+    if (!WorldSaveLoader::loadWorld(save, worldName))
+        return false;
+
+    return adoptWorld(save);
+}
+
+bool WorldRoom::adoptWorld(const WorldSave& save) {
+    const auto& worldTex =
+        m_world.adoptSave(m_acb, save.metadata, m_gameSettings.worldTexSize());
+    m_player.adoptSave(save.player, worldTex, m_gameSettings.worldTexSize());
+    m_playerInv.adoptInventoryData(save.inventory);
+    m_timeD = save.metadata.timeD;
+
+    m_worldDrawer.setTarget(
+        worldTex, chToTi(m_gameSettings.worldTexSize()),
+        static_cast<float>(save.metadata.seed)
+    );
+    return true;
+}
+
+bool WorldRoom::saveWorld() {
+    WorldSave save{};
+    gatherWorld(save);
+    if (!WorldSaveLoader::saveWorld(save, false))
+        return false;
+    return m_world.saveChunks(m_acb);
+}
+
+void WorldRoom::gatherWorld(WorldSave& save) {
+    m_world.gatherSave(save.metadata);
+    m_player.gatherSave(save.player);
+    m_playerInv.gatherInventoryData(save.inventory);
+    save.metadata.timeD = m_timeD;
+}
+
+glm::mat4 WorldRoom::calculateWindowViewMat(glm::vec2 windowDims) const {
+    return glm::ortho(0.0f, windowDims.x, 0.0f, windowDims.y);
+}
+
+void WorldRoom::addDebugLightToWorld(glm::vec2 basePosPx, const DebugLight& light) {
+    glm::vec2 posPx{};
+    constexpr static float k_lightMaxCellPx = tiToPx(glsl::k_lightMaxCellTi);
+    switch (light.relPos) {
+    case DebugRelLightPos::Exact: posPx = basePosPx; break;
+    case DebugRelLightPos::CellCircling:
+        posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
+                glm::vec2{glm::sin(m_timeD * 750.0f), glm::cos(m_timeD * 750.0f)} *
+                    k_lightMaxCellPx;
+        break;
+    case DebugRelLightPos::CellOffset:
+        posPx = glm::floorMultiple(basePosPx, glm::vec2{k_lightMaxCellPx}) +
+                light.offsetPx;
+        break;
+    default: break;
+    }
+
+    m_worldDrawer.addExternalLight(posPx, light.color * light.intensity);
+}
+
+} // namespace rw

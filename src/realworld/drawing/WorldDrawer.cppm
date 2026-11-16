@@ -1,0 +1,70 @@
+﻿/**
+ *  @author    Dubsky Tomas
+ */
+export module realworld:drawing.WorldDrawer;
+import realengine;
+import :drawing.MinimapDrawer;
+import :drawing.ShadowDrawer;
+import :drawing.TileDrawer;
+import :drawing.shaders.WorldDrawingPC_glsl;
+
+export namespace rw {
+
+/**
+ * @brief Renders the world (i.e. tiles, shadows, minimap)
+ */
+class WorldDrawer {
+public:
+    WorldDrawer(
+        re::RenderPassSubpass renderPassSubpass, glm::uvec2 viewSizePx,
+        glm::uint maxNumberOfExternalLights
+    );
+
+    void setTarget(const re::Texture& worldTex, glm::ivec2 worldTexSizeTi, float seed);
+    void resizeView(glm::uvec2 viewSizePx);
+
+    struct ViewEnvelope {
+        glm::vec2 botLeftTi;
+        glm::vec2 topRightTi;
+    };
+    ViewEnvelope setPosition(glm::vec2 botLeftPx);
+
+    /**
+     * @brief External lights have to be added between beginStep() and endStep()
+     */
+    void beginStep(const re::CommandBuffer& cb, float timeD);
+
+    /**
+     * @brief Adds an external light into the world.
+     * @details Must be used between beginStep() and endStep()
+     */
+    void addExternalLight(glm::ivec2 posPx, glm::vec3 light);
+
+    /**
+     * @brief External lights have to be added between beginStep() and endStep()
+     */
+    void endStep(const re::CommandBuffer& cb);
+
+    void drawTiles(const re::CommandBuffer& cb);
+
+    void drawShadows(const re::CommandBuffer& cb);
+
+    void drawMinimap(const re::CommandBuffer& cb);
+
+private:
+    glm::vec2 m_botLeftPx{};  ///< Bottom-left corner of the view
+    glm::ivec2 m_botLeftTi{}; ///< Bottom-left corner of the view in tiles
+
+    glm::uvec2 m_viewSizeTi{};
+    glm::uvec2 viewSizeTi(glm::vec2 viewSizePx) const;
+
+    float m_timeD{};
+
+    glsl::WorldDrawingPC m_pc{};
+
+    TileDrawer m_tileDrawer;
+    ShadowDrawer m_shadowDrawer;
+    MinimapDrawer m_minimapDawer;
+};
+
+} // namespace rw

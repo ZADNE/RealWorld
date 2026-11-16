@@ -1,0 +1,113 @@
+/**
+ *  @author     Dubsky Tomas
+ */
+#version 460
+#include <realworld_constants/Tile.glsl>
+#include <realworld_constants/World.glsl>
+#include <RealWorld/simulation/general/shaders/random.glsl>
+#include <RealWorld/simulation/tiles/shaders/simulationPll.glsl>
+#include <RealWorld/simulation/tiles/shaders/tileLoadStore.glsl>
+#include <RealWorld/simulation/tiles/shaders/ActiveChunksSB.glsl>
+#include <RealWorld/simulation/tiles/shaders/TilePropertiesUB.glsl>
+#include <RealWorld/simulation/tiles/shaders/WorldDynamicsPC.glsl>
+
+#define TL_T xz
+#define BL_T x
+#define WL_T z
+#define TL_V yw
+
+const int k_transformGroupSize = 4;
+
+const ivec2 k_invocDisplacement = iChunkTi / k_transformGroupSize;
+
+layout (local_size_x = k_transformGroupSize,
+        local_size_y = k_transformGroupSize,
+        local_size_z = 1
+) in;
+
+uint invocHash(){
+    uint globalIndex = gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
+    return globalIndex ^ p_.timeHash;
+}
+
+const ivec2 k_nearbyOffsets[] = {
+                {-1, +2},   {+0, +2},   {+1, +2},
+    {-2, +1},   {-1, +1},   {+0, +1},   {+1, +1},   {+2, +1},
+    {-2, +0},   {-1, +0},               {+1, +0},   {+2, +0},
+    {-2, -1},   {-1, -1},   {+0, -1},   {+1, -1},   {+2, -1},
+                {-1, -2},   {+0, -2},   {+1, -2}
+};
+
+bool layerTransition(inout uvec4 tile, const uint layer, const uint otherLayer, uvec4 rule, uvec2 nearbyProperties, uvec2 edgeTile){
+    uint props = nearbyProperties[layer] | mix(0, nearbyProperties[otherLayer], bool(rule.z & MIX_PROPSb));
+    bool requiredNearby = (props & rule.x) == rule.x;
+    bool forbiddenNotNearby = (props & rule.y) == 0;
+    bool edgeRequiredToSpread = bool(rule.z & EDGEb);
+    bool toOtherLayer = bool(rule.z & TO_OTHERb);
+    uint targetLayer = toOtherLayer ? otherLayer : layer;
+    uint prev = tile[targetLayer * 2];
+    bool transform = 
+        requiredNearby && forbiddenNotNearby &&
+        bool(!edgeRequiredToSpread || bool(edgeTile[layer])) &&
+        bool(!toOtherLayer || prev == k_air[targetLayer]) &&
+        probTest1023((rule.z & PROBb) + 1);
+    tile[targetLayer * 2] = mix(prev, rule.w, transform);
+    return transform;
+}
+
+void main(){
+    g_randomState = invocHash();
+    random();
+    const ivec2 centerAt = tiToAt(
+        b_acChunks.offsets[gl_WorkGroupID.x]
+            + ivec2(gl_LocalInvocationID.xy) * k_invocDisplacement
+            + (ivec2(random(), random()) & (k_invocDisplacement - 1)),
+        p_.worldTexMaskTi);
+
+    uvec4 tile = loadTile(centerAt);
+    uvec2 edgeTile = uvec2(0);
+    uvec2 basicEdgeTile = uvec2(0);
+    uvec2 nearbyProperties = uvec2(0);
+    for (int i = 0; i < k_nearbyOffsets.length(); ++i){ // Check all neighbors
+        ivec2 nPosAt = tiToAt(centerAt + k_nearbyOffsets[i], p_.worldTexMaskTi);
+        uvec4 neighbor = loadTile(nPosAt);
+        // Analyze the neighbor
+        nearbyProperties |= uvec2(blockProperties(neighbor.BL_T), wallProperties(neighbor.WL_T));
+        edgeTile |= uvec2(greaterThanEqual(neighbor.TL_T, k_firstNonsolid));
+        basicEdgeTile |= uvec2(isNonsolidTile(neighbor.TL_T));
+    }
+
+    { // Transform block of the tile
+        uvec2 indices = blockRuleIndices(tile.BL_T);
+        for (uint i = indices.x; i <= indices.y;++i) {
+            if (layerTransition(tile, 0, 1, u_blockTransformationRules[i], nearbyProperties, edgeTile)){
+                break;
+            }
+        }
+    }
+
+    { // Transform wall of the tile
+        uvec2 indices = wallRuleIndices(tile.WL_T);
+        for (uint i = indices.x; i <= indices.y;++i) {
+            if (layerTransition(tile, 1, 0, u_wallTransformationRules[i], nearbyProperties, edgeTile)){
+                break;
+            }
+        }
+    }
+
+    // Select variant
+    uvec2 currentlyInner = uvec2(lessThan(tile.TL_V, uvec2(k_solidTileInnerVariantCount)));
+    uvec2 isSolid = uvec2(lessThan(basicType(tile.TL_T), k_firstNonsolid));
+    uvec2 edge = mix(edgeTile, basicEdgeTile, isLooseType(tile.TL_T));
+    uvec2 switchToInner = (~edge & ~currentlyInner) & isSolid;
+    uvec2 switchToOuter = (edge & currentlyInner) & isSolid;
+    uvec2 inner = random2() % k_solidTileInnerVariantCount;
+    uvec2 outer = random2() % k_solidTileOuterVariantCount + k_solidTileInnerVariantCount;
+    tile.TL_V =
+        mix(tile.TL_V, uvec2(0), bvec2(switchToInner | switchToOuter))
+        + mix(uvec2(0), inner, bvec2(switchToInner))
+        + mix(uvec2(0), outer, bvec2(switchToOuter));
+
+    // Store the transformed tile
+    storeTile(centerAt, tile);
+}
