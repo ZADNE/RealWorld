@@ -10,7 +10,7 @@ export namespace rw {
 
 ItemIDSection section(ItemID id);
 
-uint16_t offsetInSection(ItemID id);
+std::uint16_t offsetInSection(ItemID id);
 
 /**
  * @brief Returns the maximum number of items of this id that can be stacked in a slot

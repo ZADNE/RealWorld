@@ -2,9 +2,9 @@
  *  @author    Dubsky Tomas
  */
 module realworld:items.ItemMetadata_impl;
-import :items.ItemMetadata;
 import std;
-import realworld_constants;
+import :items.ItemMetadata;
+import :resources.ResourceIndex;
 
 namespace rw {
 

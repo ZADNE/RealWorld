@@ -23,15 +23,15 @@ public:
      * @brief Contructs chunk from raw bytes
      */
     Chunk(
-        glm::ivec2 posCh, const uint8_t* tiles,
-        std::span<const uint8_t> branchesSerialized
+        glm::ivec2 posCh, const std::uint8_t* tiles,
+        std::span<const std::uint8_t> branchesSerialized
     );
 
     /**
      * @brief Constructs chunk by moving tiles in
      */
     Chunk(
-        glm::ivec2 posCh, std::vector<uint8_t>&& tiles,
+        glm::ivec2 posCh, std::vector<std::uint8_t>&& tiles,
         std::vector<uint8_t>&& branchesSerialized
     );
 
@@ -52,18 +52,20 @@ public:
     /**
      * @brief Gets tiles of the chunk
      */
-    [[nodiscard]] const std::vector<uint8_t>& tiles() const { return m_tiles; }
+    [[nodiscard]] const std::vector<std::uint8_t>& tiles() const {
+        return m_tiles;
+    }
 
     /**
      * @brief Gets serialized branches of the chunk
      */
-    [[nodiscard]] const std::vector<uint8_t>& branchesSerialized() const {
+    [[nodiscard]] const std::vector<std::uint8_t>& branchesSerialized() const {
         return m_branchesSerialized;
     }
 
 private:
-    std::vector<uint8_t> m_tiles; ///< First block layer, then wall layer
-    std::vector<uint8_t> m_branchesSerialized;
+    std::vector<std::uint8_t> m_tiles; ///< First block layer, then wall layer
+    std::vector<std::uint8_t> m_branchesSerialized;
     glm::ivec2 m_posCh{0, 0};
     mutable int m_stepsSinceLastOperation = 0; ///< Steps since last read/write op
 };
