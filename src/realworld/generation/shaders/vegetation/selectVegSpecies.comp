@@ -2,7 +2,7 @@
  *  @author     Dubsky Tomas
  */
 #version 460
-#include <realworld/generation/shaders/tiles/generateStructure.glslm>
+#include <realworld/generation/shaders/tiles/generateStructure.glsl>
 #include <realworld/generation/shaders/vegetation/vegDistribution.glsl>
 #include <realworld/simulation/general/shaders/random.glsl>
 #include <realworld/generation/shaders/generationPll.glsl>

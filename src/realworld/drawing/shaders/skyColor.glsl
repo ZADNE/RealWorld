@@ -6,7 +6,7 @@
 #include <realworld_constants/Sky.glsl>
 #include <realworld/generation/external_shaders/smoothstep.glsl>
 #include <realworld/generation/shaders/tiles/biome.glsl>
-#include <realworld/generation/shaders/tiles/generateStructure.glslm>
+#include <realworld/generation/shaders/tiles/generateStructure.glsl>
 
 const vec3 k_skyColorsPerBiome[] = vec3[](
     vec3(0.2625, 0.851, 0.952), // Cold
