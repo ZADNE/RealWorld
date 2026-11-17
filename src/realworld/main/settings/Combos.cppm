@@ -1,10 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <imgui/imgui.h>
+
 export module realworld:main.settings.Combos;
 import std;
-
-#include <ImGui/imgui.h>
 import glm;
 import realengine;
 import realworld_constants;

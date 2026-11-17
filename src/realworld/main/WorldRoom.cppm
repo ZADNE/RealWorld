@@ -1,12 +1,12 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <imgui/imgui.h>
+#include <imgui/imgui_stdlib.h>
+
 export module realworld:main.WorldRoom;
 import std;
-
-#include <ImGui/imgui.h>
-#include <ImGui/imgui_stdlib.h>
-
 import realengine;
 import :drawing.WorldDrawer;
 import :items.Inventory;

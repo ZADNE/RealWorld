@@ -1,10 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <imgui/imgui.h>
+
 module realworld:main.WorldRoom_ImGui_impl;
 import :main.WorldRoom;
-
-#include <ImGui/imgui.h>
 
 import :save.WorldSaveLoader;
 
