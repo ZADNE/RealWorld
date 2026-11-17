@@ -3,7 +3,7 @@
         biome.glsl                  
         consolidateEdges.comp       
         generateColumnValues.glsl   
-        generateStructure.comp      generateStructure.glsl
+        generateStructure.comp      generateStructure.glslm
         selectVariant.comp          
         undergroundMaterial.glsl    
         voronoiNoise.glsl           

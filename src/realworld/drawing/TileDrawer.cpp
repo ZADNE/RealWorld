@@ -3,13 +3,12 @@
  */
 module realworld:drawing.TileDrawer_impl;
 
-#define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl
 import :drawing.TileDrawer;
 import glm;
 import realworld_constants;
 import :drawing.MinimapLayout;
 import :drawing.shaders.AllShaders.gen;
-import :generation.shaders.tiles.generateStructure_glsl;
+import :generation.shaders.tiles.generateStructure_glslm;
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
