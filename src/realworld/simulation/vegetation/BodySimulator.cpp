@@ -3,6 +3,7 @@
  */
 module realworld:simulation.vegetation.BodySimulator_impl;
 import realworld_constants;
+import :simulation.vegetation.BodySimulator;
 import :simulation.vegetation.shaders.simulateBodies_comp;
 
 using enum vk::BufferUsageFlagBits;

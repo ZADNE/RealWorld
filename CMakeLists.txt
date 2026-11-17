@@ -41,7 +41,7 @@ real_target_package_resources(
     PACKAGE_DIR
         ${CMAKE_CURRENT_BINARY_DIR}
     INDEX_FILE
-        "${CMAKE_CURRENT_BINARY_DIR}/src/RealWorld/resources/ResourceIndex.gen.cppm"
+        "${CMAKE_CURRENT_BINARY_DIR}/src/realworld/resources/ResourceIndex.gen.cppm"
     MODULE_NAME
         "realworld:resources.ResourceIndex_gen"
     INPUT_DIRS
