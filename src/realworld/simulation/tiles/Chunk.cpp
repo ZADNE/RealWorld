@@ -1,6 +1,9 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cassert>
+
 module realworld:simulation.tiles.Chunk_impl;
 import :simulation.tiles.Chunk;
 import :simulation.vegetation.BranchSerialized;

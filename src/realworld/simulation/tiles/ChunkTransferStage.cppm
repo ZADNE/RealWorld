@@ -1,8 +1,14 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cassert>
+
+#include <realengine/utility/OffsetOfArr.hpp>
+
 export module realworld:simulation.tiles.ChunkTransferStage;
 import std;
+import vulkan;
 import realengine;
 import :simulation.vegetation.BranchRange;
 import :simulation.vegetation.BranchSerialized;
@@ -10,7 +16,7 @@ import :simulation.vegetation.shaders.BranchAllocReqUB_glsl;
 
 export namespace rw {
 
-template<uint32_t k_stageSlotCount, uint32_t k_branchStageCount>
+template<std::uint32_t k_stageSlotCount, std::uint32_t k_branchStageCount>
 struct StageBuf {
     std::array<std::array<uint8_t, k_chunkByteSize>, k_stageSlotCount> tiles;
     std::array<uint8_t, k_branchStageCount * sizeof(BranchSerialized)> branches;
@@ -26,7 +32,7 @@ struct TransferSlot {
 /**
  * @brief Is used within ChunkTransferMgr to manage double buffered transfers
  */
-template<uint32_t k_stageSlotCount, uint32_t k_branchStageCount>
+template<std::uint32_t k_stageSlotCount, std::uint32_t k_branchStageCount>
 class ChunkTransferStage {
 public:
     using StgBuf = StageBuf<k_stageSlotCount, k_branchStageCount>;
@@ -195,12 +201,12 @@ public:
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferImageCopy2> tileUploadRegions() const {
-        return {static_cast<uint32_t>(numberOfUploads()), m_tileCopyRegions.data()};
+        return {static_cast<std::uint32_t>(numberOfUploads()), m_tileCopyRegions.data()};
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferCopy2> branchUploadRegions() const {
         return {
-            static_cast<uint32_t>(numberOfBranchUploads()),
+            static_cast<std::uint32_t>(numberOfBranchUploads()),
             m_branchCopyRegions.data()
         };
     }
@@ -298,14 +304,14 @@ public:
 
     vk::ArrayProxyNoTemporaries<const vk::BufferImageCopy2> tileDownloadRegions() const {
         return {
-            static_cast<uint32_t>(numberOfDownloads()),
+            static_cast<std::uint32_t>(numberOfDownloads()),
             m_tileCopyRegions.data() + m_downSlotsBegin
         };
     }
 
     vk::ArrayProxyNoTemporaries<const vk::BufferCopy2> branchDownloadRegions() const {
         return {
-            static_cast<uint32_t>(numberOfBranchDownloads()),
+            static_cast<std::uint32_t>(numberOfBranchDownloads()),
             m_branchCopyRegions.data() + m_branchDownSlotsBegin
         };
     }

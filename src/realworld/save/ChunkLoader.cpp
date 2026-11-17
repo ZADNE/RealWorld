@@ -1,13 +1,13 @@
 /**
  *  @author    Dubsky Tomas
  */
-module realworld:save.ChunkLoader_impl;
-import :save.ChunkLoader;
-import std;
-
+module;
 #include <lodepng/lodepng.hpp>
 
+module realworld:save.ChunkLoader_impl;
+import std;
 import realengine;
+import :save.ChunkLoader;
 
 namespace rw {
 

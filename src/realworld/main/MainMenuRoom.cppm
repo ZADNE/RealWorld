@@ -11,7 +11,7 @@ import glm;
 import :main.Arguments;
 import :main.Room;
 import :main.settings.GameSettings;
-import :main.settings.combos;
+import :main.settings.Combos;
 
 export namespace rw {
 

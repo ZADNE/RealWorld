@@ -19,7 +19,7 @@ CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays
 #endif // RE_BUILDING_FOR_DEBUG
 
     try {
-        parser.parse_args(argc, argv);
+        parser.parse_args({&argv[0], &argv[argc]});
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
         std::cerr << parser;

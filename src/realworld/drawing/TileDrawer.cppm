@@ -6,6 +6,7 @@ import glm;
 import realengine;
 import realworld_constants;
 import :drawing.shaders.WorldDrawingPC_glsl;
+import :resources.ResourceIndex;
 
 export namespace rw {
 

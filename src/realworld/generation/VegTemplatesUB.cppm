@@ -1,9 +1,12 @@
 /**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cassert>
+
 export module realworld:generation.VegTemplatesUB;
 import std;
-import realworld_constants;
+import glm;
 import realworld_constants;
 
 export namespace rw {
@@ -44,7 +47,7 @@ struct VegRasterTemplate {
     float maxLeafStrength;
 };
 
-enum class Symbol : uint8_t {
+enum class Symbol : std::uint8_t {
     Twig,
     Branch,
     Stem,

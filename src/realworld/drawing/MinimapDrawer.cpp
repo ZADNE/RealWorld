@@ -6,7 +6,6 @@ import :drawing.MinimapDrawer;
 import glm;
 import realengine;
 import realworld_constants;
-import realworld_constants;
 
 namespace rw {
 
@@ -33,7 +32,7 @@ void MinimapDrawer::setTarget(glm::vec2 worldTexSize) {
 }
 
 void MinimapDrawer::resizeView(glm::vec2 viewSizePx, glm::vec2 viewSizeTi) {
-    m_viewMat    = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
+    m_viewMat    = glm::ext::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
     m_viewSizePx = viewSizePx;
     m_viewSizeTi = viewSizeTi;
 

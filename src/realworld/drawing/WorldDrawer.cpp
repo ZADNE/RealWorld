@@ -6,7 +6,6 @@ import :drawing.WorldDrawer;
 import glm;
 import realengine;
 import realworld_constants;
-import realworld_constants;
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;

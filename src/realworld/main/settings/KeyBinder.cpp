@@ -1,6 +1,9 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cassert>
+
 module realworld:main.settings.KeyBinder_impl;
 import :main.settings.KeyBinder;
 

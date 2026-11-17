@@ -1,11 +1,12 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-module realworld:main.settings.GameSettings_impl;
-import :main.settings.GameSettings;
-import std;
-
+module;
 #include <nlohmann/json.hpp>
+
+module realworld:main.settings.GameSettings_impl;
+import std;
+import :main.settings.GameSettings;
 
 using json = nlohmann::json;
 

@@ -4,8 +4,7 @@
 module realworld:simulation.vegetation.VegSimulator_impl;
 import glm;
 import realworld_constants;
-import realworld_constants;
-import realworld_constants;
+import :simulation.vegetation.VegSimulator;
 import :simulation.vegetation.BranchAllocRegSB;
 import :simulation.vegetation.shaders.BranchSB_glsl;
 

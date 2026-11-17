@@ -1,6 +1,9 @@
 /**
  *  @author    Dubsky Tomas
  */
+module;
+#include <imgui/imgui.h>
+
 export module realworld:main.Room;
 import std;
 import realengine;

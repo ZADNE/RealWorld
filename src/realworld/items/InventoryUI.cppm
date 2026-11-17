@@ -8,6 +8,7 @@ import realengine;
 import realworld_constants;
 import :items.Item;
 import :items.ItemSprite;
+import :resources.ResourceIndex;
 
 export namespace rw {
 
