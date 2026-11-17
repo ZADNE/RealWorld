@@ -3,7 +3,7 @@
  */
 #ifndef RW_SHADER_MESSAGE_SB_GLSL
 #define RW_SHADER_MESSAGE_SB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 const int k_messageBufferSize = 511;
 layout (set = 0, binding = k_shaderMessageBinding, scalar)

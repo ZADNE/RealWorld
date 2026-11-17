@@ -1,7 +1,7 @@
 // License in file: snoise-License.txt
 #ifndef RW_SNOISE_GLSL
 #define RW_SNOISE_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 inline vec2 hash(vec2 p){
     p = vec2(dot(p,vec2(127.1f, 311.7f)), dot(p,vec2(269.5f, 183.3f)));

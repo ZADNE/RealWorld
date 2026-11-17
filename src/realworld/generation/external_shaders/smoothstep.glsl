@@ -3,7 +3,7 @@
  */
 #ifndef RW_SMOOTHSTEP_GLSL
 #define RW_SMOOTHSTEP_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 inline float linstep_x(float x){
     return x;

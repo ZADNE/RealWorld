@@ -3,7 +3,7 @@
  */
 #ifndef RW_EXTERNAL_LIGHTS_SB_GLSL
 #define RW_EXTERNAL_LIGHTS_SB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 /**
  * @brief Represents a light that can be added into the world.

@@ -3,7 +3,7 @@
  */
 #ifndef RW_BODIES_SB_GLSL
 #define RW_BODIES_SB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 struct Body {
     ivec2 bottomCenterPx;

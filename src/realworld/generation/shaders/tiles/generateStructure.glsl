@@ -3,7 +3,7 @@
  */
 #ifndef RW_GENERATE_STRUCTURE_GLSL
 #define RW_GENERATE_STRUCTURE_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 #include <realworld/generation/external_shaders/float_hash.glsl>
 #include <realworld/generation/external_shaders/snoise.glsl>

@@ -3,7 +3,7 @@
  */
 #ifndef RW_SHADOW_INPUTS_PLL_GLSL
 #define RW_SHADOW_INPUTS_PLL_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 constexpr uint k_lightXluImageBinding   = 0;
 constexpr uint k_worldSamplerBinding    = 1;

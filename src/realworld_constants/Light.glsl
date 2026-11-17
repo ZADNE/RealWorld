@@ -3,7 +3,7 @@
  */
 #ifndef RW_LIGHT_GLSL
 #define RW_LIGHT_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 constexpr int k_lightMaxRangeTi = 320;
 

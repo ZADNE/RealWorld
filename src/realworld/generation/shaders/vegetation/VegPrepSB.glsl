@@ -3,7 +3,7 @@
  */
 #ifndef RW_VEG_PREP_SB_GLSL
 #define RW_VEG_PREP_SB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 #include <realworld_constants/Generation.glsl>
 

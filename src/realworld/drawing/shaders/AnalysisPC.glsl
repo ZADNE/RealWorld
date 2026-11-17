@@ -3,7 +3,7 @@
  */
 #ifndef RW_ANALYSIS_PC_GLSL
 #define RW_ANALYSIS_PC_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 /**
  * @brief Used by analysis and for adding  of dynamic lights

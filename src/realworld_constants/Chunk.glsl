@@ -3,7 +3,7 @@
  */
 #ifndef RW_CHUNK_GLSL
 #define RW_CHUNK_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 const uvec2 uChunkTi = {128, 128};
 const ivec2 iChunkTi = ivec2(uChunkTi);

@@ -3,7 +3,7 @@
  */
 #ifndef RW_GENERATION_GLSL
 #define RW_GENERATION_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 constexpr int k_genBorderWidth = 8;
 constexpr int k_genGroupSize = 16;

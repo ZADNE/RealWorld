@@ -3,7 +3,7 @@
  */
 #ifndef RW_BRANCH_ALLOC_REQ_UB_GLSL
 #define RW_BRANCH_ALLOC_REQ_UB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 #include <realworld_constants/World.glsl>
 

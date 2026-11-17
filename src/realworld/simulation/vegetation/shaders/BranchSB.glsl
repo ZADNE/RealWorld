@@ -3,7 +3,7 @@
  */
 #ifndef RW_BRANCH_SB_GLSL
 #define RW_BRANCH_SB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 #include <realworld_constants/Vegetation.glsl>
 
 #ifdef VULKAN

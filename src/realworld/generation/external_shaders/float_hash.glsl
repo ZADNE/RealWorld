@@ -1,7 +1,7 @@
 // License in file: float_GLSLash-License.txt
 #ifndef RW_FLOAT_HASH_GLSL
 #define RW_FLOAT_HASH_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 //  1 out, 1 in...
 inline float hash11(float p){

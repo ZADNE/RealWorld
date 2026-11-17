@@ -3,7 +3,7 @@
  */
 #ifndef RW_GENERATION_PC_GLSL
 #define RW_GENERATION_PC_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 layout (push_constant, scalar)
 uniform GenerationPC {

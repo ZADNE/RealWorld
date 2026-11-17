@@ -3,7 +3,7 @@
  */
 #ifndef RW_ACTIVE_CHUNKS_SB_GLSL
 #define RW_ACTIVE_CHUNKS_SB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 layout (set = 0, binding = k_acChunksBinding, scalar)
 restrict buffer ActiveChunksSB {

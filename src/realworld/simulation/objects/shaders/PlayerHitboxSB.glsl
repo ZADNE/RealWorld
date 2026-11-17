@@ -3,7 +3,7 @@
  */
 #ifndef RW_PLAYER_HITBOX_SB_GLSL
 #define RW_PLAYER_HITBOX_SB_GLSL
-#include <RealShaders/CppIntegration.glsl>
+#include <realshaders/CppIntegration.glsl>
 
 layout (binding = k_playerBinding, scalar)
 restrict buffer PlayerHitboxSB {
