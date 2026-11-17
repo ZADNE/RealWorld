@@ -7,7 +7,7 @@
 #include <realworld_constants/Light.glsl>
 #include <realworld/generation/external_shaders/snoise.glsl>
 #include <realworld/drawing/shaders/analysisPll.glsl>
-#include <realworld/drawing/shaders/AnalysisPC.glsl>
+#include <realworld/drawing/shaders/AnalysisPC.glslm>
 #include <realworld/drawing/shaders/skyLight.glsl>
 
 const int k_iAnalysisGroupSize = int(k_analysisGroupSize);

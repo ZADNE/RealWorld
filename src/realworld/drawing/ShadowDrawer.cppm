@@ -6,7 +6,7 @@ import glm;
 import realengine;
 import realworld_constants;
 import realworld_constants;
-import :drawing.shaders.AnalysisPC_glsl;
+import :drawing.shaders.AnalysisPC_glslm;
 import :drawing.shaders.ExternalLightsSB_glsl;
 import :drawing.shaders.LightSweepPC_glsl;
 import :drawing.shaders.WorldDrawingPC_glsl;

@@ -1,7 +1,7 @@
 ﻿real_target_sources(RealWorld
     PUBLIC
         addExternalLights.comp      
-        AnalysisPC.glsl             
+        AnalysisPC.glslm             
         analysisPll.glsl            
         analyzeTiles.comp           
         drawFullscreen.vert         
