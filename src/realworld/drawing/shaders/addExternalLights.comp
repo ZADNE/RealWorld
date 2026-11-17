@@ -4,7 +4,7 @@
 #version 460
 #include <realworld_constants/Tile.glsl>
 #include <realworld_constants/Light.glsl>
-#include <realworld/drawing/shaders/AnalysisPC.glslm>
+#include <realworld/drawing/shaders/AnalysisPC.glsl>
 #include <realworld/drawing/shaders/analysisPll.glsl>
 #include <realworld/drawing/shaders/ExternalLightsSB.glsl>
 
