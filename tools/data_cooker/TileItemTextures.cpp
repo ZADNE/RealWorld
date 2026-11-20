@@ -4,13 +4,13 @@
 module;
 #include <cassert>
 
-module realworld.tools.datacooker:TileItemTextures_impl;
+module realworld.tools.data_cooker:TileItemTextures_impl;
 import std;
 import realengine;
 import realworld_constants;
 import :TileItemTextures;
 
-namespace rw::dc {
+namespace rw::datac {
 
 constexpr re::Color k_black{0, 0, 0, 255};
 constexpr re::Color k_white{255, 255, 255, 255};
@@ -118,4 +118,4 @@ void composeTileItemTextures(std::string_view inputDir, std::string_view outputD
     );
 }
 
-} // namespace rw::dc
+} // namespace rw::datac

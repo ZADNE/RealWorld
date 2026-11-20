@@ -1,10 +1,10 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-export module realworld.tools.datacooker:Arguments;
+export module realworld.tools.data_cooker:Arguments;
 import std;
 
-export namespace rw::dc {
+export namespace rw::datac {
 
 struct CLIArguments {
     std::string inputDirectory;
@@ -13,4 +13,4 @@ struct CLIArguments {
 
 CLIArguments parseArguments(int argc, char* argv[]);
 
-} // namespace rw::dc
+} // namespace rw::datac

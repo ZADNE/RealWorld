@@ -1,12 +1,12 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-module realworld.tools.datacooker:Main_impl;
+module realworld.tools.data_cooker:Main_impl;
 import :Arguments;
 import :TileItemTextures;
 
 extern "C++" int main(int argc, char* argv[]) {
-    using namespace rw::dc;
+    using namespace rw::datac;
     try {
         CLIArguments args = parseArguments(argc, argv);
         composeTileItemTextures(args.inputDirectory, args.outputDirectory);

@@ -1,11 +1,11 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
-module realworld.tools.datacooker:Arguments_impl;
+module realworld.tools.data_cooker:Arguments_impl;
 import argparse;
 import :Arguments;
 
-namespace rw::dc {
+namespace rw::datac {
 
 CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays)
     argparse::ArgumentParser parser("DataCooker", "0.1.1");
@@ -32,4 +32,4 @@ CLIArguments parseArguments(int argc, char* argv[]) { // NOLINT(*-avoid-c-arrays
     };
 }
 
-} // namespace rw::dc
+} // namespace rw::datac

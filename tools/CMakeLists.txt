@@ -1,1 +1,1 @@
-﻿add_subdirectory(DataCooker)
+﻿add_subdirectory(data_cooker)
