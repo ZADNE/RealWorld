@@ -5,7 +5,7 @@ export module realworld:simulation.vegetation.BranchAllocRegSB;
 import std;
 import glm;
 import realworld_constants;
-import :simulation.vegetation.shaders.BranchAllocRegSB_glsl;
+import :simulation.vegetation.shaders.BranchAllocRegSB_glsl_gen;
 
 export namespace rw {
 

@@ -8,9 +8,10 @@ import realworld_constants;
 import :save.WorldSave;
 import :simulation.general.ActionCmdBuf;
 import :simulation.objects.Hitbox;
-import :simulation.objects.shaders.AllShaders.gen;
-import :simulation.objects.shaders.PlayerHitboxSB_glsl;
-import :simulation.objects.shaders.PlayerMovementPC_glsl;
+import :simulation.objects.shaders.AllShaders_gen;
+import :simulation.objects.shaders.PlayerHitboxSB_glsl_gen;
+import :simulation.objects.shaders.PlayerMovementPC_glsl_gen;
+import :resources.ResourceIndex;
 
 export namespace rw {
 

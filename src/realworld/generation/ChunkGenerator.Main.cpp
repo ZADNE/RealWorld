@@ -1,11 +1,14 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cstddef>
+
 module realworld:generation.ChunkGenerator_Main_impl;
 import realworld_constants;
 import :generation.ChunkGenerator;
 import :generation.VegTemplatesUB;
-import :generation.shaders.vegetation.VegPrepSB_glsl;
+import :generation.shaders.vegetation.VegPrepSB_glsl_gen;
 import :utility.HotReloadIdentifier;
 
 using enum vk::DescriptorType;

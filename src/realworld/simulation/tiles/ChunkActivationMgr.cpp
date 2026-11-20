@@ -5,7 +5,7 @@ module realworld:simulation.tiles.ChunkActivationMgr_impl;
 import :simulation.tiles.ChunkActivationMgr;
 import std;
 import :save.ChunkLoader;
-import :simulation.tiles.shaders.AllShaders.gen;
+import :simulation.tiles.shaders.AllShaders_gen;
 
 using enum vk::BufferUsageFlagBits;
 

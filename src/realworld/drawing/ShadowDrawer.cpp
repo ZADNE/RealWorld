@@ -6,8 +6,8 @@ import :drawing.ShadowDrawer;
 import glm;
 import realengine;
 import realworld_constants;
-import :drawing.shaders.AllShaders.gen;
-import :drawing.shaders.analysisPll_glsl;
+import :drawing.shaders.AllShaders_gen;
+import :drawing.shaders.analysisPll_glsl_gen;
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;

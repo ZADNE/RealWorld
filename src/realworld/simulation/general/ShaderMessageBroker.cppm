@@ -5,7 +5,7 @@ export module realworld:simulation.general.ShaderMessageBroker;
 import realengine;
 import :items.ItemUser;
 import :simulation.general.ActionCmdBuf;
-import :simulation.general.shaders.ShaderMessageSB_glsl;
+import :simulation.general.shaders.ShaderMessageSB_glsl_gen;
 
 export namespace rw {
 

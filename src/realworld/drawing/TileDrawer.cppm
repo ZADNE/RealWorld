@@ -5,7 +5,7 @@ export module realworld:drawing.TileDrawer;
 import glm;
 import realengine;
 import realworld_constants;
-import :drawing.shaders.WorldDrawingPC_glsl;
+import :drawing.shaders.WorldDrawingPC_glsl_gen;
 import :resources.ResourceIndex;
 
 export namespace rw {

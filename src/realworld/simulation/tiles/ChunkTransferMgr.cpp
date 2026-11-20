@@ -7,8 +7,8 @@ import std;
 import realengine;
 import realworld_constants;
 import :simulation.tiles.ChunkActivationMgr;
-import :simulation.tiles.shaders.AllShaders.gen;
-import :simulation.vegetation.shaders.reallocBranches_comp;
+import :simulation.tiles.shaders.AllShaders_gen;
+import :simulation.vegetation.shaders.reallocBranches_comp_gen;
 
 using enum vk::CommandBufferUsageFlagBits;
 using enum vk::ImageAspectFlagBits;

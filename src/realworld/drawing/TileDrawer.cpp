@@ -2,14 +2,11 @@
  *  @author    Dubsky Tomas
  */
 module realworld:drawing.TileDrawer_impl;
-
-#define GLM_FORCE_SWIZZLE // Used in shaders in generateStructure.glsl
 import :drawing.TileDrawer;
-import glm;
 import realworld_constants;
 import :drawing.MinimapLayout;
-import :drawing.shaders.AllShaders.gen;
-import :generation.shaders.tiles.generateStructure_glsl;
+import :drawing.shaders.AllShaders_gen;
+import :generation.shaders.tiles.generateStructure_glsl_gen;
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -83,7 +80,7 @@ void TileDrawer::setTarget(
 }
 
 void TileDrawer::resizeView(glm::vec2 viewSizePx) {
-    m_pc.minimapViewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
+    m_pc.minimapViewMat = glm::ext::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
     m_viewSizePx        = viewSizePx;
 
     auto layout        = minimapLayout(m_pc.worldTexMask + 1, viewSizePx);

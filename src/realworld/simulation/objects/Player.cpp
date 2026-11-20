@@ -1,6 +1,9 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cstddef>
+
 module realworld:simulation.objects.Player_impl;
 import :simulation.objects.Player;
 import glm;

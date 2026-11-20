@@ -12,7 +12,7 @@ import vulkan;
 import realengine;
 import :simulation.vegetation.BranchRange;
 import :simulation.vegetation.BranchSerialized;
-import :simulation.vegetation.shaders.BranchAllocReqUB_glsl;
+import :simulation.vegetation.shaders.BranchAllocReqUB_glsl_gen;
 
 export namespace rw {
 

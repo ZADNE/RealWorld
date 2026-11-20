@@ -6,8 +6,8 @@ import glm;
 import realengine;
 import :save.WorldSave;
 import :simulation.general.ActionCmdBuf;
-import :simulation.vegetation.shaders.AllShaders.gen;
-import :simulation.vegetation.shaders.VegDynamicsPC_glsl;
+import :simulation.vegetation.shaders.AllShaders_gen;
+import :simulation.vegetation.shaders.VegDynamicsPC_glsl_gen;
 
 export namespace rw {
 

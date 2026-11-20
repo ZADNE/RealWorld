@@ -9,7 +9,7 @@ import std;
 import glm;
 import realengine;
 import realworld_constants;
-import :generation.shaders.tiles.generateStructure_glsl;
+import :generation.shaders.tiles.generateStructure_glsl_gen;
 import :save.WorldSaveLoader;
 import :simulation.objects.Player;
 

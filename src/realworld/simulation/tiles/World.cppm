@@ -8,8 +8,8 @@ import realworld_constants;
 import :save.WorldSave;
 import :simulation.objects.Hitbox;
 import :simulation.tiles.ChunkActivationMgr;
-import :simulation.tiles.shaders.AllShaders.gen;
-import :simulation.tiles.shaders.WorldDynamicsPC_glsl;
+import :simulation.tiles.shaders.AllShaders_gen;
+import :simulation.tiles.shaders.WorldDynamicsPC_glsl_gen;
 import :simulation.vegetation.BodySimulator;
 import :simulation.vegetation.VegSimulator;
 
@@ -105,8 +105,8 @@ private:
     re::Buffer m_tilePropertiesBuf;
 
     glsl::WorldDynamicsPC m_worldDynamicsPC{
-        .timeHash = static_cast<uint32_t>(time(nullptr)),
-        .timeSec  = static_cast<float>(time(nullptr) & 0xFFFF)
+        .timeHash = static_cast<uint32_t>(std::time(nullptr)),
+        .timeSec  = static_cast<float>(std::time(nullptr) & 0xFFFF)
     };
 
     re::PipelineLayout m_simulationPL;

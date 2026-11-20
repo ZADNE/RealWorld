@@ -10,7 +10,7 @@ import realengine;
 import :generation.ChunkGenerator;
 import :simulation.tiles.Chunk;
 import :simulation.tiles.ChunkTransferMgr;
-import :simulation.tiles.shaders.ActiveChunksSB_glsl;
+import :simulation.tiles.shaders.ActiveChunksSB_glsl_gen;
 
 export namespace rw {
 

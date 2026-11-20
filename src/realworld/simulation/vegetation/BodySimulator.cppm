@@ -5,7 +5,7 @@ export module realworld:simulation.vegetation.BodySimulator;
 import glm;
 import realengine;
 import :save.WorldSave;
-import :simulation.vegetation.shaders.BodiesSB_glsl;
+import :simulation.vegetation.shaders.BodiesSB_glsl_gen;
 
 export namespace rw {
 

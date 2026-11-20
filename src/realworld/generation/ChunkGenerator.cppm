@@ -4,9 +4,9 @@
 export module realworld:generation.ChunkGenerator;
 import realengine;
 import realworld_constants;
-import :generation.shaders.GenerationPC_glsl;
-import :generation.shaders.tiles.AllShaders.gen;
-import :generation.shaders.vegetation.AllShaders.gen;
+import :generation.shaders.GenerationPC_glsl_gen;
+import :generation.shaders.tiles.AllShaders_gen;
+import :generation.shaders.vegetation.AllShaders_gen;
 import :simulation.general.ActionCmdBuf;
 
 export namespace rw {

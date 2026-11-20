@@ -1,12 +1,15 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cstddef>
+
 module realworld:simulation.vegetation.VegSimulator_impl;
 import glm;
 import realworld_constants;
 import :simulation.vegetation.VegSimulator;
 import :simulation.vegetation.BranchAllocRegSB;
-import :simulation.vegetation.shaders.BranchSB_glsl;
+import :simulation.vegetation.shaders.BranchSB_glsl_gen;
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::ShaderStageFlagBits;
@@ -152,7 +155,7 @@ VegSimulator::VegStorage VegSimulator::adoptSave(
     m_vegDynamicsPC.worldTexMaskTi = m_worldTexSizeTi - 1u;
     glm::vec2 worldTexSizeTi{m_worldTexSizeTi};
     m_vegDynamicsPC.mvpMat =
-        glm::ortho(0.0f, worldTexSizeTi.x, 0.0f, worldTexSizeTi.y);
+        glm::ext::ortho(0.0f, worldTexSizeTi.x, 0.0f, worldTexSizeTi.y);
 
     // Prepare branch buffer
     m_branchBuf = re::Buffer{re::BufferCreateInfo{

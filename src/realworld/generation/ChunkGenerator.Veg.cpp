@@ -1,9 +1,12 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cstddef>
+
 module realworld:generation.ChunkGenerator_Veg_impl;
 import :generation.ChunkGenerator;
-import :generation.shaders.vegetation.VegPrepSB_glsl;
+import :generation.shaders.vegetation.VegPrepSB_glsl_gen;
 
 using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;

@@ -6,7 +6,7 @@ import realengine;
 import :drawing.MinimapDrawer;
 import :drawing.ShadowDrawer;
 import :drawing.TileDrawer;
-import :drawing.shaders.WorldDrawingPC_glsl;
+import :drawing.shaders.WorldDrawingPC_glsl_gen;
 
 export namespace rw {
 
