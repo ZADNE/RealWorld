@@ -6,6 +6,7 @@ module;
 
 module realworld:simulation.tiles.World_impl;
 import :simulation.tiles.World;
+import :simulation.tiles.shaders.simulationPll_glsl_gen;
 
 using enum vk::DescriptorType;
 using enum vk::ShaderStageFlagBits;
@@ -18,14 +19,6 @@ using A = vk::AccessFlagBits2;
 #define MEMBER(var, m0) offsetof(decltype(var), m0), sizeof(var.m0), &var.m0
 
 namespace rw {
-
-constexpr glm::uint k_worldTexBinding       = 0;
-constexpr glm::uint k_acChunksBinding       = 1;
-constexpr glm::uint k_tilePropertiesBinding = 2;
-constexpr glm::uint k_branchBinding         = 3;
-constexpr glm::uint k_branchAllocRegBinding = 4;
-constexpr glm::uint k_branchAllocReqBinding = 5;
-constexpr glm::uint k_shaderMessageBinding  = 6;
 
 constexpr float k_stepDurationSec = 1.0f / k_physicsStepsPerSecond;
 
@@ -77,13 +70,13 @@ World::World(const re::Buffer& shaderMessageBuf)
           {},
           re::PipelineLayoutDescription{
               .bindings =
-                  {{{k_worldTexBinding, eStorageImage, 1, eCompute},
-                    {k_acChunksBinding, eStorageBuffer, 1, eCompute},
-                    {k_tilePropertiesBinding, eUniformBuffer, 1, eCompute},
-                    {k_branchBinding, eStorageBuffer, 1, eCompute},
-                    {k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
-                    {k_branchAllocReqBinding, eUniformBuffer, 1, eCompute},
-                    {k_shaderMessageBinding, eStorageBuffer, 1, eCompute}}},
+                  {{{glsl::k_worldTexBinding, eStorageImage, 1, eCompute},
+                    {glsl::k_acChunksBinding, eStorageBuffer, 1, eCompute},
+                    {glsl::k_tilePropertiesBinding, eUniformBuffer, 1, eCompute},
+                    {glsl::k_branchBinding, eStorageBuffer, 1, eCompute},
+                    {glsl::k_branchAllocRegBinding, eStorageBuffer, 1, eCompute},
+                    {glsl::k_branchAllocReqBinding, eUniformBuffer, 1, eCompute},
+                    {glsl::k_shaderMessageBinding, eStorageBuffer, 1, eCompute}}},
               .ranges = {vk::PushConstantRange{eCompute, 0u, sizeof(glsl::WorldDynamicsPC)}}
           }
       )
@@ -96,8 +89,12 @@ World::World(const re::Buffer& shaderMessageBuf)
               .debugName   = "rw::World::tileProperties"
           }
       ) {
-    m_simulationDS.write(eUniformBuffer, k_tilePropertiesBinding, 0, m_tilePropertiesBuf);
-    m_simulationDS.write(eStorageBuffer, k_shaderMessageBinding, 0, shaderMessageBuf);
+    m_simulationDS.write(
+        eUniformBuffer, glsl::k_tilePropertiesBinding, 0, m_tilePropertiesBuf
+    );
+    m_simulationDS.write(
+        eStorageBuffer, glsl::k_shaderMessageBinding, 0, shaderMessageBuf
+    );
 }
 
 const re::Texture& World::adoptSave(
@@ -120,7 +117,7 @@ const re::Texture& World::adoptSave(
         .initialLayout = eShaderReadOnlyOptimal,
         .debugName     = "rw::World::world"
     }};
-    m_simulationDS.write(eStorageImage, k_worldTexBinding, 0, m_worldTex, eGeneral);
+    m_simulationDS.write(eStorageImage, glsl::k_worldTexBinding, 0, m_worldTex, eGeneral);
     acb.track(ImageTrackName::World, m_worldTex, eShaderReadOnlyOptimal, k_tileLayerCount);
 
     // Body simulator
@@ -128,9 +125,9 @@ const re::Texture& World::adoptSave(
 
     // Vegetation simulator
     auto vegStorage = m_vegSimulator.adoptSave(m_worldTex, worldTexSizeCh);
-    m_simulationDS.write(eStorageBuffer, k_branchBinding, 0, vegStorage.branchBuf);
+    m_simulationDS.write(eStorageBuffer, glsl::k_branchBinding, 0, vegStorage.branchBuf);
     m_simulationDS.write(
-        eStorageBuffer, k_branchAllocRegBinding, 0, vegStorage.branchAllocRegBuf
+        eStorageBuffer, glsl::k_branchAllocRegBinding, 0, vegStorage.branchAllocRegBuf
     );
     acb.track(BufferTrackName::Branch, vegStorage.branchBuf);
     acb.track(BufferTrackName::AllocReg, vegStorage.branchAllocRegBuf);
@@ -152,7 +149,7 @@ const re::Texture& World::adoptSave(
 
     m_activeChunksBuf = &activationBufs.activeChunksBuf;
     m_simulationDS.write(
-        eUniformBuffer, k_branchAllocReqBinding, 0, activationBufs.allocReqBuf
+        eUniformBuffer, glsl::k_branchAllocReqBinding, 0, activationBufs.allocReqBuf
     );
 
     return m_worldTex;

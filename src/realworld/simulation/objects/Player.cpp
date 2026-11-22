@@ -5,10 +5,11 @@ module;
 #include <cstddef>
 
 module realworld:simulation.objects.Player_impl;
-import :simulation.objects.Player;
 import glm;
 import realengine;
 import realworld_constants;
+import :simulation.objects.Player;
+import :simulation.objects.shaders.playerPll_glsl_gen;
 
 using enum vk::BufferUsageFlagBits;
 using enum vk::MemoryPropertyFlagBits;
@@ -18,9 +19,6 @@ using S = vk::PipelineStageFlagBits2;
 using A = vk::AccessFlagBits2;
 
 namespace rw {
-
-constexpr glm::uint k_worldTexBinding = 0;
-constexpr glm::uint k_playerBinding   = 1;
 
 Player::Player(const glsl::PlayerHitboxSB& initSb)
     : m_hitboxBuf(
@@ -42,7 +40,7 @@ Player::Player(const glsl::PlayerHitboxSB& initSb)
               .debugName   = "rw::Player::hitboxStage"
           }
       ) {
-    m_descriptorSet.write(D::eStorageBuffer, k_playerBinding, 0u, m_hitboxBuf);
+    m_descriptorSet.write(D::eStorageBuffer, glsl::k_playerBinding, 0u, m_hitboxBuf);
 }
 
 void Player::adoptSave(
@@ -57,7 +55,8 @@ void Player::adoptSave(
         .velocityPx = glm::vec2{0.0f, 0.0f}
     };
     m_descriptorSet.write(
-        D::eStorageImage, k_worldTexBinding, 0u, worldTexture, vk::ImageLayout::eGeneral
+        D::eStorageImage, glsl::k_worldTexBinding, 0u, worldTexture,
+        vk::ImageLayout::eGeneral
     );
     re::CommandBuffer::doOneTimeSubmit([&](const re::CommandBuffer& cb) {
         vk::BufferCopy2 copyRegion{0ull, 0ull, sizeof(glsl::PlayerHitboxSB)};
