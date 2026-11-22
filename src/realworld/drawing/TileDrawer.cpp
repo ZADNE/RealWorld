@@ -80,7 +80,7 @@ void TileDrawer::setTarget(
 }
 
 void TileDrawer::resizeView(glm::vec2 viewSizePx) {
-    m_pc.minimapViewMat = glm::ext::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
+    m_pc.minimapViewMat = glm::ortho(0.0f, viewSizePx.x, 0.0f, viewSizePx.y);
     m_viewSizePx        = viewSizePx;
 
     auto layout        = minimapLayout(m_pc.worldTexMask + 1, viewSizePx);

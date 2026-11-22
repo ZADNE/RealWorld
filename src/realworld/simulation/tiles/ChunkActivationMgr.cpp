@@ -1,9 +1,15 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cstddef>
+
+#include <glm/gtx/hash.hpp>
+
 module realworld:simulation.tiles.ChunkActivationMgr_impl;
 import :simulation.tiles.ChunkActivationMgr;
 import std;
+import glm;
 import :save.ChunkLoader;
 import :simulation.tiles.shaders.AllShaders_gen;
 

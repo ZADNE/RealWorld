@@ -6,7 +6,7 @@ import :simulation.general.ShaderMessageBroker;
 
 namespace rw {
 
-constexpr int k_byteBits = CHAR_BIT;
+constexpr int k_byteBits = 8;
 
 enum class ShaderMessageID {
     Reserved,

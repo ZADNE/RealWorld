@@ -1,6 +1,10 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cassert>
+#include <cstddef>
+
 module realworld:simulation.tiles.ChunkTransferMgr_impl;
 import :simulation.tiles.ChunkTransferMgr;
 import std;

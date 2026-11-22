@@ -1,6 +1,10 @@
 /**
  *  @author    Dubsky Tomas
  */
+module;
+#include <imgui/imgui.h>
+#include <imgui/imgui_stdlib.h>
+
 module realworld:main.MainMenuRoom_impl;
 import :main.MainMenuRoom;
 import std;
@@ -69,7 +73,7 @@ void MainMenuRoom::sessionStart(const re::RoomTransitionArguments& args) {
     m_menu = Main;
     WorldSaveLoader::searchSavedWorlds(m_worlds);
     m_newWorldName = "";
-    m_newWorldSeed = static_cast<int>(time(nullptr)) &
+    m_newWorldSeed = static_cast<int>(std::time(nullptr)) &
                      WorldSaveLoader::k_seedSafeMax;
     engine().setWindowTitle("RealWorld!");
 

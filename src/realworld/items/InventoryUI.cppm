@@ -12,7 +12,6 @@ import :resources.ResourceIndex;
 
 export namespace rw {
 
-class ItemUser;
 class Inventory;
 
 /**
@@ -106,7 +105,8 @@ private:
 
     template<typename Func>
     void forEachConnectedInventory(Func f) {
-        for (int c = Primary; c < static_cast<int>(Connection::Count); ++c) {
+        for (auto c = std::to_underlying(Primary);
+             c < std::to_underlying(Count); ++c) {
             if (m_inv[c]) { // If connected the inventory
                 f(static_cast<Connection>(c));
             }
@@ -136,7 +136,7 @@ private:
     int m_selSlotPrev = 0; ///< signed but never should be negative
 
     template<typename T>
-    using PerConnection = std::array<T, static_cast<size_t>(Connection::Count)>;
+    using PerConnection = std::array<T, std::to_underlying(Count)>;
 
     PerConnection<Inventory*> m_inv{nullptr, nullptr, nullptr};
     PerConnection<std::vector<ItemSprite>> m_invItemSprites;

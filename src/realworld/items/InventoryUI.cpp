@@ -2,11 +2,11 @@
  *  @author    Dubsky Tomas
  */
 module realworld:items.InventoryUI_impl;
-import :items.InventoryUI;
 import std;
 import glm;
 import realengine;
 import :items.Inventory;
+import :items.InventoryUI;
 import :items.ItemUser;
 
 namespace rw {

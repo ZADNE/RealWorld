@@ -3,8 +3,6 @@
  */
 export module realworld:simulation.tiles.ChunkActivationMgr;
 import std;
-
-#define GLM_ENABLE_EXPERIMENTAL
 import glm;
 import realengine;
 import :generation.ChunkGenerator;

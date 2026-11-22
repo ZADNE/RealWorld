@@ -12,6 +12,8 @@ constexpr ivec2 iTilePx = ivec2(uTilePx);
 constexpr vec2  TilePx  = vec2(uTilePx);
 constexpr ivec2 k_tileLowZeroBits = {2, 2};
 
+#if defined(VULKAN)
+
 inline vec2  pxToTi(vec2 posPx)  { return floor(posPx / TilePx); }
 inline float pxToTi(float posPx) { return floor(posPx / TilePx.x); }
 inline ivec2 pxToTi(ivec2 posPx) { return posPx >> k_tileLowZeroBits; }
@@ -21,6 +23,8 @@ inline vec2  tiToPx(vec2 posTi)  { return posTi * TilePx; }
 inline float tiToPx(float posTi) { return posTi * TilePx.x; }
 inline ivec2 tiToPx(ivec2 posTi) { return posTi << k_tileLowZeroBits; }
 inline int   tiToPx(int posTi)   { return posTi << k_tileLowZeroBits.x; }
+
+#endif // defined(VULKAN)
 
 #define LAYER_TYPE x
 #define LAYER_VARIANT y

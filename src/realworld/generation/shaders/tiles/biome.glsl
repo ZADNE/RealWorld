@@ -3,8 +3,6 @@
  */
 #ifndef RW_BIOME_GLSL
 #define RW_BIOME_GLSL
-#include <realshaders/CppIntegration.glsl>
-
 #include <realworld_constants/Tile.glsl>
 
 const uvec2 k_stoneTiles[] = {

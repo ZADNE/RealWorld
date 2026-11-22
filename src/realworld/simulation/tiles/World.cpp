@@ -1,6 +1,9 @@
 ﻿/**
  *  @author    Dubsky Tomas
  */
+module;
+#include <cstddef>
+
 module realworld:simulation.tiles.World_impl;
 import :simulation.tiles.World;
 

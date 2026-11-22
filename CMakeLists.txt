@@ -32,7 +32,8 @@ endfunction()
 _add_realworld_sublib(RealWorld_constants)
 _add_realworld_sublib(RealWorld)
 set_target_properties(RealWorld PROPERTIES
-    realproject_setup_filepath_rel      "RealWorld/main/Setup.gen.hpp"
+    realproject_setup_filepath_rel  "realworld/main/Setup.gen.cppm"
+    realproject_setup_module        "realworld:main.Setup_gen"
 )
 target_link_libraries(RealWorld PUBLIC RealWorld_constants)
 
@@ -56,7 +57,10 @@ add_dependencies(RealWorld_PackageResources DataCooker_Cook)
 
 # RealWorld Game
 add_real_executable(RealWorld_Game)
-target_include_directories(RealWorld_Game PRIVATE "src")
+real_target_init_file_sets(RealWorld_Game
+    BASE_DIR "src"
+    SOURCES_AS_CXX_MODULE_IMPL_UNITS
+)
 set_target_properties(RealWorld_Game PROPERTIES
     CXX_STANDARD                    23
     INTERPROCEDURAL_OPTIMIZATION    TRUE
@@ -65,7 +69,10 @@ target_link_libraries(RealWorld_Game PUBLIC RealWorld)
 
 # RealWorld PerfTest
 add_real_executable(RealWorld_PerfTest)
-target_include_directories(RealWorld_PerfTest PRIVATE "src" "perf_test")
+real_target_init_file_sets(RealWorld_PerfTest
+    BASE_DIR "perf_test"
+    SOURCES_AS_CXX_MODULE_IMPL_UNITS
+)
 set_target_properties(RealWorld_PerfTest PROPERTIES
     CXX_STANDARD                    23
     INTERPROCEDURAL_OPTIMIZATION    TRUE

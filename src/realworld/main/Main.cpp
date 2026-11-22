@@ -1,14 +1,15 @@
 /**
  *  @author    Dubsky Tomas
  */
+module realworld:main.Main_impl;
 import realengine;
 import :main.Arguments;
 import :main.MainMenuRoom;
-import :main.Setup.gen;
+import :main.Setup_gen;
 import :main.WorldRoom;
 import :main.settings.GameSettings;
 
-int main(int argc, char* argv[]) {
+extern "C++" int main(int argc, char* argv[]) {
     vk::StructureChain chain{
         vk::PhysicalDeviceFeatures2{vk::PhysicalDeviceFeatures{}
                                         .setTessellationShader(true)
