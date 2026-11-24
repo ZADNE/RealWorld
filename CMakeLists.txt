@@ -16,12 +16,9 @@ function(_add_realworld_sublib target_name)
     real_target_init_file_sets(${target_name}
         BASE_DIR "src"
         GENERATE_CXX_MODULE_INTERFACE ${target_name_lower}
-        SOURCES_AS_CXX_MODULE_IMPL_UNITS
     )
     set_target_properties(${target_name} PROPERTIES
-        CXX_STANDARD 23
-        realproject_shader_cxx_namespace "rw::glsl"
-        INTERPROCEDURAL_OPTIMIZATION TRUE
+        RE_SHADER_NAMESPACE "rw::glsl"
     )
     target_link_libraries(${target_name}
         PUBLIC
@@ -32,8 +29,8 @@ endfunction()
 _add_realworld_sublib(RealWorld_constants)
 _add_realworld_sublib(RealWorld)
 set_target_properties(RealWorld PROPERTIES
-    realproject_setup_filepath_rel  "realworld/main/Setup.gen.cppm"
-    realproject_setup_module        "realworld:main.Setup_gen"
+    RE_SETUP_FILEPATH_REL  "realworld/main/Setup.gen.cppm"
+    RE_SETUP_MODULE        "realworld:main.Setup_gen"
 )
 target_link_libraries(RealWorld PUBLIC RealWorld_constants)
 
@@ -59,11 +56,6 @@ add_dependencies(RealWorld_PackageResources DataCooker_Cook)
 add_real_executable(RealWorld_Game)
 real_target_init_file_sets(RealWorld_Game
     BASE_DIR "src"
-    SOURCES_AS_CXX_MODULE_IMPL_UNITS
-)
-set_target_properties(RealWorld_Game PROPERTIES
-    CXX_STANDARD                    23
-    INTERPROCEDURAL_OPTIMIZATION    TRUE
 )
 target_link_libraries(RealWorld_Game PUBLIC RealWorld)
 
@@ -71,11 +63,9 @@ target_link_libraries(RealWorld_Game PUBLIC RealWorld)
 add_real_executable(RealWorld_PerfTest)
 real_target_init_file_sets(RealWorld_PerfTest
     BASE_DIR "perf_test"
-    SOURCES_AS_CXX_MODULE_IMPL_UNITS
 )
 set_target_properties(RealWorld_PerfTest PROPERTIES
-    CXX_STANDARD                    23
-    INTERPROCEDURAL_OPTIMIZATION    TRUE
+    RE_SOURCES_AS_CXX_IMPL_UNITS    ON
     COMPILE_WARNING_AS_ERROR        OFF
     EXPORT_COMPILE_COMMANDS         OFF
     CXX_CLANG_TIDY                  ""
