@@ -11,9 +11,9 @@ endif()
 
 # RealWorld library
 function(_add_realworld_sublib target_name)
-    add_real_library(${target_name} STATIC)
+    re_add_library(${target_name} STATIC)
     string(TOLOWER ${target_name} target_name_lower)
-    real_target_init_file_sets(${target_name}
+    re_target_init_file_sets(${target_name}
         BASE_DIR "src"
         GENERATE_CXX_MODULE_INTERFACE ${target_name_lower}
     )
@@ -37,7 +37,7 @@ target_link_libraries(RealWorld PUBLIC RealWorld_constants)
 # Data cooking and packaging for RealWorld
 include("cmake/DataCooking.cmake")
 add_dependencies(RealWorld DataCooker_Cook)
-real_target_package_resources(
+re_target_package_resources(
     TARGET
         RealWorld
     PACKAGE_DIR
@@ -53,15 +53,15 @@ real_target_package_resources(
 add_dependencies(RealWorld_PackageResources DataCooker_Cook)
 
 # RealWorld Game
-add_real_executable(RealWorld_Game)
-real_target_init_file_sets(RealWorld_Game
+re_add_executable(RealWorld_Game)
+re_target_init_file_sets(RealWorld_Game
     BASE_DIR "src"
 )
 target_link_libraries(RealWorld_Game PUBLIC RealWorld)
 
 # RealWorld PerfTest
-add_real_executable(RealWorld_PerfTest)
-real_target_init_file_sets(RealWorld_PerfTest
+re_add_executable(RealWorld_PerfTest)
+re_target_init_file_sets(RealWorld_PerfTest
     BASE_DIR "perf_test"
 )
 set_target_properties(RealWorld_PerfTest PROPERTIES

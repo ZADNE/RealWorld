@@ -1,6 +1,6 @@
 add_subdirectory(shaders)
 
-real_target_sources(RealWorld
+re_target_sources(RealWorld
     PUBLIC
         BodySimulator.cppm          BodySimulator.cpp
         BranchAllocRegSB.cppm       

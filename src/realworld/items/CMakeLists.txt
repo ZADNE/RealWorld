@@ -1,4 +1,4 @@
-﻿real_target_sources(RealWorld
+﻿re_target_sources(RealWorld
     PUBLIC
         Inventory.cppm              Inventory.cpp
         InventoryData.cppm          

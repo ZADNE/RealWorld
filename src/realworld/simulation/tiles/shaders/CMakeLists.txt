@@ -1,4 +1,4 @@
-﻿real_target_sources(RealWorld
+﻿re_target_sources(RealWorld
     PUBLIC
         ActiveChunksSB.glsl         
         analyzeContinuity.comp      

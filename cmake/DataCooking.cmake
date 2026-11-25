@@ -1,8 +1,8 @@
 ﻿# author     Dubsky Tomas
 
 # DataCooker
-add_real_executable(DataCooker)
-real_target_init_file_sets(DataCooker
+re_add_executable(DataCooker)
+re_target_init_file_sets(DataCooker
     BASE_DIR "tools"
 )
 target_include_directories(DataCooker PRIVATE src)

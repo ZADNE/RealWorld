@@ -1,6 +1,6 @@
 ﻿add_subdirectory(shaders)
 
-real_target_sources(RealWorld
+re_target_sources(RealWorld
     PUBLIC
         Chunk.cppm                  Chunk.cpp
         ChunkActivationMgr.cppm     ChunkActivationMgr.cpp

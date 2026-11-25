@@ -1,6 +1,6 @@
 add_subdirectory(tile_properties)
 
-real_target_sources(RealWorld_constants
+re_target_sources(RealWorld_constants
     PUBLIC
         Body.cppm                   Body.glsl
         Chunk.cppm                  Chunk.glsl

@@ -1,4 +1,4 @@
-﻿real_target_sources(DataCooker
+﻿re_target_sources(DataCooker
     PRIVATE
         Arguments.cppm              Arguments.cpp
                                     Main.cpp
